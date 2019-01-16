@@ -1,0 +1,1167 @@
+<template>
+
+  <div style="min-height: 400px">
+    <el-button v-hasOnlyBtn="PERMISSION_BTN.ADD_PLAN" @click="handleAdd" class="mb15" icon="el-icon-circle-plus" size="small">新增</el-button>
+
+    <el-row :gutter="20">
+      <el-col class="item" :span="12" v-for="item in imgList" :key="item.id">
+        <el-card :body-style="{ padding: '0px' }">
+
+          <el-row>
+            <el-col class="img" :span="10">
+              <img :src="item.url" class="image">
+            </el-col>
+
+            <el-col class="desc" :span="14">
+              <div class="title desc-item">{{item.name}}</div>
+
+              <div class="desc-item text-truncate label-text">
+                <div class="label">标签</div>
+                <div class="text">{{item.characteristicName}}</div>
+              </div>
+
+              <el-row class="desc-item">
+                <el-col :span="8">
+                  <div class="label">朝向</div>
+                  <div class="text">{{item.orientationName}}</div>
+                </el-col>
+
+                <el-col :span="8">
+                  <div class="label">面积</div>
+                  <div class="text"> {{item.buildingArea}}m² </div>
+                </el-col>
+
+                <el-col :span="8">
+                  <div class="label">户型</div>
+                  <div class="text">{{_getUnitText(item)}}</div>
+                </el-col>
+
+              </el-row>
+
+              <el-row style="display: flex; align-items: center" class="desc-item">
+
+                <el-col :span="8">
+                  <div class="label">参考总价</div>
+                  <div class="text">{{item.totalPrice}} 万</div>
+                </el-col>
+
+                <el-col :span="8">
+                  <div class="label">销售状态</div>
+                  <div class="text">
+
+                    <el-tag v-if="item.saleType === 0" type="warning" size="mini">待售</el-tag>
+                    <el-tag v-else-if="item.saleType === 1" type="success" size="mini">在售</el-tag>
+                    <el-tag v-else-if="item.saleType === 2" type="info" size="mini">售罄</el-tag>
+                  </div>
+                </el-col>
+
+                <el-col :span="8">
+                  <div class="label">视频</div>
+                  <div class="text" v-if="!item['videoUrl']">无</div>
+                  <template v-else>
+                    <el-tooltip effect="dark" content="预览视频" placement="top">
+                      <el-button @click="previewVideo(item)" class="text-btn" type="text" icon="el-icon-view" size="mini"></el-button>
+                    </el-tooltip>
+                  </template>
+                  <el-button v-hasOnlyBtn="PERMISSION_BTN.UPDATE_PLAN_VIDEO" @click="handleEditVideo(item)" class="text-btn ml10" type="text" icon="el-icon-edit" size="mini">设置</el-button>
+                </el-col>
+
+              </el-row>
+
+              <div class="desc-item">
+                <div class="label">看房地址</div>
+                <div class="text text-truncate">{{item.panoramaUrl}}</div>
+                <el-button v-hasOnlyBtn="PERMISSION_BTN.UPDATE_PLAN_VR" @click="handleEditVrUrl(item)" class="text-btn ml10" type="text" icon="el-icon-edit" size="mini">设置</el-button>
+              </div>
+
+              <div class="desc-item brief">
+                <div class="label">户型解读</div>
+                <div class="text evaluate">{{item.evaluate}}</div>
+              </div>
+
+            </el-col>
+          </el-row>
+
+          <el-tooltip class="item" effect="dark" content="修改户型信息" placement="top">
+            <i v-hasOnlyBtn="PERMISSION_BTN.UPDATE_PLAN_INFO" @click="handleEdit(item)" class="edit el-icon-edit"></i>
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="修改户型图片" placement="top">
+            <i v-hasOnlyBtn="PERMISSION_BTN.UPDATE_PLAN_PIF" @click="handleEditPic(item)" class="picture el-icon-picture"></i>
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="删除该户型" placement="top">
+            <i v-hasOnlyBtn="PERMISSION_BTN.DEL_PLAN" @click="handleDelete(item)" class="delete el-icon-delete"></i>
+          </el-tooltip>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-dialog
+      title="上传户型图片"
+      :visible.sync="dialogVisible"
+      width="800px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <base-file-upload @on-success="fileSuccess" :simple="true" :multiple="false" :postAction="uploadUrl" ref="fileUpload" @handleUploadAll="handleUploadAll" @handleUploadItem="handleUploadItem">
+
+        <template slot-scope="scope">
+
+          <el-form class="upload-form" ref="form" :rules="rules" :model="form" size="mini" label-width="80px">
+
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="户型名称" prop="name">
+                  <el-input v-model="form.name"></el-input>
+                </el-form-item>
+              </el-col>
+
+              <el-col :span="12">
+                <el-form-item label="朝向" prop="orientation">
+
+                  <base-select
+                    v-model="form.orientation"
+                    :data="orientationOpts"
+                    :props="selectProps"
+                  >
+                  </base-select>
+
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-form-item label="户型描述" required class="margin-b-none">
+              <el-col :span="4">
+                <el-form-item prop="room"><el-input v-model.number="form.room"><i slot="suffix" class="suffix">室</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="hall"><el-input v-model.number="form.hall"><i slot="suffix" class="suffix">厅</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="toilet"><el-input v-model.number="form.toilet"><i slot="suffix" class="suffix">卫</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="kitchen"><el-input v-model.number="form.kitchen"><i slot="suffix" class="suffix">厨</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="balcony"><el-input v-model.number="form.balcony"><i slot="suffix" class="suffix">阳台</i></el-input></el-form-item>
+              </el-col>
+            </el-form-item>
+
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="参考总价" prop="totalPrice">
+                  <el-input v-model.number="form.totalPrice">
+                    <i slot="suffix" style="font-size: 12px;margin-right: 5px">万</i>
+                  </el-input>
+                </el-form-item>
+              </el-col>
+
+              <el-col :span="12">
+                <el-form-item label="建筑面积" prop="buildingArea">
+                  <el-input v-model.number="form.buildingArea">
+                    <i slot="suffix" style="font-size: 12px;margin-right: 5px">m²</i>
+                  </el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row>
+
+              <el-col :span="12">
+                <el-form-item label="建筑楼栋" prop="buildingsIds">
+                  <el-select
+                    v-model="form.buildingsIds"
+                    multiple
+                    filterable
+                    collapse-tags
+                    placeholder="请选择">
+                    <el-option
+                      v-for="item in buildingsData"
+                      :label="item.name + item.buildUnitAlias"
+                      :value="item.id">
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+
+              <el-col :span="12">
+                <el-form-item label="出售状态" prop="saleType">
+                  <base-select
+                    v-model="form.saleType"
+                    :data="saleTypeOpts"
+                    :props="selectProps"
+                  >
+                  </base-select>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+
+            <el-col :span="12">
+              <el-form-item label="标签" prop="characteristicId" class="margin-b-none">
+                <base-select
+                  v-model="form.characteristicId"
+                  :data="labelOpts"
+                  :props="selectProps"
+                  :multiple="true"
+                >
+                </base-select>
+              </el-form-item>
+            </el-col>
+
+
+            <el-col :span="12">
+              <el-form-item label="房源评价" prop="evaluate" class="margin-b-none">
+                <el-input type="textarea" v-model="form.evaluate"></el-input>
+              </el-form-item>
+            </el-col>
+
+          </el-form>
+
+        </template>
+
+      </base-file-upload>
+    </el-dialog>
+
+    <el-dialog
+      title="修改户型信息"
+      :visible.sync="dialogVisibleEdit"
+      width="600px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <el-form ref="editForm" :rules="editRules" :model="editForm" size="small" label-width="100px">
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="户型名称" prop="name">
+              <el-input v-model="editForm.name"></el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="朝向" prop="orientation">
+
+              <base-select
+                v-model="editForm.orientation"
+                :data="orientationOpts"
+                :props="selectProps"
+              >
+              </base-select>
+
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="户型描述" class="margin-b-none">
+          <el-row>
+            <el-col :span="4">
+              <el-form-item prop="room"><el-input v-model.number="editForm.room"><i slot="suffix" class="suffix">室</i></el-input></el-form-item>
+            </el-col>
+            <el-col class="text-center" :span="1">-</el-col>
+            <el-col :span="4">
+              <el-form-item prop="hall"><el-input v-model.number="editForm.hall"><i slot="suffix" class="suffix">厅</i></el-input></el-form-item>
+            </el-col>
+            <el-col class="text-center" :span="1">-</el-col>
+            <el-col :span="4">
+              <el-form-item prop="toilet"><el-input v-model.number="editForm.toilet"><i slot="suffix" class="suffix">卫</i></el-input></el-form-item>
+            </el-col>
+            <el-col class="text-center" :span="1">-</el-col>
+            <el-col :span="4">
+              <el-form-item prop="kitchen"><el-input v-model.number="editForm.kitchen"><i slot="suffix" class="suffix">厨</i></el-input></el-form-item>
+            </el-col>
+            <el-col class="text-center" :span="1">-</el-col>
+            <el-col :span="4">
+              <el-form-item prop="balcony"><el-input v-model.number="editForm.balcony"><i slot="suffix" class="suffix">阳台</i></el-input></el-form-item>
+            </el-col>
+          </el-row>
+        </el-form-item>
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="参考总价" prop="totalPrice">
+              <el-input v-model.number="editForm.totalPrice">
+                <i slot="suffix" style="font-size: 12px;margin-right: 5px">万</i>
+              </el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="建筑面积" prop="buildingArea">
+              <el-input v-model.number="editForm.buildingArea">
+                <i slot="suffix" style="font-size: 12px;margin-right: 5px">m²</i>
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+
+          <el-col :span="12">
+            <el-form-item label="建筑楼栋" prop="buildingsIds">
+              <el-select
+                v-model="editForm.buildingsIds"
+                multiple
+                filterable
+                collapse-tags
+                placeholder="请选择">
+                <el-option
+                  v-for="item in buildingsData"
+                  :label="item.name + item.buildUnitAlias"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="出售状态" prop="saleType">
+              <base-select
+                v-model="editForm.saleType"
+                :data="saleTypeOpts"
+                :props="selectProps"
+              >
+              </base-select>
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="标签" prop="characteristicId" class="margin-b-none">
+              <base-select
+                v-model="editForm.characteristicId"
+                :data="labelOpts"
+                :props="selectProps"
+                :multiple="true"
+              >
+              </base-select>
+            </el-form-item>
+          </el-col>
+
+
+          <el-col :span="12">
+            <el-form-item label="房源评价" prop="evaluate" class="margin-b-none">
+              <el-input type="textarea" v-model="editForm.evaluate"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="btn-group">
+          <el-button :loading="loadingSubmitBtn" @click="handleEditConfirm" type="primary" size="small">确定</el-button>
+          <el-button @click="dialogVisibleEdit = false" size="small">取消</el-button>
+        </div>
+
+      </el-form>
+
+    </el-dialog>
+
+    <el-dialog
+      title="修改户型看房地址"
+      :visible.sync="dialogVisibleEditVrUrl"
+      width="400px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+
+      <el-form ref="editForm" :rules="editRules" :model="editForm" size="small" label-width="100px">
+
+        <el-form-item label="看房地址" prop="panoramaUrl">
+          <el-input v-model="editForm.panoramaUrl"></el-input>
+        </el-form-item>
+
+        <div class="btn-group">
+          <el-button :loading="loadingSubmitBtn" @click="handleEditConfirm" type="primary" size="small">确定</el-button>
+          <el-button @click="dialogVisibleEditVrUrl = false" size="small">取消</el-button>
+        </div>
+
+      </el-form>
+
+    </el-dialog>
+
+    <el-dialog
+      title="上传户型视频"
+      :visible.sync="dialogVisibleEditVideo"
+      width="500px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <base-file-upload
+        v-if="hackResetVideo"
+        @on-success="fileSuccessVideo"
+        @handleUploadAll="handleVideoUploadAll" @handleUploadItem="handleVideoUploadItem"
+        :simple="true" :multiple="false" :postAction="uploadUrlVideo" ref="fileUploadVideo"
+        :extensions="'mp4'"
+        :accept="'video/mp4'"
+        :size="1024 * 1024 * 500"
+      >
+      </base-file-upload>
+    </el-dialog>
+
+    <el-dialog
+      title="户型视频预览"
+      :visible.sync="dialogVisibleViewVideo"
+      width="500px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+
+      <div class="text-center">
+        <video v-if="currentPicItem && currentPicItem['videoUrl']" :src="currentPicItem && currentPicItem['videoUrl']" autoplay controls="controls" width="420">
+        </video>
+        <el-button class="mt20" @click="dialogVisibleViewVideo = false" size="small">关闭</el-button>
+      </div>
+
+    </el-dialog>
+
+    <el-dialog
+      title="修改户型图片"
+      :visible.sync="dialogVisibleEditPic"
+      width="500px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+
+      <base-file-upload
+        v-if="hackResetEditImg"
+        @on-success="fileSuccessEdit" :simple="true" :multiple="false"
+        :postAction="uploadUrlEdit" ref="fileUploadEdit"
+        @handleUploadAll="handleEditUploadAll" @handleUploadItem="handleEditUploadItem">
+      </base-file-upload>
+
+    </el-dialog>
+
+  </div>
+
+</template>
+
+<script>
+  import BaseFileUpload from '@/components/BaseFileUpload'
+  import BaseSelect from '@/components/BaseSelect'
+  import {saveHousetypeImgUrl, updateHousetypePictureUrl, delHousetypeImg, getHousetypeImg, updateHousetypeImg, saveHousetypeVideo} from '@/request/house/houseNew' // 请求后端URL路径
+  import {getSelectValue} from '@/request/app'
+  import * as consts from '../consts'
+
+  let _saleType = consts.saleType.map(item => {
+    item.fieldCode = Number(item.fieldCode)
+    return item
+  })
+
+  export default {
+    components: {BaseFileUpload, BaseSelect},
+    props: {
+      buildingsData: {
+        type: Array
+      },
+
+      projectId: {
+        type: [Number, String]
+      },
+
+      sourceCode: String
+    },
+    data () {
+      return {
+        PERMISSION_BTN: consts.PERMISSION_BTN,
+        dialogVisible: false,
+        dialogVisibleEditVrUrl: false,
+        dialogVisibleEditVideo: false,
+        dialogVisibleEdit: false,
+        dialogVisibleEditPic: false,
+        dialogVisibleViewVideo: false,
+        loadingSubmitBtn: false,
+        uploadUrl: saveHousetypeImgUrl,
+        uploadUrlEdit: updateHousetypePictureUrl,
+        uploadUrlVideo: saveHousetypeVideo,
+        form: {
+          name: '',
+          characteristicId: [],
+          saleType: '',
+          orientation: '',
+          totalPrice: '',
+          buildingsIds: [],
+          buildingArea: '',
+          room: '', // 室
+          hall: '', // 厅
+          evaluate: '',
+          toilet: '', // 卫
+          kitchen: '', // 厨
+          balcony: '' // 阳台
+        },
+        rules: {
+          name: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          evaluate: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          orientation: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          buildingArea: [
+            { required: true, message: '该项为必填项', trigger: 'blur' },
+            {type: 'number', message: '必须为数字值'}
+          ],
+          saleType: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          characteristicId: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          buildingsIds: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          room: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          hall: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          toilet: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          kitchen: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          balcony: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+          ],
+          totalPrice: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+          ]
+        },
+        editForm: {
+          name: '',
+          characteristicId: [],
+          saleType: '',
+          orientation: '',
+          totalPrice: '',
+          buildingsIds: [],
+          buildingArea: '',
+          room: '', // 室
+          hall: '', // 厅
+          evaluate: '',
+          toilet: '', // 卫
+          kitchen: '', // 厨
+          balcony: '', // 阳台
+          id: '',
+          panoramaUrl: ''
+        },
+        editRules: {
+          name: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          evaluate: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          orientation: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          buildingArea: [
+            { required: true, message: '该项为必填项', trigger: 'blur' },
+            {type: 'number', message: '必须为数字值'}
+          ],
+          saleType: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          characteristicId: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          buildingsIds: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+
+          ],
+          room: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          hall: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          toilet: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          kitchen: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+
+          ],
+          balcony: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+          ],
+          totalPrice: [
+            { required: true, message: '该项为必填项', trigger: 'change' },
+            {type: 'number', message: '必须为数字值'}
+          ],
+          panoramaUrl: {required: true, message: '该项为必填项', trigger: 'blur'}
+        },
+        imgList: [],
+        labelOpts: [],
+        orientationOpts: [],
+        saleTypeOpts: _saleType,
+        selectProps: {
+          label: 'fieldValue', // 指定选项的值绑定为下拉框的label属性
+          value: 'fieldCode' // 指定选项的值绑定为下拉框的Value属性
+        },
+        currentPicItem: null,
+        hackResetVideo: true,
+        hackResetEditImg: true,
+        isAdd: false,
+        orgFormData: {}
+      }
+    },
+    methods: {
+      handleAdd () {
+        this.$refs['fileUpload'] && this.$refs['fileUpload'].clearFiles()
+        this.$refs['form'] && this.$refs['form'].resetFields()
+        this.isAdd = true
+        this.dialogVisible = true
+      },
+
+      handleUploadAll (file) {
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+            let params = this._formatParams(this.form)
+
+            file.data.imgInfo = JSON.stringify(params)
+
+            this.$refs['fileUpload'].uploadAll()
+          }
+        })
+
+      },
+
+      handleUploadItem (file) {
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+            let params = this._formatParams(this.form)
+
+            file.data.imgInfo = JSON.stringify(params)
+
+            this.$refs['fileUpload'].handleUploadItem()
+          }
+        })
+      },
+
+      // 修改户型图上传
+      handleEditUploadAll (file) {
+        if (this.currentPicItem && this.currentPicItem.id) {
+          file.data.id = this.currentPicItem.id
+          file.data.newHouseId = this.projectId
+          this.$refs['fileUploadEdit'].uploadAll()
+        }
+      },
+
+      // 修改户型图上传
+      handleEditUploadItem (file) {
+        if (this.currentPicItem && this.currentPicItem.id) {
+          file.data.id = this.currentPicItem.id
+          file.data.newHouseId = this.projectId
+          this.$refs['fileUploadEdit'].uploadAll()
+        }
+      },
+
+      // 点击编辑户型图基本信息
+      handleEdit (item) {
+        this.isAdd = false
+        this.currentPicItem = item
+        this.dialogVisibleEdit = true
+
+        this.$refs['editForm'] && this.$refs['editForm'].resetFields()
+        this.orgFormData = item
+        this._setFormInfo(item)
+      },
+
+      // 点击修改户型图片
+      handleEditPic (item) {
+        this.hackResetEditImg = false
+        this.$nextTick(() => {
+          this.hackResetEditImg = true
+          this.currentPicItem = item
+          this.dialogVisibleEditPic = true
+        })
+
+      },
+
+      // 点击删除户型图
+      handleDelete (item) {
+        let ids = item.id
+
+        this.$confirm('确定删除该项?',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).then(() => {
+          delHousetypeImg({ids: ids, newHouseId: this.projectId}).then(() => {
+            this.$message({
+              type: 'success',
+              message: '操作成功',
+              showClose: true,
+              duration: 2000
+            })
+            this._fetchImgList()
+
+            // 向后台传递日志数据
+            let message = {
+              sourceId: this.projectId, // 资源ID
+              sourceCode: this.sourceCode, // 资源编号
+              businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+              sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_DEL_IMG, // 操作类型
+              logContent: `删除户型图`
+            }
+            this.$updateLog.newHouse.houseQueryLog({message: JSON.stringify(message)})
+
+          })
+        })
+
+
+      },
+
+      // 编辑保存
+      handleEditConfirm () {
+        this.$refs['editForm'].validate((valid) => {
+          if (valid) {
+
+            this.$confirm('确定保存编辑的信息?',
+              {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }
+            ).then(() => {
+              this.loadingSubmitBtn = true
+
+              let params = this._formatParams(this.editForm)
+
+              let cfg = {
+                headers: {
+                  'Content-Type': 'application/json;charset=UTF-8;'
+                }
+              }
+              updateHousetypeImg(params, cfg).then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功',
+                  showClose: true,
+                  duration: 2000
+                })
+                this.loadingSubmitBtn = false
+                this._fetchImgList()
+
+                this.dialogVisibleEdit = false
+                this.dialogVisibleEditVrUrl = false
+
+                // 向后台传递日志数据
+                let message = {
+                  sourceId: this.projectId, // 资源ID
+                  sourceCode: this.sourceCode, // 资源编号
+                  businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+                  sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_ADD_VIDEO, // 操作类型
+                  newData: params,
+                  originalData: this.orgFormData,
+                  labelData: this.$utils.getFormFields(this.$refs['editForm'])
+                }
+                this.$updateLog.newHouse.houseUpdateLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+      },
+
+      // 户型看房地址
+      handleEditVrUrl (item) {
+        this.currentPicItem = item
+        this.orgFormData = item
+        this.editForm.panoramaUrl = item.panoramaUrl || ''
+        this.dialogVisibleEditVrUrl = true
+      },
+
+      // 预览视频
+      previewVideo (item) {
+        this.currentPicItem = item
+        this.dialogVisibleViewVideo = true
+      },
+
+      // 户型视频
+      handleEditVideo (item) {
+        this.hackResetVideo = false
+
+        this.$nextTick(() => {
+          this.hackResetVideo = true
+          this.currentPicItem = item
+          this.dialogVisibleEditVideo = true
+        })
+
+      },
+
+      handleVideoUploadAll (file) {
+        if (this.currentPicItem && this.currentPicItem.id) {
+          file.data.id = this.currentPicItem.id
+          file.data.newHouseId = this.projectId
+          this.$refs['fileUploadVideo'].uploadAll()
+        }
+      },
+      handleVideoUploadItem (file) {
+        if (this.currentPicItem && this.currentPicItem.id) {
+          file.data.id = this.currentPicItem.id
+          file.data.newHouseId = this.projectId
+          this.$refs['fileUploadVideo'].uploadAll()
+        }
+      },
+
+      // 上传视频成功的钩子
+      fileSuccessVideo (file, uploaded) {
+        if (uploaded) {
+          this.$refs['fileUploadVideo'].clearFiles()
+          this.dialogVisibleEditVideo = false
+
+          // 向后台传递日志数据
+          let message = {
+            sourceId: this.projectId, // 资源ID
+            sourceCode: this.sourceCode, // 资源编号
+            sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+            businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+            operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_ADD_VIDEO, // 操作类型
+            logContent: `上传户型视频`
+          }
+          this.$updateLog.newHouse.houseQueryLog({message: JSON.stringify(message)})
+        }
+      },
+
+      /**
+       * 图片上传成功的钩子
+       * @param file 返回的文件信息
+       * @param uploaded 是否全部上传成功
+       */
+      fileSuccess (file, uploaded) {
+        if (uploaded) {
+          this.$refs['fileUpload'].clearFiles()
+          this.dialogVisible = false
+          this._fetchImgList()
+          this.$refs['form'] && this.$refs['form'].resetFields()
+
+          // 向后台传递日志数据
+          let message = {
+            sourceId: this.projectId, // 资源ID
+            sourceCode: this.sourceCode, // 资源编号
+            sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+            businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+            operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_ADD_IMG, // 操作类型
+            logContent: `新增户型图 => ${JSON.parse(file.data.imgInfo).name}`
+          }
+          this.$updateLog.newHouse.houseQueryLog({message: JSON.stringify(message)})
+
+        }
+      },
+
+      /**
+       * 修改图片上传成功的钩子
+       * @param file 返回的文件信息
+       * @param uploaded 是否全部上传成功
+       */
+      fileSuccessEdit (file, uploaded) {
+        if (uploaded) {
+          this.$refs['fileUploadEdit'].clearFiles()
+          this.currentPicItem.url = file.response.data || file.blob
+          this.dialogVisibleEditPic = false
+
+          // 向后台传递日志数据
+          let message = {
+            sourceId: this.projectId, // 资源ID
+            sourceCode: this.sourceCode, // 资源编号
+            businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+            sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+            operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_UPDATE_IMG, // 操作类型
+            logContent: `修改户型图`
+          }
+          this.$updateLog.newHouse.houseQueryLog({message: JSON.stringify(message)})
+        }
+      },
+
+      _formatParams (_params) {
+        let params = Object.assign({}, _params)
+
+        let buildings = []
+
+        // 获取座栋name集合
+        params.buildingsIds.forEach(item => {
+          this.buildingsData.forEach(_item => {
+            if (item === _item.id) {
+              buildings.push(_item.name)
+            }
+          })
+        })
+        params.buildingsIds = params.buildingsIds.join()
+        params.buildings = buildings.join()
+
+        // 获取标签name集合
+        let labelNames = []
+        params.characteristicId.forEach(item => {
+          this.labelOpts.forEach(_item => {
+            if (item === _item.fieldCode) {
+              labelNames.push(_item.fieldValue)
+            }
+          })
+        })
+        params.characteristicId = params.characteristicId.join()
+        params.characteristicName = labelNames.join()
+
+        // 获取朝向name
+        this.orientationOpts.forEach(item => {
+          if (item.fieldCode = params.orientation) {
+            params.orientationName = item.fieldValue
+          }
+        })
+
+        params.projectId = this.projectId
+
+        if (!this.isAdd) {
+          params.id = this.currentPicItem.id
+        }
+
+        Object.keys(params).forEach(key => {
+          if (!params[key]) delete params[key]
+        })
+
+        return params
+      },
+
+      _setFormInfo (_data) {
+        let form = this.editForm
+        let data = {..._data}
+
+        Object.keys(form).forEach(key => {
+          if (data[key] !== 'undefined' && data[key] !== null) {
+
+            if (key === 'characteristicId') {
+              data[key] = data[key].split(',').map(item => Number(item))
+            }
+
+            if (key === 'buildingsIds') {
+              data[key] = data[key].split(',').map(item => Number(item))
+            }
+
+            form[key] = data[key]
+          }
+        })
+      },
+
+      _fetchImgList () {
+        getHousetypeImg({newHouseId: this.projectId}).then(res => {
+          this.imgList = res.data
+          this.$emit('loadDataFinish', res.data)
+        })
+      },
+
+      _fetchSelectOpts () {
+        // 获取朝向下拉
+        getSelectValue({param: 'orientation'}).then(res => {
+          this.orientationOpts = res.data.map(item => {
+            item.fieldCode = Number(item.fieldCode)
+            return item
+          })
+        })
+
+        // 获取户型图标签下拉
+        getSelectValue({param: 'characteristic'}).then(res => {
+          this.labelOpts = res.data.map(item => {
+            item.fieldCode = Number(item.fieldCode)
+            return item
+          })
+        })
+      },
+
+      _getUnitText (data) {
+        let text = ''
+        text = `${data.room || 0}室${data.hall || 0}厅${data.toilet || 0}卫`
+
+        return text
+      }
+    },
+
+    mounted () {
+      this._fetchImgList()
+      this._fetchSelectOpts()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  $border-color: #dcdfe6;
+  $blue-hover: #40C9C6;
+  $color-blue: #26B2C9;
+
+  .item {
+    position: relative;
+    height: 220px;
+    margin-bottom: 20px;
+    .desc {
+      padding: 10px;
+
+      .desc-item {
+        line-height: 1.5;
+        margin-bottom: 10px;
+        font-size: 12px;
+
+        &.label-text {
+          max-width: 340px !important;
+        }
+
+        .label {
+          display: inline-block;
+          margin-right: 10px;
+          color: #9F9F9F;
+        }
+
+        .text {
+          display: inline-block;
+          max-width: 220px;
+          vertical-align: middle;
+
+          &.evaluate {
+            height: 30px;
+          }
+        }
+      }
+
+      .brief {
+        display: flex;
+        .label {
+          display: inline-block;
+          width: 50px;
+        }
+
+        .text {
+          max-width: 470px;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          overflow: hidden;
+          line-height: 16px;
+          max-height: 32px;
+          flex: 1;
+        }
+
+      }
+
+      .title {
+        font-size: 16px;
+      }
+    }
+
+    .img {
+      width: 260px;
+      height: 210px;
+      padding: 10px;
+
+      .image {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        max-height: 190px;
+      }
+    }
+
+    .edit {
+      opacity: 0;
+      position: absolute;
+      top: 10px;
+      right: 50px;
+      font-size: 16px;
+      color: #82848a;
+      transition: all 0.3s;
+      cursor: pointer;
+      height: 16px;
+    }
+
+    .picture {
+      opacity: 0;
+      position: absolute;
+      top: 10px;
+      right: 80px;
+      font-size: 16px;
+      color: #82848a;
+      transition: all 0.3s;
+      cursor: pointer;
+      height: 16px;
+    }
+
+    .delete {
+      opacity: 0;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 16px;
+      color: #82848a;
+      transition: all 0.3s;
+      cursor: pointer;
+      height: 16px;
+    }
+
+    &:hover {
+      .delete, .edit, .picture {
+        opacity: 1;
+      }
+    }
+  }
+
+  .upload-form {
+    max-width: 515px;
+
+    .suffix {
+      font-size: 12px;margin-right: 5px
+    }
+  }
+
+  .text-btn {
+    font-size: 12px;
+    color: $color-blue;
+    transition: all 0.3s;
+
+    &:hover {
+      color: $blue-hover;
+    }
+  }
+
+
+</style>

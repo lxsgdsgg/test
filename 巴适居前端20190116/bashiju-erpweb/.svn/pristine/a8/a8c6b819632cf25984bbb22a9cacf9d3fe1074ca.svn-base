@@ -1,0 +1,473 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <el-form :model="queryForm" ref="queryForm" :inline="true" size="small" class="query-form">
+        <el-form-item label="选择城市" prop="cityId">
+          <city-select v-model="queryForm.cityId"></city-select>
+        </el-form-item>
+        <el-form-item label="线路名称" prop="metroName">
+          <el-input v-model="queryForm.metroName"></el-input>
+        </el-form-item>
+        <el-form-item label="站点名称" prop="stationName">
+          <el-input v-model="queryForm.stationName" type="text"></el-input>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" @click.native.prevent="handlerQuery(true)" :loading="loadQueryBtn">查询</el-button>
+          <el-button type="info" @click.native.prevent="resetForm('queryForm')">清空</el-button>
+          <el-button v-hasOnlyBtn="'addBtn'" type="primary" @click.native.prevent="selectCityHandler">新增</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="page-content-hd">
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-table :data="tableData" border align="center" v-loading="loadingView"
+                    @row-click="queryPeripheryCommunityDataList" size="small"
+                    :highlight-current-row="true">
+            <el-table-column prop="metroName" label="线路名称" align="left"></el-table-column>
+            <el-table-column prop="stationName" label="站点名称" align="left"></el-table-column>
+            <el-table-column prop="lontitude" label="站点经度" align="left"></el-table-column>
+            <el-table-column prop="latitude" label="站点纬度" align="left"></el-table-column>
+            <el-table-column prop="sortNo" label="排序号" align="left"></el-table-column>
+            <el-table-column label="操作区域" width="150px">
+              <template slot-scope="scope">
+                <el-button v-hasOnlyBtn="'addCommunity'" @click="addPeripheryCommunity(scope.row)" size="small" type="text">新增周边小区</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listQuery"
+            @handleSizeChange="handleSizeChange"
+            @handleCurrentChange="handleCurrentChange">
+          </b-pagination>
+        </el-col>
+
+        <el-col :span="12">
+          <el-table :data="communityData" border align="center" v-loading="loadingCommView" size="small">
+            <el-table-column prop="communityName" label="小区名称" align="left"></el-table-column>
+            <el-table-column prop="metroDistance" label="站点距离" align="left">
+              <template slot-scope="scope">
+                {{scope.row.metroDistance}}米
+
+              </template>
+            </el-table-column>
+            <el-table-column prop="communityRemark" label="小区备注" align="left"></el-table-column>
+            <el-table-column prop="operator" label="添加用户" align="left"></el-table-column>
+            <el-table-column label="操作区域" width="150px">
+              <template slot-scope="scope">
+                <el-button v-hasOnlyBtn="'delBtn'" @click="deleteUserRegisterInfo(scope.row)" size="small" type="text">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listCommunityQuery"
+            @handleSizeChange="handleCommSizeChange"
+            @handleCurrentChange="handleCommCurrentChange">
+          </b-pagination>
+        </el-col>
+      </el-row>
+
+      <b-dialog
+        title="新增周边小区"
+        :show.sync="editDlgVisible"
+        :close-on-click-modal="false"
+        top="15vh"
+        width="400px"
+      >
+        <el-form :model="editForm" ref="editForm" :rules="rules" label-width="100px">
+
+          <el-form-item label="选择小区" prop="userType">
+            <community-selector
+              v-model="editForm.communityId"
+              :url="communityUrl" :changeOnSelect="false"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" @change="getCommunityName">
+            </community-selector>
+          </el-form-item>
+
+          <el-form-item label="站点距离" prop="metroDistance">
+            <el-input v-model="editForm.metroDistance" type="text" disabled></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">m(米)</i>
+              </span>
+            </span>
+          </el-form-item>
+
+          <el-form-item label="小区备注" prop="communityRemark">
+            <el-input v-model="editForm.communityRemark" type="text"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="savePeripheryCommunityDataList">保存</el-button>
+            <el-button @click="handleCancel">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+
+      <b-dialog title="选择城市"
+                :show.sync="showCitySelectDlg"
+                :close-on-click-modal="false"
+                top="20vh"
+                width="300px">
+        <city-select v-model="cityCode"></city-select>
+        <div class="btn-group">
+          <el-button type="primary" @click="handlerSubmit" size="small">确定</el-button>
+          <el-button @click="handlerCancelCity" size="small">取消</el-button>
+        </div>
+      </b-dialog>
+
+      <b-dialog title="添加地铁站点"
+                :show.sync="showStationMapDlg"
+                :close-on-click-modal="false"
+                top="15vh"
+                width="70%">
+        <add-metro-station v-if="hackResetAdd" @cancelClickHandler="cancelClickHandler" :cityCode="cityCode"></add-metro-station>
+      </b-dialog>
+    </div>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/manage/stationManage'
+  import PageList from '@/mixins/pageList'
+  import CitySelect from '@/components/BaseCascader/city'
+  import CommunitySelector from '@/components/BaseCascader/'
+  import AddMetroStation from './components/AddMetroStation'
+  import {queryCommunityDetail} from '@/request/manage/community'
+  import {systemAddLog,systemUpdateLog,systemQueryLog,systemDelLog} from '@/request/log/systemPlatformLog'
+
+  export default {
+    name: "metroStationMange",
+    mixins:[PageList],
+    components: { CitySelect, CommunitySelector, AddMetroStation },
+    data(){
+      return{
+        cityCode: '',
+        tableData: [],
+        // lineNameOpts: [],
+        communityData: [],
+        stationData: '',
+        editDlgVisible: false,
+        showStationMapDlg: false,
+        showCitySelectDlg: false,
+        hackReset: true,
+        hackResetAdd: true,
+        currentRowData: '',
+        loadQueryBtn: false,
+        loadingView: false,
+        loadingCommView: false,
+        communityDetail: [],
+        queryForm:{
+          cityId: [],
+          metroName: '',
+          stationName: ''
+        },
+        editForm:{
+          stationId: '',
+          communityId: '',
+          communityName: '',
+          metroDistance: '',
+          communityRemark: ''
+        },
+        listCommunityQuery:{
+          page: 1,limit: 10,total:0
+        },
+        communityUrl: 'manage/commonselect/queryOpenCityCountyRegionAllCommunity',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        rules:{
+          communityId:{required: true,message: '该项为必填' ,trigger: onchange},
+          metroDistance:{required: true,message: '该项为必填' ,trigger: blur},
+          communityRemark:{required: true,message: '该项为必填' ,trigger: blur}
+        }
+      }
+    },
+    methods: {
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleCommSizeChange (val) {
+        this.listCommunityQuery.limit = val
+        this.queryPeripheryCommunityDataList(this.stationData)
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCommCurrentChange (val) {
+        this.listCommunityQuery.page = val
+        this.queryPeripheryCommunityDataList(this.stationData)
+      },
+
+      handleCancel() {
+        this.editDlgVisible = false
+      },
+
+      // 得到小区名称
+      getCommunityName(value,name,data){
+        this.editForm.communityName = name
+        this.communityName = name
+        if (data.dataType !== 'community') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择小区!'
+          })
+          setTimeout(() => {
+            this.editForm.communityName = ''
+            this.editForm.communityId = ''
+          }, 50)
+        }else{
+          this.caculateTwoPointDistance(this.stationData,value)
+        }
+      },
+
+      // 用户点击保存或取消按钮的回调函数
+      cancelClickHandler(action){
+        if(action && action == '1'){
+          this.showStationMapDlg = false
+          this._loadData(false)
+        }else if(action && action == '2'){
+          this.showStationMapDlg = false
+        }
+      },
+
+      handlerQuery(btnQuery){
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(btnQuery)
+      },
+
+      /**
+       * 查询页面数据
+       * @param btnQuery
+       * @private
+       */
+      _loadData(btnQuery){
+        let param = {...this.queryForm}
+        let params = Object.assign({},param,{
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        if(btnQuery){
+          this.loadQueryBtn = true
+        }
+        this.loadingView = true
+        RequestURL.queryStationDataList(params).then(res=>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          if(res.data && res.data.length > 0){
+            this.stationData = res.data[0]
+            this.queryPeripheryCommunityDataList(this.stationData)
+          }
+          this.loadQueryBtn = false
+          this.loadingView = false
+        }).catch(err=>{
+          console.log(err)
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+          this.loadQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+      /**
+       * 查询站点周边小区
+       */
+      queryPeripheryCommunityDataList(row){
+        this.stationData = row
+        let params = { stationId: this.stationData.id,
+          page: this.listCommunityQuery.page,
+          limit: this.listCommunityQuery.limit
+        }
+        this.loadingCommView = true
+        RequestURL.queryPeripheryCommunityDataList(params).then(res=>{
+          this.communityData = res.data
+          this.listCommunityQuery.total = res.count
+          this.loadingCommView = false
+        }).catch(err=>{
+          console.log(err)
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+          this.loadingView = false
+        })
+      },
+
+      // 添加周边小区
+      addPeripheryCommunity(row){
+        this.resetForm('editForm')
+        this.$nextTick(()=>{
+          this.stationData = row
+          this.setForm(this.editForm)
+          this.editDlgVisible = true
+        })
+      },
+
+      // 选择城市
+      selectCityHandler(){
+        this.cityCode = ''
+        this.hackReset = false
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.showCitySelectDlg = true
+        })
+      },
+
+      // 选择城市
+      handlerSubmit(){
+        this.showCitySelectDlg = false
+        // this.queryLineNameSelect()
+        this.addMetroStation()
+      },
+      // 取消操作
+      handlerCancelCity(){
+        this.showCitySelectDlg = false
+      },
+
+      // 添加地铁站点
+      addMetroStation(){
+        this.hackResetAdd = false
+        this.$nextTick(()=>{
+          this.hackResetAdd = true
+          this.showStationMapDlg = true
+        })
+      },
+      /**
+       * 保存周边小区信息
+       */
+      savePeripheryCommunityDataList(){
+        this.$refs['editForm'].validate((valid)=>{
+          if(valid){
+            this.$confirm('确定审核此数据吗?','提示',{
+              confirmButtonText: '',
+              cancelButtonText: '',
+              type: 'warning'
+            }).then(()=>{
+              let params = {...this.editForm}
+              params.stationId = this.stationData.id
+              RequestURL.savePeripheryCommunityDataList({jsonData: JSON.stringify(params)}).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                  this.queryPeripheryCommunityDataList(this.stationData)
+                }else{
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+                this.editDlgVisible = false
+                let message = {sourceCode:params.communityName,sourceTypeId:'10',operatTypeId:'1'
+                  ,logContent: `新增站点周边小区:${this.stationData.metroName}->${this.stationData.stationName}->${params.communityName}`}
+                systemAddLog({message: JSON.stringify(message)})
+              })
+            })
+            //   .catch(err=>{
+            //   this.$message({
+            //     type: 'infor',
+            //     message: '已取消'
+            //   })
+            // })
+          }
+        })
+      },
+
+      // 删除周边小区信息
+      deleteUserRegisterInfo(row){
+        let params = {communityId: row.id}
+        this.$confirm('确定删除数据吗','提示',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.deletePeripheryCommunityDataList(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this._loadData(false)
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            let message = {sourceCode:row.communityName,sourceTypeId:'10',operatTypeId:'3'
+              ,logContent: `删除站点周边小区： ${row.communityName }`}
+            systemDelLog({message: JSON.stringify(message)})
+          })
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '已取消'
+        //   })
+        // })
+      },
+
+      // 计算两点间距离
+      caculateTwoPointDistance(row,communityId){
+        queryCommunityDetail({id: communityId}).then(res=>{
+          this.communityDetail = res.data
+          if(this.communityDetail ){
+            if(this.communityDetail.longitude && this.communityDetail.latitude){
+              let map = new BMap.Map("container")
+              let pointA = new BMap.Point(row.lontitude, row.latitude)
+              let pointB = new BMap.Point(this.communityDetail.longitude, this.communityDetail.latitude)
+              let distance = map.getDistance(pointA,pointB)
+              let distanceStr = String(distance)
+              if(distanceStr.length > 4){
+                this.editForm.metroDistance = distanceStr.substr(0,distanceStr.indexOf("."))
+              }
+            }else{
+              this.$message({
+                type: 'warning',
+                message: '请先设置小区坐标'
+              })
+            }
+          }
+        }).catch(err=>{
+          console.log(err)
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+        })
+      },
+
+      // 重置表单数据
+      resetForm(formName){
+        this.$refs[formName] && this.$refs[formName].resetFields()
+      },
+
+      // 设置表单数据
+      setForm(formName){
+        if(formName){
+          for(let i in formName){
+            formName[i] = this.stationData[i]
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

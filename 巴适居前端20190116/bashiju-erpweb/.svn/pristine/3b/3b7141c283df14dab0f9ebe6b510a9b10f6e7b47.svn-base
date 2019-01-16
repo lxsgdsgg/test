@@ -1,0 +1,162 @@
+<template>
+  <div>
+    <div class="wrapper">
+      <el-tabs v-model="activeName" @tab-click="handlerTabClick" type="card" style="max-width: 1280px">
+        <el-tab-pane label="授权导航" name="authNavigationSet">授权导航
+          <author-navigation ref="authNavigationSet" @switchCurrentTab="switchCurrentTab" :data="data"></author-navigation>
+        </el-tab-pane>
+
+        <el-tab-pane label="搜索条件" name="queryFormSet">搜索条件
+          <client-search-query-set ref="queryFormSet"></client-search-query-set>
+        </el-tab-pane>
+
+        <el-tab-pane label="税费管理" name="taxAllocationSet">税费管理
+          <tax-allocation-set ref="taxAllocationSet"></tax-allocation-set>
+        </el-tab-pane>
+
+        <el-tab-pane label="贷款比例" name="loanRatioSet">贷款比例
+          <loan-ratio-set ref="loanRatioSet"></loan-ratio-set>
+        </el-tab-pane>
+
+        <el-tab-pane label="文章分类" name="articleTypeSet">文章分类
+          <article-type-set ref="articleTypeSet"></article-type-set>
+        </el-tab-pane>
+
+        <el-tab-pane label="图片管理" name="imgMgrSet">图片管理
+          <image-mgr-set ref="imgMgrSet"></image-mgr-set>
+        </el-tab-pane>
+
+        <el-tab-pane label="区间配置" name="sectionSet">区间配置
+          <section-set ref="sectionSet"></section-set>
+        </el-tab-pane>
+        <el-tab-pane label="采集地址" name="collectionAddressSet">采集地址
+          <collection-address-set ref="collectionAddressSet"></collection-address-set>
+        </el-tab-pane>
+
+      </el-tabs>
+
+      <!--&lt;!&ndash; 新增跟进 &ndash;&gt;-->
+      <!--<el-dialog-->
+        <!--title="买卖成交写跟进"-->
+        <!--:visible.sync="dialogVisibleFollow"-->
+        <!--width="500px"-->
+        <!--:close-on-click-modal="false"-->
+        <!--:close-on-press-escape="false"-->
+        <!--:before-close="handleCloseDialogFollow"-->
+      <!--&gt;-->
+        <!--<add-follow @submit="handleFollowSubmit" @delete="handleFollowDele"-->
+                    <!--:peopleSelectOpts="peopleSelectOpts" :dealType="'00'"-->
+                    <!--ref="follow" :dealId="dealId"-->
+                    <!--v-if="followReset"-->
+        <!--&gt;</add-follow>-->
+      <!--</el-dialog>-->
+
+      <!--&lt;!&ndash; 修改成交详细 &ndash;&gt;-->
+      <!--<el-dialog-->
+        <!--title="修改买卖成交详细"-->
+        <!--:visible.sync="dialogVisibleEdit"-->
+        <!--width="700px"-->
+        <!--:close-on-click-modal="false"-->
+        <!--:close-on-press-escape="false"-->
+
+      <!--&gt;-->
+        <!--<modify-deal-detail-->
+          <!--@cancelDeal="cancelDeal"-->
+          <!--@saveDeal="saveDeal"-->
+          <!--:dealId="dealId"-->
+          <!--:agreementId="dealInfo.agreementId"-->
+          <!--:dealType="'00'"-->
+          <!--v-if="hackReset"-->
+        <!--&gt;</modify-deal-detail>-->
+      <!--</el-dialog>-->
+    </div>
+  </div>
+</template>
+
+<script>
+  import AuthorNavigation from './AuthorNavigation'
+  import ClientSearchQuerySet from './ClientSearchQuerySet'
+  import TaxAllocationSet from './TaxAllocationSet'
+  import LoanRatioSet from './LoanRatioSet'
+  import ArticleTypeSet from './ArticleTypeSet'
+  import ImageMgrSet from './ImageMgrSet'
+  import SectionSet from './SectionSet'
+  import CollectionAddressSet from './CollectionAddressSet'
+
+  export default {
+    name: "OpenCityTabPages",
+    components: {AuthorNavigation
+      , ClientSearchQuerySet
+      , TaxAllocationSet
+      , LoanRatioSet
+      , ArticleTypeSet
+      , ImageMgrSet
+      , SectionSet
+      , CollectionAddressSet},
+
+    props:{
+      data:{
+        type: Object,
+        required: true,
+        default(){
+          return null
+        }
+      }
+    },
+
+    data(){
+      return {
+        activeName: 'authNavigationSet'
+      }
+    },
+
+    method:{
+      handlerTabClick (tab) {
+        // 授权导航
+        // if (tab.name === 'authNavigationSet'){
+        //   this.$refs['authNavigationSet']._getTableData()
+        // }
+        // C端查询条件配置
+        if (tab.name === 'queryFormSet') {
+          this.$refs['queryFormSet'].getTableData()
+        }
+        // 税费配置
+        if (tab.name === 'taxAllocationSet') {
+          this.$refs['taxAllocationSet']._getTableData()
+        }
+        // 贷款比例配置
+        if (tab.name === 'loanRatioSet') {
+          this.$refs['loanRatioSet']._loadData()
+        }
+        // 文章分类
+        if (tab.name === 'articleTypeSet') {
+          this.$refs['articleTypeSet']._getTableData()
+        }
+        // 图片管理
+        if (tab.name === 'imgMgrSet') {
+          this.$refs['imgMgrSet']._getTableData()
+        }
+        // 区间配置管理
+        if (tab.name === 'sectionSet') {
+          this.$refs['sectionSet']._getTableData()
+        }
+        // 采集地址管理
+        if (tab.name === 'collectionAddressSet') {
+          this.$refs['collectionAddressSet']._getTableData()
+        }
+      },
+
+      switchCurrentTab (name) {
+        this.activeName = name
+      }
+    },
+
+    mounted(){
+      this.activeName = 'authNavigationSet'
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

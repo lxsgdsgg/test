@@ -1,0 +1,310 @@
+$color-red: #e41e2b;
+$red-hover: #e0000f;
+$color-blue: #26B2C9;
+$blue-hover: #40C9C6;
+$border-color: #dcdfe6;
+
+.wrapper {
+  min-height: 1000px;
+  padding: 10px;
+
+  .houseInfo-left {
+    .info {
+      .header-info {
+        &>.left {
+          h1 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+
+            .text {
+              margin-right: 20px;
+              vertical-align: middle;
+            }
+
+            .tag {
+              padding: 5px;
+              font-size: 12px;
+              color: #fff;
+              background-color: #82848a;
+              font-weight: normal;
+
+              &.tag-taobaoStatusId {
+                background-color: #FBAE39;
+              }
+              &.tag-isUnique {
+                background-color: #B88752;
+              }
+              &.tag-isGood {
+                background-color: #ED78E9;
+              }
+              &.tag-isSetTop {
+                background-color: #40C9C6;
+              }
+              &.tag-isSchoolRoom {
+                background-color: #216348;
+              }
+              &.tag-isKeys {
+                background-color: #5BCD9C;
+              }
+              &.tag-viewingCount {
+                background-color: #A2D13D;
+              }
+              &.tag-isPicture {
+                background-color: #27CCE3;
+              }
+            }
+          }
+
+          .detail {
+            .item {
+              margin-top: 15px;
+            }
+          }
+        }
+
+        &>.right {
+          display: flex;
+          .tool {
+            padding-top: 30px;
+          }
+
+          .calculator {
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            &:hover {
+              transform: scale(1.2);
+            }
+          }
+          img {
+            width: 100px;
+            height: 100px;
+          }
+        }
+      }
+
+      .content {
+        border-top: 1px dashed $border-color;
+        padding-top: 15px;
+        margin-top: 15px;
+
+        .content-item {
+          font-size: 14px;
+          display: flex;
+          margin-bottom: 15px;
+
+          .label {
+            margin-right: 10px;
+            color: #9F9F9F;
+            min-width: 100px;
+            text-align: right;
+          }
+        }
+      }
+    }
+
+    .followRecord {
+      margin-top: 15px;
+
+      .followRecord-content {
+        margin: 20px 0 10px 0;
+        .item {
+          margin-top: 10px;
+          display: flex;
+          font-size: 12px;
+
+          .time {
+            i {
+              margin-top: 8px;
+              font-size: 16px;
+              color: #26b2c9;
+            }
+          }
+
+          .info {
+            flex: 1;
+            margin-left: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #606266;
+
+            .text {
+              max-width: 500px;
+              word-wrap: normal;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              overflow: hidden;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .houseInfo-right {
+    font-size: 12px;
+    .see-house {
+      .btn {
+        padding: 4px 8px;
+      }
+    }
+
+    .owner-info {
+      margin-top: 15px;
+      .item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+
+        &:nth-child(2){
+          margin-bottom: 0;
+        }
+
+        .left {
+          flex: 1;
+          display: flex;
+          align-items: center;
+        }
+
+        i {
+          margin-right: 5px;
+          font-size: 14px;
+        }
+      }
+
+      .phoneList {
+        .phoneList-item {
+          line-height: 1.8;
+
+          .phone {
+            margin-right: 5px;
+          }
+          .remark {
+            display: inline-block;
+            vertical-align: middle;
+            max-width: 100px;
+            word-wrap: normal; /* for IE */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+
+    .price-info {
+      margin-top: 15px;
+      p {
+        margin-bottom: 20px;
+      }
+    }
+
+    .agent-info {
+      margin-top: 15px;
+
+      .agent-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px dashed $border-color;
+
+        .label {
+          width: 80px;
+          text-align: center;
+        }
+
+        .content {
+          flex: 1;
+          p {
+            margin-bottom: 10px;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+
+        }
+
+        .btn {
+          padding: 4px 8px;
+        }
+      }
+    }
+
+    .community-info {
+      margin-top: 15px;
+      p {
+        margin-bottom: 15px;
+      }
+
+      .btn {
+        padding: 4px 8px;
+      }
+    }
+  }
+}
+
+.text-btn {
+  font-size: 12px;
+  color: $color-blue;
+  transition: all 0.3s;
+
+  &:hover {
+    color: $blue-hover;
+  }
+}
+
+.text-red {
+  color: $color-red;
+}
+.text-grey {
+  color: #9F9F9F;
+}
+.font-12 {
+  font-size: 12px;
+}
+
+.house-tag {
+  display: inline-block;
+  height: 20px;
+  padding: 0 5px;
+  line-height: 19px;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid rgba(228, 30, 43, 0.2);
+
+  &+.house-tag {
+    margin-left: 10px;
+  }
+
+  &.levelType {
+    background-color: rgba(#FBAE39,.1);
+    border-color: rgba(#FBAE39,.2);
+    color: #FBAE39;
+  }
+  &.discStatus {
+    background-color: rgba(#ED78E9,.1);
+    border-color: rgba(#FBAE39,.2);
+    color: #ED78E9;
+  }
+  &.transactionType {
+    background-color: rgba(#5BCD9C,.1);
+    border-color: rgba(#5BCD9C,.2);
+    color: #5BCD9C;
+  }
+  &.status {
+    background-color: rgba(#A2D13D,.1);
+    border-color: rgba(#A2D13D,.2);
+    color: #A2D13D;
+  }
+  &.houseUses {
+    background-color: rgba(#27CCE3,.1);
+    border-color: rgba(#27CCE3,.2);
+    color: #27CCE3;
+  }
+
+  .table_div{
+    margin-top: 7px;
+    margin-right: 10px;
+  }
+}

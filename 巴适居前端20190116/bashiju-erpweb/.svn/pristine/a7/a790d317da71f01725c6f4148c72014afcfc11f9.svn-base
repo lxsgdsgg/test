@@ -1,0 +1,341 @@
+<template>
+  <div>
+    <el-form :model="form" ref="form" :rules="rules" label-width="100px" class="demo-form">
+
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="工作城市"   prop="workCityCode">
+            <base-city-cascader  @change="handleCity" v-model="form.workCityCode"></base-city-cascader>
+          </el-form-item>
+
+          <el-form-item label="招聘人数" prop="count">
+            <el-input v-model.number="form.count"><i slot="suffix" style="font-size: 12px;margin-right: 5px">人</i></el-input>
+          </el-form-item>
+
+
+          <el-form-item label="所需专业" prop="majorSubject">
+            <el-input v-model="form.majorSubject"></el-input>
+          </el-form-item>
+
+
+          <el-form-item label="工作年限:" prop="workTime">
+            <base-section-select v-model="form.workTime" :data="regionValue.workTime" placeholder="工作年限" description="年"></base-section-select>
+          </el-form-item>
+
+          <el-form-item label="薪资:" prop="wages">
+            <base-section-select v-model="form.wages" :data="regionValue.wages" placeholder="薪资" description="元"></base-section-select>
+          </el-form-item>
+
+        </el-col>
+
+        <el-col :span="12">
+
+          <el-form-item label="岗位名称"   prop="name">
+            <el-input v-model="form.name"   clearable></el-input>
+          </el-form-item>
+
+
+          <el-form-item label="学历要求:" prop="education">
+            <el-select v-model="form.education">
+              <el-option
+                v-for="item in educationOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+
+
+          <el-form-item label="截止日期：" prop="endTime">
+            <el-date-picker
+              v-model="form.endTime"
+              type="date"
+              style="width: 100%"
+              placeholder="选择日期"
+              format="yyyy-MM-dd"
+              value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+
+
+          <el-form-item label="招聘电话：" prop="mobile">
+            <el-input v-model="form.mobile"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-form-item label="任职要求：" prop="requirement">
+        <el-input v-model="form.requirement" type="textarea"></el-input>
+      </el-form-item>
+
+
+      <el-form-item label="主要职责：" prop="duty">
+        <el-input v-model="form.duty" type="textarea"></el-input>
+      </el-form-item>
+      <div class="btn-group">
+        <el-button type="primary" @click="handleSubmit">确认</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </div>
+
+    </el-form>
+  </div>
+</template>
+
+<script>
+
+
+  import CitySelector from '@/components/BaseCascader'
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import {dropdown} from "@/request/office/recruitInfo";//下拉数据源
+  import BaseSectionSelect from '@/components/BaseSectionSelect'//区间控件
+  import {getRegionValue} from '@/request/app'//请求去间数据
+  import {saveOrUpdateRecruitInfo} from "@/request/office/recruitInfo";
+  import  *  as  RequestLogUrl from '@/request/log/oaLog'
+
+  export default {
+    name: 'recruitInfo',
+    components: {CitySelector,BaseDeptCascader,BaseCascader, CitySelector,BaseCityCascader,BaseSectionSelect},
+    props:{
+      data:{
+        type:Object
+      },
+      isAdd:{
+        type:Boolean
+      }
+    },
+
+    data () {
+
+      var mobile = (rule, value, callback) => {
+        let reg = /^1[3|4|5|7|8][0-9]\d{8}$/
+        console.log(reg.test(value));
+        if(!value){
+          return callback(new Error('电话号码不能为空'))
+        }
+        if (reg.test(value)) {
+          callback();
+        }
+        return callback(new Error('请输入正确的手机号'));
+      };
+      return {
+        form: {
+          id: '',
+          workCityCode: '',//工作城市
+          majorSubject: '',//所需专业
+          count:'',//招聘人数
+          name: '',//岗位名称
+          education:'',//学历要求
+          requirement:'',//任职要求
+          maxWorking:'',//最高工作年限
+          minWorking:'',//最低工作年限
+          minWages:'',//薪资
+          maxWages:'',//薪资
+          mobile:'',//招聘电话
+          publisher:'',//职位发布人
+          endTime:'',//招聘截止日期
+          duty:'',//只要指责
+          publishTime:'',//发布时间
+        },
+        originalData:{},
+        publishTime:'',
+        //区间下拉
+        regionValue: {
+          wages:{},
+          workTime:{}
+        },
+        educationOpt:[],
+        rules: {
+          workCityCode: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          majorSubject: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          count: [
+            {required: true, message: '必填项', trigger: 'change'},
+            { type: 'number', message: '招聘人数必须为数字值',trigger: 'change'}
+            ],
+          name: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          education: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          requirement: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          wages: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          workTime: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          mobile: [
+            {required: true, message: '必填项', trigger: 'change'},
+            { validator: mobile, trigger: 'blur' }
+            ],
+          publisher: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          endTime: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          duty: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+          publishTime: [
+            {required: true, message: '必填项', trigger: 'change'},
+            ],
+        },
+        getCascaderOptionsUrl: 'manage/commonselect/queryReferenceUserSelect',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        }
+      }
+    },
+    methods: {
+      //取消
+      handleCancel () {
+        this.$emit('handleClick', 1)
+      },
+      handleCity(val,name){
+        this.form.workCityCode = val
+      }
+      ,
+      handleSubmit () {
+        this.$refs['form'].validate((valid) =>{
+          if(valid){
+            let params = {...this.form}
+            this.$confirm('确定保存编辑的信息吗?',{
+              confirmButtonText:'确定',
+              cancelButtonText:'取消',
+              type:'warning'
+            }).then(() =>{
+              this.loadingBtn = true
+              params.minWages = params.wages.min
+              params.maxWages = params.wages.max
+              params.minWorking = params.workTime.min
+              params.maxWorking = params.workTime.max
+              delete params.wages
+              delete params.workTime
+              saveOrUpdateRecruitInfo({jsonData: JSON.stringify(params)}).then(res =>{
+                if(res.success){
+                  this.$message({type:'success', message:res.msg})
+                  let message = {
+                    sourceCode:  params.name,
+                    sourceTypeId:17,// 24：招聘信息管理
+                    operatTypeId: 616,//操作类型: 修改,
+                    labelData: this.$utils.getFormFields(this.$refs['form']),
+                    originalData: this.originalData,
+                    newData: params,
+                  }
+                  RequestLogUrl.oaUpdateLog({message:JSON.stringify(message)}).then(res=>{
+                    console.log(res)
+                  }).catch(error =>{
+                    console.log(error)
+                  })
+                  this.loadingBtn = false
+                  //关闭窗口
+                  this.$emit('handleClick',2)
+                }else{
+                  this.$message({
+                    type:'warning',
+                    message:res.msg
+                  })
+                  this.loadingBtn = false
+                }
+              }).catch(() =>{
+                this.loadingBtn = false
+                this.$message({
+                  type:'info',
+                  message:'取消！'
+                })
+              })
+            })
+          }
+        })
+      },
+      dateFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+      },
+      setForm: function (data) {
+        this.resetForm()
+        for (let i in this.form) {
+          if (data[i]) {
+            this.form[i] = data[i]
+          }
+
+        }
+        //数组类型转换为字符串
+        this.form.education = String(data.education)
+        this.form.endTime = this.$utils.timeFormat(data.endTime, '{y}-{m}-{d}')
+        this.form.publishTime = this.$utils.timeFormat(data.publishTime, '{y}-{m}-{d}')
+        this.originalData = Object.assign({},this.form)
+    //区间回显
+        this.form.wages = {
+          min: data.minWages/100,
+          max: data.maxWages/100
+        }
+        this.form.workTime = {
+          min: data.minWorking,
+          max: data.maxWorking
+        }
+
+
+      },
+      resetForm () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+      },
+      handleChangeCity (val, name) {
+        // this.form.regaddrcity = name
+        // this.form.regaddrdetail = val
+      },
+      //下拉数据
+      dropdown(){
+        dropdown().then(res =>{
+          this.educationOpt = res.educations
+        })
+      },
+      // 时间格式转化
+      dateFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+      },
+      //区间数据
+      _getRegionValue() {
+        const wagesParams = {
+          widgetCode: 'wagesRange',
+          tag: 2
+        }
+        getRegionValue(wagesParams).then(res => {
+          this.regionValue.wages = res.data || []
+        })
+        const workTimeParams = {
+          widgetCode: 'workTimeRange',
+          tag: 2
+        }
+        getRegionValue(workTimeParams).then(res => {
+          this.regionValue.workTime = res.data || []
+        })
+      }
+    },mounted(){
+      if(!this.isAdd){
+        this.setForm(this.data)
+      }
+      this.dropdown()
+      this._getRegionValue()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .errorMsg{
+    color: red;
+  }
+</style>

@@ -1,0 +1,394 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item label="标签名称" prop="name">
+            <el-input v-model="queryForm.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="标签类型" prop="type">
+            <el-select v-model="queryForm.type">
+              <el-option value="1" label="房源">房源</el-option>
+              <el-option value="2" label="热评">热评</el-option>
+              <el-option value="3" label="点评">点评</el-option>
+              <el-option value="4" label="楼盘">楼盘</el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click="resetForm('queryForm')">清空</el-button>
+            <el-button v-hasOnlyBtn="'addBtn'" type="primary" @click.native.prevent="handleAdd(true)">新增</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="name"
+          show-overflow-tooltip
+          align="left"
+          label="标签名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="code"
+          show-overflow-tooltip
+          align="left"
+          label="标签编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="type"
+          show-overflow-tooltip
+          align="left"
+          label="标签类型">
+          <template slot-scope="scope">
+            {{returnSelName(scope.row.type)}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="color"
+          show-overflow-tooltip
+          align="left"
+          label="标签颜色">
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          show-overflow-tooltip
+          align="left"
+          label="操作人">
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          show-overflow-tooltip
+          align="left"
+          :formatter="_timeFormat"
+          label="创建时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <!--v-hasMultipleBtn="['editBtn',scope.row]"-->
+            <!--v-hasMultipleBtn="['delBtn',scope.row]"-->
+            <el-button @click="handleEdit(scope.row,'editForm')" type="text" size="small">编辑</el-button>
+            <el-button @click="delLabelData(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <!--编辑数据弹框-->
+    <b-dialog
+      title="标签编辑"
+      :show.sync="editDialogVisible"
+      :close-on-click-modal="false"
+      top="30vh"
+      width="400px">
+
+      <el-form :model="editForm" :rules="rules" ref="editForm" size="small" label-width="120px">
+        <el-form-item prop="name" label="标签名称">
+          <el-input v-model="editForm.name" type="text"></el-input>
+        </el-form-item>
+
+        <el-form-item prop="code" label="标签编号">
+          <el-input v-model="editForm.code" type="text"></el-input>
+        </el-form-item>
+
+        <el-form-item prop="type" label="标签类型">
+          <el-select v-model="editForm.type" style="width: 240px" clearable>
+            <el-option value="1" label="房源">房源</el-option>
+            <el-option value="2" label="热评">热评</el-option>
+            <el-option value="3" label="点评">点评</el-option>
+            <el-option value="4" label="楼盘">楼盘</el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item prop="color" label="标签颜色">
+          <el-input v-model="editForm.color" type="text" edit="false"></el-input>
+          <span class="el-input__suffix">
+            <span class="el-input__suffix-inner">
+              <i class="el-input__icon">
+                <el-color-picker v-model="editForm.color" color-format="hex"></el-color-picker>
+              </i>
+            </span>
+          </span>
+
+        </el-form-item>
+
+        <div class="btn-group">
+          <el-button type="primary" @click="handleSubmit" :loading="loadingBtn" size="small">保存</el-button>
+          <el-button type="primary" @click="handleCancel" size="small">取消</el-button>
+        </div>
+      </el-form>
+    </b-dialog>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList'
+  import * as RequestURL from '@/request/manage/labelManage'
+  import {systemAddLog,systemUpdateLog,systemQueryLog,systemDelLog} from '@/request/log/systemPlatformLog'
+
+  export default {
+    name: 'labelmanage',
+    mixins: [PageList],
+    data () {
+      return {
+        currentRowData: '',
+        queryForm: {
+          name: '',
+          type: ''
+        },
+        editForm: {
+          id: '',
+          name: '',
+          code: '',
+          type: '',
+          color: '#409EFF'
+        },
+        loadingView: false,
+        editDialogVisible: false,
+        queryBtnLoading: false,
+        tableData: [],
+        loadingBtn: false,
+        isAdd: true,
+        rules: {
+          name: [
+            {required: true, message: '该项为必填', trigger: 'blur'}
+          ],
+          code: [
+            {required: true, message: '该项为必填', trigger: 'blur'}
+          ],
+          labeltype: [
+            {required: true, message: '该项为必填', trigger: 'change'}
+          ],
+          color: [
+            {required: true, message: '该项为必填', trigger: 'change'}
+          ]
+        },
+        originalData: {}
+      }
+    },
+    methods: {
+
+      returnSelName(type){
+        switch (type) {
+          case 1:
+            return '房源'
+          case 2:
+            return '热评'
+          case 3:
+            return '点评'
+          case 4 :
+            return '楼盘'
+          default :
+            return '其他'
+        }
+      },
+
+      getAgentName(value,name){
+        this.editForm.userName = name
+        this.editForm.agentId = value
+      },
+
+      // 新增操作
+      handleAdd(formName) {
+        this.resetForm(formName)
+        this.isAdd = true
+        this.$nextTick(() => {
+          this.currentRowData = ''
+          this.setForm(this.editForm, '')
+          this.editDialogVisible = true
+        })
+      },
+      // 编辑操作
+      handleEdit(row, formName) {
+        this.resetForm(formName)
+        this.isAdd = false
+        this.currentRowData = ''
+        this.$nextTick(() => {
+          this.currentRowData = row
+          this.setForm(this.editForm, this.currentRowData)
+          this.editDialogVisible = true
+        })
+      },
+
+      //取消操作
+      handleCancel() {
+        this.editDialogVisible = false
+      },
+
+      //确认提交数据
+      handleSubmit() {
+        this.saveOrUpdateLabel()
+      },
+
+      // 修改时设置界面数据
+      setForm: function (formName, data) {
+        this.resetForm(formName)
+        for (let i in this.editForm) {
+          this.editForm[i] = data[i]
+        }
+        this.editForm.type = String(this.editForm.type)
+        this.originalData = Object.assign({},{...formName})
+      },
+
+      //重置界面数据
+      resetForm(formName) {
+        this.$refs[formName] && this.$refs[formName].resetFields()
+      },
+
+      // 查询页面列表数据
+      _loadData(btnQuery) {
+        if (btnQuery) {
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+          this.queryBtnLoading = btnQuery
+        }
+        this.loadingView = true
+        let query = {...this.queryForm}
+        let params = Object.assign({}, {conditions: JSON.stringify(query)}, {
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        RequestURL.queryLabelPageList( params ).then((res) => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.queryBtnLoading = false
+          this.loadingView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+
+      // 保存或更新定时任务信息
+      saveOrUpdateLabel: function () {
+        this.$refs['editForm'].validate((valid) => {
+          if (valid) {
+            let params = {...this.editForm}
+            this.$confirm('确认保存数据吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingBtn = true
+              let cfg = {
+                headers: {
+                  'Content-Type': 'application/json;charset=UTF-8'
+                }
+              }
+              RequestURL.saveOrUpdateLabelData(params,cfg).then(res => {
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg,
+                  })
+                  this.editDialogVisible = false
+                  this.loadingBtn = false
+                  this._loadData(false)
+                } else {
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                  this.editDialogVisible = false
+                  this.loadingBtn = false
+                }
+
+
+                if(this.editForm.id){
+                  let message = {sourceCode:params.name,sourceTypeId:'30',operatTypeId:'2'
+                    ,labelData:this.$utils.getFormFields(this.$refs['editForm'])
+                    ,originalData:this.originalData,newData: {...this.editForm}}
+                  systemUpdateLog({message: JSON.stringify(message)})
+                }else{
+                  let message = {sourceCode:params.name,sourceTypeId:'30',operatTypeId:'1'
+                    ,logContent: `新增标签:${params.name}`}
+                  systemAddLog({message: JSON.stringify(message)})
+                }
+
+              }).catch((err) => {
+                console.log(err)
+                this.$message({
+                  type: 'error',
+                  message: err.data.msg
+                })
+              })
+            })
+            //   .catch(() => {
+            //   this.$message({
+            //     type: 'info',
+            //     message: '取消!'
+            //   })
+            // })
+          }
+        })
+      },
+      // 删除导航栏信息
+      delLabelData(row) {
+        let params = {id: row.id}
+        this.$confirm('确定删除数据吗', '提示', {
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(() => {
+          RequestURL.delLabelData(params).then(res => {
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this._loadData(false)
+            } else {
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+          })
+          let message = {sourceCode:row.name,sourceTypeId:'30',operatTypeId:'3'
+            ,logContent: `删除标签： ${row.name}`}
+          systemDelLog({message: JSON.stringify(message)})
+        })
+        //   .catch(() => {
+        //   this.$message({
+        //     type: 'info',
+        //     message: '已取消'
+        //   })
+        // })
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+</style>

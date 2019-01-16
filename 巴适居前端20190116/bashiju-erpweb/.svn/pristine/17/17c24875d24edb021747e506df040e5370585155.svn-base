@@ -1,0 +1,606 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+         
+          <el-form-item label="审核状态" prop="examineStatus">
+            <el-select v-model="queryForm.examineStatus" placeholder="请选择" >
+              <el-option
+                v-for="item in selectStatus"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="类型" prop="classes">
+            <el-select v-model="queryForm.classes" placeholder="请选择" >
+              <el-option
+                v-for="item in selectClasses"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="标题" prop="title">
+            <el-input v-model="queryForm.title" placeholder="请输入标题"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+          </el-form-item>
+          <el-form-item class="pull-right">
+            <el-button  type="primary" @click="handleAdd">添加公告</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          prop="title"
+          align="center"
+          label="标题">
+        </el-table-column>
+
+        <el-table-column
+          prop="classesName"
+          align="center"
+          label="类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="发布部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          align="center"
+          label="发布人">
+        </el-table-column>
+
+        <el-table-column
+          prop="examineStatusName"
+          align="center"
+          label="审核状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="auditor"
+          align="center"
+          label="审核人">
+        </el-table-column>
+
+        <el-table-column
+          prop="rejectReason"
+          align="center"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button   @click="handleShow(scope.row)" type="text" size="small">查看</el-button>
+            <el-button  v-if="scope.row.examineStatus==0"  @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button   @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" :title="titleText" width="780px">
+        <div style="height:500px;overflow-y:scroll;">
+         
+          <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="100px">
+            
+            <el-form-item label="公告标题" prop="title">
+              <el-input v-model="addForm.title"></el-input>
+            </el-form-item>
+            <el-form-item label="公告类型" prop="classes">
+              <el-select v-model="addForm.classes" placeholder="请选择"  style="width:100%">
+                <el-option
+                  v-for="item in selectClasses"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            
+            <base-editor :content="editorVal" ref="editor"></base-editor>
+            <el-form-item class="margin-b-none">
+              <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+              <el-button @click="dialogAddVisible=false">取消</el-button>
+            </el-form-item>
+
+          </el-form>
+        </div>
+      </b-dialog>
+      <b-dialog :show.sync="dialogShowContent" title="公告内容" width="500px">
+        <p class="p-title">浏览次数：<span>{{browseNum}}</span></p>
+        <p class="p-title">浏览者：<span>{{browseName}}</span></p>
+        <p class="p-title">内容：</p>
+        <div v-html="showContent">{{showContent}}</div>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+<style>
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 150px;
+    height: 150px;
+    line-height: 150px;
+    text-align: center;
+  }
+  .avatar {
+    width: 150px;
+    height: 150px;
+    display: block;
+  }
+</style>
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/office/article' // 请求后端URL路径
+  import BaseCityCascader from '@/components/BaseCascader/city' // 城市级联组件
+  import BaseDeptCascader from '@/components/BaseCascader/dept' // 部门级联组件
+  import classTypeSelector from '@/components/BaseCascader' //
+  import { ARTICLEIMG_UPLOAD_URL } from '@/request/main' // 上传封面
+  import BaseEditor from '@/components/BaseEditor'
+  import {manageAddLog, manageUpdateLog, manageQueryLog,manageDelLog} from '@/request/log/mangePlatformLog'
+
+  export default {
+    name: 'encyclopediasManage',
+    mixins: [PageList],
+    components: {BaseCityCascader,BaseDeptCascader,classTypeSelector, BaseEditor},
+
+    data () {
+      return {
+        articleUrl: 'manage/getEncyclopediasClasse?cityCode=0',
+        cascaderDataProps: {id: 'id', parent: 'parentId'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'id', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        noShow: false,
+        imageUrl: '',
+        uploadPath: ARTICLEIMG_UPLOAD_URL,
+        fileList: [],
+        articleClassInfo: {},
+        cityInfo: [],
+        queryForm: {},
+        topForm: {
+          isOpen: false,
+          isSetTop: false
+        },
+        addForm: {
+          title: '',
+          classes: '',
+        },
+        selectStatus: [],
+        selectCity: [],
+        selectClasses: [],
+        options: [],
+        editSqlForm: {
+          sqlDescription: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          title: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+        
+          classes: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+        },
+        dialogAddVisible: false,
+        dialogEditSql: false,
+        dialogShowContent: false,
+        loadingSubmitBtn: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        valueData: [],
+        levelInfo1: [],
+        levelInfo2: [],
+        levelInfo3: [],
+        editorVal: '',
+        showContent: '',
+        showImg: false,
+        fileUrl: '',
+        nowQueryForm: {},
+        browseName: '',
+        browseNum: 0,
+        titleText: '添加公告',
+        isAdd: true,
+        originalData: []
+      }
+    },
+    methods: {
+      //获取一些基础信息
+      getArticleType(){
+        const params = {};
+        RequestURL.getArticleType(params).then(res => {
+          this.articleClassInfo = res.data.articleClassInfo;
+          this.selectCity = res.data.cityInfo;
+          for(let key in res.data.examineStatus ){
+            let item = {
+              value: key,
+              label: res.data.examineStatus[key]
+            }
+            this.selectStatus.push(item);
+          }
+           for(let key in res.data.noticeType ){
+            let item = {
+              value: key,
+              label: res.data.noticeType[key]
+            }
+            if(res.data.roleGroup==='01'){
+              this.selectClasses.push(item);
+            }else{
+              if(key!=0){
+                this.selectClasses.push(item);
+              }
+              
+            }
+            
+          }
+          
+        }).catch((err) => {
+          console.log(err);
+          this.$message({
+            type: 'info',
+            message: err.msg
+          })
+        })
+      },
+
+      // 新增
+      handleAdd (row) {
+        this.$refs['editor'] && this.$refs['editor'].clear()
+        this._resetForm('addForm')
+        this.currentRowData = null // 置空当前操作的行数据
+        this.isAdd = true;
+        this.titleText = '添加公告'
+        this.editorVal = '';
+        this.imageUrl= '';
+        this.dialogAddVisible = true;
+        this.currentDynamicConfigureItem=row;
+        this.fileList = [];
+        delete this.addForm.id
+        this.showImg = false;
+      },
+      changeCity(){
+        let cityCode = this.addForm.cityCode;
+        
+        /*for(let key in this.articleClassInfo){
+          this.options = [];
+          if(this.addForm.cityCode == key){
+            let typeInfo = this.articleClassInfo[key];
+            for(let i=0;i<typeInfo.length;i++){
+              if(typeInfo[i].level == 1){
+                this.levelInfo1.push(typeInfo[i]);
+              }
+              if(typeInfo[i].level == 2){
+                this.levelInfo2.push(typeInfo[i]);
+              }
+              if(typeInfo[i].level == 3){
+                this.levelInfo3.push(typeInfo[i]);
+              }
+            }
+            if(this.levelInfo1.length>0){
+              for(let a=0;a<this.levelInfo1.length;a++){
+                let item = {
+                  value: this.levelInfo1[a].id,
+                  label: this.levelInfo1[a].name
+                }
+                if(this.levelInfo2.length>0){
+                  let nextChildArr = [];
+                  for(let b=0;b<this.levelInfo2.length;b++){
+                    if(this.levelInfo1[a].id == this.levelInfo2[b].parentId){
+                      let nextItem = {
+                        value: this.levelInfo2[b].id,
+                        label: this.levelInfo2[b].name
+                      }
+                      if(this.levelInfo3.length>0){
+                        let lastChildArr = [];
+                        for(let c=0;c<this.levelInfo3.length;c++){
+                          if(this.levelInfo2[b].id == this.levelInfo3[c].parentId){
+                            let lastItem = {
+                              value: this.levelInfo3[c].id,
+                              label: this.levelInfo3[c].name
+                            }
+                            lastChildArr.push(lastItem)
+                          }
+                        }
+                        nextItem.children = lastChildArr
+                      }
+                      nextChildArr.push(nextItem)
+                    }
+                  }
+                  item.children = nextChildArr
+                }
+                this.options.push(item)
+              }
+
+            }
+
+          }
+        }*/
+      },
+      handleChange(val, label, data){
+        console.log(data)
+        if(data.dataType=="dept"){
+          this.addForm.deptName=data.name
+        }else{
+          setTimeout(() => {
+            this.addForm.deptId=""
+          this.addForm.deptName=""
+          }, 50)
+        }
+      },
+      handleShow(row){
+        this.dialogShowContent = true;
+        //alert(row.content)
+        this.browseName = row.browseName;
+        this.browseNum = row.browseCnt;
+        this.showContent = row.content;
+      },
+
+      // 编辑
+      handleEdit (row) {
+        this._resetForm('addForm')
+        this.currentRowData = row
+        this.isAdd = false
+        this.titleText = '编辑公告'
+        this.dialogAddVisible = true
+        this.showImg = true;
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+      handleAvatarSuccess(res, file) {
+        console.log(res);
+        this.imageUrl = URL.createObjectURL(file.raw);
+        this.addForm.cover = res.data.filePath;
+        let fileItem = {
+          name: res.data.fileName,
+          url: res.data.filePath
+        }
+        this.fileList.push(fileItem);
+      },
+      beforeAvatarUpload(file) {
+
+      },
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            
+           // alert(this.$refs['editor'].getContent());
+            this.addForm.content = this.$refs['editor'].getContent();
+            this.addForm.type = '1';
+            this.addForm.classesName = this.selectClasses.find(item => item.value === this.addForm.classes).label
+            const params = {
+              jsonData: JSON.stringify({...this.addForm})
+            }
+
+
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveArticle(params).then(res => {
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                   //记日志
+                  if(this.isAdd){//新增
+                      let logContent = '新增公告；类型：'+this.addForm.classesName+";标题："+this.addForm.title
+                      let message = {
+                          sourceCode: '公告',
+                          sourceTypeId: 17,
+                          operatTypeId: 1,
+                          logContent: logContent,
+                          
+                        }
+                      manageAddLog({message: JSON.stringify(message)}).then(res => {
+                          console.log(res)
+                        })
+                  }else{//编辑
+                      let message = {
+                      sourceCode: '公告',
+                      sourceTypeId: 17,
+                      operatTypeId: 2,
+                      labelData: this.$utils.getFormFields(this.$refs['addForm']),
+                      originalData: this.originalData,
+                      newData: JSON.parse(params.jsonData)
+                    }
+
+                    manageUpdateLog({message: JSON.stringify(message)}).then(res => {
+                      console.log(res)
+                    })
+                }
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+
+      // 删除
+      handleDelete (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delArticle({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            //this._loadData(false);
+            for(let i=0;i<this.tableData.length;i++){
+              if(this.tableData[i].id==row.id){
+                this.tableData.splice(i,1)
+              }
+            }
+            //写日志
+            let logContent = '删除公告；类型：'+row.classesName+";标题："+row.title
+            let message = {
+                sourceCode: '公告',
+                sourceTypeId: 17,
+                operatTypeId: 3,
+                logContent: logContent
+              }
+            manageDelLog({message: JSON.stringify(message)}).then(res => {
+                console.log(res)
+              })
+          }).catch((err) => {
+            //console.log(err);
+            this.$message({
+              type: 'info',
+              message: err.msg
+            })
+          })
+        })
+      },
+
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        this.nowQueryForm.type = '1';
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getArticleList(params).then(res => {
+          this.tableData = res.data.map(item => {
+             if(item.examineStatus===0){
+               item.examineStatusName = '未审核'
+             }else if(item.examineStatus===1){
+               item.examineStatusName = '已审核'
+             }else{
+               item.examineStatusName = '已驳回'
+             }
+             return item
+          })
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+      // 表单回填
+      _setForm () {
+         // 拷贝为修改过的原始表单数据
+        this.originalData = Object.assign({}, this.addForm)
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          
+         
+          //this.imageUrl = this.currentRowData['cover']
+          this.fileUrl = this.currentRowData['cover']
+          //alert(this.currentRowData['cover']);
+          this.addForm['id'] = this.currentRowData['id']
+          this.editorVal = this.currentRowData['content']
+          // console.log(this.currentRowData['classesId'])
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+
+
+    },
+    mounted () {
+      this.getArticleType();
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .p-title{
+    margin-bottom: 16px;
+    margin-top: 12px;
+  }
+</style>

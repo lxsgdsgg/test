@@ -1,0 +1,326 @@
+<template>
+  <div>
+    <div class="wrapper" v-if="dealInfo">
+      <el-tabs v-model="activeName" @tab-click="handleTabClick" type="card" style="max-width: 1280px">
+        <el-tab-pane label="基本信息" name="dealInfo">
+          <div>
+            <span style="margin-left:15px;height: 32px;line-height: 30px;color: #99a9bf;">房源地址:
+                {{dealInfo.areaName }}—{{ dealInfo.regionName }}—{{ dealInfo.communityName }}—{{ dealInfo.buildingsName}}
+            </span>
+            <div class="pull-right" style="margin-top: 1px;">
+              <el-button v-hasMultipleBtn="['updateDealInfo',dealInfo]" type="primary" size="mini" @click="handlerModify">修改成交</el-button>
+              <!--<el-button v-hasMultipleBtn="['printContractBtn',dealInfo]" type="primary" size="mini" @click="printContract">合同打印</el-button>-->
+            </div>
+          </div>
+          <base-info
+            @loadDataFinish="getBussinessDealInfo"
+            :params="{formName: 'deal', dealId: dealId}"
+            @switchTab="switchTab"
+            ref="dealInfo"
+            :dealType="'02'"
+            :dealInfo="dealInfo"
+            :peopleSelectOpts="peopleSelectOpts">
+          </base-info>
+        </el-tab-pane>
+
+        <el-tab-pane label="佣金记录" name="commissionRecord">
+          <commission-record ref="commissionRecord" :dealId="dealId" :dealInfo="dealInfo" :dealType="'02'"></commission-record>
+        </el-tab-pane>
+
+        <el-tab-pane label="文件扫描件" name="scanDealFile">
+          <div style="margin-top: 1px;">
+            <el-radio v-model="attachType" @change="changeAttacheType" label="0">不限</el-radio>
+            <el-radio v-model="attachType" @change="changeAttacheType" label="00">合同扫描件</el-radio>
+            <el-radio v-model="attachType" @change="changeAttacheType" label="01">业主材料扫描</el-radio>
+            <el-radio v-model="attachType" @change="changeAttacheType" label="02">客户材料扫描</el-radio>
+          </div>
+          <hr>
+          <photo-upload :defaultParams="{dealId: dealId, attachType: attachType,dealType: '02'}"
+                        :dealInfo="dealInfo"ref="scanDealFile" :dealType="'02'"></photo-upload>
+        </el-tab-pane>
+
+        <el-tab-pane label="跟进记录" name="followRecord">
+          <div class="pull-right" style="margin-top: 1px;">
+            <el-button v-hasMultipleBtn="['addFollowRecord',dealInfo]"
+                       type="primary" size="mini" @click="handleOpenDialogFollow">新增</el-button>
+          </div>
+          <follow-record ref="followRecord" :dealId="dealId" :dealType="'02'"></follow-record>
+        </el-tab-pane>
+
+        <el-tab-pane label="日志记录" name="dealLog">
+          <deal-action-log ref="dealLog" :dealId="dealId"></deal-action-log>
+        </el-tab-pane>
+
+        <el-tab-pane label="代收付款" name="paymentToBeReceived">
+          <payment-to-be-received ref="paymentToBeReceived"  :dealId="dealId"
+                                  :dealInfo="dealInfo" :dealType="'02'"></payment-to-be-received>
+        </el-tab-pane>
+
+      </el-tabs>
+      <!-- 新增跟进 -->
+      <el-dialog
+        title="一手成交写跟进"
+        :visible.sync="dialogVisibleFollow"
+        width="500px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :before-close="handleCloseDialogFollow"
+        v-if="hackReset "
+      >
+        <add-follow
+          @submit="handleFollowSubmit"
+          @delete="handleFollowDele"
+          :peopleSelectOpts="peopleSelectOpts"
+          ref="follow"
+          :dealId="dealId"
+          :dealType="'02'"
+          v-if="hackReset"
+        ></add-follow>
+      </el-dialog>
+
+      <!-- 修改成交详细 -->
+      <el-dialog
+        title="修改一手成交详细"
+        :visible.sync="dialogVisibleEdit"
+        width="750px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+        <modify-deal-detail
+          @cancelDeal="cancelDeal"
+          @saveDeal="saveDeal"
+          :dealId="dealId"
+          :agreementId="dealInfo.agreementId"
+          :dealType="'02'"
+          v-if="hackReset"
+        ></modify-deal-detail>
+      </el-dialog>
+    </div>
+
+  </div>
+</template>
+
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseInfo from './DealDetail'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+
+  import PaymentToBeReceived from '@/views/deal/bussinessDeal/component/PaymentToBeReceived'
+  import DealActionLog from '@/views/deal/bussinessDeal/component/DealActionLog'
+  import CommissionRecord from '@/views/deal/bussinessDeal/component/CommissionRecord'
+  import FollowRecord from '@/views/deal/bussinessDeal/component/FollowRecord'
+  import AddFollow from '@/views/deal/bussinessDeal/component/AddFollow'
+  import PhotoUpload from '@/views/deal/bussinessDeal/component/PhotoUpload'
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import {BASE_URL} from '@/request/main'
+  import ModifyDealDetail from '@/views/deal/bussinessDeal/component/ModifyDealDetail'
+  import DealBaseWriteLogMixins from '@/views/deal/bussinessDeal/component/DealBaseWriteLogMixins'
+
+  export default {
+    name: 'oneHandDealDetail',
+    mixins: [DealBaseWriteLogMixins],
+    components: {BaseInfo, BaseCascader ,FollowRecord ,PaymentToBeReceived,DealActionLog
+        ,CommissionRecord,AddFollow,PhotoUpload,ModifyDealDetail},
+    data () {
+      return {
+        floorCount: '',
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        activeName: 'dealInfo',
+        loadingSubmitBtn: false,
+        peopleSelectOpts: [],
+        dialogVisibleFollow: false,
+        followInfo: [],
+        attachType: '',
+        fileList: [],
+        dealInfo: null,
+        dialogVisibleEditBaseInfo: false,
+        hackResetEditBaseInfo: false,
+        dialogVisibleEdit: false,
+        hackReset: true
+      }
+    },
+
+    methods: {
+      // 成交保存
+      saveDeal (result) {
+        if (result) {
+          this.dialogVisibleEdit = false
+          this._getTableData()
+          this.$refs['dealInfo']._getTableData()
+        }
+      },
+
+      // 取消成交弹框
+      cancelDeal () {
+        this.$confirm('确定关闭正在编辑的窗口?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.dialogVisibleEdit = false
+        })
+      },
+
+      handlerModify(){
+        this.hackReset = false
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.dialogVisibleEdit = true
+        })
+      },
+
+      // 合同打印
+      printContract(){
+        this.dealQueryLog(this.dealId, this.dealId,'8', '410', '合同打印')
+        let url = BASE_URL.replace('api/','')
+        window.open(url+"#/printContract?code="+this.dealInfo.agreementId)
+      },
+
+      // 跟进组件提交完成
+      handleFollowSubmit (data) {
+        this.followInfo.unshift(data)
+        this.dialogVisibleFollow = false
+        this.$refs['followRecord']._getTableData()
+      },
+
+      //列表删除数据时回调
+      handleFollowDele(data){
+        this.followInfo = null
+        this.followInfo = data
+      },
+
+      // 打开写跟进dialog
+      handleOpenDialogFollow () {
+        this.hackReset = false
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.$refs['followList'] && this.$refs['followList']._resetForm()
+          this.dialogVisibleFollow = true
+        })
+      },
+
+      // 关闭写跟进dialog
+      handleCloseDialogFollow (done) {
+        this.$confirm('确认关闭正在编辑的窗口？')
+          .then(() => {
+            done()
+          }).catch(_ => {})
+      },
+
+      // 获取图片列表
+      changeAttacheType(type){
+        this.attachType = type
+        this.$refs['scanDealFile']._getTableData()
+      },
+
+      handleTabClick (tab) {
+        if (tab.name === 'followRecord'){
+          this.$refs['followRecord']._getTableData()
+        }
+
+        if (tab.name === 'commissionRecord') {
+          this.$refs['commissionRecord'].getTableData()
+        }
+
+        if (tab.name === 'dealLog') {
+          this.$refs['dealLog']._loadData()
+        }
+
+        if (tab.name === 'paymentToBeReceived') {
+          this.$refs['paymentToBeReceived']._getTableData()
+        }
+
+        if (tab.name === 'dealInfo') {
+          this.$refs['dealInfo']._getTableData()
+        }
+      },
+
+      switchTab (name) {
+        if (name === 'followRecord') {
+          this.$refs['followRecord']._getTableData()
+        }
+        this.activeName = name
+      },
+
+      // 修改房源基本信息
+      handleEditBaseInfo () {
+        this.hackResetEditBaseInfo = false
+        this.$nextTick(() => {
+          // 房源信息编辑会显数据
+          this.editFormInfo = {
+            baseInfo: this.houseResult.houseInfo || {},
+            customInfo: this.houseResult.customInfo || {},
+            houseLabel: this.houseResult.houseLable || []
+          }
+          this.hackResetEditBaseInfo = true
+          this.dialogVisibleEditBaseInfo = true
+        })
+      },
+
+      // 修改房源基本信息保存
+      handleEditBaseInfoClick (action) {
+        if (action === 1) {
+          this.$refs['baseInfo']._loadData()
+        }
+        this.dialogVisibleEditBaseInfo = false
+      },
+
+      _msg(type, msg) {
+        this.$message({
+          type: type || 'success',
+          message: msg || '操作成功',
+          showClose: true
+        })
+      },
+
+      getBussinessDealInfo (data) {
+        if (data) {
+          this.houseResult = data
+          this.followInfo = data.followInfo || []
+        }
+      },
+
+      _getTableData(){
+        if(this.dealId === undefined){
+          this.dealId = ''
+        }else{
+          let params = {id: this.dealId,dealType: '02'}
+          RequestURL.queryDealInfoByIdAndType(params).then(res=>{
+            this.dealInfo = res
+          })
+        }
+      },
+      // 设置导航标签标题
+      setTagsViewTitle() {
+        let tempRoute = Object.assign({}, this.$route)
+        let code = tempRoute.params && tempRoute.params.dealId
+
+        const route = Object.assign({}, tempRoute, { title: code })
+        this.$store.dispatch('updateVisitedView', route)
+      }
+    },
+
+    mounted () {
+      this.setTagsViewTitle()
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+      this._getTableData()
+    },
+
+    computed:{
+      dealId() {
+        return this.$route.params.dealId
+      }
+    }
+  }
+</script>
+<style scoped lang="scss">
+  @import "./dealscss/dealmain.scss";
+</style>

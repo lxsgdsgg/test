@@ -1,0 +1,202 @@
+<template>
+  <div class="form">
+    <el-form ref="form" :model="form"  label-width="80px" :rules="rules">
+      <!--<el-form-item label="所属城市" prop="cityCode">
+        <base-city-cascader  @change="handleCity" v-model="form.cityCode"></base-city-cascader>
+      </el-form-item>-->
+      <el-form-item label="类型" prop="type">
+        <el-select v-model="form.type" @change="getParentLevel">
+          <el-option
+            v-for="item in typeOpt"
+            :key="item.id"
+            :value="item.id"
+            :label="item.fieldValue">
+          </el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="类别名称" prop="name">
+        <el-input v-model="form.name" placeholder="类别名称" style="width: 220px"></el-input>
+      </el-form-item>
+
+      <el-form-item label="等级" prop="level">
+          <el-select v-model="form.level" @change="getParentLevel">
+            <el-option
+              v-for="item in levelOpt"
+              :key="item.id"
+              :value="item.id"
+              :label="item.fieldValue">
+            </el-option>
+          </el-select>
+      </el-form-item>
+
+      <el-form-item label="上级类别" prop="parentId" v-if="this.form.level!=1">
+        <el-select v-model="form.parentId" placeholder="请选着">
+          <el-option
+            v-for="item in parentLevelOpt"
+            :key="item.id"
+            :value="item.id"
+            :label="item.name">
+          </el-option>
+        </el-select>
+      </el-form-item>
+
+
+      <div class="btn-group">
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="handleCancle">取消</el-button>
+      </div>
+    </el-form>
+  </div>
+</template>
+<style></style>
+<script>
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import {getParenLevel,saveOrUpdatehouseArticleClassify} from "@/request/manage/houseArticleClassify";
+  import * as RequestUrl from '@/request/log/systemPlatformLog'//客源日志统一接口
+
+  export default {
+      components:{BaseCityCascader},
+      props:{
+        data:{
+          type:Object
+        },
+        isAdd:{
+          type:Boolean
+        }
+      },
+        data() {
+            return {
+              form:{
+                id:'',
+                cityCode:'',
+                level:'',
+                type:'',
+                parentId: '',
+                name:''
+              },
+              rules: {
+                level:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],
+                name:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],
+                parentId:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],
+                type:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ]
+                /*cityCode:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],*/
+              },
+              levelOpt:[
+                {id:1,fieldValue:'一级'},
+                {id:2,fieldValue:'二级'},
+                {id:3,fieldValue:'三级'},
+              ],
+              typeOpt:[
+                {id:0,fieldValue:'房产百科'},
+                {id:1,fieldValue:'房产资讯'},
+              ],
+              parentLevelOpt:[],
+              originalData:{}
+            }
+        },
+        methods: {
+            setForm(data){
+              for(let i in this.form){
+                this.form[i] = data[i]
+              }
+              this.originalData =  Object.assign({}, {...this.form})
+            },
+          handleCancle(){
+              this.$emit('handleClick',2)
+          },
+          handleSubmit(){
+              this.$refs['form'].validate((valid) =>{
+                  if(valid){
+                    this.$confirm('确定要保存吗?',{
+                      confirmBtnText:'确定',
+                      cancelBtnText:'取消'
+                    }).then(()=>{
+                      this.form.isOpen = 0
+                      let params = {...this.form}
+                      //等级为一级，说明没有上一级设上级的值为0
+                      if(params.level == 1) {
+                        params.parentId = 0
+                      }
+                      saveOrUpdatehouseArticleClassify({jsonData:JSON.stringify(params)}).then(res =>{
+                        if(res.success){
+                          this.$message({type:'success',message:res.msg})
+                          if(params.id!=''){
+                            let message = {
+                              sourceCode:  params.name,//资源编号：客源编号
+                              sourceTypeId:16,// 16：房产文章分类
+                              operatTypeId: 2,//操作类型2: 表示修改,
+                              labelData: this.$utils.getFormFields(this.$refs['form']),
+                              originalData: this.originalData,
+                              newData: params,
+                            }
+                            RequestUrl.systemUpdateLog({message:JSON.stringify(message)}).then(res=>{
+                              console.log(res)
+                            }).catch(error =>{
+                              console.log(error)
+                            })
+                          }else{
+                            let message = {
+                              sourceCode:  params.name,//资源编号：客源编号
+                              sourceTypeId:16,// 16：房产文章分类
+                              operatTypeId: 1,//操作类型1: 表示新增,
+                              logContent: '新增文章分类:'+params.name//日志内容
+                            }
+                            RequestUrl.systemAddLog({message:JSON.stringify(message)}).then(res=>{
+                              console.log(res)
+                            }).catch(error =>{
+                              console.log(error)
+                            })
+                          }
+                          this.$emit('handleClick',1)
+                        }else{
+                          this.$message({type:'warning',message:res.msg})
+                        }
+                      }).catch(error=>{
+                        console.log(error)
+                      })
+                    })
+                  }
+              });
+          },
+          handleCity(){
+
+          },
+          //获取上级数据
+          getParentLevel(value){
+              console.log(this.form)
+              //等级不为一级的时候
+              if(this.form.level&&this.form.level!=1){
+                //上级设为空
+                if(this.form.parentId == 0){
+                  this.form.parentId = ''
+                }
+                if (this.form.type !==''){
+                  let params = {type:this.form.type,level:this.form.level-1}
+                  getParenLevel(params).then(res =>{
+                    this.parentLevelOpt = res
+                  })
+                }
+              }
+          }
+        },
+        mounted() {
+        console.log(this.data)
+           if(!this.isAdd){
+               this.setForm(this.data);
+               this.getParentLevel(this.data.level)
+           }
+        }
+    }
+
+</script>

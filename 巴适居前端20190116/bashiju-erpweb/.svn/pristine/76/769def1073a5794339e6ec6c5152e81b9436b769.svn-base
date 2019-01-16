@@ -1,0 +1,229 @@
+<template>
+     <div>
+          <el-form :model="form" ref="form" :rules="rules" label-width="100px" class="demo-form">
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="客源编号"   prop="demandId">
+                  <el-input v-model="form.demandId" disabled></el-input>
+                </el-form-item>
+
+                <el-form-item label="客户姓名" prop="custName">
+                  <el-input v-model="form.custName" disabled></el-input>
+                </el-form-item>
+
+                <el-form-item >
+                  <el-button v-model="form.doccode" @click="selectSecondHouse" type="text">选择房源</el-button>
+                </el-form-item>
+
+
+                <el-form-item label="房源编号" prop="custName">
+                  <el-input v-model="form.houseId"></el-input>
+                </el-form-item>
+
+                <el-form-item label="下定金额" prop="price">
+                  <el-input v-model="form.price"></el-input>
+                </el-form-item>
+
+              </el-col>
+
+              <el-col :span="12">
+
+                <el-form-item label="下定日期" prop="entrustTime">
+                  <el-date-picker
+                    v-model="form.entrustTime"
+                    @change="_entrustTimeFormat"
+                    style="width: 100%;"
+                    type="date"
+                    placeholder="选择日期">
+                  </el-date-picker>
+                </el-form-item>
+
+
+                <el-form-item label="经办人" prop="trusteesId">
+                  <base-cascader placeholder="经办人" clearable v-model="form.trusteesId" @change="getTrustees"  :url="getReferenceUserSelectUrl"
+                                 :props="cascaderProps" :dataProps="cascaderDataProps">
+                  </base-cascader>
+                </el-form-item>
+
+                <el-form-item label="票据编号" prop="billNo">
+                  <el-input v-model="form.billNo"></el-input>
+                </el-form-item>
+
+                <el-form-item label="预计成交金额" prop="maybeDealPrice">
+                  <el-input v-model="form.maybeDealPrice"></el-input>
+                </el-form-item>
+
+
+
+                <el-form-item label="预计成交日期" prop="maybeDealDate">
+                  <el-date-picker
+                    v-model="form.maybeDealDate"
+                    @change="_maybeDealDateTimeFormat"
+                    style="width: 100%;"
+                    type="date"
+                    placeholder="选择日期">
+                  </el-date-picker>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="备注" prop="remark">
+              <el-input
+                type="textarea"
+                :rows="2"
+                placeholder="请输入内容"
+                v-model="form.remark">
+              </el-input>
+            </el-form-item>
+            <div class="btn-group">
+              <el-button type="primary" @click="handleSubmit">确认</el-button>
+              <el-button @click="handleCancel">取消</el-button>
+            </div>
+
+          </el-form>
+
+  <template>
+    <!--修改-->
+    <el-dialog
+      title="二手房源"
+      :visible.sync="sencondHouseDlg"
+       width="50%"
+      :close-on-click-modal="false"
+      append-to-body
+      close-on-press-escape
+    >
+      <second-house-data  @handleClick="closeOrOpenWindows"></second-house-data>
+    </el-dialog>
+  </template>
+      </div>  
+</template>
+<style></style>
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import SecondHouseData from './secondHouseData'
+  import {updateDepositData} from "@/request/customer/depositManage";
+
+  export default {
+        props:{
+            data:{
+              type:Object
+            }
+        },
+      components:{BaseCascader,SecondHouseData},
+        data() {
+            return {
+                form: {
+                  demandId:'',
+                  billNo:'',
+                  trustees:'',
+                  trusteesId:'',
+                  entrustTime:'',
+                  houseId:'',
+                  price:'',
+                  remark:'',
+                  custName:'',
+                  maybeDealPrice:'',
+                  maybeDealDate:'',
+                  id:''
+                  },
+              sencondHouseDlg:false,
+              getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 介绍人
+              cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+              cascaderProps: { // 级联下拉组件配置选项
+                value: 'code', // 指定选项的值为选项对象的某个属性值
+                children: 'children', // 指定选项的子选项为选项对象的某个属性值
+                label: 'name' // 指定选项标签为选项对象的某个属性值
+              },
+              rules:{
+                houseId: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                price: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                billNo: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                entrustTime: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                remark: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                maybeDealPrice: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+                maybeDealDate: [
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ],
+              }
+            }
+        },
+        methods: {
+          setForm(data){
+              for(let i in this.form){
+                  this.form[i] = this.data[i]
+                  this._entrustTimeFormat(data.entrustTime)
+                  this._maybeDealDateTimeFormat(data.maybeDealDate)
+              }
+          },
+          _entrustTimeFormat(row,column,cellValue){
+              this.form.entrustTime = this.$utils.timeFormat(row,'{y}-{m}-{d}')
+          },
+          _maybeDealDateTimeFormat(row,column,cellValue){
+              this.form.maybeDealDate = this.$utils.timeFormat(row,'{y}-{m}-{d}')
+          },
+          handleSubmit(){
+                this.$refs['form'].validate(res =>{
+                    if(res){
+                      this.$confirm('确定要修改定金信息吗？',{
+                        confirmBtnText:'确定',
+                        cancelBtnText:'取消',
+                        type:'warning'
+                      }).then(()=>{
+                          let params = {...this.form}
+                          let cfg = {
+                            headers:{
+                              'Content-Type':'application/json;charset=UTF-8'
+                            }
+                          }
+                          delete params.custName
+                          updateDepositData(params,cfg).then(res =>{
+                            if(res){
+                              this.$message({type:'success',message:res.msg})
+                              this.$emit('handleClick',1)
+                            }else{
+                              this.$message({type:'success',message:res.msg})
+                            }
+                          }).catch(error =>{
+                            console.log(error)
+                          })
+                      }).catch(()=>{
+                        this.$message({type:'info',message:'已取消'})
+                      })
+                    }
+                })
+          },
+          handleCancel(){
+              this.$emit('handleClick',1)
+          },
+          selectSecondHouse(){
+            this.$nextTick(()=>{
+              this.sencondHouseDlg = true
+            })
+          },
+          closeOrOpenWindows(value){
+                this.sencondHouseDlg = false
+                this.form.houseId = value.houseId
+                this.form.shhId = value.id
+          },
+          getTrustees(value,name){
+            this.form.trustees = name
+          }
+        },
+        mounted() {
+          this.setForm(this.data)
+        }
+
+    }
+
+</script>

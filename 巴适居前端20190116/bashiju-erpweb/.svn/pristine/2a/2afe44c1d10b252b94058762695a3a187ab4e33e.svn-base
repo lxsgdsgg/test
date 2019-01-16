@@ -1,0 +1,255 @@
+/***************************************客源列表页接口********************************************/
+import {onPost,onGet, BASE_URL} from "../main";
+
+
+//客源列表页数据
+export const  searchCustomerList = params =>{
+  return onPost('customer/searchCustomerList',params)
+}
+
+
+// 获取table自定义列表
+export const getTableColHiddenList = params => {
+  return onGet('customer/getTableColHiddenList', params)
+}
+// 保存table自定义列表
+export const setTableColHidden = params => {
+  return onGet('customer/setTableColHidden', params)
+}
+
+// 新增房源
+export const addCustomer = params => {
+  return onPost('customer/addCustomer', params)
+}
+
+// 新增客源判重
+export const queryCustomerRepeat = params => {
+  return onPost('customer/queryCustomerRepeat', params)
+}
+
+
+
+/*******************************************************************************************************/
+/** *************************************** 客源详情 ***************************************/
+/*******************************************************************************************************/
+
+// 获取客源基本信息
+export const getDetailInfo = params => {
+  return onGet('customer/getCustomerInfo', params)
+}
+// 获取电话
+export const getCustomerPhone = params => {
+  return onGet('customer/getCustomerPhone', params)
+}
+
+// 设置房源收藏
+export const updateStore = params => {
+  return onPost('customer/updateStore', params)
+}
+
+// 保存客源跟进
+export const saveCustomerFollowAndRemind = (params, cfg) => {
+  return onPost('customer/saveCustomerFollowAndRemind', params, cfg)
+}
+
+// 获取客源跟进记录
+export const getFollowRecord = params => {
+  return onGet('customer/getFollowRecord', params)
+}
+
+// 删除客源跟进记录
+export const delFollow = params => {
+  return onPost('customer/delFollow', params)
+}
+
+// 修改业主姓名
+export const updateHouseOwner = (params, cfg) => {
+  return onPost('house/UpdateHouseOwner', params, cfg)
+}
+
+// 修改客户电话
+export const updateCustomerPhone = (params, cfg) => {
+  return onPost('customer/updateCustomerPhone', params, cfg)
+}
+
+// 新增客户电话
+export const saveCustomerPhone = (params, cfg) => {
+  return onPost('customer/saveCustomerPhone', params, cfg)
+}
+
+// 删除客户电话
+export const delCustomerPhone = params => {
+  return onPost('customer/delCustomerPhone', params)
+}
+
+// 获取改价历史记录
+export const getPricedetail = params => {
+  return onGet('house/getPricedetail', params)
+}
+
+// 获取带看记录
+export const getLookHouse = params => {
+  return onGet('customer/getLookHouse', params)
+}
+
+//获取带看房源列表
+export const customerFindHouseList = params => {
+  return onGet('customer/customerFindHouseList', params)
+}
+
+//获取一手楼盘列表
+export const queryNewHouseList = params => {
+  return onPost('customer/queryNewHouseList', params)
+}
+// 保存房源带看
+export const saveLookhouse = (params, cfg) => {
+  return onPost('customer/saveLookhouse', params, cfg)
+}
+// 删除房源带看
+export const delLookhouse = (params, cfg) => {
+  return onPost('customer/delLookhouse', params, cfg)
+}
+
+
+// 保存定金
+export const saveDeposit = (params, cfg) => {
+  return onPost('customer/saveDeposit', params, cfg)
+}
+
+// 获取经纪人反馈
+export const getAgentFeedback = params => {
+  return onGet('house/getAgentFeedback', params)
+}
+
+// 获取房屋描述
+export const getHouseDescription = params => {
+  return onGet('house/getHouseDescription', params)
+}
+
+// 获取匹配房源
+export const matchingHousing = params => {
+  return onPost('customer/matchingHousing', params)
+}
+
+// 获取客户档案
+export const getArchives = params => {
+  return onGet('customer/getArchives', params)
+}
+
+// 修改底价
+export const updatePrice = (params, cfg) => {
+  return onPost('house/updatePrice', params, cfg)
+}
+
+// 看房轨迹
+export const getLookHousePath = (params, cfg) => {
+  return onPost('customer/getLookHousePath', params, cfg)
+}
+
+// 编辑相关经纪人信息
+export const updateAgent = (params, cfg) => {
+  return onPost('customer/updateAgent', params, cfg)
+}
+
+// 房源编辑相关按钮
+export const changeSomeStatus = (params, cfg) => {
+  return onPost('customer/changeSomeStatus', params, cfg)
+}
+
+// 房源编辑相关按钮
+export const businessExamine = (params, cfg) => {
+  return onPost('customer/businessExamine', params, cfg)
+}
+
+// 变更业主信息
+export const changeHouseOwner = (params, cfg) => {
+  return onPost('house/changeHouseOwner', params, cfg)
+}
+
+// 写反馈
+export const saveAgentFeedback = (params, cfg) => {
+  return onPost('house/saveAgentFeedback', params, cfg)
+}
+
+// 获取客源信息下拉框值
+export const getBaseInfoSelectOpts = (params, cfg) => {
+  return onPost('customer/getSelectValue/many', params, cfg)
+}
+
+// 获取用到的一些枚举类
+export const getSomeEnum = (params, cfg) => {
+  return onPost('customer/getSomeEnum', params, cfg)
+}
+
+// 获取客源区间值
+export const getRegionValue = (params, cfg) => {
+  return onPost('manage/dynamicConfigure/getRegionValue/one', params, cfg)
+}
+// 获取房源标签数据
+export const getHouseLabel = (params, cfg) => {
+  return onPost('house/queryHouseLabel', params, cfg)
+}
+
+// 客源信息修改
+export const saveExchangeCustomerInfo = (params, cfg) => {
+  return onPost('customer/saveExchangeCustomerInfo', params, cfg)
+}
+
+//发送绑定码
+export const sendBindCode = params => {
+  return onGet('customer/sendBindCode', params)
+}
+
+//查看业务日志
+export const queryLog = params => {
+  return onGet('customer/customerLogQuery/auxCustomerActionLogByDemandId', params)
+}
+
+//查看电话日志
+export const queryPhoneLog = params => {
+  return onGet('house/houseLogQuery/auxTelephoneViewLogPageList', params)
+}
+
+// 房源新增 查询该房源
+export const queryCountHousing = params => {
+  return onGet('house/queryCountHousing', params)
+}
+
+// 房源新增 查询坐栋信息
+export const queryBuildingInfo = params => {
+  return onGet('house/queryBuildingInfo', params)
+}
+
+// 房源新增 保存
+export const addHouse = params => {
+  return onPost('house/addHouse', params)
+}
+
+// 获取图片列表
+export const getFile = params => {
+  return onGet('house/getFile', params)
+}
+
+// 单个图片下载
+export const downloadFile = params => {
+  return onPost('house/downloadFile', params)
+}
+
+// 批量下载
+// export const downloadImages = params => {
+//   return onPost('house/downloadImages', params)
+// }
+
+export const downloadImagesUrl = BASE_URL + 'house/downloadImages'
+
+// 删除下载
+export const delFile = params => {
+  return onPost('house/delFile', params)
+}
+
+// 修改房源附件信息
+export const updateAttachment = (params, cfg) => {
+  return onPost('house/updateAttachment', params, cfg)
+}
+
+

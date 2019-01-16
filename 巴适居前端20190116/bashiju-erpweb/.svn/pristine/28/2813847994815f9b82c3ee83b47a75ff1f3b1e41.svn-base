@@ -1,0 +1,19 @@
+/*********************管理平台****/
+import {onPost,onGet} from "../main";
+//管理平台【添加操作】记录日志
+export const manageAddLog = params =>{
+  return onPost('sso/main/manageAddLog',params);
+}
+// 管理平台【修改操作】记录日志
+export const manageUpdateLog = params =>{
+  return onPost('sso/main/manageUpdateLog',params);
+}
+// 管理平台【查询操作】记录日志
+export const manageQueryLog = params =>{
+  return onPost('sso/main/manageQueryLog',params);
+}
+// 管理平台【删除操作】记录日志
+export const manageDelLog = params =>{
+  return onPost('sso/main/manageDelLog',params);
+}
+

@@ -1,0 +1,7 @@
+import * as customer from './customerLog'
+import * as deal from './deallog'
+import * as house from './housePlatformLog'
+import * as manage from './mangePlatformLog'
+import * as system from './systemPlatformLog'
+
+export {customer, deal, house, manage, system}

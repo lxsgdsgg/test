@@ -1,0 +1,375 @@
+<!--
+  动态table 自定义列表
+  固定表头, 按照表头顺序排序
+-->
+
+<template>
+  <div class="wrapper">
+    <div class="operates clearfix">
+
+      <slot></slot>
+
+      <el-button size="mini" class="pull-right" @click="dialogVisible = true">自定义列表</el-button>
+    </div>
+    <el-table
+      @selection-change="handleSelectionChange"
+      max-height="700"
+      :data="tableData" :key="key" border fit highlight-current-row style="width: 100%"
+
+    >
+      <!--size="small"-->
+      <el-table-column
+        type="selection"
+        width="55"
+        :fixed="true"
+      >
+      </el-table-column>
+
+      <template v-for="(fruit, index) in _formThead">
+        <el-table-column
+          width="90"
+          v-if="fruit.prop === 'addTime' || fruit.prop === 'updateTime' || fruit.prop === 'allFollowTime' || fruit.prop === 'mainterFllowTime'"
+          :key="index" :label="fruit.label && fruit.label" :align="fruit.align && fruit.align" show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+            {{$utils.timeFormat(scope.row[fruit.prop],'{y}-{m}-{d} {h}:{i}:{s}')}}
+          </template>
+        </el-table-column>
+
+
+        <el-table-column v-else :key="index" :label="fruit.label && fruit.label" :align="fruit.align && fruit.align" :width="fruit.width && fruit.width" show-overflow-tooltip>
+          <template slot-scope="scope">
+
+            <a
+              @click="toDetail(scope.row)"
+              href="javascript:;" class="houseId" v-if="fruit.prop === 'houseId'" type="text"
+            >
+              {{scope.row[fruit.prop]}}
+            </a>
+
+            <el-tag v-else-if="fruit.prop === 'discStatus'" size="small">{{scope.row[fruit.prop]}}</el-tag>
+
+            <span v-else>
+              {{ scope.row[fruit.prop] }}
+            </span>
+
+          </template>
+        </el-table-column>
+
+      </template>
+
+    </el-table>
+
+    <el-dialog :visible.sync="dialogVisible" title="自定义列表" width="600px">
+      <div>
+
+        <el-checkbox-group v-model="checkboxVal">
+          <el-checkbox style="margin-left: 0; margin-right: 20px; margin-bottom: 20px" v-for="(opt, index) in formTheadOptions" :key="index" :label="opt">{{opt}}</el-checkbox>
+        </el-checkbox-group>
+
+        <div class="btn-group" style="margin-top: 10px">
+          <el-button type="primary" :loading="loadingSubmitBtn" @click="saveTableColHidden">保存</el-button>
+          <el-button @click="dialogVisible = false">取消</el-button>
+        </div>
+
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+  import {setTableColHidden, getTableColHiddenList} from '@/request/house/houseUsed'
+
+  /**
+   * 自定义表头 属性
+   * prop (columns 值)
+   * label (表头文本内容)
+   */
+  const formThead = [
+    {
+      prop: 'labeld',
+      label: '标签',
+    },
+    {
+      prop: 'houseId',
+      label: '房源编号',
+      width: 120
+    },
+    {
+      prop: 'transactionType',
+      label: '类型'
+    },
+    {
+      prop: 'discStatus',
+      label: '状态'
+    },
+    {
+      prop: 'houseUses',
+      label: '用途'
+    },
+    {
+      prop: 'areaName',
+      label: '区'
+    },
+    {
+      prop: 'regionName',
+      label: '片区'
+    },
+    {
+      prop: 'communityName',
+      label: '小区',
+      width: 80
+    },
+    {
+      prop: 'buildingsName',
+      label: '座栋'
+    },
+    {
+      prop: 'buildingsUnitName',
+      label: '单元'
+    },
+    {
+      prop: 'buildingHouseName',
+      label: '房号'
+    },
+    {
+      prop: 'floorCount',
+      label: '楼层'
+    },
+    {
+      prop: 'room',
+      label: '房型'
+    },
+    {
+      prop: 'useSpace',
+      label: '使用面积'
+    },
+    {
+      prop: 'buildSpace',
+      label: '建筑面积'
+    },
+    {
+      prop: 'orientation',
+      label: '朝向'
+    },
+    {
+      prop: 'decoration',
+      label: '装修'
+    },
+    {
+      prop: 'matching',
+      label: '配套'
+    },
+    {
+      prop: 'resourceType',
+      label: '来源'
+    },
+    {
+      prop: 'buildDates',
+      label: '建筑年代'
+    },
+    {
+      prop: 'propertyType',
+      label: '产权性质'
+    },
+    {
+      prop: 'sellingPrice',
+      label: '售价'
+    },
+    {
+      prop: 'unitPrice',
+      label: '单价'
+    },
+    {
+      prop: 'rentPrice',
+      label: '租价'
+    },
+    {
+      prop: 'levelType',
+      label: '等级'
+    },
+    {
+      prop: 'remark',
+      label: '备注'
+    },
+    {
+      prop: 'entrustCode',
+      label: '委托编号'
+    },
+    {
+      prop: 'keyCode',
+      label: '钥匙编号'
+    },
+    {
+      prop: 'addTime',
+      label: '录入日期'
+    },
+    {
+      prop: 'updateTime',
+      label: '修改日期'
+    },
+    {
+      prop: 'allFollowTime',
+      label: '全员最后跟进'
+    },
+    {
+      prop: 'mainterFllowTime',
+      label: '维护人最后跟进'
+    },
+    {
+      prop: 'operator',
+      label: '维护人',
+      width: 90
+    },
+    {
+      prop: 'mainterDept',
+      label: '部门'
+    },
+    {
+      prop: 'companyName',
+      label: '公司',
+      width: 100
+    },
+  ]
+
+  export default {
+    props: {
+      // defaultFormThead: { // 默认表头自定义数据
+      //   type: Array,
+      //   default () {
+      //     return []
+      //   }
+      // },
+      //
+      // /**
+      //  * 自定义表头 属性
+      //  * prop (columns 值)
+      //  * label (表头文本内容)
+      //  */
+      // formThead: {
+      //   type: Array,
+      //   default () {
+      //     return [] // { prop: 项  label：表头text align 文本显示方式 width 宽度}
+      //   },
+      //   required: true
+      // },
+      tableData: { // table数据
+        type: Array,
+        default () {
+          return []
+        },
+        required: true
+      },
+      // formTheadOptions: { // 自定义table 选项集合
+      //   type: Array,
+      //   default () {
+      //     return []
+      //   },
+      //   required: true
+      // }
+    },
+    data () {
+      return {
+        formThead: formThead,
+        formTheadOptions: formThead.map(item => item.label),
+        key: 1, // table key
+        checkboxVal: [], // checkboxVal
+        dialogVisible: false,
+        _formThead: [],
+        loadingSubmitBtn: false
+      }
+    },
+    methods: {
+      // 保存table自定列表
+      saveTableColHidden () {
+        this.loadingSubmitBtn = true
+        let valArr = this.checkboxVal
+        let hiddenCols = []
+        this.formThead.forEach(item => {
+          if (valArr.indexOf(item.label) === -1) hiddenCols.push(item.prop)
+        })
+
+        let params = {
+          formName: 'house',
+          columns: hiddenCols.join()
+        }
+
+        setTableColHidden(params).then(() => {
+          this.$message({
+            type: 'success',
+            message: '操作成功',
+            duration: 1500
+          })
+          this.loadingSubmitBtn = false
+          this.dialogVisible = false
+        }).catch(() => {
+          this.loadingSubmitBtn = false
+        })
+      },
+
+      handleSelectionChange (val) {
+        this.$emit('selectionChange', val)
+      },
+
+      toDetail (row) {
+        // TODO 二手房源缓存
+        this.$store.dispatch('addHouseCached', {type: 'used', data: row}).then(() => {
+
+        })
+        this.$router.push({ path: './houseUsedDetail/' + row.id + '/' + row.houseId, query: { formName: row.houseUsesId}})
+        window.localStorage.setItem('houseList', JSON.stringify(this.tableData))
+      },
+
+      // 设置选中
+      setCheckboxVal () {
+        getTableColHiddenList({formName: 'house'}).then(res => {
+          if (!res.data) return
+          if (res.data.columns && res.data.columns.length) {
+            let columns = res.data.columns
+            this.formThead.forEach(item => {
+              if (columns.indexOf(item.prop) === -1) {
+                this.checkboxVal.push(item.label)
+              }
+            })
+          }
+        })
+      }
+    },
+    created () {
+      this._formThead = this.formThead.concat()
+      this.setCheckboxVal()
+    },
+    watch: {
+      checkboxVal(valArr) {
+        let cls = []
+        this.formTheadOptions.forEach(i => {
+          if (valArr.indexOf(i) >= 0) {
+            this.formThead.forEach(item => {
+              if (item.label === i) cls.push(item)
+            })
+          }
+        })
+        this._formThead = cls
+        this.key = this.key + 1// 为了保证table 每次都会重渲
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .wrapper {
+    min-height: 500px;
+  }
+  .operates {
+    padding: 5px;
+    border: 1px solid #ebeef5;
+    border-bottom: none;
+  }
+
+  .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

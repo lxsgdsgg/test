@@ -1,0 +1,138 @@
+<template>
+    <div>
+        <el-form :model="form" ref="form" label-width="90px" size="small">
+          <el-row :gutter="5">
+              <div v-for="(item,index) in form.disc">
+                  <el-form-item label="片区" align="center" prop="communityId" >
+                    <base-cascader
+                      @change="handleChangeRegion"
+                      :changeOnSelect="false"
+                      v-model="form.areaCode"
+                      :data="regionSelectOpts"
+                      :props="cascaderProps"
+                      :dataProps="cascaderDataProps">
+                    </base-cascader>
+                  </el-form-item>
+                  <el-form-item label="责任盘">
+                    <base-select
+                      v-model="form.communityId"
+                      :data="communitySelectOpts"
+                      :props="selectPropsLabel"
+                      :multiple="true"
+                    >
+                    </base-select>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" size="small" @click="handleDel(index)">删除</el-button>
+                  </el-form-item>
+              </div>
+            </el-row>
+          <el-form-item>
+              <div class="btn-group">
+                <el-form-item>
+                  <el-button @click="handleAdd">新增</el-button>
+                  <el-button>删除</el-button>
+                </el-form-item>
+              </div>
+          </el-form-item>
+        </el-form>
+    </div>
+</template>
+<style></style>
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseSelect from '@/components/BaseSelect'
+  import {queryAreaAndRegion,queryCommunityByRegionId} from "@/request/manage/deptmanage";
+
+  export default {
+      props:{
+          data:{
+            type:Object,
+          }
+      },
+      components:{BaseCascader,BaseSelect},
+        data() {
+            return {
+                form: {
+                    disc:[
+                      {
+                        compamyId:'',
+                        companyName:'',
+                        deptId:'',
+                        deptName:'',
+                        communityId:'',
+                        communityName:'',
+                        areaCode:''
+                      }
+                    ]
+                },
+                communitySelectOpts: [], // 小区级联选择数据
+                regionSelectOpts: [], // 片区级联选择数据
+                cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+                cascaderProps: { // 级联下拉组件配置选项
+                  value: 'code', // 指定选项的值为选项对象的某个属性值
+                  children: 'children', // 指定选项的子选项为选项对象的某个属性值
+                  label: 'name' // 指定选项标签为选项对象的某个属性值
+                },
+                selectPropsLabel: {
+                  label: 'name', // 指定选项的值绑定为下拉框的label属性
+                  value: 'id' // 指定选项的值绑定为下拉框的Value属性
+                },
+            }
+        },
+        methods: {
+          /**
+           * 新增
+           */
+          handleAdd(){
+            const index = this.form.disc.length + 1
+            this.form.disc.push({
+              index:index,
+              compamyId:this.data.companyId,
+              companyName:this.data.companyName,
+              deptId:this.data.id,
+              deptName:this.data.name,
+              communityId:'',
+              communityName:'',
+            })
+          },
+          /**
+           * 删除
+           * @param index 下标
+           */
+          handleDel(index){
+            this.form.disc.splice(index,1);
+          },
+          /**
+           * 选择片区
+           * @param value 值
+           */
+          handleChangeRegion(value){
+
+          },
+          _queryAreaAndRegion(cityCode){
+            queryAreaAndRegion({cityCode: cityCode  || ''}).then(res => {
+              this.regionSelectOpts = res || []
+            })
+          },
+          _queryCommunityByRegionId(newValue){
+            queryCommunityByRegionId({regionId: newValue || ''}).then(res => {
+              this.communitySelectOpts = res || []
+            })
+          }
+        },
+        mounted() {
+            console.log(this.data)
+            this._queryAreaAndRegion(this.data.areaCode)
+        },
+        watch:{
+          'form.areaCode'(newValue){
+            queryCommunityByRegionId({regionId: newValue || ''}).then(res => {
+              this.communitySelectOpts = res || []
+            })
+          }
+        }
+
+    }
+
+</script>

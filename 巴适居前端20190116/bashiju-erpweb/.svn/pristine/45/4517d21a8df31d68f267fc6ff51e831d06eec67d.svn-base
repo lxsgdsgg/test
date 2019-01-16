@@ -1,0 +1,6 @@
+//日报审批
+import {onPost} from "../main";
+
+export const queryDailyReportExam = params =>{
+  return onPost('manage/report/queryDailyReportExam',params)
+}

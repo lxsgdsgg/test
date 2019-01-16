@@ -1,0 +1,654 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="" prop="status">
+            <el-select v-model="queryForm.status" placeholder="收取状态" >
+              <el-option
+                v-for="item in selectStatus"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="" prop="dealType">
+            <el-select v-model="queryForm.dealType" placeholder="交易类型" >
+              <el-option
+                v-for="item in selectDealType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item prop="timeType">
+            <el-select v-model="queryForm.timeType" placeholder="请选择" >
+              <el-option
+                v-for="item in selectTimeType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="" prop="starttime">
+            <el-date-picker
+              v-model="queryForm.starttime"
+              type="date"
+              placeholder="开始日期">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="" prop="endtime">
+            <el-date-picker
+              v-model="queryForm.endtime"
+              type="date"
+              placeholder="结束日期">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="" prop="deptId" >
+            <base-cascader
+              v-model="queryForm.deptId"
+              :url="getReferenceUserSelectUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" @change="onChange" placeholder="成交人">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item label="" prop="communityId">
+            <community-selector
+              v-model="queryForm.communityId"
+              :url="communityUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" placeholder="选择小区">
+            </community-selector>
+          </el-form-item>
+          <el-form-item label="" prop="vagueData">
+            <base-vague-autocomplete
+              class="w300"
+              :dataProps="vagueQueryInfo"
+              v-model="queryForm.vagueData" @select="handleSelectInfo" placeholder="成交编号,小区,门牌号,票据编号">
+            </base-vague-autocomplete>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm('queryForm')">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          align="center"
+          label="成交编号">
+          <template slot-scope="scope">
+           <a
+              @click="toDetail(scope.row.dealId, scope.row.dealType)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.dealId}}
+            </a>
+         </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="areaName"
+          align="center"
+          label="区">
+        </el-table-column>
+
+        <el-table-column
+          prop="regionName"
+          align="center"
+          label="片区">
+        </el-table-column>
+
+        <el-table-column
+          prop="communityName"
+          align="center"
+          label="小区">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsName"
+          align="center"
+          label="坐栋">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingHouseName"
+          align="center"
+          label="房号">
+        </el-table-column>
+
+        <el-table-column
+          prop="billNo"
+          align="center"
+          label="票据编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="agreementId"
+          align="center"
+          label="合同号">
+        </el-table-column>
+
+        <el-table-column
+          prop="moneyProjName"
+          align="center"
+          label="费用项目">
+        </el-table-column>
+
+        <el-table-column
+          prop="price"
+          align="center"
+          label="金额（元）">
+        </el-table-column>
+
+        <el-table-column
+          prop="actualPrice"
+          align="center"
+          label="实际金额（元）">
+        </el-table-column>
+
+        <el-table-column
+          prop="settlementTypeName"
+          align="center"
+          label="结算方式">
+        </el-table-column>
+
+        <el-table-column
+          prop="bankCardNo"
+          align="center"
+          label="银行卡号">
+        </el-table-column>
+
+        <el-table-column
+          prop="payerType"
+          align="center"
+          label="缴费人">
+        </el-table-column>
+
+        <el-table-column
+          prop="traderId"
+          align="center"
+          label="成交人">
+        </el-table-column>
+
+        <el-table-column
+          prop="statusName"
+          align="center"
+          label="收取状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="reason"
+          align="center"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          prop="dealTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="成交时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="actualPayTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="收取时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="sureTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="确认时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['financeSureBtn',scope.row]"  v-if="scope.row.status=='01'" @click="handleSure(scope.row)" type="text" :loading="loadingSureBtn" size="small">确认</el-button>
+            <el-button v-hasMultipleBtn="['financeRejectBtn',scope.row]" v-if="scope.row.status=='01' || scope.row.status=='02' " @click="handleReject(scope.row)" type="text" size="small">驳回</el-button>
+            <el-button v-hasMultipleBtn="['financeSureTime',scope.row]" v-if="scope.row.status=='02'" @click="handleEditSuretime(scope.row)" type="text" size="small">修改确认时间</el-button>
+            <el-button v-hasMultipleBtn="['financeLog',scope.row]"   @click="handleLooklog(scope.row)" type="text" size="small">查看日志</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+    <template>
+      <b-dialog :show.sync="dialogRejectReason" title="驳回原因" width="400px">
+        <el-form v-loading="loadingForm" label-width="100px" :model="rejectForm" ref="rejectForm" :rules="rejectRules">
+
+          <el-form-item label="驳回原因" prop="rejectReason">
+            <el-input v-model="rejectForm.rejectReason"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingRejectBtn" @click="rejectSave">确认</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogEditSuretime" title="修改确认时间" width="400px">
+        <el-form v-loading="loadingForm" label-width="100px" :model="sureTimeForm" ref="sureTimeForm">
+
+          <el-form-item label="确认时间" prop="sureTime">
+            <el-date-picker
+              v-model="sureTime"
+              type="date"
+              placeholder="选择日期" value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSureTimeBtn" @click="sureTimeSave">确认</el-button>
+          </el-form-item>
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogLog" title="日志" width="700px">
+          <log-page  ref="logPageDialog"> </log-page>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/income' // 请求后端URL路径
+  import BaseCityCascader from '@/components/BaseCascader/city' // 城市级联组件
+  import CommunitySelector from '@/components/BaseCascader/'
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseVagueAutocomplete from '@/components/BaseVagueAutocomplete'
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import LogPage from './logPage'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/finLog'
+
+  export default {
+    name: 'finance',
+    mixins: [PageList],
+    components: {BaseCityCascader,CommunitySelector,BaseCascader,BaseVagueAutocomplete,LogPage},
+    data () {
+      return {
+        selectStatus: [],
+        selectDealType: [],
+        selectTimeType: [
+          {
+            value: "dealTime",
+            label: "成交时间"
+          },
+          {
+            value: "actualPayTime",
+            label: "收取时间"
+          },{
+            value: "sureTime",
+            label: "确认时间"
+          }
+        ],
+        communityUrl: queryCommunitySelectWithRegion,
+        getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser', // 成交人
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        queryForm: {
+        },
+        vagueData: '', // 成交编号,小区,门牌号,票据编号 模糊查询
+        // 成交编号,小区,门牌号,票据编号
+        vagueQueryInfo: [
+          {label: '成交编号', type: 1},
+          {label: '小区', type: 2},
+          {label: '门牌号', type: 3},
+          {label: '票据编号', type: 4},
+
+        ],
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        dialogRejectReason: false,
+        dialogEditSuretime: false,
+        loadingSureBtn: false,
+        loadingRejectBtn: false,
+        loadingSureTimeBtn: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        valueData: [],
+        idForReject: '',
+        idForSuretime: '',
+        rejectReason: '',
+        sureTime: '',
+        nowQueryForm: {},
+        rejectForm: {
+          rejectReason: ''
+        },
+        sureTimeForm: {},
+        dealId: '',
+        ySuretime: '',
+        dialogLog: false
+      }
+    },
+    methods: {
+      //跳成交
+       toDetail (id,type) {
+        
+        // this.queryDetailAllPage(row)
+        if(type=='00'){
+
+          this.$router.push({ path: '/deal/dealDetail/' + id})
+        }
+        if(type=='01'){
+          this.$router.push({ path: '/deal/rentDealDetail/' + id})
+        }
+        if(type=='02'){
+          this.$router.push({ path: '/deal/oneHandDealDetail/' + id})
+        }
+        
+      },
+      //获取一些基础信息
+      getIncomeBaseInfo(){
+        const params = {};
+        RequestURL.getIncomeBaseInfo(params).then(res => {
+          for(let key in res.data.sureStatus ){
+            if(key!='00'){
+              let item = {
+                value: key,
+                label: res.data.sureStatus[key]
+              }
+              this.selectStatus.push(item);
+            }
+
+          }
+          for(let key in res.data.dealType ){
+            let item = {
+              value: key,
+              label: res.data.dealType[key]
+            }
+            this.selectDealType.push(item);
+          }
+        }).catch((err) => {
+          console.log(err);
+          this.$message({
+            type: 'info',
+            message: err.msg
+          })
+        })
+      },
+      // 确认
+      handleSure (row) {
+        let params = {
+          id: row.id,
+          type: 'sureStatus'
+        }
+        this.$confirm('确认吗？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadingSureBtn = true;
+          RequestURL.updateInfo(params).then(res => {
+            this.loadingSureBtn = false;
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            this._loadData(false);
+            //记日志
+            let logContent = "金融费用确认"
+            let message = {
+            sourceId: row.id,
+            sourceCode: row.dealId,
+            businessTypeId: 5,//业务类型，
+            sourceTypeId: 12,
+            operatTypeId: 503,
+            logContent: logContent
+          }
+          dealQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+          }).catch((err) => {
+            this.loadingSureBtn = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '操作失败'
+            })
+          })
+        })
+      },
+      handleSelectInfo(item){
+        // 点击坐栋输入建议项赋值
+        console.log(item)
+        // this.queryForm.vagueData = {
+        //   type: item.type,
+        //   value: item.value,
+        // }
+        this.queryForm.vagueType = item.type;
+      },
+      //驳回
+      handleReject(row){
+        this._resetForm('rejectForm')
+        this.idForReject = row.id;
+        this.dealId = row.dealId
+        this.dialogRejectReason = true;
+      },
+      // 修改确认时间
+      handleEditSuretime (row) {
+        this.idForSuretime = row.id;
+        this.dealId = row.dealId
+        this.ySuretime = row.sureTime
+        this.dialogEditSuretime = true;
+      },
+      //查看日志
+      handleLooklog(row){
+        this.dialogLog = true
+        this.$nextTick(()=>{
+            this.$refs['logPageDialog'] && this.$refs['logPageDialog']._loadData('finance',row.dealId)
+        })
+        
+      },
+      onChange(val, label, data){
+        console.log(data);
+        this.queryForm.dataType = data.dataType;
+      },
+      _resetQueryForm (form) {
+        this._resetForm(form, () => {
+          delete this.queryForm.vagueType
+          delete this.queryForm.dataType
+        })
+      },
+      // 驳回确认
+      rejectSave () {
+        this.$refs['rejectForm'].validate((valid) => {
+            if (valid) {
+              let params = {
+                id: this.idForReject,
+                type: 'reject',
+                reason: this.rejectForm.rejectReason
+              }
+              this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.loadingRejectBtn = true;
+                RequestURL.updateInfo(params).then(res => {
+                  this.loadingRejectBtn = false;
+                  this.dialogRejectReason = false
+                  if (res.success) {
+                    this.$message({
+                      type: 'success',
+                      message: res.msg || '操作成功'
+                    })
+                    this._loadData(false);
+                    //记日志
+                    let logContent = "金融费用驳回"
+                    let message = {
+                    sourceId: this.idForReject,
+                    sourceCode: this.dealId,
+                    businessTypeId: 5,//业务类型，
+                    sourceTypeId: 12,
+                    operatTypeId: 505,
+                    logContent: logContent
+                  }
+                  dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                    console.log(res)
+                  })
+                  }else{
+                    this.$message({
+                      type: 'warning',
+                      message: res.msg
+                    })
+                  }
+                }).catch((err) => {
+                  console.log(err);
+                  this.loadingRejectBtn = false
+                  this.dialogRejectReason = false
+                  this.$message({
+                    type: 'info',
+                    message: err.msg || '保存失败'
+                  })
+                })
+              })
+            }
+        })
+
+      },
+      //修改确认时间
+      sureTimeSave(){
+        let params = {
+          id: this.idForSuretime,
+          type: 'updateSuretime',
+          sureTime: this.sureTime
+        }
+        this.loadingSureTimeBtn = true;
+        RequestURL.updateInfo(params).then(res => {
+          console.log(res)
+          this.loadingSureTimeBtn = false
+          this.dialogEditSuretime = false
+          if (res.success) {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            this._loadData(false);
+            //记日志
+            let logContent = "修改确认时间；确认时间："+this.ySuretime+"->"+ this.sureTime
+            let message = {
+            sourceId: this.idForSuretime,
+            sourceCode: this.dealId,
+            businessTypeId: 5,//业务类型，
+            sourceTypeId: 12,
+            operatTypeId: 504,
+            logContent: logContent
+          }
+          dealQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+          }else{
+            this.$message({
+              type: 'warning',
+              message: res.msg
+            })
+          }
+        }).catch((err) => {
+          this.loadingSureTimeBtn = false
+          this.dialogEditSuretime = false
+          this.$message({
+            type: 'info',
+            message: err.msg || '保存失败'
+          })
+        })
+      },
+
+      handleChangeCity (val, name) {
+        this.editForm['areaName'] = name
+      },
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        this.nowQueryForm.moneyType = 1;
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getCommissionList(params).then(res => {
+          this.tableData = res.data.map(item => {
+            item.statusName = this.selectStatus.find(typeItem => {
+              if (typeItem.value=== item.status) {
+                return typeItem;
+              }
+            }).label
+            return item;
+          })
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+    },
+    mounted () {
+      this.getIncomeBaseInfo();
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .value-title{
+    height: 34px;
+    line-height: 34px;
+  }
+  .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

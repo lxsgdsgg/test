@@ -1,0 +1,18 @@
+/****************************************客源平台日志****************/
+
+
+
+import {onPost,onGet} from "../main";
+//客源【添加操作】记录日志
+export const customerAddLog = params =>{
+  return onPost('sso/main/customerAddLog',params);
+}
+// 客源【修改操作】记录日志
+export const customerUpdateLog = params =>{
+  return onPost('sso/main/customerUpdateLog',params);
+}
+// 客源【查询操作】记录日志
+export const customerQueryLog = params =>{
+  return onPost('sso/main/customerQueryLog',params);
+}
+

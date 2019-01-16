@@ -1,0 +1,642 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="收取状态" prop="status">
+            <el-select v-model="queryForm.status" placeholder="请选择" >
+              <el-option
+                v-for="item in selectStatus"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="timeType">
+            <el-select v-model="queryForm.timeType" placeholder="请选择" >
+              <el-option
+                v-for="item in selectTimeType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="开始" prop="beginTime">
+            <el-date-picker
+              v-model="queryForm.beginTime"
+              type="date"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="结束" prop="endtime">
+            <el-date-picker
+              v-model="queryForm.endtime"
+              type="date"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="费用类型" prop="moneyTypeId">
+            <el-select v-model="queryForm.moneyTypeId" placeholder="请选择" >
+              <el-option
+                v-for="item in selectMoneyType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="结算方式" prop="settlementTypeId">
+            <el-select v-model="queryForm.settlementTypeId" placeholder="请选择" >
+              <el-option
+                v-for="item in selectSettlementType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="支付方" prop="payerType">
+            <el-select v-model="queryForm.payerType" placeholder="请选择" >
+              <el-option
+                v-for="item in selectPayerType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="模糊" prop="keyword">
+            <base-vague-autocomplete
+              class="w300"
+              :dataProps="vagueQueryInfo"
+              v-model="queryForm.keyword" @select="handleSelectInfo" placeholder="成交编号,票据编号,备注">
+            </base-vague-autocomplete>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm('queryForm')">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          prop="recordTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="录入时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="recorderName"
+          align="center"
+          label="录入人">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="成交编号">
+          <template slot-scope="scope">
+           <a
+              @click="toDetail(scope.row.dealId, scope.row.dealType)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.dealId}}
+            </a>
+         </template>
+        </el-table-column>
+
+
+        <el-table-column
+          prop="billNo"
+          align="center"
+          label="票据编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="moneyTypeName"
+          align="center"
+          label="费用类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="price"
+          align="center"
+          label="金额（元）">
+        </el-table-column>
+
+        <el-table-column
+          prop="payerType"
+          align="center"
+          label="收取方">
+        </el-table-column>
+
+        <el-table-column
+          prop="tradeTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="收取时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="settlementTypeName"
+          align="center"
+          label="结算方式">
+        </el-table-column>
+
+        <el-table-column
+          prop="remark"
+          align="center"
+          label="备注">
+        </el-table-column>
+
+        <el-table-column
+          prop="examineStatusName"
+          align="center"
+          label="状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="auditTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="审核时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="auditor"
+          align="center"
+          label="审核人">
+        </el-table-column>
+
+        <el-table-column
+          prop="reason"
+          align="center"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['receiveRecordSureBtn',scope.row]" v-if="scope.row.examineStatus==null || scope.row.examineStatus=='0'" @click="handleSure(scope.row)" type="text" :loading="loadingSureBtn" size="small">确认</el-button>
+            <el-button v-hasMultipleBtn="['receiveRecordRejectBtn',scope.row]" v-if="scope.row.examineStatus==null || scope.row.status=='0' || scope.row.status=='1' " @click="handleReject(scope.row)" type="text" size="small">驳回</el-button>
+            <el-button v-hasMultipleBtn="['receiveRecordLog',scope.row]" @click="handleLooklog(scope.row)" type="text" size="small">详情</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+    <template>
+      <b-dialog :show.sync="dialogRejectReason" title="驳回原因" width="400px">
+        <el-form v-loading="loadingForm" label-width="100px" :model="rejectForm" ref="rejectForm" :rules="rejectRules">
+
+          <el-form-item label="驳回原因" prop="rejectReason">
+            <el-input v-model="rejectForm.rejectReason"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingRejectBtn" @click="rejectSave">确认</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogEditSuretime" title="修改确认时间" width="400px">
+        <el-form v-loading="loadingForm" label-width="100px">
+
+          <el-form-item label="确认时间" prop="sureTime">
+            <el-date-picker
+              v-model="sureTime"
+              type="date"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSureTimeBtn" @click="sureTimeSave">确认</el-button>
+          </el-form-item>
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogLog" title="日志" width="700px">
+          <log-page  ref="logPageDialog"> </log-page>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/income' // 请求后端URL路径
+  import BaseCityCascader from '@/components/BaseCascader/city' // 城市级联组件
+  import CommunitySelector from '@/components/BaseCascader/'
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseVagueAutocomplete from '@/components/BaseVagueAutocomplete'
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import LogPage from './logPage'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/finLog'
+
+  export default {
+    name: 'receiveRecord',
+    mixins: [PageList],
+    components: {BaseCityCascader,CommunitySelector,BaseCascader,BaseVagueAutocomplete,LogPage},
+    data () {
+      return {
+        selectStatus: [],
+        selectSettlementType: [],
+        selectMoneyType: [],
+        selectTimeType: [
+          {
+            value: "1",
+            label: "录入时间"
+          },
+          {
+            value: "2",
+            label: "审核时间"
+          },{
+            value: "3",
+            label: "付款时间"
+          }
+        ],
+        selectPayerType:[
+          {
+            value: "0",
+            label: "业主"
+          },
+          {
+            value: "1",
+            label: "客户"
+          }
+        ],
+        communityUrl: queryCommunitySelectWithRegion,
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 成交人
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        queryForm: {
+        },
+        keyword: '', // 成交编号,票据编号,备注
+        // 成交编号,票据编号,备注
+        vagueQueryInfo: [
+          {label: '票据编号', type: 'billNo'},
+          {label: '成交编号', type: 'dealId'},
+          {label: '备注', type: 'remark'},
+        ],
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        dialogRejectReason: false,
+        dialogEditSuretime: false,
+        loadingSureBtn: false,
+        loadingRejectBtn: false,
+        loadingSureTimeBtn: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        valueData: [],
+        idForReject: '',
+        idForSuretime: '',
+        rejectReason: '',
+        sureTime: '',
+        nowQueryForm: {},
+        rejectForm: {},
+        dealId: '',
+        dialogLog: false
+      }
+    },
+    methods: {
+      //跳成交
+       toDetail (id,type) {
+        
+        // this.queryDetailAllPage(row)
+        if(type=='00'){
+
+          this.$router.push({ path: '/deal/dealDetail/' + id})
+        }
+        if(type=='01'){
+          this.$router.push({ path: '/deal/rentDealDetail/' + id})
+        }
+        if(type=='02'){
+          this.$router.push({ path: '/deal/oneHandDealDetail/' + id})
+        }
+        
+      },
+      //获取状态
+      getIncomeBaseInfo(){
+        const params = {};
+        RequestURL.getIncomeBaseInfo(params).then(res => {
+          for(let key in res.data.examineStatus ){
+            if(key!='00'){
+              let item = {
+                value: key,
+                label: res.data.examineStatus[key]
+              }
+              this.selectStatus.push(item);
+            }
+
+          }
+        }).catch((err) => {
+          console.log(err);
+          this.$message({
+            type: 'info',
+            message: err.msg
+          })
+        })
+      },
+
+      //获取结算方式
+      getSettlementType(){
+        const  params = {type: 'one',param: 'settlementType'}
+        RequestURL.querySelectValue(params).then(res => {
+          for(let i=0;i<res.data.length;i++){
+            let item = {
+              value: res.data[i].id,
+              label: res.data[i].fieldValue
+            }
+            this.selectSettlementType.push(item);
+          }
+
+        })
+      },
+      //获取费用类型
+      getMoneyType(){
+        const  params = {type: 'one',param: 'moneyType'}
+        RequestURL.querySelectValue(params).then(res => {
+          for(let i=0;i<res.data.length;i++){
+            let item = {
+              value: res.data[i].id,
+              label: res.data[i].fieldValue
+            }
+            this.selectMoneyType.push(item);
+          }
+
+        })
+      },
+      // 确认
+      handleSure (row) {
+        let params = {
+          id: row.id,
+          status: '1'
+        }
+        this.$confirm('确认吗？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadingSureBtn = true;
+          RequestURL.updatePayStatus(params).then(res => {
+            this.loadingSureBtn = false;
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            this._loadData(false);
+            //记日志
+            let logContent = "代收确认"
+            let message = {
+            sourceId: row.id,
+            sourceCode: row.dealId,
+            businessTypeId: 5,//业务类型，
+            sourceTypeId: 12,
+            operatTypeId: 506,
+            logContent: logContent
+          }
+          dealQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+          }).catch((err) => {
+            this.loadingSureBtn = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '操作失败'
+            })
+          })
+        })
+      },
+      handleSelectInfo(item){
+        // 点击坐栋输入建议项赋值
+        console.log(item)
+        // this.queryForm.vagueData = {
+        //   type: item.type,
+        //   value: item.value,
+        // }
+        this.queryForm.keywordType = item.type;
+      },
+      //驳回
+      handleReject(row){
+        this._resetForm('rejectForm')
+        this.idForReject = row.id;
+        this.dealId = row.dealId
+        this.dialogRejectReason = true;
+      },
+      // 修改确认时间
+      handleEditSuretime (row) {
+        this.idForSuretime = row.id;
+        this.dialogEditSuretime = true;
+      },
+      //查看日志
+      handleLooklog(row){
+        this.dialogLog = true
+        this.$nextTick(()=>{
+            this.$refs['logPageDialog'] && this.$refs['logPageDialog']._loadData('receiveRecord',row.dealId)
+        })
+        
+      },
+      onChange(val, label, data){
+        console.log(data);
+        this.queryForm.dataType = data.dataType;
+      },
+      _resetQueryForm (form) {
+        this._resetForm(form, () => {
+          delete this.queryForm.keywordType
+        })
+      },
+      // 驳回确认
+      rejectSave () {
+        this.$refs['rejectForm'].validate((valid) => {
+            if (valid) {
+                let params = {
+                  id: this.idForReject,
+                  status: '2',
+                  reason: this.rejectForm.rejectReason
+                }
+                this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  this.loadingRejectBtn = true;
+                  RequestURL.updatePayStatus(params).then(res => {
+                    this.loadingRejectBtn = false;
+                    this.dialogRejectReason = false
+                    if (res.success) {
+                      this.$message({
+                        type: 'success',
+                        message: res.msg || '操作成功'
+                      })
+                      this._loadData(false);
+                      //记日志
+                      let logContent = "代收驳回"
+                      let message = {
+                      sourceId: this.idForReject,
+                      sourceCode: this.dealId,
+                      businessTypeId: 5,//业务类型，
+                      sourceTypeId: 12,
+                      operatTypeId: 507,
+                      logContent: logContent
+                    }
+                    dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                      console.log(res)
+                    })
+                    }else{
+                      this.$message({
+                        type: 'warning',
+                        message: res.msg
+                      })
+                    }
+                  }).catch((err) => {
+                    console.log(err);
+                    this.loadingRejectBtn = false
+                    this.dialogRejectReason = false
+                    this.$message({
+                      type: 'info',
+                      message: err.msg || '保存失败'
+                    })
+                  })
+                })
+            }
+        })
+
+      },
+      //修改确认时间
+      sureTimeSave(){
+        let params = {
+          id: this.idForSuretime,
+          type: 'reject',
+          reason: this.sureTime
+        }
+        this.loadingSureTimeBtn = true;
+        RequestURL.updateInfo(params).then(res => {
+          this.loadingSureTimeBtn = false
+          this.dialogEditSuretime = false
+          if (res.success) {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            _loadData(false);
+          }else{
+            this.$message({
+              type: 'warning',
+              message: res.msg
+            })
+          }
+        }).catch((err) => {
+          this.loadingSureTimeBtn = false
+          this.dialogEditSuretime = false
+          this.$message({
+            type: 'info',
+            message: err.msg || '保存失败'
+          })
+        })
+      },
+
+      handleChangeCity (val, name) {
+        this.editForm['areaName'] = name
+      },
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        this.nowQueryForm.transactionType = 0; //代收款
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.queryPayRecordList(params).then(res => {
+          this.tableData = res.data.map(item =>{
+            if(item.examineStatus==null || item.examineStatus==0){
+              item.examineStatusName = '未审核'
+            }else if(item.examineStatus==1){
+              item.examineStatusName = '已审核'
+            }else{
+              item.examineStatusName = '已驳回'
+            }
+            if(item.payerType==0){
+              item.payerType = '业主'
+            }else{
+              item.payerType = '客户'
+            }
+            return item
+          })
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+    },
+    mounted () {
+      this.getIncomeBaseInfo();
+      this.getSettlementType();
+      this.getMoneyType();
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .value-title{
+    height: 34px;
+    line-height: 34px;
+  }
+   .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

@@ -1,0 +1,245 @@
+<template>
+      <div class="page-content">
+        <div class="page-content-hd">
+            <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+              <el-form-item prop="examineStatus" label="审核状态">
+                <el-select v-model="queryForm.examineStatus" clearable style="width: 120px;" placeholder="审核状态" >
+                  <el-option
+                    v-for="item in examineStatusOpt"
+                    :key="item.value"
+                    :label="item.name"
+                    :value="item.value"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+
+              <el-form-item prop="custName" label="客户名称">
+                  <el-input v-model="queryForm.custName" placeholder="客户名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="success" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+                <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+              </el-form-item>
+
+            </el-form>
+                <div class="page-content-body"  v-loading="loadingView">
+                   <el-table
+                    :data="tableData"
+                    border
+                    tooltip-effect="light"
+                    align="center"
+                    style="width: 100%"
+                    size="medium">
+                    </el-table-column>
+                    <el-table-column
+                      prop="userId"
+                      align="left"
+                      width="80"
+                      label="用户编号">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="checkName"
+                      align="left"
+                      label="审核状态">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="agentId"
+                      show-overflow-tooltip
+                      align="left"
+                      label="详情编号">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="agentId"
+                      align="left"
+                      label="经纪人编号">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="star"
+                      align="left"
+                      label="星级">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="custId"
+                      align="left"
+                      label="客户编号">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="custName"
+                      align="left"
+                      label="客户名称">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="labels"
+                      align="left"
+                      label="经纪人标签">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="auditor"
+                      align="left"
+                      label="审核人">
+                    </el-table-column>
+
+                    <el-table-column
+                      prop="reason"
+                      align="left"
+                      label="驳回原因">
+                    </el-table-column>
+
+                    <el-table-column
+                    align="center"
+                    label="操作"
+                    width="100px"
+                    fixed="right"
+                  >
+                      <template slot-scope="scope">
+                        <el-button @click="handleSh(scope.row)" type="text" size="small"  v-if="scope.row.examineStatus == 0">审核</el-button>
+                        <el-button @click="handleDel(scope.row)" type="text" size="small" >删除</el-button>
+                      </template>
+                    </el-table-column>
+
+                </el-table>
+              </div>
+           </div>
+        </div>
+      </div>
+</template>
+<style></style>
+<script>
+  import {queryAllUnreviewedLeavingMsg,checkAgentStarEvaluation,deleteCustmerStarEvaluation} from "@/request/customer/customerMsgEva";
+  import PageList from '@/mixins/pageList'
+  import  *  as  RequestLogUrl from '@/request/log/mangePlatformLog'
+
+  export default {
+      props:{
+        data:{
+          type:Object
+        }
+      },
+      components:{PageList},
+      mixins: [PageList],
+        data() {
+            return {
+                queryForm: {
+                  checkStatus:'',
+                  custName:''
+                },
+              tableData:[],
+              examineStatusOpt:[
+                {name:'未审核',value:0},
+                {name:'已审核',value:1}
+              ],
+              loadingView:false,
+              queryBtnLoading:false
+            }
+        },
+        methods: {
+          _loadData(btn){
+            this.queryAllUnreviewedLeavingMsg(btn)
+          },
+          //审核
+          handleSh(row){
+              this.$confirm('确定通过审核？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消',
+                type:'warning'
+              }).then(() =>{
+                let params = {id:row.id}
+                checkAgentStarEvaluation(params).then(res =>{
+                  if(res.success){
+                    this.$message({type:'success',message:res.msg})
+                    let message = {
+                      sourceCode:  row.custName,//资源编号：客源编号
+                      sourceTypeId:16,// 16：经纪人评价
+                      operatTypeId: 2,//操作类型2: 表示修改,
+                      logContent: row.custName+'的评价留言已审核'//日志内容
+                    }
+                    RequestLogUrl.manageQueryLog({message:JSON.stringify(message)}).then(res=>{
+                      console.log(res)
+                    }).catch(error =>{
+                      console.log(error)
+                    })
+                    this._loadData(false)
+                  }else{
+                    this.$message({type:'error',message:res.msg})
+                  }
+                }).catch(error =>{
+                  this.$message({type:'error',message:error.msg})
+                })
+              }).catch(() =>{
+                this.$message({type:'info',message:'已取消'})
+              })
+          },
+          //删除
+          handleDel(row){
+            this.$confirm('确定删除用户星级评价？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消',
+              type:'warning'
+            }).then(() =>{
+              let params = {id:row.id}
+              deleteCustmerStarEvaluation(params).then(res =>{
+                if(res.success){
+                  this.$message({type:'success',message:res.msg})
+                  let message = {
+                    sourceCode:  row.custName,//资源编号：客源编号
+                    sourceTypeId:16,// 16：经纪人评价
+                    operatTypeId: 3,//操作类型2: 表示删除,
+                    logContent: +row.custName+'的评价删除'//日志内容
+                  }
+                  RequestLogUrl.manageDelLog({message:JSON.stringify(message)}).then(res=>{
+                    console.log(res)
+                  }).catch(error =>{
+                    console.log(error)
+                  })
+                  this._loadData(false)
+                }else{
+                    this.$message({type:'error',message:res.msg})
+                }
+              }).catch(error =>{
+                this.$message({type:'error',message:error.msg})
+              })
+            }).catch(() =>{
+              this.$message({type:'info',message:'已取消'})
+            })
+          },
+          //查询未审核数据
+          queryAllUnreviewedLeavingMsg(btn){
+            if(btn){
+              this.queryBtnLoading = btn
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            this.loadingView = true
+            let params = Object.assign({},this.queryForm,{
+              page:this.listQuery.page,
+              limit:this.listQuery.limit
+            })
+            params.agentId = this.data.id
+            queryAllUnreviewedLeavingMsg(params).then(res =>{
+                this.loadingView = false
+                this.queryBtnLoading = false
+                this.tableData = res.data
+                this.listQuery.total = res.count
+            }).catch(error =>{
+                this.loadingView = false
+                this.queryBtnLoading = false
+            })
+          }
+        },
+        mounted() {
+          console.log(this.data.id)
+        }
+
+    }
+
+</script>

@@ -1,0 +1,640 @@
+<template>
+  <div>
+    <el-form :model="detailEditForm" ref="detailEditForm" :rules="rules" label-width="110px" size="small">
+      <el-row>
+        <el-col :span ="4.8">
+          <el-form-item label="房屋总套数：" prop="houseCount">
+            <el-input type="number" :min=0 v-model="detailEditForm.houseCount"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">套</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span ="4.8">
+          <el-form-item label="楼栋总数：" prop="buildingCount">
+            <el-input type="number" :min=0 v-model="detailEditForm.buildingCount"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">栋</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span ="4.8">
+          <el-form-item label="产权年限：" prop="propertyLimit">
+            <el-select v-model="detailEditForm.propertyLimit" style="width: 110px">
+              <el-option label="40年" value="40"></el-option>
+              <el-option label="50年" value="50"></el-option>
+              <el-option label="70年" value="70"></el-option>
+              <el-option label="其他" value="0"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span ="4.8">
+          <el-form-item label="建造年代：" prop="buildYear">
+            <el-date-picker
+              v-model="detailEditForm.buildYear"
+              type="year"
+              editable
+              value-format="yyyy"
+              placeholder="选择建筑年代">
+            </el-date-picker>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">年</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span ="4.8">
+          <el-form-item label="供电：" prop="powerSupply">
+            <el-input v-model="detailEditForm.powerSupply"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row>
+        <el-col :span="4.8">
+          <el-form-item label="容积率：" prop="capacityRatio">
+            <el-input v-model="detailEditForm.capacityRatio"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">%</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="物业电话：" prop="propertyPhone">
+            <el-input v-model="detailEditForm.propertyPhone"></el-input>
+          </el-form-item>
+        </el-col>
+
+
+        <el-col :span="4.8">
+          <el-form-item label="建筑面积：" prop="buildingArea">
+            <el-input type="number" :min=0 v-model="detailEditForm.buildingArea"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">m²</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="占地面积：" prop="floorArea">
+            <el-input type="number" :min=0 v-model="detailEditForm.floorArea"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">m²</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="绿化率：" prop="greenRate">
+            <el-input v-model="detailEditForm.greenRate"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">%</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <el-row>
+        <el-col :span="4.8">
+          <el-form-item label="燃气：" prop="gas">
+            <el-input v-model="detailEditForm.gas"></el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="电梯服务:" prop="elevatorService">
+            <el-select v-model="detailEditForm.elevatorService" style="width: 110px">
+              <el-option label="无电梯" value="0"></el-option>
+              <el-option label="有电梯" value="1"></el-option>
+            </el-select>
+            <!--<el-input v-model="detailEditForm.elevatorService"></el-input>-->
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="供水：" prop="waterSupply">
+            <el-input v-model="detailEditForm.waterSupply"></el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4.8">
+          <el-form-item label="供暖：" prop="heatSupply">
+            <el-input v-model="detailEditForm.heatSupply"></el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="4">
+          <el-form-item label="物业名称：" prop="propertyName">
+            <el-input v-model="detailEditForm.propertyName"></el-input>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="5">
+          <el-form-item label="地上车位数量:" prop="groundParkingCount">
+            <el-input type="number" :min=0 v-model="detailEditForm.groundParkingCount"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">个</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="地上车位租赁:" prop="groundParkingLeasePrice">
+            <el-input type="number" :min=0 v-model="detailEditForm.groundParkingLeasePrice"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">元/月</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="地上车位销售:" prop="groundParkingSalePrice">
+            <el-input type="number" :min=0 v-model="detailEditForm.groundParkingSalePrice"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">万</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="物业费：" prop="propertyFees">
+            <el-input type="number" :min=0 v-model="detailEditForm.propertyFees"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">元/m²</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="5">
+          <el-form-item label="地下车位数量:" prop="underGroundParkingCount">
+            <el-input  type="number" :min=0 v-model="detailEditForm.underGroundParkingCount"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">个</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="地下车位租赁:" prop="underGroundParkingLeasePrice">
+            <el-input  type="number" :min=0 v-model="detailEditForm.underGroundParkingLeasePrice"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">元/月</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="地下车位销售:" prop="underGroundParkingSalePrice">
+            <el-input  type="number" :min=0 v-model="detailEditForm.underGroundParkingSalePrice"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">万</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item label="均价：" prop="salePrice">
+            <el-input  type="number" :min=0 v-model="detailEditForm.salePrice"></el-input>
+            <span class="el-input__suffix">
+              <span class="el-input__suffix-inner">
+                <i class="el-input__icon">元</i>
+              </span>
+            </span>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-form-item label="物业类型：" prop="houseUseId">
+            <el-select v-model="detailEditForm.houseUseId" multiple style="width: 100%">
+              <el-option v-for="item in houseUseOpt" :key="item.name" :label="item.name" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="6">
+          <el-form-item label="建筑类型：" prop="houseTypeId">
+            <el-select v-model="detailEditForm.houseTypeId" multiple style="width: 100%">
+              <el-option v-for="item in houseTypeOpt" :key="item.name" :label="item.name" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+        </el-col>
+
+        <el-col :span="6">
+          <el-form-item label="建筑结构：" prop="buildTypeId">
+            <el-select v-model="detailEditForm.buildTypeId" multiple style="width: 100%">
+              <el-option v-for="item in buildTypeOpt" :key="item.name" :label="item.name" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="6">
+          <el-form-item label="小区配套：" prop="matchingIds">
+            <el-select v-model="detailEditForm.matchingIds" multiple style="width: 100%">
+              <el-option v-for="item in comunitMatching" :key="item.value" :label="item.name" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="街道：" prop="street">
+            <el-input v-model="detailEditForm.street" style="width: 100%"></el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="开发商：" prop="developers">
+            <el-input v-model="detailEditForm.developers" style="width: 100%"></el-input>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <el-form-item label="物业地址：" prop="propertyAddress">
+        <el-input v-model="detailEditForm.propertyAddress" style="width: 100%"></el-input>
+      </el-form-item>
+
+      <el-form-item label="小区简介：" prop="communityProfile">
+        <el-input type="textarea" v-model="detailEditForm.communityProfile" autosize placeholder="请输入小区简介" style="width: 100%"></el-input>
+      </el-form-item>
+
+      <div class="btn-group">
+        <el-button type="primary" @click="saveCommunityDetail" size="mini" :loading="savegBtn">保存</el-button>
+        <el-button @click="handleCancel" size="medium">取消</el-button>
+      </div>
+    </el-form>
+  </div>
+
+</template>
+
+<script>
+  import * as EditCommunityURL from '@/request/manage/community'
+  import { querySelectItems } from '@/request/deal/houseDeal'
+  import MatchingSelect from '@/components/BaseSelect'
+  import {systemAddLog,systemUpdateLog,systemQueryLog,systemDelLog} from '@/request/log/systemPlatformLog'
+
+  export default {
+    name: "ModifyCommunityDetail",
+    props:{
+      data:{
+        type: Object,
+        required: true
+      }
+    },
+    components:{MatchingSelect},
+    data() {
+      return {
+        houseUseOpt: [{'value':'house','name':'住宅'},{'value':'villa','name':'别墅'},{'value':'apartment','name':'公寓'},{'value':'shops','name':'商铺'},{'value':'officeBuiling','name':'写字楼'},{'value':'other','name':'其他'}],
+        buildTypeOpt: [{'value':'1','name': '钢结构'},{'value':'2','name':'钢、钢筋混凝土结构'},{'value':'3','name':'钢筋混凝土结构'},{'value':'4','name':'混合结构'},{'value':'5','name':'砖木结构'}],
+        houseTypeOpt: [{'value':'1','name':'低层住宅'},{'value':'2','name':'多层住宅'},{'value':'3','name':'中高层住宅'},{'value':'4','name':'高层住宅'},{'value':'5','name':'其他形式住宅'}],
+        detailEditForm :{
+          id: '',
+          houseCount: '',//总套数
+          capacityRatio: '', //容积率
+          gas: '', //燃气
+          groundParkingCount: '', //地上车位数
+          underGroundParkingCount: '', //地下车位数
+
+          buildingCount: '', //楼栋总数
+          greenRate: '', //绿化率
+          elevatorService: '', //电梯服务
+          groundParkingLeasePrice: '', //地上车位租赁
+          underGroundParkingLeasePrice: '',// 地下车位租赁
+
+          propertyLimit: '' ,//产权年限:
+          buildingArea: '', //建筑面积:
+          waterSupply: '', //供水
+          groundParkingSalePrice: '', //地上车位销售:
+          underGroundParkingSalePrice: '', //地下车位销售:
+
+          buildYear: '',//建造年代
+          floorArea: '',//占地面积
+          heatSupply: '',//供暖
+          propertyFees: '',//物业费
+          salePrice: '',//均价:
+
+          powerSupply: '',//供电
+          propertyPhone: '',//物业电话
+          propertyName: '',//物业名称
+
+          houseUseId: '',// 物业类型
+          houseTypeId: '',//建筑类型
+          buildTypeId: '',//建筑类型
+
+          matchingIds: '', //小区配套ID
+          matching: '',    // 小区配套名称
+
+          street: '',//街道
+          developers: '',//开发商
+          propertyAddress: '',//物业地址
+          communityProfile: '',//小区简介
+
+          houseUseName: '',
+          houseTypeName: '',
+          buildTypeName: ''
+        },
+        savegBtn: false,
+        comunitMatching: [],
+        rules:{
+          houseCount: {required: true,message: '总套数不能为空',trigger:'blur'},
+          capacityRatio: {required: true,message: '容积率不能为空',trigger:'blur'},
+          gas: {required: true,message: '燃气不能为空',trigger:'blur'},
+          groundParkingCount: {required: true,message: '地上车位数不能为空',trigger:'blur'},
+          underGroundParkingCount: {required: true,message: '总地下车位数不能为空',trigger:'blur'},
+
+          buildingCount: {required: true,message: '楼栋总数不能为空',trigger:'blur'},
+          greenRate: {required: true,message: '绿化率不能为空',trigger:'blur'},
+          elevatorService: {required: true,message: '电梯服务不能为空',trigger:'change'},
+          groundParkingLeasePrice: {required: true,message: '地上车位租赁不能为空',trigger:'blur'},
+          underGroundParkingLeasePrice: {required: true,message: '地下车位租赁不能为空',trigger:'blur'},
+
+          propertyLimit: {required: true,message: '产权年限不能为空',trigger:'change'},
+          buildingArea: {required: true,message: '建筑面积不能为空',trigger:'blur'},
+          waterSupply: {required: true,message: '供水不能为空',trigger:'blur'},
+          groundParkingSalePrice: {required: true,message: '地上车位售价不能为空',trigger:'blur'},
+          underGroundParkingSalePrice: {required: true,message: '地下车位售价不能为空',trigger:'blur'},
+
+          buildYear: {required: true,message: '建筑年代不能为空',trigger:'blur'},
+          floorArea: {required: true,message: '占地面积不能为空',trigger:'blur'},
+          heatSupply: {required: true,message: '供暖不能为空',trigger:'blur'},
+          propertyFees: {required: true,message: '物业费不能为空',trigger:'blur'},
+          salePrice: {required: true,message: '均价不能为空',trigger:'blur'},
+
+          powerSupply: {required: true,message: '供电不能为空',trigger:'blur'},
+          propertyPhone: {required: true,message: '物业电话不能为空',trigger:'blur'},
+          propertyName: {required: true,message: '物业名称不能为空',trigger:'blur'},
+
+          street: {required: true,message: '街道不能为空',trigger:'blur'},
+          developers: {required: true,message: '开发商不能为空',trigger:'blur'},
+          propertyAddress: {required: true,message: '物业地址不能为空',trigger:'blur'},
+          communityProfile: {required: true,message: '小区简介不能为空',trigger:'blur'},
+          houseUseId: {required: true,message: '物业类型不能为空',trigger:'change'},
+
+          houseTypeId: {required: true,message: '建筑类型不能为空',trigger:'change'},
+          buildTypeId: {required: true,message: '建筑结构不能为空',trigger:'change'},
+
+          matchingIds: {required: true,message: '小区配套不能为空',trigger:'change'}
+        },
+        originalData:{}
+      }
+    },
+    methods: {
+      // 获取图片类型下拉值
+      queryCommunityMatchingItems(){
+        querySelectItems({'param':'comunitMatching'}).then((res)=>{
+          if (res.success){
+            for(let i=0;i<res.data.length;i++){
+              let data = {'name':res.data[i].fieldValue,'value': String(res.data[i].id)}
+              this.comunitMatching.push(data)
+            }
+          }
+        })
+      },
+
+
+      dealSelectValue(houseUseData,houseTypeData,buildTypeData,matchingData){
+        this.getHouseUseName(houseUseData)
+        this.getHouseTypeName(houseTypeData)
+        this.getBuildTypeName(buildTypeData)
+        this.getmatchingName(matchingData)
+      },
+
+      getSelectLabel(val,data) {
+        for (let item of data) {
+          if (item.value == val) {
+            return item.name
+          }
+        }
+      },
+
+      // 处理物业类型
+      getHouseUseName(val){
+        let houseUseName = ''
+        for(let i in val){
+          let name = this.getSelectLabel(val[i],this.houseUseOpt)
+          if(houseUseName.length > 0){
+            houseUseName = houseUseName + ','
+          }
+          houseUseName = houseUseName + name
+        }
+        this.detailEditForm.houseUseName = houseUseName
+      },
+
+      // 处理房屋类型
+      getHouseTypeName(val){
+        let houseTypeName = ''
+        for(let i in val){
+          let name = this.getSelectLabel(val[i],this.houseTypeOpt)
+          if(houseTypeName.length > 0){
+            houseTypeName = houseTypeName + ','
+          }
+          houseTypeName = houseTypeName + name
+        }
+        this.detailEditForm.houseTypeName = houseTypeName
+      },
+
+      // 处理建筑类型
+      getBuildTypeName(val){
+        let buildTypeName = ''
+        for(let i in val){
+          let name = this.getSelectLabel(val[i],this.buildTypeOpt)
+          if(buildTypeName.length > 0 ){
+            buildTypeName = buildTypeName + ','
+          }
+          buildTypeName = buildTypeName + name
+        }
+        this.detailEditForm.buildTypeName = buildTypeName
+      },
+
+      // 处理小区配套
+      getmatchingName(val){
+        let matching = ''
+        let matchingIds = ''
+        for(let i in val){
+          let name = this.getSelectLabel(val[i],this.comunitMatching)
+          if(matching.length > 0 ){
+            matching = matching + ','
+          }
+          if(matchingIds.length > 0 ){
+            matchingIds = matchingIds + ','
+          }
+          matching = matching + name
+          matchingIds = matchingIds + val[i]
+        }
+        this.detailEditForm.matchingIds = matchingIds
+        this.detailEditForm.matching = matching
+      },
+
+      //下拉框选中事件
+      selectGet(vId){//这个vId也就是value值
+        let obj = {};
+        obj = this.userList.find((item)=>{//这里的userList就是上面遍历的数据源
+          return item.id === vId;//筛选出匹配数据
+        });
+      },
+
+      saveCommunityDetail(){
+        this.$refs['detailEditForm'].validate(valid=>{
+          if(valid){
+            this.$confirm('确定保存数据吗？','提示',{
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(()=>{
+              let params = Object.assign({},this.detailEditForm,{})
+              this.dealSelectValue(params.houseUseId,params.houseTypeId,params.buildTypeId,params.matchingIds)
+              params = Object.assign({},this.detailEditForm,{})
+              params.buildYear = new Date(params.buildYear).getFullYear()
+              this.savegBtn = true
+              EditCommunityURL.updateCommunityDetail({ dataJson: JSON.stringify(params)}).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                  this.$emit('handleClick',5)
+                }else{
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+                this.savegBtn = false
+
+                let message = {sourceCode:this.data.name,sourceTypeId:'4',operatTypeId:'2'
+                  ,labelData:this.$utils.getFormFields(this.$refs['detailEditForm'])
+                  ,originalData:this.originalData,newData: params}
+
+                systemUpdateLog({message: JSON.stringify(message)})
+
+              }).catch(err=>{
+                this.savegBtn = false
+                this.$message({
+                  type: 'error',
+                  message: err.data.msg
+                })
+              })
+            })
+          }
+        })
+      },
+      // 取消操作
+      handleCancel(){
+        this.$emit('handleClick',2)
+      },
+
+      //重置表单
+      resetForm(){
+        if(this.$refs['detailEditForm']){
+          this.$refs['detailEditForm'].resetFields()
+        }
+      },
+
+      // 设置表单数据
+      setForm(){
+        this.resetForm()
+        let buildYear = this.data.buildYear
+        this.data.buildYear = this.StrToGMT("'" + this.data.buildYear + "'")
+        for (let i in this.detailEditForm) {
+          if(this.data[i]){
+            if(this.detailEditForm[i] == 'buildYear'){
+              this.detailEditForm = this.StrToGMT(this.data[i])
+            }else{
+              this.detailEditForm[i] = this.data[i]
+            }
+          }
+        }
+        this.originalData = Object.assign({},{...this.detailEditForm})
+        this.originalData.buildYear = buildYear
+      },
+      StrToGMT(time){
+        let GMT = new Date(time)
+        return GMT
+      },
+    },
+
+    mounted(){
+      this.queryCommunityMatchingItems()
+      if(this.data){
+        let property = this.data.property
+        let houseUseId = []
+        let houseTypeId = []
+        let buildTypeId = []
+        for(let i in property){
+          let type = property[i].type
+          let code = property[i].code
+          if(type === 0){ // houseUseType物业类型
+            houseUseId[houseUseId.length] = code
+          }else if(type === 1){ // HouseType 房屋类型
+            houseTypeId[houseTypeId.length] = code
+          }else if(type === 2){ // buildType 建筑类型
+            buildTypeId[buildTypeId.length] = code
+          }
+        }
+        this.data.houseUseId = houseUseId
+        this.data.houseTypeId = houseTypeId
+        this.data.buildTypeId = buildTypeId
+
+
+        if(this.data.matchingIds && typeof this.data.matchingIds  != 'object'){
+          let matchingIdsArr = this.data.matchingIds.split(',')
+          let matchingArr = this.data.matching.split(',')
+          this.data.matchingIds = matchingIdsArr
+          this.data.matching = matchingArr
+        }
+
+        this.setForm()
+      }
+    }
+  }
+</script>
+
+<style scoped>
+  .el-input {
+    width:120px;
+  }
+</style>

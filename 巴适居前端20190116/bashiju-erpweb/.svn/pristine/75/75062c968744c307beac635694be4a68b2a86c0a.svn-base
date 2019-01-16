@@ -1,0 +1,260 @@
+<!-- 房屋描述 -->
+<template>
+  <div style="min-height: 550px">
+
+   <div>
+      <el-button style="margin-left: 90%" type="text" @click="addHouseDescrop">编辑</el-button>
+   </div>
+    <el-table
+      :data="tableData"
+      v-loading="loadingView"
+    >
+
+      <el-table-column
+        prop="companyName"
+        label="公司"
+        show-overflow-tooltip
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="typeName"
+        label="描述字段">
+      </el-table-column>
+
+      <el-table-column
+        prop="description"
+        label="描述内容"
+        show-overflow-tooltip
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="operator"
+        label="添加人">
+      </el-table-column>
+
+      <el-table-column
+        prop="deptName"
+        label="所在部门">
+      </el-table-column>
+
+      <el-table-column
+        prop="addTime"
+        :formatter="_timeFormat"
+        label="添加时间">
+      </el-table-column>
+
+    </el-table>
+
+    <b-pagination
+      :listQuery="listQuery"
+      @handleSizeChange="handleSizeChange"
+      @handleCurrentChange="handleCurrentChange">
+    </b-pagination>
+
+
+    <el-dialog
+      title="新增房屋描述"
+      :visible.sync="houseDesDialogVisible"
+      width="500px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+
+      <el-form size="small" label-width="110px">
+
+        <!--新增-->
+        <el-row >
+          <el-col v-for="(item,index) in descriptOpt" :key="item.id" v-if="descriptOpt" >
+              <el-form-item :label="item.fieldValue">
+                  <el-input  v-model="item.value" ></el-input>
+              </el-form-item>
+          </el-col>
+
+          <!--修改-->
+          <el-col v-for="item in updateOpt" :key="item.id" v-if="updateOpt" >
+            <el-form-item :label="item.typeName">
+              <el-input  v-model="item.description"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item >
+              <el-button type="primary" @click="handleSubmit">确定</el-button>
+              <el-button @click="handleCancle">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+  import {getHouseDescription,getDescriptionField,saveHouseDescription} from '@/request/house/houseUsed'
+  import * as RequeryLogUrl  from '@/request/log/housePlatformLog'
+  export default {
+    props: {
+      houseId: {
+        required: true
+      },
+      logMessage: {
+        type: Object,
+        required: true,
+        default () {
+          return {}
+        }
+      }
+    },
+
+    data () {
+      return {
+        tableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        isAdd:false,
+        hackReset:false,
+        descriptOpt:[],
+        updateOpt:[],
+        loadingView: false,
+        houseDesDialogVisible:false,
+        descriptFrom: {
+          typeName:'',//描述字段
+        },
+      }
+    },
+
+    methods: {
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+
+      _getTableData () {
+        this.loadingView = true
+        const params = {
+          shhId: this.houseId,
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        }
+        getHouseDescription(params).then(res => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+        }).catch(() => {
+          this.loadingView = false
+        })
+      },
+
+      // 格式化日期
+      _timeFormat (row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue)
+      },
+      //新增房源描述窗体
+      addHouseDescrop(){
+          this.hackReset = false
+          this.$nextTick(() =>{
+              this.hackReset = true
+              if(!this.tableData.length>0){
+                //新增
+                this.getDescriptionField()
+                this.isAdd = true
+              }else{
+                  //修改
+                  this.descriptOpt = []
+                  this.updateOpt = this.tableData
+                  this.isAdd = false
+              }
+              this.houseDesDialogVisible = true
+          })
+      },
+      //新增方描述的数据
+       getDescriptionField(){
+            let params = {transactionTypeId:1}
+             getDescriptionField(params).then(res =>{
+               this.descriptOpt = res.data
+         })
+      },
+      handleSubmit(){
+        this.$confirm('确定要提交？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消'
+        }).then(()=>{
+          let params = ''
+          if(this.updateOpt.length>0){
+            params = this.updateOpt
+          }else{
+              let arr = []
+              for(let i in this.descriptOpt){
+                let obj ={}
+                obj.typeName = this.descriptOpt[i].fieldValue
+                obj.description = this.descriptOpt[i].value
+                obj.typeId = this.descriptOpt[i].id
+                obj.id =''
+                obj.shhId = this.houseId
+                arr.push(obj)
+              }
+               params = arr
+           }
+          let cfg = {
+            headers:{
+              'Content-Type':'application/json;charset=UTF-8'
+            }
+          }
+          saveHouseDescription(params,cfg).then(res =>{
+            if(res.success){
+              this.$message({type:'success',message:res.msg})
+              let ss = JSON.stringify(params)
+              let message = ''
+              if(this.isAdd){
+                   message = Object.assign({}, this.logMessage, {
+                   operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.DEL_FOLLOW, // 操作类型
+                   logContent: '新增房屋描述:'+ss // 日志内容
+                })
+              }else{
+
+              }
+              RequeryLogUrl.houseUpdateLog({message:JSON.stringify(message)}).then(res =>{
+                console.log(res)
+              })
+              this._getTableData()
+              this.houseDesDialogVisible = false
+            }else{
+              this.$message({type:'error',message:res.msg})
+              this.houseDesDialogVisible = false
+            }
+          })
+        }).catch(()=>{
+          this.$message({type:'info',message:'已取消'})
+        })
+      },
+      handleCancle(){
+        this.houseDesDialogVisible = false
+      },
+      getName(val){
+      },
+    },
+    mounted(){
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

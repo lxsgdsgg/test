@@ -1,0 +1,814 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item prop="custType">
+            <el-select v-model="queryForm.custType" clearable style="width: 120px;" placeholder="客源类型" >
+              <el-option
+                v-for="item in transactionTypeOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="depositStatus">
+            <el-select v-model="queryForm.depositStatus" clearable style="width: 120px;" placeholder="定金状态" >
+              <el-option
+                v-for="item in depositStatusOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="trusteesId">
+              <base-cascader
+                placeholder="经办人" clearable
+                v-model="queryForm.trusteesId"
+                :url="getReferenceUserSelectUrl"
+               :props="cascaderProps"
+                :dataProps="cascaderDataProps"
+                @change="handleTrustees"
+                style="width: 130px"
+                :changeOnSelect="false"
+              >
+              </base-cascader>
+          </el-form-item>
+
+
+          <el-form-item prop="depositTime">
+            <el-date-picker
+              v-model="queryForm.depositTime"
+              type="daterange"
+              range-separator="至"
+              :default-value="ct_month"
+              start-placeholder="经办日期起"
+              end-placeholder="经办日期止"
+              value-format="yyyy-MM-dd"
+            >
+            </el-date-picker>
+          </el-form-item>
+
+
+
+          <el-form-item>
+            <el-button type="success" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+            <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+            <el-button v-hasOnlyBtn="'exportCurBtn'" type="default" @click="_resetForm('queryForm')" size="small">导出当前页</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+        size="small"
+      >
+
+        </el-table-column>
+        <el-table-column
+          prop="transactionTypeId"
+          style="width: 100px"
+          align="left"
+          label="交易类型">
+          <template slot-scope="scope">
+            {{scope.row.transactionTypeId| transactionTypeFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="statusName"
+          align="left"
+          label="状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="custName"
+          show-overflow-tooltip
+          align="left"
+          label="客户姓名">
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="demandId"
+          align="left"
+          label="客源编号">
+          <template slot-scope="scope">
+            <a
+              @click="toDetail1(scope.row.demandId, scope.row.formName, scope.row.transactionTypeId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.demandId}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="houseId"
+          align="left"
+          show-overflow-tooltip
+          label="房源编号">
+          <template slot-scope="scope">
+            <a
+              @click="toDetail(scope.row.shhId, scope.row.houseUsesId, scope.row.houseId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.houseId}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="dealId"
+          align="left"
+          label="成交编号">
+          <template slot-scope="scope">
+            <a @click="toDetail2(scope.row)"
+               href="javascript:;" class="dealId"   type="text">
+              {{scope.row.deadlId}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="expenditureNo"
+          align="left"
+          label="支出协议编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="price"
+          align="left"
+          label="下定金额(元)">
+          <template slot-scope="scope">
+              {{scope.row.price/100}}
+          </template>
+        </el-table-column>
+
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="addTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="下定时间">
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="entrustTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="经办日期">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="maybeDealPrice"
+          align="left"
+          label="预计成交金额(万元)">
+          <template slot-scope="scope">
+            {{scope.row.maybeDealPrice/1000000}}
+          </template>
+        </el-table-column>
+
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="maybeDealDate"
+          align="left"
+          :formatter="_timeFormat"
+          label="预计成交时间">
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="entrustTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="经办日期">
+        </el-table-column>
+
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="trustees"
+          align="left"
+          label="经办人">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="deptName"
+          align="left"
+          label="区域">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="buildingsName"
+          align="left"
+          label="座栋">
+        </el-table-column>
+
+        <el-table-column
+          style="width: 100px"
+          prop="buildingHouseName"
+          align="left"
+          label="房号">
+        </el-table-column>
+
+        <el-table-column
+          prop="billNo"
+          align="left"
+          label="票据编号"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="remark"
+          align="left"
+          label="备注">
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="expenditureRemark"
+          align="left"
+          label="支出备注">
+        </el-table-column>
+
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <div v-if="scope.row.status ==0">
+              <el-button v-hasMultipleBtn="['confirmBtn',scope.row]" @click="handleDefine(scope.row)" type="text" size="small" >确定</el-button>
+              <el-button v-hasMultipleBtn="['updBtn',scope.row]" @click="handleUpdate(scope.row)" type="text" size="small" >修改</el-button>
+              <el-button v-hasMultipleBtn="['rebackBtn',scope.row]" @click="handleReject(scope.row)" type="text" size="small" >驳回</el-button>
+            </div>
+            <div v-else-if="scope.row.status ==1">
+              <el-button  v-hasMultipleBtn="['retreatBtn',scope.row]" @click="handleUnsubscribe(scope.row)" type="text" size="small" >退定</el-button>
+              <el-button  v-hasMultipleBtn="['payOffBtn',scope.row]"  @click="handleExpenditure(scope.row)" type="text" size="small" >支出</el-button>
+              <!--<el-button  v-hasMultipleBtn="['custDealBtn',scope.row]" @click="handleContract(scope.row)" type="text" size="small" >成交</el-button>-->
+            </div>
+            <!--<div v-else-if="scope.row.status ==1">-->
+              <!--<el-button  v-hasMultipleBtn="['retreatBtn',scope.row]" @click="handleUnsubscribe(scope.row)" type="text" size="small" >退定</el-button>-->
+              <!--<el-button  v-hasMultipleBtn="['payOffBtn',scope.row]"  @click="handleExpenditure(scope.row)" type="text" size="small" >支出</el-button>-->
+            <!--</div>-->
+            <div v-else-if="scope.row.status ==3">
+              <el-button  v-hasMultipleBtn="['custDealBtn',scope.row]" @click="handleContract(scope.row)" type="text" size="small" >成交</el-button>
+              <el-button   v-hasMultipleBtn="['printBtn',scope.row]" @click="handlerPrint(scope.row)" type="text" size="small" >打印收据</el-button>
+            </div>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <template>
+      <!--查看所有跟进记录的窗体-->
+      <el-dialog
+        title="定金支出"
+        :visible.sync="expenditureDlg"
+        width="30%"
+        closed="close"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="expenditureForm" label-width="30%"   :rules="rules" ref="expenditureForm" class="demo-ruleForm" size="medium">
+          <el-form-item label="支出协议数书编号" prop="expenditureNo" size="medium" >
+            <el-input v-model="expenditureForm.expenditureNo" style="width: 80%"></el-input>
+          </el-form-item>
+          <el-form-item label="支出备注" prop="expenditureRemark" size="medium">
+            <el-input v-model="expenditureForm.expenditureRemark"  style="width: 80%"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <div class="btn-group">
+              <el-button type="primary"  @click="handleZcSubmit">确认</el-button>
+              <el-button  @click="handleExpendCancel">取消</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+
+
+      <el-dialog
+        title="票据打印"
+        :visible.sync="dialogVisiblePrint"
+        width="800px"
+        :close-on-click-modal="false"
+      >
+        <receipt-template @printOver='printEndHandler' :code="printData.code" :payMoney="printData.payMoney" :payMan="printData.payMan"
+                          :content="printData.content" :payDate="printData.actualPayTime" :recipient="printData.recipient" v-if="clearData"
+                          :remark="printData.remark" ></receipt-template>
+      </el-dialog>
+
+
+      <!--  买卖合同 -->
+      <el-dialog
+        :title="dialogContractTitle"
+        :visible.sync="dialogVisibleContract"
+        :width="dialogContractWidth"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :modal-append-to-body="false"
+        append-to-body
+        top="25vh"
+      >
+        <div>
+          <ContractContent v-if="hackResetContract"
+             @canelContract="cancelContract"
+             @nextOperation="contractNextOperation"
+             :houseId="10"
+             :houseCode="530102000010"
+             :templateType="templateType"
+          ></ContractContent>
+        </div>
+
+      </el-dialog>
+
+    </template>
+
+
+    <template>
+        <!--修改-->
+      <el-dialog
+        title="修改定金"
+        :visible.sync="updateDlg"
+        width="33%"
+        :close-on-click-modal="false"
+        append-to-body
+      >
+        <update-deposit v-if="hackReset" :data="currentRowData"   @handleClick="windowReturn"></update-deposit>
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {getDepositData,depositManageDropdown,retreatDeposit,comfirmDeposit,rebackDepositRequest,savePayOffData,getBillNoForCommission} from "@/request/customer/depositManage";
+  import BaseCascader from '@/components/BaseCascader'
+  import UpdateDeposit from './component/updateDeposit'
+  import ReceiptTemplate from  '@/components/ReceiptTemplate'
+  import ContractContent from '@/components/ContractContent.vue' // 合同
+  import * as RequeryLogURL from '@/request/log/customerLog'//客源日志统一接口
+
+  export default {
+      components:{PageList,BaseCascader,UpdateDeposit,ReceiptTemplate,ContractContent},
+      mixins: [PageList],
+      name:'depositManage',
+        data() {
+            return {
+                queryForm: {
+                  depositTime:[],
+                  trusteesId:'',
+                  depositStatus:'',
+                  custType:''
+                },
+              expenditureForm:{
+                depositId:'',
+                expenditureRemark:'',
+                expenditureNo:'',
+                transactionTypeId:''
+              },
+              originalData:'',
+              tableData:[],
+              depositStatusOpt:'',
+              transactionTypeOpt:[
+                {value:4,name:'求购'},
+                {value:5,name:'求租'},
+                // {value:'6',name:'全部'}
+              ],
+              templateType:'',
+              dialogVisiblePrint:false,
+              dialogVisibleContract:false,//选择模板窗体
+              dialogContractWidth:'',//模板大小
+              dialogContractTitle:'',//合同标题
+              hackResetContract:true,//清空合同
+              contractParams: {}, // 合同参数
+              trusteesOpt:[],
+              currentRowData:null,
+              loadingView:false,
+              queryBtnLoading:false,
+              expenditureDlg:false,
+              hackReset:false,
+              clearData:false,
+              updateDlg:false,
+              ct_month:null,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              },
+              printData: {},
+              billNo:'',
+              recipient:'',
+              getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser', // 介绍人
+              cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+              cascaderProps: { // 级联下拉组件配置选项
+                value: 'code', // 指定选项的值为选项对象的某个属性值
+                label: 'name' // 指定选项标签为选项对象的某个属性值
+              },
+              rules:{
+                // expenditureRemark:[
+                //   {required:true,message:'必填项',trigger:'change'}
+                // ],
+                expenditureNo :[
+                  {required:true,message:'必填项',trigger:'change'}
+                ]
+              }
+            }
+        },
+        methods: {
+          handleTrustees(value,name,data){
+            if(data.dataType !== 'user'){
+              setTimeout(() => {
+                  this.queryForm.trusteesId = ''
+              }, 50)
+              return false
+            }
+          },
+          _loadData(btn){
+            this.getDepositData(btn)
+          },
+          handleExpendCancel(){
+              this.expenditureDlg =false
+            this.$refs['expenditureForm'].resetFields()
+          },
+          //打开合同窗体
+          handleContract(row){
+            if(row.transactionTypeId === 5){
+              this.dialogContractTitle = '租赁合同';
+              this.templateType = '01'
+            }else{
+              this.dialogContractTitle = '买卖合同'
+              this.templateType = '00'
+            }
+            this.hackResetContract = false
+            this.$nextTick(() => { this.hackResetContract = true
+
+              this.dialogVisibleContract = true
+            })
+          },
+
+          //合同類型：01，02
+          // 下一步到签合同界面
+          contractNextOperation () {
+            this.dialogContractWidth = '1100px'
+          },
+          // 取消合同弹框
+          cancelContract () {
+            this.$confirm('确定关闭正在编辑的窗口?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.dialogVisibleContract = false
+            })
+          },
+          // 合同填写保存
+          contractSaveResult (result) {
+            if (result) {
+              this.dialogVisibleContract = false
+              this.dialogContractWidth = '500px'
+            }
+          },
+          // 取消合同弹框
+          cancelContract () {
+            this.$confirm('确定关闭正在编辑的窗口?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.dialogVisibleContract = false
+            })
+          },
+
+
+          // 获取票据编号
+          getBillNoForCommission(){
+            getBillNoForCommission().then(res=>{
+              this.billNo = res
+            }).catch(err=>{
+              this.$message({
+                type: 'error',
+                message: '获取票据编号失败!'
+              })
+            })
+          },
+
+          //窗体
+          handlerPrint(row){
+            this.getBillNoForCommission()
+            this.clearData = false
+            this.$nextTick(()=>{
+              this.clearData = true
+              this.printData = {}
+              this.printData.code =this.billNo
+              this.printData.payMoney = row.price/100
+              this.printData.content = '定金'
+              this.printData.recipient = row.trustees
+              this.printData.payDate = row.actualPayTime
+              this.printData.payMan = row.custName
+              this.dialogVisiblePrint = true
+            })
+          },
+          // 打印完成
+          printEndHandler(){
+            this.dialogVisiblePrint = false
+          },
+          //获取页面数据
+          getDepositData(btn){
+            if(btn){
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            this.loadingView = true
+            this.queryBtnLoading = btn
+            let params = Object.assign({},this.queryForm,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+            })
+              if(params.depositTime.length>0){
+                  params.depositTime = params.depositTime.join()
+              }
+              getDepositData(params).then(res =>{
+                this.tableData = res.data
+                this.listQuery.total = res.count
+                this.loadingView = false
+                this.queryBtnLoading = false
+              }).catch(() =>{
+                this.loadingView = false
+                this.queryBtnLoading = false
+              })
+          },
+          //搜索条件下拉数据源
+          depositManageDropdown(){
+            let params = {}
+            depositManageDropdown(params).then(res =>{
+                  this.depositStatusOpt = res.depositStatus
+            })
+          },
+          //退定
+          handleUnsubscribe(row){
+              this.$confirm('确定要退回此定金给客户吗？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消',
+                type:'warning'
+              }).then(() =>{
+                  let param = {depositId:row.id,demandId:row.demandId,houseId:row.houseId}
+                  // console.log(param)
+                  retreatDeposit(param).then(res =>{
+                     if(res.success){
+                       this.$message({type:'success',message:res.msg})
+                       let message = {
+                         sourceId:  row.demandId,//资源编号：客源编号
+                         sourceCode:  row.demandId,//资源编号：客源编号
+                         businessTypeId: 2,//业务类型，2：代表客源
+                         sourceTypeId: row.transactionTypeId,//类型：求购
+                         operatTypeId: 210,//操作类型 下定,
+                         logContent: '下定退定'//日志内容
+                       }
+                       console.log(row.transactionTypeId)
+                       RequeryLogURL.customerQueryLog({message:JSON.stringify(message)}).then(res =>{
+                         console.log(res)
+                       }).catch(error =>{
+                         console.log(error)
+                       })
+                       this._loadData(false)
+                     }else{
+                       this.$message({type:'error',message:res.msg})
+                     }
+                  }).catch(error =>{
+                      console.log(error)
+                  })
+              }).catch(error =>{
+                this.$message({type:'info',message:'已取消'})
+              })
+          },
+          //支出
+          handleExpenditure(row){
+            this.$nextTick(()=>{
+                this.expenditureForm.depositId = row.id
+                this.expenditureForm.transactionTypeId = row.transactionTypeId
+                this.expenditureDlg = true
+            })
+
+          },
+          //支出提交事件
+          handleZcSubmit(){
+            this.$confirm('确定支出定金？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消',
+              type:'warning'
+            }).then(() =>{
+                let params = { ...this.expenditureForm}
+                delete params.depositId
+                delete params.transactionTypeId
+                savePayOffData({jsonData:JSON.stringify(params),depositId:this.expenditureForm.depositId}).then(res =>{
+                  if(res.success){
+                    this.$message({type:'success',message:res.msg})
+                    let message = {
+                      sourceId: params.demandId,
+                      sourceCode: params.demandId,
+                      businessTypeId: 2,//业务类型，2：代表客源
+                      sourceTypeId: this.expenditureForm.transactionTypeId,
+                      operatTypeId: 217,
+                      logContent: '支出,票据号为:'+params.expenditureNo+'备注:'+params.expenditureRemark
+                    }
+                    console.log(message)
+                    RequeryLogURL.customerAddLog({message:JSON.stringify(message)}).then(res =>{
+                      console.log(res)
+                    }).catch(error =>{
+                      console.log(error)
+                    })
+                    this.expenditureDlg = false
+                    this._loadData(false)
+                    this.$refs['expenditureForm'].resetFields()
+                  }else{
+                    this.$message({type:'error',message:res.msg})
+                  }
+                }).catch(error =>{
+                  console.log(error)
+                })
+            }).catch(()=>{
+              this.$message({type:'error',message:'已取消'})
+            })
+          },
+          close(){
+
+          },
+          //支出取消事件
+          handleZcReset(){
+            this.$refs['expenditureForm'].resetFields()
+              // this.$refs['expenditureForm'].resetFields()
+          },
+          //成交
+          handleTransaction(){
+
+          },
+          //确定
+          handleDefine(row){
+              this.$confirm('确定此定金给客户吗？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消',
+                type:'warning'
+              }).then(()=>{
+                let param = {depositId:row.id,demandId:row.demandId,houseId:row.houseId}
+                  // console.log(param)
+                  comfirmDeposit(param).then(res =>{
+                    if(res.success){
+                      this.$message({type:'success',message:res.msg})
+                      let message = {
+                        sourceId:  row.demandId,//资源编号：客源编号
+                        sourceCode:  row.demandId,//资源编号：客源编号
+                        businessTypeId: 2,//业务类型，2：代表客源
+                        sourceTypeId: row.transactionTypeId,//类型：求购
+                        operatTypeId: 216,//操作类型,
+                        logContent: '定金确认'//日志内容
+                      }
+                      console.log(row.transactionTypeId)
+                      RequeryLogURL.customerQueryLog({message:JSON.stringify(message)}).then(res =>{
+                        console.log(res)
+                      }).catch(error =>{
+                        console.log(error)
+                      })
+                      this._loadData(false)
+                    }else{
+                      this.$message({type:'error',message:res.msg})
+                    }
+                  }).catch(error =>{
+                    console.log(error)
+                  })
+              })
+          },
+          //修改
+          handleUpdate(row){
+              this.hackReset = false
+              this.$nextTick(()=>{
+                this.hackReset = true
+                this.updateDlg = true
+                this.currentRowData = row
+              })
+          },
+          //驳回
+          handleReject(row){
+              this.$confirm('确定要驳回此定金金额记录吗？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消',
+                type:'warning'
+              }).then(()=>{
+                let param = {depositId:row.id}
+                // console.log(param)
+                rebackDepositRequest(param).then(res =>{
+                  if(res.success){
+                    this.$message({type:'success',message:res.msg})
+                    let message = {
+                      sourceId:  row.demandId,//资源编号：客源编号
+                      sourceCode:  row.demandId,//资源编号：客源编号
+                      businessTypeId: 2,//业务类型，2：代表客源
+                      sourceTypeId: row.transactionTypeId,//类型：求购
+                      operatTypeId: 210,//操作类型 :定金,
+                      logContent: '下定驳回'//日志内容
+                    }
+                    console.log(row.transactionTypeId)
+                    RequeryLogURL.customerQueryLog({message:JSON.stringify(message)}).then(res =>{
+                      console.log(res)
+                    }).catch(error =>{
+                      console.log(error)
+                    })
+                    this._loadData(false)
+                  }else{
+                    this.$message({type:'error',message:res.msg})
+                  }
+                }).catch(error =>{
+                  console.log(error)
+                })
+              })
+           },
+          //导出当前页
+          handleExportTableToExcel(){
+
+          },
+          toDetail2 (row) {
+            if(row.dealType =='00'){
+              //买卖成交
+              this.$router.push({ path: './dealDetail/' + row.deadlId})
+            }else if(row.dealType =='01'){
+              //租赁成交
+              this.$router.push({ path: './rentDealDetial/' + row.deadlId})
+            }else if(row.dealType =='02'){
+              //一手成交
+              this.$router.push({ path: './oneHandDealDetail/' + row.deadlId})
+            }
+            // this.queryDetailAllPage(row)
+          },
+          toDetail (id, name, code) {
+            this.$router.push({ path: '/house/houseUsedDetail/' + id + '/' + code, query: { formName: name}})
+            window.localStorage.setItem('houseList', JSON.stringify(this.tableData))
+          },
+          toDetail1 (id, name, type) {
+            this.$router.push({ path: '/customer/customerDetail/'+id, query: { formName: name,transactionTypeId: type}})
+            window.localStorage.setItem('customerList', JSON.stringify(this.tableData))
+          },
+          timeDefaultShow(){//默认显示上个月
+            this.ct_month= new Date();
+            this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+          },
+          //窗体关闭回调事件
+          windowReturn(value){
+              if(value == 1) {
+                this.updateDlg = false
+                this._loadData(false)
+              }else if(value == 2){
+                this.updateDlg = false
+              }
+          }
+        },
+      filters:{
+        transactionTypeFilter(value){
+            if(value === 4) return '求购'
+            if(value === 5) return '求租'
+        }
+      },
+        mounted() {
+            this.depositManageDropdown()
+            this.timeDefaultShow();
+        }
+
+    }
+
+</script>
+
+<style>
+  .houseId {
+    color: #409eff;
+  &:hover {
+     text-decoration: underline;
+   }
+  }
+</style>

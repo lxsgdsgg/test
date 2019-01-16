@@ -1,0 +1,18 @@
+@charset "utf-8";
+// color
+$page-bg: #f0f2f5;
+$black: #222222;
+$red: #e41e2b;
+$red-hover: #e0000f;
+$color-blue: #409EFF;
+$color-danger: #F56C6C;
+$color-warning: #E6A23C;
+$color-info: #909399;
+$color-border: #ddd;
+  // font
+$font-size-small-s:10px;
+$font-size-small: 12px;
+$font-size-medium: 14px;
+$font-size-medium-x: 16px;
+$font-size-large: 18px;
+$font-size-large-x: 22px;

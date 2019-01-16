@@ -1,0 +1,617 @@
+<template>
+  <div class="performanceBox">
+
+    <div class="form">
+      <MulitileCascader @change="handleChange" v-model="selOpts" :multiple="true" :data="options" :props="{value: 'code', label: 'name', children: 'children'}" :dataProps="{id: 'code', parent: 'parentCode'}"></MulitileCascader>
+    </div>
+  </div>
+</template>
+<script>
+  import MulitileCascader from '@/components/BaseCascader'
+  export default {
+    components: {MulitileCascader},
+    data() {
+      return {
+        options: [
+          {
+            "code": "530100",
+            "parentCode": "0",
+            "dataType": "city",
+            "name": "昆明",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "532900",
+            "parentCode": "0",
+            "dataType": "city",
+            "name": "大理",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "532800",
+            "parentCode": "0",
+            "dataType": "city",
+            "name": "西双版纳",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "BAOXIANGYU",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "CSGL",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "城市管理员公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "liwen公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "PTGS",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "平台公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "TAO",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "左云涛的公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "test_01",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "测试公司1",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "test_02",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "测试公司2",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "test_03",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "测试公司3",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "test_company",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "测试公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "WAPER",
+            "parentCode": "530100",
+            "dataType": "company",
+            "name": "王鹏的公司",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO01",
+            "parentCode": "BAO",
+            "dataType": "dept",
+            "name": "运维部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO03",
+            "parentCode": "BAO",
+            "dataType": "dept",
+            "name": "昆明",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO0301",
+            "parentCode": "BAO03",
+            "dataType": "dept",
+            "name": "西山区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO030101",
+            "parentCode": "BAO0301",
+            "dataType": "dept",
+            "name": "云纺片区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO03010101",
+            "parentCode": "BAO030101",
+            "dataType": "dept",
+            "name": "云纺一号店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO0301010101",
+            "parentCode": "BAO03010101",
+            "dataType": "dept",
+            "name": "一组",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO0301010102",
+            "parentCode": "BAO03010101",
+            "dataType": "dept",
+            "name": "阿祖",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO03010102",
+            "parentCode": "BAO030101",
+            "dataType": "dept",
+            "name": "云纺二号店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO0301010201",
+            "parentCode": "BAO03010102",
+            "dataType": "dept",
+            "name": "一组",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO0301010202",
+            "parentCode": "BAO03010102",
+            "dataType": "dept",
+            "name": "二组",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO030102",
+            "parentCode": "BAO0301",
+            "dataType": "dept",
+            "name": "滇池片区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO03010201",
+            "parentCode": "BAO030102",
+            "dataType": "dept",
+            "name": "滇池一店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "BAO03010202",
+            "parentCode": "BAO030102",
+            "dataType": "dept",
+            "name": "滇池二店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "CSGL01",
+            "parentCode": "CSGL",
+            "dataType": "dept",
+            "name": "昆明",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen01",
+            "parentCode": "liwen",
+            "dataType": "dept",
+            "name": "经营部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02",
+            "parentCode": "liwen",
+            "dataType": "dept",
+            "name": "昆明市总部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen0201",
+            "parentCode": "liwen02",
+            "dataType": "dept",
+            "name": "大区一（官渡区）",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen020101",
+            "parentCode": "liwen0201",
+            "dataType": "dept",
+            "name": "世纪城片区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02010101",
+            "parentCode": "liwen020101",
+            "dataType": "dept",
+            "name": "一店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02010102",
+            "parentCode": "liwen020101",
+            "dataType": "dept",
+            "name": "二店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02010103",
+            "parentCode": "liwen020101",
+            "dataType": "dept",
+            "name": "三店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02010104",
+            "parentCode": "liwen020101",
+            "dataType": "dept",
+            "name": "四店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "liwen02010105",
+            "parentCode": "liwen020101",
+            "dataType": "dept",
+            "name": "五店",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "PTGS01",
+            "parentCode": "PTGS",
+            "dataType": "dept",
+            "name": "平台部门",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "TAO01",
+            "parentCode": "TAO",
+            "dataType": "dept",
+            "name": "研发部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "TAO02",
+            "parentCode": "TAO",
+            "dataType": "dept",
+            "name": "大区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "TAO0201",
+            "parentCode": "TAO02",
+            "dataType": "dept",
+            "name": "区",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "TAO03",
+            "parentCode": "TAO",
+            "dataType": "dept",
+            "name": "市",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "test_0301",
+            "parentCode": "test_03",
+            "dataType": "dept",
+            "name": "测试总部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "WAPER01",
+            "parentCode": "WAPER",
+            "dataType": "dept",
+            "name": "财务部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "WAPER02",
+            "parentCode": "WAPER",
+            "dataType": "dept",
+            "name": "财务部",
+            "mobile": "",
+            "leaf": 0
+          },
+          {
+            "code": "1",
+            "parentCode": "PTGS01",
+            "dataType": "user",
+            "name": "超级管理员",
+            "mobile": "13577000337",
+            "leaf": 1
+          },
+          {
+            "code": "2",
+            "parentCode": "liwen01",
+            "dataType": "user",
+            "name": "李雯",
+            "mobile": "18088450717",
+            "leaf": 1
+          },
+          {
+            "code": "3",
+            "parentCode": "WAPER01",
+            "dataType": "user",
+            "name": "王鹏",
+            "mobile": "18302392883",
+            "leaf": 1
+          },
+          {
+            "code": "4",
+            "parentCode": "TAO01",
+            "dataType": "user",
+            "name": "左云涛",
+            "mobile": "14787468304",
+            "leaf": 1
+          },
+          {
+            "code": "5",
+            "parentCode": "TAO01",
+            "dataType": "user",
+            "name": "超管--左云涛",
+            "mobile": "14787468305",
+            "leaf": 1
+          },
+          {
+            "code": "10",
+            "parentCode": "liwen02010101",
+            "dataType": "user",
+            "name": "经纪人1（lw）",
+            "mobile": "18088450711",
+            "leaf": 1
+          },
+          {
+            "code": "11",
+            "parentCode": "liwen02010101",
+            "dataType": "user",
+            "name": "经纪人2（lw）",
+            "mobile": "18088450712",
+            "leaf": 1
+          },
+          {
+            "code": "12",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "系统管理员(杨)",
+            "mobile": "18608855587",
+            "leaf": 1
+          },
+          {
+            "code": "13",
+            "parentCode": "liwen02010101",
+            "dataType": "user",
+            "name": "经纪人3（lw）",
+            "mobile": "18088450713",
+            "leaf": 1
+          },
+          {
+            "code": "14",
+            "parentCode": "liwen02010102",
+            "dataType": "user",
+            "name": "经纪人4（lw）",
+            "mobile": "18088450714",
+            "leaf": 1
+          },
+          {
+            "code": "15",
+            "parentCode": "liwen02010102",
+            "dataType": "user",
+            "name": "经纪人5（lw）",
+            "mobile": "18088450715",
+            "leaf": 1
+          },
+          {
+            "code": "16",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "BAOXY",
+            "mobile": "15587098269",
+            "leaf": 1
+          },
+          {
+            "code": "17",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "保翔宇",
+            "mobile": "15398358201",
+            "leaf": 1
+          },
+          {
+            "code": "18",
+            "parentCode": "liwen02010102",
+            "dataType": "user",
+            "name": "经纪人6（lw-已设黑名单）",
+            "mobile": "18088450716",
+            "leaf": 1
+          },
+          {
+            "code": "19",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "王鹏",
+            "mobile": "15696703407",
+            "leaf": 1
+          },
+          {
+            "code": "20",
+            "parentCode": "WAPER02",
+            "dataType": "user",
+            "name": "李刚",
+            "mobile": "13883105243",
+            "leaf": 1
+          },
+          {
+            "code": "21",
+            "parentCode": "BAO03010101",
+            "dataType": "user",
+            "name": "云纺一号店长",
+            "mobile": "18608855586",
+            "leaf": 1
+          },
+          {
+            "code": "22",
+            "parentCode": "BAO0301010101",
+            "dataType": "user",
+            "name": "云纺一号店店员1",
+            "mobile": "18608855585",
+            "leaf": 1
+          },
+          {
+            "code": "23",
+            "parentCode": "CSGL01",
+            "dataType": "user",
+            "name": "昆明城市管理员",
+            "mobile": "13668708636",
+            "leaf": 1
+          },
+          {
+            "code": "24",
+            "parentCode": "test_0301",
+            "dataType": "user",
+            "name": "测试系统管理员",
+            "mobile": "15912528511",
+            "leaf": 1
+          },
+          {
+            "code": "36",
+            "parentCode": "liwen02010101",
+            "dataType": "user",
+            "name": "员工8（lw）",
+            "mobile": "18088450718",
+            "leaf": 1
+          },
+          {
+            "code": "37",
+            "parentCode": "PTGS01",
+            "dataType": "user",
+            "name": "赵朗",
+            "mobile": "13808712331",
+            "leaf": 1
+          },
+          {
+            "code": "38",
+            "parentCode": "PTGS01",
+            "dataType": "user",
+            "name": "王静",
+            "mobile": "18213861617",
+            "leaf": 1
+          },
+          {
+            "code": "43",
+            "parentCode": "liwen01",
+            "dataType": "user",
+            "name": "天天",
+            "mobile": "13655555555",
+            "leaf": 1
+          },
+          {
+            "code": "44",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "马云",
+            "mobile": "15887812329",
+            "leaf": 1
+          },
+          {
+            "code": "45",
+            "parentCode": "BAO01",
+            "dataType": "user",
+            "name": "金镶玉",
+            "mobile": "13888888888",
+            "leaf": 1
+          }
+        ],
+        selOpts: ['530100'],
+      };
+    },
+    methods: {
+      handleChange () {
+      }
+    }
+  };
+</script>
+<style  rel="stylesheet/scss" lang="scss">
+  .performanceBox {
+    min-height: 700px;
+  }
+
+  .form {
+    margin: 100px auto;
+    width: 400px;
+    position: relative;
+
+    .cascader {
+      width: 100%;
+      height: 100%;
+    }
+
+    .tags {
+      position: absolute;
+      top: 10px;
+      left: 5px;
+      height: 20px;
+      width: 92%;
+      overflow-y: auto;
+      z-index: 2;
+      background: #fff;
+
+
+      .tag {
+        margin-right: 3px;
+      }
+    }
+  }
+</style>

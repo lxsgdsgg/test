@@ -1,0 +1,73 @@
+$color-red: #e41e2b;
+$red-hover: #e0000f;
+$color-blue: #26B2C9;
+$blue-hover: #40C9C6;
+$border-color: #dcdfe6;
+
+
+.wrapper {
+  padding: 10px;
+  background-color: #fff;
+}
+
+.toolbar {
+  padding: 15px;
+  display: flex;
+  .toolbar-item {
+    padding: 15px;
+    -webkit-transition: all 0.38s ease-out;
+    transition: all 0.38s ease-out;
+    border-radius: 6px;
+    text-align: center;
+    color: #303133;
+    min-width: 86px;
+    min-height: 86px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $blue-hover;
+      color: #fff;
+    }
+
+    .icon {
+      margin-bottom: 5px;
+    }
+  }
+
+  .toolbar-group-btn {
+    margin: 0 15px;
+    font-size: 12px;
+
+    p {
+      margin-top: 5px;
+      cursor: pointer;
+      &:hover {
+        color: $blue-hover;
+      }
+
+      span {
+        vertical-align: super;
+      }
+    }
+  }
+}
+
+.text-btn {
+  font-size: 12px;
+  color: $color-blue;
+  transition: all 0.3s;
+
+  &:hover {
+    color: $blue-hover;
+  }
+}
+
+.text-red {
+  color: $color-red;
+}
+.text-grey {
+  color: #9F9F9F;
+}
+.font-12 {
+  font-size: 12px;
+}

@@ -1,0 +1,1194 @@
+<template>
+  <div
+    v-loading="loadingView"
+    element-loading-text="拼命加载中"
+    class="wrapper"
+  >
+    <el-row :gutter="15" v-if="resultData">
+
+      <el-col :span="16" class="houseInfo-left">
+        <el-card class="box-card info">
+          <span style="color: #99a9bf">房源信息</span>
+          <div class="content clearfix">
+            <template v-for="(value, key, index) in DETAIL_MAP">
+              <template v-if>
+                <el-col class="content-item" v-if="index % 2 === 0" :span="12">
+                  <div class="label">{{value}}</div>
+                  <div class="text" v-if="key === 'houseType'">{{resultData.dealInfo.room}}室{{resultData.dealInfo.hall}}厅{{resultData.dealInfo.balcony}}厨{{resultData.dealInfo.toilet}}卫</div>
+                  <div class="text" v-else-if="key==='commissionPrice'">{{resultData.dealInfo['receivablePrice']/100}}元</div>
+                  <div class="text" v-else-if="key==='receivablePrice'">
+                    {{resultData.dealInfo[key]/100}}元(甲方
+                    {{resultData.dealInfo['ownerPrice']/100}}元+乙方{{resultData.dealInfo['custPrice']/100}}元)
+                  </div>
+                  <div class="text" v-else-if="key==='financePrice'">
+                    {{resultData.dealInfo[key]/100}}元(甲方
+                    {{resultData.dealInfo['financeOwnerPrice']/100}}元+乙方{{resultData.dealInfo['financeCustPrice']/100}}元)
+                  </div>
+                  <div class="text" v-else>{{resultData.dealInfo[key]}}</div>
+                </el-col>
+
+                <el-col class="content-item" v-else :span="12">
+                  <div class="label">{{value}}</div>
+                  <div class="text" v-if="key==='commissionPrice'">{{resultData.dealInfo['receivablePrice']/100}}元</div>
+                  <div class="text" v-else-if="key==='receivablePrice'">
+                    {{resultData.dealInfo[key]/100}}元(甲方
+                    {{resultData.dealInfo['ownerPrice']/100}}元+乙方{{resultData.dealInfo['custPrice']/100}}元)
+                  </div>
+                  <div class="text" v-else-if="key==='financePrice'">
+                    {{resultData.dealInfo[key]/100}}元(甲方
+                    {{resultData.dealInfo['financeOwnerPrice']/100}}元+乙方{{resultData.dealInfo['financeCustPrice']/100}}元)
+                  </div>
+                  <div class="text" v-else>{{resultData.dealInfo[key] | formatInfo(key, resultData)}}</div>
+                </el-col>
+              </template>
+            </template>
+          </div>
+        </el-card>
+        <!--中介类分成列表-->
+        <div>
+          <div style="margin-top: 10px;">
+            <div style="background-color: #EEEEEE;line-height: 30px;">
+              <span>中介类分成信息
+                <el-button type="primary" @click="sureDividInfos('00','0')" size="mini" class="pull-right" :loading="confirmDivideBtn">确认分成</el-button>
+                <el-button type="primary" @click="handlerModifyDivides('0')" size="mini" class="pull-right mr10">修改分成</el-button>
+              </span>
+            </div>
+          </div>
+          <el-table :data="divids" border align="center" tooltip-effect="light" size="mini">
+            <el-table-column prop="dividerDeptName" label="分成人" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.dividerDeptName + '--' + scope.row.dividerName}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="dividReason" label="分成缘由" show-overflow-tooltip></el-table-column>
+
+            <el-table-column prop="dividRate" label="分成比例" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.dividRate + '%'}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="estimateProfit" label="业绩" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.estimateProfit/100 + '元'}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="actualProfit" label="实应收" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.actualProfit/100 + '元'}}
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </div>
+
+        <!--金融类分成列表-->
+        <div>
+          <div style="margin-top: 10px;">
+            <div style="background-color: #EEEEEE;line-height: 30px;">
+              <span>金融类分成信息
+                  <el-button v-hasMultipleBtn="['confirmFinDivide',resultData.dealInfo]" type='primary'
+                             @click="sureDividInfos('01','1')" size="mini" class="pull-right" :loading="confirmDivideBtn">确认分成</el-button>
+                  <el-button v-hasMultipleBtn="['updateFinDivide',resultData.dealInfo]" type='primary'
+                             @click="handlerModifyDivides('1')" size="mini" class="pull-right mr10">修改分成</el-button>
+                </span>
+            </div>
+          </div>
+          <el-table :data="financeDivideInfos" border align="center" tooltip-effect="light" size="mini">
+            <el-table-column prop="dividerDeptName" label="分成人" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.dividerDeptName + '--' + scope.row.dividerName}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="dividReason" label="分成缘由" show-overflow-tooltip></el-table-column>
+
+            <el-table-column prop="dividRate" label="分成比例" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.dividRate + '%'}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="estimateProfit" label="业绩" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.estimateProfit/100 + '元'}}
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="actualProfit" label="实应收" show-overflow-tooltip>
+              <template slot-scope="scope">
+                {{scope.row.actualProfit/100 + '元'}}
+              </template>
+            </el-table-column>
+
+          </el-table>
+
+        </div>
+
+
+        <!-- 跟进信息 -->
+        <el-card class="box-card followRecord">
+          <div class="hd clearfix">
+            <div class="pull-left text-grey">跟进</div>
+            <div class="pull-right"><a @click="$emit('switchTab', 'followRecord')" href="javascript:;" class="text-btn">更多..</a></div>
+          </div>
+
+          <div class="followRecord-content">
+            <div v-for="(item, index) in followInfo" :key="index" class="item">
+              <div class="time">
+                <span>{{item.addTime | timeDifference}}</span>
+                <i class="el-icon-sort"></i>
+              </div>
+
+              <div class="info">
+                <div class="pull-left">
+                  <p class="mb10 text">{{item.content}}</p>
+                  <p class="text-grey">{{item.operator + ' ' + $utils.timeFormat(item.addTime)}}</p>
+                </div>
+
+                <div class="pull-right">{{item.followType}}</div>
+              </div>
+            </div>
+          </div>
+          <a href="javascript:;" @click="handleOpenDialogFollow" class="text-btn">+写跟进</a>
+
+        </el-card>
+      </el-col>
+
+      <el-col :span="8" class="houseInfo-right" style="margin-top: -15px;">
+        <el-card class="owner-info">
+          <div class="content clearfix">
+            <template v-for="(value, key) in DEAL_INFO" >
+              <el-col :span="24">
+                <div v-if="key === 'houseId'" style="margin-top:15px;color: #99a9bf;" >
+                  {{value}}：
+                  <a @click="toHouseDetail(resultData.dealInfo.shhid
+                        ,resultData.dealInfo.houseUsesId,resultData.dealInfo[key])" class="dealId"
+                     href="javascript:;" type="text">
+                    {{resultData.dealInfo[key]}}
+                  </a>
+                </div>
+
+                <div v-else-if="key === 'demandId'" style="margin-top:15px;color: #99a9bf;" >
+                  {{value}}：
+                  <a @click="toDemandDetail(resultData.dealInfo[key],resultData.dealInfo.houseUsesId)" class="dealId"
+                     href="javascript:;" type="text">
+                    {{resultData.dealInfo[key]}}
+                  </a>
+                </div>
+
+                <div style="margin-top:15px;color: #99a9bf;" v-else>{{value}}：{{resultData.dealInfo[key]}}</div>
+              </el-col>
+            </template>
+          </div>
+        </el-card>
+
+        <!-- 合同信息 -->
+        <el-card class="owner-info">
+
+          <div class="item clearfix">
+            <div class="left"><span class="text-grey mr5">甲方称呼：{{contractData.partyA}}</span></div>
+          </div>
+
+          <div class="item clearfix">
+            <div class="left">
+              <span class="text-grey mr5">证件号码：{{contractData.cardNoA}}</span>
+            </div>
+          </div>
+
+          <div class="item clearfix" style="margin-top: 10px;">
+            <div class="left">
+              <span class="text-grey mr5" v-if="showPhoneList">联系电话：{{contractData.mobileA}}</span>
+              <span class="text-grey mr5" v-else>联系电话：***********</span>
+            </div>
+          </div>
+
+          <hr>
+          <div class="item clearfix">
+            <div class="left"><span class="text-grey mr5">乙方称呼：{{contractData.partyB}}</span></div>
+          </div>
+          <div class="item clearfix">
+            <div class="left">
+              <span class="text-grey mr5">证件号码：{{contractData.cardNoB}}</span>
+            </div>
+          </div>
+
+          <div class="item clearfix">
+            <div class="left">
+              <span class="text-grey mr5" v-if="showPhoneList">联系电话：{{contractData.mobileB}}</span>
+              <span class="text-grey mr5" v-else>联系电话：***********</span>
+            </div>
+          </div>
+        </el-card>
+
+        <el-button type="primary" style="width: 100%;margin-top: 5px;" v-if="!showPhoneList"
+                   size="mini" @click="isShowPhoneList(true)">查看电话</el-button>
+        <el-button type="primary" style="width: 100%;margin-top: 5px;"
+                   size="mini" @click="isShowPhoneList(false)" v-else>隐藏电话</el-button>
+
+        <div>
+          <div style="background-color: #EEEEEE;line-height: 30px;width: 100%;margin-top: 10px;">
+            <span style="margin-left: 10px;">状态信息</span>
+          </div>
+          <el-table :data="statusData" border align="center" tooltip-effect="light" size="mini">
+            <el-table-column prop="name" label="名称" show-overflow-tooltip align="right" width="120px"></el-table-column>
+            <el-table-column prop="value" label="状态" show-overflow-tooltip>
+              <template slot-scope="scope">
+                <div v-if="scope.row.isBreach">
+                  <el-button v-hasMultipleBtn="['dealBreach',resultData.dealInfo]"
+                             class="pull-right" type="primary" size="mini"
+                             @click="dealBreach()" v-if="scope.row.isBreach==='0'" :loading="dealBreachBtn">违约</el-button>
+
+                  <el-button v-hasMultipleBtn="['cancelDealBreach',resultData.dealInfo]"
+                             class="pull-right" type="primary" size="mini"
+                             v-else @click="cancelDealBreach()" :loading="cancelDealBreachBtn">取消违约</el-button>
+                </div>
+                <div v-else-if="scope.row.isFinishCase">
+                  <div v-if="scope.row.isFinishCase === '1'">
+                    <span>已结案</span>
+                  </div>
+                  <div v-else>
+                    <span>未结案</span>
+                    <el-button class="pull-right" type="primary" size="mini">结案</el-button>
+                  </div>
+                </div>
+
+                <div v-else>{{scope.row.value}}</div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+      </el-col>
+    </el-row>
+
+    <template>
+      <!-- 新增跟进 -->
+      <el-dialog
+        title="租赁成交写跟进"
+        :visible.sync="dialogVisibleFollow"
+        width="500px"
+        :close-on-click-modal="false"
+        :before-close="handleCloseDialogFollow"
+      >
+        <add-follow @submit="handleFollowSubmit" :peopleSelectOpts="peopleSelectOpts" :dealId="params.dealId" ref="follow" :dealType="'01'"></add-follow>
+      </el-dialog>
+
+      <!-- 业主信息编辑 -->
+      <el-dialog
+        :title="dialogOwnerTitle"
+        :visible.sync="dialogVisibleOwner"
+        width="400px"
+        :close-on-click-modal="false"
+      >
+        <edit-owner-info :data="ownerFormData" :type="dialogOwnerType" @handleBtnClick="handleOwnerSubmit" ref="owner"></edit-owner-info>
+      </el-dialog>
+
+      <!-- 修改分成 -->
+      <el-dialog
+        title="分成编辑"
+        :visible.sync="dialogVisibleDivide"
+        width="650px"
+        :close-on-click-modal="false"
+        :before-close="handleCloseDialogFollow"
+      >
+        <el-form :model="dividForm" ref="dividForm" :inline="true" label-width="100px" size="small">
+          <el-row :gutter="10">
+            <el-col :span="6"><span style="margin-left: 20px;font-weight: 700;">经纪人</span></el-col>
+            <el-col :span="6"><span style="margin-left: 20px;font-weight: 700;">门店</span></el-col>
+            <el-col :span="6"><span style="margin-left: 20px;font-weight: 700;">分成缘由</span></el-col>
+            <el-col :span="6"><span style="margin-left: 20px;font-weight: 700;">分成比例</span></el-col>
+          </el-row>
+          <br>
+          <div v-for="(item,index) in dividForm.editDivids">
+            <el-form-item :prop="'editDivids.'+index + '.dividerId'" @click.native="remenberIndex(index)"
+                          :rules="{required: true, message: '经纪人不能为空', trigger: 'change'}">
+              <base-cascader v-model="item.dividerId" :url="getReferenceUserSelectUrl" :changeOnSelect="false"
+                             :props="cascaderProps" :dataProps="cascaderDataProps"
+                             style="width: 120px;" @change="jurgeSelectUser">
+              </base-cascader>
+            </el-form-item>
+
+            <el-form-item :prop="'editDivids.'+index +'.dividerDeptId'" :rules="{required: true, message: '门店不能为空', trigger: 'change'}">
+              <base-dept-cascader v-model="item.dividerDeptId" style="width: 120px;" :changeOnSelect="false"
+                                  @change="jurgeSelectDept" :disabled="true"></base-dept-cascader>
+            </el-form-item>
+
+            <el-form-item :prop="'editDivids.'+index +'.dividReason'" :rules="{required: true, message: '分成缘由不能为空', trigger: 'change'}">
+              <el-select v-model="item.dividReason" style="width: 120px;">
+                <el-option v-for="item in dividsOpts" :key="item.name" :value="item.name"></el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-form-item :prop="'editDivids.'+index +'.dividRate'" style="width: 120px;" :rules="{required: true, message: '分成比例不能为空', trigger: 'blur'}">
+              <el-input type="number" :min=0 v-model="item.dividRate"></el-input>
+              <span class="el-input__suffix">
+                <span class="el-input__suffix-inner">
+                  <i class="el-input__icon">%</i>
+                </span>
+              </span>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="removeData(index)" size="small">移除</el-button>
+            </el-form-item>
+          </div>
+          <div class="btn-group">
+            <el-button type="primary" @click="handleAdd" size="small">新增</el-button>
+            <el-button type="info" @click="handlerCancelDivid" size="small">取消</el-button>
+            <el-button type="primary" size="small" @click="handlerSubmitDivide" :loading="saveBtn">保存</el-button>
+          </div>
+        </el-form>
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import {timeFormat} from '@/common/js/utils'
+  import * as consts from '@/views/deal/bussinessDeal/component/constants'
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import AddFollow from '@/views/deal/bussinessDeal/component/AddFollow'
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  import EditOwnerInfo from '@/views/deal/bussinessDeal/component/EditOwnerInfo'
+
+  import * as selectUrl from '@/request/manage/common' // 获取下拉框数据 url地址
+  import {queryContractInfo }  from '@/request/deal/houseDeal'
+  import DealBaseWriteLogMixins from '@/views/deal/bussinessDeal/component/DealBaseWriteLogMixins'
+
+  export default {
+    name: 'dealDetail',
+    components: {AddFollow,BaseCascader,BaseDeptCascader,EditOwnerInfo},
+    mixins: [DealBaseWriteLogMixins],
+    props: {
+      params: {
+        type: Object,
+        required: true,
+        default () {
+          return {}
+        }
+      },
+      peopleSelectOpts:{
+        type: Array
+      },
+      dealType:{
+        type: String,
+        required: true
+      }
+    },
+    data () {
+      return {
+        title: '',
+        active: 1,
+        saveBtn: false,
+        confirmDivideBtn: false,
+        dealBreachBtn: false,
+        cancelDealBreachBtn: false,
+        DETAIL_MAP: consts.DETAIL_MAP,
+        DEAL_INFO : consts.DEAL_INFO,
+        resultData: {
+          dealInfo: {}
+        },
+        floorCount: '',
+        followInfo: [],
+        phoneList: null, // 业主电话
+        showPhoneList: false,
+        loadingView: false,
+        divids: [],
+        dividsOpts: [],
+        dialogOwnerTitle: '',
+        dialogOwnerType: '',
+        dialogVisibleOwner: false,
+        dialogVisibleDivide: false,
+        getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'},
+        dialogVisibleFollow: false,
+        dialogVisibleProcSel: false,
+        cascaderProps: {
+          value: 'code',
+          label: 'name'
+        },
+        ownerFormData: null,
+        dividForm:{
+          editDivids: [{
+            dividerId: '',
+            dividerName: '',
+            dividerDeptId: '',
+            dividerDeptName: '',
+            dividReason: '',
+            dividRate: ''
+          }]
+        },
+        processForm:{
+          scheduleName: '',
+          estimateFinishTime: ''
+
+        },
+        financeDivideInfos: [],
+        divideType: '',
+        confId: '',
+        selForm:{},
+        contractData: [],
+        removeDatas: [],
+        saveDivideData: [],
+        statusData: [],
+        index: 0,
+        originalData:[]
+      }
+    },
+
+    methods: {
+      // 显示/隐藏电话号码
+      isShowPhoneList(show){
+        this.showPhoneList = show
+        if(show){
+          this.dealAddLog(this.dealId,this.dealId,'7','431','查看电话')
+        }
+      },
+      jurgeSelectUser(value,name,data){
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+          setTimeout(() => {
+            value = this.data.dividerId
+          }, 50)
+        }else{
+          this.$set(this.dividForm.editDivids[this.index],'dividerDeptId', data.parent.code)
+        }
+      },
+      // 记住行标
+      remenberIndex(index){
+        this.index = index
+      },
+      jurgeSelectDept(value,name,data){
+        if (data.dataType !== 'dept') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择部门!'
+          })
+          setTimeout(() => {
+            value = this.data.dividerDeptId
+          }, 50)
+        }
+      },
+      // 进入客源详细
+      toDemandDetail(id,houseUsed){
+        this.$router.push({ path: '/customer/customerDetail/' + id
+          ,  query: {formName: houseUsed + '_customer', transactionTypeId: 2}})
+        // this.$router.push({ path: '/customer/customerDetail', query: { demandId: id
+        //     , formName: houseUsed || '_customer',transactionTypeId: 2}})//transactionTypeId = 2 （出租）
+      },
+      // 进入房源详细
+      toHouseDetail(id,name,code){
+        this.$router.push({ path: '/house/houseUsedDetail/' + id + '/' + code, query: { formName: name}})
+      },
+
+      buildStatusData(){
+        this.statusData = []
+        let temp3 = {}
+        temp3.name = '违约'
+        temp3.isBreach = String(this.resultData.dealInfo.isBreach)
+        temp3.value = ''
+        this.statusData.unshift(temp3)
+
+        let temp2 = {}
+        temp2.name = '结案'
+        temp2.isFinishCase = String(this.resultData.dealInfo.isFinishCase)
+        temp2.value = ''
+        this.statusData.unshift(temp2)
+
+        let temp1 = {}
+        temp1.name = '金融类佣金'
+
+        let finPrivent = '0'
+        let financePrice = '0'
+        let financeActualPrice = '0'
+        if(this.resultData.dealInfo.financePrice && this.resultData.dealInfo.financeActualPrice){
+          finPrivent = ((this.resultData.dealInfo.financeActualPrice/100)/(this.resultData.dealInfo.financePrice/100))*100
+          if(String(finPrivent).length > 4){
+            finPrivent = String(finPrivent).substr(0,5)
+          }
+        }
+        if(this.resultData.dealInfo.financePrice){
+          financePrice = this.resultData.dealInfo.financePrice/100
+        }
+        if(this.resultData.dealInfo.financeActualPrice){
+          financeActualPrice = this.resultData.dealInfo.financeActualPrice/100
+        }
+        temp1.value = finPrivent + '%(' + financeActualPrice + '元/' + financePrice + '元)'
+        this.statusData.unshift(temp1)
+
+        // temp1.value = this.resultData.dealInfo.finCommission/100
+        // this.statusData.unshift(temp1)
+
+        let temp0 = {}
+        temp0.name = '中介类佣金'
+
+        let privent = '0'
+        let receivedPrice = '0'
+        let actualCommission = '0'
+
+        if(this.resultData.dealInfo.receivedPrice && this.resultData.dealInfo.actualCommission){
+          privent = ((this.resultData.dealInfo.receivedPrice/100)/(this.resultData.dealInfo.actualCommission/100))*100
+          if(String(privent).length > 4){
+            privent = String(privent).substr(0,5)
+          }
+        }
+
+        if(this.resultData.dealInfo.receivedPrice){
+          receivedPrice = this.resultData.dealInfo.receivedPrice/100
+        }
+
+        if(this.resultData.dealInfo.actualCommission){
+          actualCommission = this.resultData.dealInfo.actualCommission/100
+        }
+        temp0.value = privent + '%(' + receivedPrice + '元/' + actualCommission + '元)'
+        this.statusData.unshift(temp0)
+
+      },
+      // 取得分成配置的配置ID
+      selectedRadio(confId){
+        this.confId = confId
+      },
+      //新增分成
+      handleAdd () {
+        const index = this.dividForm.editDivids.length + 1
+        this.dividForm.editDivids.push({
+          index: index,
+          id : '',
+          isValid: 1,
+          dividReason: '',
+          dividRate: 0,
+          dividerId: '',
+          estimateProfit: 0,
+          actualProfit: 0
+        })
+      },
+      // 移除数据
+      removeData(index){
+        let temp = this.dividForm.editDivids[index]
+        if(temp.id){
+          temp.isValid = 0
+          this.removeDatas.unshift(temp)
+        }
+        this.dividForm.editDivids.splice(index,1)
+      },
+      getMangeName(val,name){
+      },
+
+      /**
+       * 根据房源id和合同类型查询合同信息
+       */
+      queryContractInfo(){
+        RequestURL.queryContractInfoByAgreenmentId({code: this.resultData.dealInfo.agreementId}).then((res)=>{
+          if (res.success && res.data){
+            this.contractData = res.data
+          }
+        })
+      },
+
+      // 查询分成转移角色信息
+      queryDivideintoRole(){
+        selectUrl.queryDivideintoRole(null).then(res=>{
+          this.dividsOpts = res
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      // 提交分成修改
+      handlerSubmitDivide(){
+        this.saveDivideData = []
+        if(this.removeDatas.length > 0){
+          this.saveDivideData = this.$jsonUtils.mergeArray(this.dividForm.editDivids,this.removeDatas)
+        }else{
+          this.saveDivideData = this.dividForm.editDivids
+        }
+        if(this.divideType === '0'){
+          this.saveDivideInfos()
+        }else if(this.divideType === '1'){
+          this.saveFinanceDivideInfos()
+        }
+      },
+
+      // 修改中介类分成
+      saveDivideInfos(){
+        if(this.saveDivideData.length === 0){
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '保存数据为空'
+          })
+          return false
+        }
+
+        this.$refs['dividForm'].validate(valid=>{
+          if(valid){
+            let saveData = []
+            let saveDataForLog = []
+
+            let totalRate = 0
+            for(let i in this.saveDivideData){
+              let tempObj = {}
+              tempObj.id = this.saveDivideData[i].id
+              tempObj.dividReason = this.saveDivideData[i].dividReason
+              tempObj.dividRate = this.saveDivideData[i].dividRate
+              tempObj.dividerId = this.saveDivideData[i].dividerId
+              tempObj.estimateProfit = this.saveDivideData[i].estimateProfit
+              tempObj.actualProfit = this.saveDivideData[i].actualProfit
+
+              if(this.saveDivideData[i].id){
+                tempObj.isValid = this.saveDivideData[i].isValid
+              }
+
+              let logObj = Object.assign({},tempObj)
+              logObj.dividerName = this.saveDivideData[i].dividerName
+              logObj.dividerDeptName = this.saveDivideData[i].dividerDeptName
+              saveDataForLog.unshift(logObj)
+
+              if(this.saveDivideData[i].isValid === 1){
+                totalRate = totalRate + Number(this.saveDivideData[i].dividRate)
+              }else{
+                this.saveDivideData[i].dividRate = '0'
+              }
+              saveData.unshift(tempObj)
+            }
+            if(totalRate != 100){
+              this.$message({
+                type: 'warning',
+                message: '分成比例之和必须100'
+              })
+              return false
+            }
+
+            this.$refs['dividForm'].validate((valid)=>{
+              if(valid){
+                this.$confirm('确认要提交数据吗？','警告',{
+                  confirmButtonText: '',
+                  cancelButtonText: '',
+                  type: 'warning'
+                }).then(()=>{
+                  let params = {dealId: this.params.dealId,jsonData: JSON.stringify(saveData)}
+                  this.saveBtn = true
+                  RequestURL.saveDivideInfos(params).then(res=>{
+                    if(res.success){
+                      this.$message({
+                        type: 'success',
+                        message: res.msg
+                      })
+                    }else{
+                      this.$message({
+                        type: 'error',
+                        message: res.msg
+                      })
+                    }
+                    this.saveBtn = false
+                    this.dialogVisibleDivide = false
+                    this.queryDividenInfos()
+                    this.writeBaseActionLog(this.dealId,this.dealType,saveDataForLog,this.originalData,'修改中介类分成：')
+                  }).catch(err=>{
+                    this.saveBtn = false
+                    this.$message({
+                      type: 'error',
+                      message: err.data.msg
+                    })
+                  })
+                })
+              }
+            })
+          }
+        })
+      },
+
+      // 修改金融分成
+      saveFinanceDivideInfos(){
+        if(this.saveDivideData.length === 0){
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '保存数据为空'
+          })
+          return false
+        }
+        this.$refs['dividForm'].validate(valid=>{
+          if(valid){
+            let saveData = []
+            let saveDataForLog = []
+            let totalRate = 0
+            for(let i in this.saveDivideData){
+              let tempObj = {}
+              tempObj.id = this.saveDivideData[i].id
+              tempObj.dividReason = this.saveDivideData[i].dividReason
+              tempObj.dividRate = this.saveDivideData[i].dividRate
+              tempObj.dividerId = this.saveDivideData[i].dividerId
+              tempObj.estimateProfit = this.saveDivideData[i].estimateProfit
+              tempObj.actualProfit = this.saveDivideData[i].actualProfit
+
+              if(this.saveDivideData[i].id){
+                tempObj.isValid = this.saveDivideData[i].isValid
+              }
+
+              let logObj = Object.assign({},tempObj)
+              logObj.dividerName = this.saveDivideData[i].dividerName
+              logObj.dividerDeptName = this.saveDivideData[i].dividerDeptName
+              saveDataForLog.unshift(logObj)
+
+              if(this.saveDivideData[i].isValid === 1){
+                totalRate = totalRate + Number(this.saveDivideData[i].dividRate)
+              }else{
+                this.saveDivideData[i].dividRate = '0'
+              }
+              saveData.unshift(tempObj)
+
+            }
+            if(totalRate != 100){
+              this.$message({
+                type: 'warning',
+                message: '分成比例之和必须100'
+              })
+              return false
+            }
+
+            this.$refs['dividForm'].validate((valid)=>{
+              this.$confirm('确认要提交数据吗？','警告',{
+                confirmButtonText: '',
+                cancelButtonText: '',
+                type: 'warning'
+              }).then(()=>{
+                this.saveBtn = true
+                let params = {dealId: this.params.dealId,jsonData: JSON.stringify(saveData)}
+                RequestURL.saveFinanceDivideInfos(params).then(res=>{
+                  if(res.success){
+                    this.$message({
+                      type: 'success',
+                      message: res.msg
+                    })
+                  }else{
+                    this.$message({
+                      type: 'error',
+                      message: res.msg
+                    })
+                  }
+                  this.saveBtn = false
+                  this.dialogVisibleDivide = false
+                  this.queryFinanceDivideInfos()
+                  this.writeBaseActionLog(this.dealId,this.dealType,saveDataForLog,this.originalData,'修改金融类分成：')
+                }).catch(err=>{
+                  this.saveBtn = false
+                  this.$message({
+                    type: 'error',
+                    message: err.data.msg
+                  })
+                })
+              })
+            })
+          }
+        })
+      },
+
+      // 确认中介类、金融类分成
+      sureDividInfos(dealType,divideType){
+        if(this.divids.length === 0){
+          this.$message({
+            type: 'warning',
+            message: '分成数据为空'
+          })
+          return
+        }
+        this.$confirm('确认分成后无法撤销，要提交分成确认吗？','重要警告',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let params = {dealId: this.params.dealId,dealType:dealType,moneyType: divideType}
+          this.confirmDivideBtn = true
+          RequestURL.sureDividInfos(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this.confirmDivideBtn = false
+            this.queryDividenInfos()
+            this._getTableData()
+
+            this.dealQueryLog(this.dealId,this.dealId,'7','411','确认分成')
+          }).catch(err=>{
+            this.confirmDivideBtn = false
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+          })
+        })
+      },
+
+      /**
+       * 违约
+       * @param id
+       */
+      dealBreach(){
+        this.$confirm('确认要提交违约吗？','警告',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          let params = {dealId: this.params.dealId}
+          this.dealBreachBtn = true
+          RequestURL.dealBreach(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this.dealBreachBtn = false
+            this._getTableData()
+            this.dealQueryLog(this.dealId,this.dealId,'7','412','违约')
+          }).catch(err=>{
+            this.dealBreachBtn = false
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '用户已取消'
+        //   })
+        // })
+      },
+
+      /**
+       * 取消违约
+       * @param id
+       */
+      cancelDealBreach(){
+        this.$confirm('确认要取消违约吗？','警告',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          let params = {dealId: this.params.dealId}
+          this.cancelDealBreachBtn = true
+          RequestURL.cancelDealBreach(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this.cancelDealBreachBtn = false
+            this._getTableData()
+            this.dealQueryLog(this.dealId,this.dealId,'7','413','取消违约')
+          }).catch(err=>{
+            this.cancelDealBreachBtn = false
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '用户已取消'
+        //   })
+        // })
+      },
+
+      //取消
+      handlerCancelDivid(){
+        this.$confirm('确定要关闭正在编辑的窗口吗','警告',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          this.dialogVisibleDivide = false
+          this.queryFinanceDivideInfos()
+          this.queryDividenInfos()
+        }).catch(()=>{})
+      },
+
+      _getTableData(){
+        let params = {id: this.params.dealId,dealType: '01'}
+        RequestURL.queryDealInfoByIdAndType(params).then(res=>{
+          if(res.price){
+            res.price = (res.price/1000000) + '万元'
+          }
+          res.commissionPrice = res.commissionPrice?res.commissionPrice:'0'
+          res.actualCommission = res.actualCommission?res.actualCommission:'0'
+          res.finCommission = res.finCommission?res.finCommission:'0'
+          res.receivablePrice = res.receivablePrice?res.receivablePrice:'0'
+          res.buildSpace = res.buildSpace + 'm²'
+          res.floorCount = res.floorCount + '楼'
+          res.buildDates = res.buildDates + '年'
+          res.transactionType = '租赁'
+          res.dealTime = this.$utils.timeFormat(res.dealTime)
+          this.resultData.dealInfo = res
+
+          this.$emit('loadDataFinish', res)
+          this.queryDividenInfos()
+          this.queryFollowInfo()
+          this.queryContractInfo()
+          this.buildStatusData()
+        })
+      },
+
+      // 查询跟进信息
+      queryFollowInfo () {
+        if(this.params.dealId === undefined){
+          this.params.dealId = ''
+        }else{
+          const params = {dealId: this.params.dealId,page: 0,limit: 0}
+          RequestURL.queryFollowRecordByDealId(params).then(res => {
+            this.followInfo = res.data||[]
+          }).catch(() => {
+            console.log(err)
+          })
+        }
+      },
+
+      // 查询中介类分成列表
+      queryDividenInfos(){
+        RequestURL.queryDivideInfosByDealId({dealId:this.params.dealId}).then(res=>{
+          this.divids = res
+          for(let i in res){
+            res[i].dividerId = String(res[i].dividerId)
+          }
+        }).catch(err=>{
+          console,log(err)
+        })
+      },
+
+      /**
+       * 查询金融分成数据列表
+       */
+      queryFinanceDivideInfos(){
+        RequestURL.queryFinanceDivideInfos({dealId:this.params.dealId}).then(res=>{
+          this.financeDivideInfos = res
+          for(let i in res){
+            res[i].dividerId = String(res[i].dividerId)
+          }
+        }).catch(err=>{
+          console,log(err)
+        })
+      },
+
+      // 点击查看业主电话
+      handleShowPhoneList () {
+        this.showPhoneList = true
+        this._queryHousePrivateInfo(2)
+      },
+
+      // 提交分成修改（中介类、金融类）
+      handlerModifyDivides(type){
+        this.$nextTick(()=>{
+          this.divideType = type
+          if(type === '1'){
+            this.dividForm.editDivids = this.financeDivideInfos
+          }else{
+            this.dividForm.editDivids = this.divids
+          }
+          this.dialogVisibleDivide = true
+          this.originalData = this.$jsonUtils.copyArr(this.dividForm.editDivids)
+        })
+      },
+
+      // 修改业主信息
+      handleEditOwnerInfo () {
+        this.$refs['owner'] && this.$refs['owner']._resetForm()
+        this.dialogOwnerType = 1
+        this.dialogVisibleOwner = true
+        this.ownerFormData = {
+          owner: this.resultData.houseInfo.owner,
+          nameTitle: this.resultData.houseInfo.nameTitle,
+          nameType: this.resultData.houseInfo.nameType,
+          id: this.houseId
+        }
+        this.dialogOwnerTitle = '修改业主信息'
+      },
+
+      // 修改业主电话
+      handleEditOwnerPhone (data) {
+        this.$refs['owner'] && this.$refs['owner']._resetForm()
+        if (data){
+          this.dialogOwnerType = 2
+          this.dialogOwnerTitle = '修改业主电话'
+          this.ownerFormData = {
+            phone: data.phone,
+            remark: data.remark,
+            id: data.id
+          }
+
+        } else {
+          this.ownerFormData = {
+            shhId: this.houseId
+          }
+          this.dialogOwnerType = 3
+          this.dialogOwnerTitle = '新增业主电话'
+        }
+        this.dialogVisibleOwner = true
+      },
+
+      // 业主信息编辑保存
+      // action 点击按钮 1 submit 2 cancel
+      // type 提交表单 电话编辑和基本信息编辑
+      // data 返回的回显数据
+      handleOwnerSubmit (action, type, data) {
+        if (action === 1 && type === 1) {
+          this.resultData.houseInfo.owner = data.owner
+          this.resultData.houseInfo.nameTitle = data.nameTitle
+          this.resultData.houseInfo.nameType = data.nameType
+        }
+
+        if (action === 1 && type === 2) {
+          // 重新加载电话列表
+          this._queryHousePrivateInfo(2)
+        }
+        this.dialogVisibleOwner = false
+      },
+
+      // 删除业主电话
+      handleDeleteOwnerPhone (id) {
+        this.$confirm('确定保存编辑的信息吗?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          RequestURL.delOwnerPhone({id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg
+            })
+            // 重新加载电话列表
+            this._queryHousePrivateInfo(2)
+          })
+        })
+      },
+
+      // 打开写跟进dialog
+      handleOpenDialogFollow () {
+        this.$refs['follow'] && this.$refs['follow']._resetForm()
+        this.dialogVisibleFollow = true
+      },
+
+      // 关闭写跟进dialog
+      handleCloseDialogFollow (done) {
+        this.$confirm('确认关闭正在编辑的窗口？')
+          .then(() => {
+            done()
+          }).catch(_ => {})
+      },
+
+      // 跟进组件提交完成
+      handleFollowSubmit (data) {
+        if(data){
+          this.followInfo.unshift(data)
+        }
+        this.dialogVisibleFollow = false
+      }
+    },
+
+    computed: {
+      // 户型
+      roomSize () {
+        let resultData = this.resultData
+        let room = (resultData.houseInfo.room || '') + '室'
+        let hall = (resultData.houseInfo.hall || '') + '厅'
+        let kitchen = (resultData.houseInfo.kitchen || '') + '厨'
+        let toilet = (resultData.houseInfo.toilet || '') + '卫'
+        let balcony = (resultData.houseInfo.balcony || '') + '阳台'
+        return room + hall + kitchen + toilet + balcony
+      },
+    },
+
+    filters: {
+      formatInfo (value, key, resultData) {
+        if (key === 'elevatorroomcount') {
+          return resultData.dealInfo.elevatorCount + '梯' + resultData.dealInfo.householdCount + '户'
+        }
+
+        if (key === 'isSynchron'){
+          return value === 1 ? '是' : '否'
+        }
+
+        if (key === 'isUploadCertificate'){
+          return value === 1 ? '已上传' : '未上传'
+        }
+
+        if (key === 'certificateDate' || key === 'lastTradingTime'){
+          return timeFormat(value, '{y}-{m}-{d}')
+        }
+
+        return value
+      },
+
+      // 计算时间差
+      timeDifference (value) {
+        let nowDate = new Date().getTime()
+        return Math.floor((nowDate - value) / (24 * 3600 * 1000)) + '天前'
+      }
+    },
+
+    mounted () {
+      this.dealId = this.params.dealId
+      this._getTableData()
+      this.queryDividenInfos()
+      this.queryFinanceDivideInfos()
+      this.queryDivideintoRole()
+      this.queryContractInfo()
+      this.showPhoneList = false
+    },
+
+    watch: {
+      'params.dealId' () {
+        if (this.params.dealId) {
+          this.dealId = this.params.dealId
+          this._getTableData()
+          this.queryDividenInfos()
+          this.queryFinanceDivideInfos()
+          this.queryDivideintoRole()
+          this.queryContractInfo()
+          this.showPhoneList = false
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  @import "./dealscss/detail.scss";
+
+  .dealId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

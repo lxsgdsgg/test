@@ -1,0 +1,15 @@
+import {onPost} from "../main";
+
+/*************任务管理后台接口**********/
+//查询任务信息
+export  const queryTask = params =>{
+  return  onPost('oa/task/queryTask',params)
+}
+//逻辑删除任务
+export  const delTask = params =>{
+  return  onPost('oa/task/delTask',params)
+}
+//逻辑删除任务
+export  const addOrUpdTask = params =>{
+  return  onPost('oa/task/addOrUpdTask',params)
+}

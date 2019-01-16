@@ -1,0 +1,646 @@
+<!--******************小区详细页面=>Tab页签***********************************-->
+
+<template>
+  <div v-if="detailData" class="grid-content">
+    <el-tabs v-model="activeName" @tab-click="handleTabClick">
+      <el-tab-pane label="基本信息" name="baseinfo">
+        <el-row :gutter=20>
+          <el-col :span="18">
+            <el-row :gutter=20>
+              <el-col :span="14">
+                <span class="labelRow">小区名称：{{ detailData.name}}</span>
+              </el-col>
+              <el-col :span="10">
+                <span class="labelRow">所属片区：{{ detailData.reginName}}</span>
+              </el-col>
+            </el-row>
+            <el-row :gutter=10>
+              <el-col :span="24">
+                <span class="labelRow">小区地址：{{ detailData.address }}</span>
+              </el-col>
+            </el-row>
+          </el-col>
+          <el-col :span="6" class="labelRow">
+            <el-button v-hasOnlyBtn="'setLocationBtn'" type="primary" @click="adustCommunityCoordinate" size="small">调整坐标</el-button>
+            <el-button v-hasOnlyBtn="'editDetail'" type="primary" @click="updateCommunityDetail" size="small">修改详细</el-button>
+          </el-col>
+        </el-row>
+        <hr>
+
+        <el-row :gutter=25>
+          <el-col :span="5">
+            <span class="labelRow">房屋总套数：{{detailData.houseCount}}套</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">楼栋总数：{{detailData.buildingCount}}栋</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">物业类型：{{detailData.houseUseName}}</span>
+          </el-col>
+
+          <el-col :span="4">
+            <span class="labelRow">建造年代：{{new Date(this.detailData.buildYear).getFullYear()}}年</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">房屋产权：{{detailData.propertyLimit}}年</span>
+          </el-col>
+
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="5">
+            <span class="labelRow">小区容积率：{{detailData.capacityRatio}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">小区绿化率：{{detailData.greenRate}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">建筑类型：{{detailData.houseTypeName}}</span>
+          </el-col>
+
+          <el-col :span="4">
+            <span class="labelRow">占地面积：{{detailData.floorArea}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">建筑面积：{{detailData.buildingArea}}</span>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="5">
+            <span class="labelRow">房屋燃气：{{detailData.gas}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">电梯服务：
+            {{detailData.elevatorService==='1'?'有电梯':'无电梯'}}
+            </span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">供水服务：{{detailData.waterSupply}}</span>
+          </el-col>
+
+          <el-col :span="4">
+            <span class="labelRow">供暖服务：{{detailData.heatSupply}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">供电服务：{{detailData.powerSupply}}</span>
+          </el-col>
+
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="5">
+            <span class="labelRow">地上车位数：{{detailData.groundParkingCount}}个</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">地上车位租赁：{{detailData.groundParkingLeasePrice}}元/月</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">地上车位销售：{{detailData.groundParkingSalePrice}}万元</span>
+          </el-col>
+
+          <el-col :span="4">
+            <span class="labelRow">物业费用：{{detailData.propertyFees}}</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">物业电话：{{detailData.propertyPhone}}</span>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="5">
+            <span class="labelRow">地下车位数：{{detailData.underGroundParkingCount}}个</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">地下车位租赁：{{detailData.underGroundParkingLeasePrice}}元/月</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">地下车位销售：{{detailData.underGroundParkingSalePrice}}万元</span>
+          </el-col>
+
+          <el-col :span="4">
+            <span class="labelRow">均价：{{detailData.salePrice}}元</span>
+          </el-col>
+
+          <el-col :span="5">
+            <span class="labelRow">物业名称：{{detailData.propertyName}}</span>
+          </el-col>
+
+        </el-row>
+        <hr>
+        <el-row :gutter=25>
+          <el-col :span="10">
+            <span class="labelRow">街道：{{detailData.street}}</span>
+          </el-col>
+          <el-col :span="14">
+            <span class="labelRow">开发商：{{detailData.developers}}</span>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="24">
+            <span class="labelRow">物业地址：{{detailData.propertyAddress}}</span>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter=25>
+          <el-col :span="24">
+            <span class="labelRow">小区简介：{{detailData.communityProfile}}</span>
+          </el-col>
+        </el-row>
+      </el-tab-pane>
+
+
+      <el-tab-pane label="座栋信息" name="pedestal">
+        <div id="pedestal">
+          <el-row :gutter=25>
+            <el-col :span="24" align="right" style="margin-bottom:10px;">
+              <el-button v-hasOnlyBtn="'addBuildingBtn'" type="primary" @click="addBuildings" size="small">增加座栋</el-button>
+              <el-button v-hasOnlyBtn="'batchAddBuildingBtn'" type="primary" @click="batchAddBuildings" size="small">批量增加座栋</el-button>
+            </el-col>
+          </el-row>
+          <el-row :gutter=25>
+            <el-col :span="12">
+              <el-table :data="buildingsData" @row-click="queryBuildingUnitListForTableClick" align="left" border style="width: 100%;" size="mini">
+                <el-table-column prop="name" label="座栋名称" align="left">
+                  <template slot-scope="scope">
+                    {{scope.row.name + scope.row.buildUnitAlias }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="floorTotal" label="楼高" align="left"></el-table-column>
+                <el-table-column prop="buildYear" label="建筑年代" align="left"></el-table-column>
+                <el-table-column prop="buildingUnitCount" label="单元数量" align="left"></el-table-column>
+                <el-table-column label="操作" align="left" width="200px;">
+                  <template slot-scope="scope">
+                    <el-button v-hasOnlyBtn="'seeBuildingBtn'" @click="showBuildingHouse(scope.row)" type="text" size="small">查看座栋</el-button>
+                    <el-button v-hasOnlyBtn="'editBuildingBtn'"@click="updateBuildings(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button v-hasOnlyBtn="'addUnitBtn'"@click="addBuildingsUnit(scope.row)" type="text" size="small">新增单元</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <b-pagination
+                :listQuery="listQuery"
+                @handleSizeChange="handleSizeChange"
+                @handleCurrentChange="handleCurrentChange">
+              </b-pagination>
+            </el-col>
+
+            <el-col :span="12">
+              <el-table :data="houseUnitData" align="left" border style="width: 100%;" size="mini">
+                <el-table-column prop="name" label="单元名称" align="left">
+                  <template slot-scope="scope">
+                    {{scope.row.name + scope.row.unitAlias}}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="unitHouseCount" label="梯户" align="left">
+                  <template slot-scope  ="scope">
+                    {{ scope.row.unitElevatorCount + '梯' + scope.row.unitHouseCount + '户' }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="floorTotal" label="总楼层" align="left"></el-table-column>
+                <el-table-column prop="houseStartNumber" label="房号起始值" align="left"></el-table-column>
+                <el-table-column label="操作" align="left">
+                  <template slot-scope="scope">
+                    <el-button v-hasOnlyBtn="'setHouseNoBtn'" @click="setHouseNumber(scope.row)" type="text" size="small">设置房号</el-button>
+                    <el-button v-hasOnlyBtn="'editHouseNoBtn'" @click="updateBuildingsUnit(scope.row)" type="text" size="small">编辑</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <b-pagination
+                :listQuery="houseQuery"
+                @handleSizeChange="handleHouseSizeChange"
+                @handleCurrentChange="handleHouseCurrentChange">
+              </b-pagination>
+            </el-col>
+          </el-row>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="小区图片" name="communityImg">
+        <photo-upload :defaultParams="{communityId: communityId,attachType: '1',communityName:data.name}" ref="communityImg"></photo-upload>
+      </el-tab-pane>
+
+      <el-tab-pane label="小区地图" name="communityMap">
+        <div>
+          <!--<div id="detailMap" style="height: 500px;width: 100%" v-if="mapShow"></div>-->
+          <community-map ref="commap" :data="detailData" :longitudeD="detailData.longitude" :latitudeD="detailData.latitude"></community-map>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+
+    <template>
+      <el-dialog
+        title="座栋编辑"
+        :visible.sync="dialogVisible"
+        :close-on-click-modal="false"
+        width="48%"
+        append-to-body
+        :modal-append-to-body="false">
+        <buildings-component v-if="buildReset" @handleClick="recallHandlerClick" :buildingData="currentRowData"
+                             :isUpdate="isUpdate" :communityData="communityData" :isBatch="isBatch"></buildings-component>
+      </el-dialog>
+
+      <el-dialog
+        title="调整小区坐标"
+        :visible.sync="adjustCoordinateDlg"
+        :close-on-click-modal="false"
+        width="90%"
+        top="5vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <adjust-community-coordinate v-if="detailReset" @handleClick="recallHandlerClick" :data="detailData"></adjust-community-coordinate>
+      </el-dialog>
+
+      <el-dialog
+        title="修改小区明细"
+        :visible.sync="modifyDetailDlg"
+        :close-on-click-modal="false"
+        width="1200px"
+        top="5vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <modify-community-detail :data="currentRowData" @handleClick="recallHandlerClick"></modify-community-detail>
+      </el-dialog>
+
+      <el-dialog
+        title="查看销控"
+        :visible.sync="showBuildingDlg"
+        :close-on-click-modal="false"
+        width="60%"
+        top="15vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <building-unit-component v-if="showBuilding" :data="currentRowData" @handleClick="recallHandlerClick"
+          :communityId="communityId"></building-unit-component>
+      </el-dialog>
+
+      <el-dialog
+        title="编辑座栋单元"
+        :visible.sync="editUnitDlg"
+        :close-on-click-modal="false"
+        width="760px"
+        top="15vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <edit-building-unit-component v-if="houseUnit" :data="currentRowData" :isUpdate="isUpdate" @handleClick="recallHandlerClick"></edit-building-unit-component>
+      </el-dialog>
+
+      <el-dialog
+        title="设置房号"
+        :visible.sync="editHouseDlg"
+        :close-on-click-modal="false"
+        width="760px"
+        top="15vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <set-house-number v-if="houseNoShow" :houseUnitData="currentRowData" @handleClick="recallHandlerClick"></set-house-number>
+      </el-dialog>
+
+    </template>
+  </div>
+</template>
+
+<script>
+  import { queryCommunityDetail,
+    uploadCommunityImage,
+    queryBuildingsByCommunityId,
+    queryBuildingUnitListByBuildingId, queryBuildingsById } from '@/request/manage/community'
+  import BuildingsComponent from './BuildingsComponent'
+  import AdjustCommunityCoordinate from './AdjustCommunityCoordinate'
+  import CommunityMap from './CommunityMap'
+  import PageList from '@/mixins/pageList'
+  import BuildingUnitComponent from './BuildingUnitComponent'
+  import EditBuildingUnitComponent from './EditBuildingUnitComponent'
+  import ModifyCommunityDetail from './ModifyCommunityDetail'
+  import SetHouseNumber from './SetHouseNumber'
+  import CommunityImageList from './CommunityImageList'
+  import PhotoUpload from './PhotoUpload'
+
+  export default {
+    name: "DetailComponent",
+    components: {
+      BuildingsComponent, PageList, AdjustCommunityCoordinate, CommunityMap,
+      BuildingUnitComponent, EditBuildingUnitComponent,ModifyCommunityDetail,
+      SetHouseNumber, CommunityImageList,PhotoUpload
+    },
+    mixins:[PageList],
+    // 父组件传值
+    props: {
+      data: {
+        type: Object
+      }
+    },
+    data() {
+      return {
+        activeName: 'baseinfo',
+        pedestalData: [],
+        detailData: null,
+        action: 'http://sso.bashiju.com/manage/community/uploadImage/',
+        fileList:[],
+        showList: true,
+        buildingsData: [],
+        houseUnitData: [],
+        imageData: [],
+        isBatch: false,
+        hackReset: false,
+        buildReset: true,
+        detailReset: true,
+        unitReset: true,
+        houseUnit: true,
+        editHouseDlg: false,
+        houseNoShow: false,
+        showBuilding: true,
+        modifyDetailReset: true,
+        editUnitDlg: false,
+        dialogVisible: false,
+        showBuildingDlg: false,
+        isUpdate: false,
+        adjustCoordinateDlg: false,
+        modifyDetailDlg: false,
+        setHouseNoVisible: false,
+        currentRowData: null,
+        houseQuery:{
+          page: 1,limit: 10,total:0
+        },
+        buildingsId: '',
+        communityData: null,
+        mapShow: false,
+        communityId: ''
+      }
+    },
+    methods: {
+      // 查看销控
+      showBuildingHouse(row){
+        this.showBuilding = false
+        this.$nextTick(()=>{
+          this.currentRowData = null
+          this.currentRowData = row
+          this.showBuilding = true
+          this.showBuildingDlg = true
+        })
+      },
+
+      // 调整坐标
+      adustCommunityCoordinate(){
+        this.detailReset = false
+        this.$nextTick(()=>{
+          this.detailReset = true
+          this.currentRowData = null
+          this.currentRowData = this.data
+          this.adjustCoordinateDlg = true
+        })
+      },
+
+      // Tab页签监听事件
+      handleTabClick(tabObj){
+        if(tabObj.name){
+          let name = tabObj.name
+          if(name === 'pedestal'){
+            this._loadData(false)
+          }else if(name === 'communityImg'){
+            this.$refs['communityImg']._getTableData()
+          }else if(name === 'communityMap'){
+            this.$refs.commap.initCommunityMap()
+          }
+        }
+      },
+
+      // 查询小区明细
+      queryCommunityDetail(){
+        this.detailData = null
+        const params = {id:this.data.id}
+        queryCommunityDetail(params).then(res=>{
+          if(res.success){
+            this.detailData = res.data
+            let houseUseName = ''
+            let houseTypeName = ''
+            let property = this.detailData.property
+            for(let i in property){
+              let type = property[i].type
+              let name = property[i].name
+              if(type == 0){// houseUseType物业类型
+                if(houseUseName.length > 0){
+                  houseUseName = houseUseName + ','
+                }
+                houseUseName = houseUseName + name
+              }else if(type == 1){ // buildType 建筑类型
+                if(houseTypeName.length > 0){
+                  houseTypeName = houseTypeName + ','
+                }
+                houseTypeName = houseTypeName + name
+              }
+            }
+            this.detailData.houseUseName = houseUseName
+            this.detailData.houseTypeName = houseTypeName
+            this.communityId = this.detailData.id
+          }
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      StrToGMT(time){
+        let GMT = new Date(time)
+        return GMT
+      },
+
+      // 根据小区ID查询座栋信息
+      _loadData(btnQuery){
+        let params = Object.assign({},{cid: this.data.id},{page: this.listQuery.page,limit: this.listQuery.limit})
+        queryBuildingsByCommunityId(params).then(res=>{
+          this.buildingsData = res.data
+          this.listQuery.total = res.count
+          this.buildingsId = this.buildingsData[0].id
+          this.queryBuildingUnitList(this.buildingsId)
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+      // 根据座栋查询单元信息
+      queryBuildingUnitList(buildingId){
+        let params = Object.assign({},{bid: buildingId},{page: this.houseQuery.page,limit: this.houseQuery.limit})
+        queryBuildingUnitListByBuildingId(params).then(res=>{
+          this.houseUnitData = res.data
+          this.houseQuery.total = res.data.length
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+      // 根据座栋查询单元信息
+      queryBuildingUnitListForTableClick(row){
+        this.buildingsId = row.id
+        let params = Object.assign({},{bid: row.id},{page:this.houseQuery.page,limit: this.houseQuery.limit})
+        queryBuildingUnitListByBuildingId(params).then(res=>{
+          this.houseUnitData = res.data
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      // 修改小区明细
+      updateCommunityDetail(){
+        this.modifyDetailReset = false
+        this.$nextTick(()=>{
+          this.modifyDetailReset = true
+          this.isUpdate = true
+          this.currentRowData = null
+          this.currentRowData = this.detailData
+          this.modifyDetailDlg = true
+        })
+      },
+
+      // 修改座栋
+      updateBuildings(row){
+        this.buildReset = false
+        this.$nextTick(()=>{
+          this.buildReset = true
+          this.isUpdate = true
+          this.currentRowData = null
+          this.currentRowData = row
+          this.dialogVisible = true
+        })
+      },
+
+      // 新增座栋单元
+      addBuildingsUnit(row){
+        this.houseUnit = false
+        this.$nextTick(()=>{
+          this.houseUnit = true
+          this.isUpdate = false
+          this.currentRowData = null
+          this.currentRowData = row
+          this.editUnitDlg = true
+        })
+      },
+
+      // 修改座栋单元
+      updateBuildingsUnit(row){
+        this.houseUnit = false
+        this.$nextTick(()=>{
+          this.houseUnit = true
+          this.isUpdate = true
+          this.currentRowData = null
+          this.currentRowData = row
+          this.editUnitDlg = true
+        })
+      },
+
+      // 批量添加座栋
+      batchAddBuildings(){
+        this.buildReset = false
+        this.$nextTick(()=>{
+          this.isBatch = true
+          this.buildReset = true
+          this.isUpdate = false
+          this.currentRowData = null
+          this.dialogVisible = true
+        })
+      },
+      // 添加座栋
+      addBuildings(){
+        this.buildReset = false
+        this.$nextTick(()=>{
+          this.isBatch = false
+          this.buildReset = true
+          this.isUpdate = false
+          this.currentRowData = null
+          this.dialogVisible = true
+        })
+      },
+      // 设置房号
+      setHouseNumber(row){
+        this.houseNoShow = false
+        this.$nextTick(()=>{
+          this.houseNoShow = true
+          this.currentRowData = null
+          this.currentRowData = row
+          this.editHouseDlg = true
+        })
+      },
+      // 保存成功或点击取消后的回调函数
+      recallHandlerClick(action){
+        if(action && action == 1){
+          this.dialogVisible = false
+          this.showBuildingDlg = false
+          this._loadData(false)
+        }else if(action && action == 2){
+          this.dialogVisible = false
+          this.adjustCoordinateDlg = false
+          this.modifyDetailDlg = false
+          this.showBuildingDlg = false
+          this.editUnitDlg = false
+          this.isUpdate = false
+          this.isBatch = false
+        }else if(action && action == 3){
+          this.editUnitDlg = false
+          this.queryBuildingUnitList(this.buildingsId)
+        }else if(action && action == 4){
+          // 调整小区坐标
+          this.adjustCoordinateDlg = false
+          this.queryCommunityDetail()
+        }else if(action && action == 5){
+          // 修改小区详细更新小区详细数据
+          this.modifyDetailDlg = false
+          this.queryCommunityDetail()
+          // if(this.detailData && this.detailData.buildYear ){
+          //   this.detailData.buildYear = this.StrToGMT(this.detailData.buildYear)
+          // }
+        }
+      },
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleHouseSizeChange (val) {
+        this.houseQuery.limit = val
+        this.queryBuildingUnitList(this.buildingsId)
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleHouseCurrentChange (val) {
+        this.houseQuery.page = val
+        this.queryBuildingUnitList(this.buildingsId)
+      }
+    },
+
+    mounted() {
+      this.communityData = this.data
+      this.queryCommunityDetail()
+    },
+
+    watch:{
+      deep: true,
+      data() {
+        this.queryCommunityDetail()
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+  .labelRow{
+    color: #666;
+    text-align: left;
+    float: left;
+    display: block;
+    padding: 9px 15px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+</style>

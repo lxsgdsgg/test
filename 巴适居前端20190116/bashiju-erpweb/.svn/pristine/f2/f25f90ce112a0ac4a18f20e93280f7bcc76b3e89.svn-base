@@ -1,0 +1,110 @@
+import {logout, unlock, getMenuData} from '../../request/app'
+import {
+  setStore,
+  getStore,
+  removeStore
+} from '@/common/js/utils'
+
+const app = {
+  state: {
+    isLock: getStore('isLock') || '',
+    errPageGoBack: getStore('errPageGoBack') || false,
+    menuData: getStore('menuData') || []
+  },
+
+  mutations: {
+    SET_LOCK: (state) => {
+      state.isLock = 'lock'
+      setStore({
+        name: 'isLock',
+        content: state.isLock,
+        type: 'session'
+      })
+    },
+
+    CLEAR_LOCK: (state) => {
+      state.isLock = 'unlock'
+      setStore({
+        name: 'isLock',
+        content: state.isLock,
+        type: 'session'
+      })
+    },
+
+    SET_ERR_PAGE_GO_BACK: state => {
+      state.errPageGoBack = true
+      setStore({
+        name: 'errPageGoBack',
+        content: state.errPageGoBack,
+        type: 'session'
+      })
+    },
+
+    SET_MENU_DATA: (state, data) => {
+      state.menuData = data
+      setStore({
+        name: 'menuData',
+        content: data,
+        type: 'session'
+      })
+    }
+  },
+
+  actions: {
+    setLock({ dispatch, commit, state}) {
+      return new Promise(resolve => {
+        commit('SET_LOCK')
+        dispatch('logout')
+        resolve(state.isLock)
+      })
+    },
+
+    clearLock ({ commit, state}) {
+      return new Promise(resolve => {
+        commit('CLEAR_LOCK')
+        resolve(state.isLock)
+      })
+    },
+
+    logout () {
+      return new Promise((resolve, reject) => {
+        logout().then(() => {
+          resolve()
+        }).catch(() => {
+          reject()
+        })
+      })
+    },
+
+    unlock ({ dispatch, state}, params) {
+      return new Promise((resolve, reject) => {
+        unlock(params).then(() => {
+          dispatch('clearLock')
+          resolve()
+        }).catch(() => {
+          reject()
+        })
+      })
+    },
+
+    setErrPageGoBack ({ commit, state}) {
+      return new Promise(resolve => {
+        commit('SET_ERR_PAGE_GO_BACK')
+        resolve(state.errPageGoBack)
+      })
+    },
+
+    getMenuData ({ commit, state}) {
+      return new Promise(resolve => {
+        getMenuData().then(res => {
+          if (res.data) {
+            commit('SET_MENU_DATA', res.data)
+            resolve([...state.menuData])
+          }
+        })
+      })
+    }
+  }
+}
+
+export default app

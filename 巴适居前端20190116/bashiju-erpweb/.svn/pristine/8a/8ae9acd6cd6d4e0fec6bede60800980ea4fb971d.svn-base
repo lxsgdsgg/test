@@ -1,0 +1,33 @@
+import {getUserInfo} from '../../request/app'
+
+const user = {
+  state: {
+    info: JSON.parse(window.localStorage.getItem('userInfo')) || {},
+    name: window.localStorage.getItem('userInfo').realName || ''
+  },
+  mutations: {
+    SET_INFO: (state, info) => {
+      state.info = info
+      window.localStorage.setItem('userInfo', JSON.stringify(info))
+    },
+
+    SET_NAME: (state, name) => {
+      state.name = name
+    }
+  },
+  actions: {
+    getUserInfo ({commit}) {
+      return new Promise(resolve => {
+        getUserInfo().then(res => {
+          if (res.data) {
+            commit('SET_INFO', res.data)
+            commit('SET_NAME', res.data['realName'])
+            resolve(res.data)
+          }
+        })
+      })
+    }
+  }
+}
+
+export default user

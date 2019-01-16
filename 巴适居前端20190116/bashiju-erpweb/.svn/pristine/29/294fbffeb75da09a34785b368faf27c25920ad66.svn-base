@@ -1,0 +1,294 @@
+<template>
+  <div>
+    <el-form  style="height: 100px" :model="form" :rules="rules" ref="form">
+      <el-form-item>
+        <label style="color: #1859ff; font-size: 18px">提交日报</label>
+        <hr style="color: aliceblue"/>
+      </el-form-item>
+      <el-form-item style="margin-left: 20px">
+        <el-row>
+          <el-col :span="2">
+            <label style="color: black; font-size: 25px">{{this.tableData6[0].agentName}}</label>
+          </el-col>
+          <el-col :span="2">
+            <label style="color: #black; font-size: 25px">{{this.$utils.timeFormat(this.tableData6[0].nowadays) }}</label>
+          </el-col>
+          <el-col :span="2">
+            <label style="color: #black; font-size: 25px">{{this.tableData6[0].isSubmit }}</label>
+          </el-col>
+        </el-row>
+      </el-form-item>
+      <el-table
+        v-loading="loadingView"
+        :data="tableData6"
+        border
+        style="width: 100%; margin: 10px; "
+      >
+        <el-table-column
+          prop="name"
+          label="成果"
+          align="center"
+          width="180">
+          <el-table-column
+            prop="sellDeal"
+            label="买卖成交"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentDeal"
+            label="租赁成交"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="newHouseDeal"
+            label="一手成交"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="cusSellDeposit"
+            label="求购下定"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="cusRentDeposit"
+            label="求租下定"
+            align="center"
+          ></el-table-column>
+        </el-table-column>
+
+        <el-table-column
+          prop="name"
+          align="center"
+          label="资源">
+          <el-table-column
+            prop="sellHouseAdd"
+            label="出售新增"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentHouseAdd"
+            label="出租新增"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellCustomerAdd"
+            label="求购新增"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentCustomerAdd"
+            label="求租新增"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellExclusivet"
+            label="独家委托(售)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentExclusivet"
+            label="独家委托(租)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellVideo"
+            label="上传视频(售)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentVideo"
+            label="上传视频(租)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellHouseKey"
+            label="钥匙委托(售)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentHouseKey"
+            label="钥匙委托(租)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellEntrust"
+            label="设置委托(售)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentEntrust"
+            label="设置委托(租)"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellOpenDisc"
+            label="出售开盘"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentOpenDisc"
+            label="出租开盘"
+            align="center"
+          ></el-table-column>
+        </el-table-column>
+      </el-table>
+
+      <el-table
+        :data="tableData6"
+        border
+        style="width: 100%;  margin: 20px;">
+        <el-table-column
+          prop="name"
+          label="带看"
+          align="center"
+          width="180">
+          <el-table-column
+            prop="rentCustomerShowed"
+            label="求租带看量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellOpenDisc"
+            label="求购带盘量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentCustomerShowed"
+            label="求租带看量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentOpenDisc"
+            label="求租带盘量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="newHouseShowed"
+            label="一手带看量"
+            align="center"
+          ></el-table-column>
+        </el-table-column>
+        <el-table-column
+          prop="name"
+          align="center"
+          label="跟进">
+          <el-table-column
+            prop="sellCustomerFollow"
+            label="求购跟进量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentCustomerFollow"
+            label="求租跟进量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="houseFollow"
+            label="房源跟进量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="houseRealExploration"
+            label="房源实勘量"
+            align="center"
+          ></el-table-column>
+        </el-table-column>
+        <el-table-column
+          prop="housePhone"
+          align="center"
+          label="看电话">
+          <el-table-column
+            prop="housePhone"
+            label="房源电话"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="sellCustomerPhone"
+            label="求购电话"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="rentCustomerPhone"
+            label="求租电话"
+            align="center"
+          ></el-table-column>
+        </el-table-column>
+      </el-table>
+      <hr>
+          <el-form-item
+            label="心得:"
+            style="margin-left: 10px;"
+            prop="experience"
+          >
+            <el-input
+              type="textarea"
+              :rows="4"
+              v-model="form.experience"
+            ></el-input>
+          </el-form-item>
+          <div class="btn-group">
+            <el-button style="color: #007bff" @click="handleSubmit('form')">提交</el-button>
+          </div>
+      </el-form>
+  </div>
+</template>
+
+<script>
+  import {queryDailyReport,dailyReportSubmit} from "@/request/manage/report";
+
+  export default {
+    data() {
+      return {
+        tableData6: [],
+        form:{
+          experience:''
+        },
+        rules:{
+          experience: [
+            { required: true, message: '必填项', trigger: 'change' }
+          ],
+          loadingView:false
+        }
+      };
+    },
+    methods:{
+      _queryDailyReport(){
+        this.loadingView = true
+        let params = {}
+        params.beginTime = new Date();
+        params.endTime = '2018-11-27 00:00:00'
+
+        queryDailyReport(params).then(res =>{
+          this.tableData6 = res
+          this.loadingView = false
+        })
+      },
+      //提交
+      handleSubmit(form){
+        this.$refs[form].validate(valid =>{
+          if(valid){
+            for(let i in this.tableData6){
+              delete this.tableData6[i].nowadays
+              delete this.tableData6[i].agentName
+              delete this.tableData6[i].isSubmit
+              this.tableData6[i].experience = this.form.experience
+            }
+            dailyReportSubmit({jsonData:JSON.stringify( this.tableData6)}).then(res =>{
+                if(res.success){
+                  this.form.experience =''
+                  this._queryDailyReport()
+                  this.$message({message:res.msg,type:'successs'})
+                }else{
+                  this.$message({message:res.msg,type:'warning'})
+                }
+            }).catch(error=>{
+                console.log(error)
+            })
+          }
+        })
+      }
+    },mounted(){
+      this._queryDailyReport()
+    }
+  };
+</script>

@@ -1,0 +1,347 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="" prop="queryType">
+            <el-select v-model="queryForm.queryType" placeholder="类型" >
+              <el-option
+                v-for="item in selectType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+         <el-form-item label="" prop="selectId">
+            <base-cascader
+                @change="handleChangeRemind"
+                v-model="queryForm.selectId"
+                :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps" placeholder="部门、员工">
+            </base-cascader>
+          </el-form-item>
+         
+          <el-form-item label="" prop="months">
+            <el-date-picker
+              v-model="queryForm.months"
+              type="month"
+              placeholder="选择月份" value-format="yyyy-MM">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm">重置</el-button>
+          </el-form-item>
+
+          
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        highlight-current-row
+        align="center"
+        style="width: 100%"
+        
+      >
+
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司">
+        </el-table-column>
+
+        <el-table-column
+          prop="departmentName"
+          align="center"
+          label="部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="businessTypeName"
+          align="center"
+          label="业务类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="sourceTypeName"
+          align="center"
+          label="资源类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="sourceCode"
+          align="center"
+          label="资源编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="operatTypeName"
+          align="center"
+          label="操作类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="logContent"
+          align="center"
+          label="日志内容">
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          align="center"
+          label="操作人员">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="addTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="操作时间">
+        </el-table-column> 
+
+        
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/income' // 请求后端URL路径
+  import OpenCitySelector from '@/components/BaseCascader' // // 城市级联组件
+  import BarSelector from '@/components/BaseCascader' // 导航级联组件
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/deallog'
+
+  export default {
+    name: 'configLog',
+    mixins: [PageList],
+    components: {OpenCitySelector,BarSelector,BaseCascader},
+    data () {
+      // 自定义金额验证
+      var money = (rule, value, callback) => {
+        let reg = /^[0-9]+/
+        if(!value){
+          return callback(new Error('金额不能为空'))
+        }
+        if(value<=0){
+           return callback(new Error('金额需大于0'))
+        }
+        if (reg.test(value)) {
+          callback();
+        }
+        return callback(new Error('只能输入数字或小数'));
+      };
+      return {
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        selectType: [
+          {
+            value:'1',
+            label: '福利配置'
+          },
+          {
+            value:'2',
+            label: '社保配置'
+          },
+          {
+            value:'3',
+            label: '工资方案配置'
+          },
+          {
+            value:'4',
+            label: '提成方案配置'
+          },
+          {
+            value:'5',
+            label: '业务类型配置'
+          },
+          {
+            value:'6',
+            label: '总部计提配置'
+          },
+          {
+            value:'7',
+            label: '门店分摊配置'
+          }
+          ,
+          {
+            value:'8',
+            label: '门店支出配置'
+          }
+        ],
+        selectClasses: [],
+        queryForm: {months:''},
+        getReferenceUserSelectUrl: '/manage/usermanage/queryOpenCityCompanyDepartUser', // 选员工
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        addForm: {
+          type: '',
+          classesId: '',
+          classesName: '',
+          userId: '',
+          userName: '',
+          reason: '',
+          desertsDate: '',
+          amount: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          type: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          classesId: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          userId: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          amount: [
+            {required: true, message: '请填值', trigger: 'blur'},
+            { validator: money, trigger: 'blur' }
+          ],
+          desertsDate: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ]
+          
+        },
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        dialogAddVisible: false,
+        dialogBars: false,
+        dialogRejectReason:false,
+        loadingSubmitBtn: false,
+        loadingGrantBtn: false,
+        loadingForm: false,
+        loadingRejectBtn: false,
+        currentRowData: null, // 当前操作的行数据
+        isAdd: false,
+        idForBar: '',
+        barData: [],
+        levelInfo1: [],
+        levelInfo2: [],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        },
+        keys: [],
+        rejectReason: '',
+        title: '新增奖罚信息',
+        nowQueryForm: {},
+        rejectForm: {},
+        idForReject: '',
+        userId: '',
+        originalData:[]
+      }
+    },
+    methods: {
+      _resetQueryForm(){
+        this._resetForm('queryForm')
+        this.queryForm.deptId = ''
+        this.queryForm.userId = ''
+        this.queryForm.selectId = ''
+      },
+      
+      // 获取部门或人
+      handleChangeRemind (val, name, data) {
+        if (data.dataType == 'dept') {
+          this.queryForm.deptId = data.code
+          delete this.queryForm.userId
+          delete this.queryForm.selectId
+
+        }else if(data.dataType == 'user'){
+          this.queryForm.userId = data.code
+           delete this.queryForm.deptId
+          delete this.queryForm.selectId
+        }else{
+          setTimeout(() => {
+            this.queryForm.deptId = ''
+            this.queryForm.userId = ''
+            this.queryForm.selectId = ''
+          }, 50)
+        }
+      },
+      
+
+    
+      
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        
+        this.nowQueryForm.type = 'config'
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getLogList(params).then(res => {
+          //console.log(11111)
+          //console.log(res);
+          this.tableData = res.data.map(item => {
+            
+            return item;
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+    
+    },
+    mounted () {
+       //人员选择
+      queryReferenceUserSelect({}).then(res => {
+        
+        this.peopleSelectOpts = res
+      })
+     // this.querySelectValue();
+     
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

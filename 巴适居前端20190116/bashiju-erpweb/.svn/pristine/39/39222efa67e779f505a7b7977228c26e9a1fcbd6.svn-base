@@ -1,0 +1,318 @@
+<template>
+    <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item prop="transactionTypeId">
+            <el-select v-model="queryForm.transactionTypeId" clearable style="width: 120px;" placeholder="客源类型" >
+              <el-option
+                v-for="item in transactionTypeOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+
+          <el-form-item prop="leaderId">
+            <base-cascader placeholder="带看人" clearable v-model="queryForm.leaderId" :url="getReferenceUserSelectUrl"
+                           :props="cascaderProps" :dataProps="cascaderDataProps">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item prop="leadTime">
+            <el-date-picker
+              v-model="queryForm.leadTime"
+              type="daterange"
+              range-separator="至"
+              :default-value="ct_month"
+              start-placeholder="带看日期起"
+              end-placeholder="带看日期止"
+              value-format="yyyy-MM-dd"
+            >
+            </el-date-picker>
+          </el-form-item>
+
+
+
+          <el-form-item>
+            <el-button type="success" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+            <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+
+
+        <el-table-column
+          prop="custName"
+          align="left"
+          label="客户姓名">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="transactionType"
+          align="left"
+          label="交易类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="houseType"
+          align="left"
+          label="带看类型">
+          <template slot-scope="scope">
+              {{scope.row.houseType | houseTypeFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="demandId"
+          align="left"
+          label="需求编号">
+          <template slot-scope="scope">
+              <a
+                @click="toDetail(scope.row.demandId, scope.row.formName, scope.row.transactionTypeId)"
+                href="javascript:;" class="houseId"  type="text"
+              >
+                {{scope.row.demandId}}
+              </a>
+          </template>
+        </el-table-column>
+
+
+        <el-table-column
+          prop="leader"
+          align="left"
+          label="带看人">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="left"
+          label="部门">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="content"
+          align="left"
+          label="客户评价">
+        </el-table-column>
+
+        <el-table-column
+          prop="leadTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="带看时间">
+        </el-table-column>
+
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['editBtn',scope.row]" @click="handleEditorLookRecord(scope.row)" type="text" size="small" >编辑</el-button>
+            <el-button v-hasMultipleBtn="['delBtn',scope.row]"  @click="handleDelLookRecord(scope.row)" type="text" size="small" >删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+        <template>
+          <!--查看所有跟进记录的窗体-->
+          <el-dialog
+            title="带看信息"
+            :visible.sync="detailDlg"
+            width="40%"
+            :close-on-click-modal="false"
+            append-to-body
+          >
+            <detail :data="currentRowData"   v-if="hackReset" @handleClick="openOrCloseWds" ></detail>
+          </el-dialog>
+        </template>
+  </div>     
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryTakeLookRecordData,delTakeLookRecord} from "@/request/customer/takeLookRecord";
+  import Detail from './component/detail'
+  import * as RequeryLogURL from '@/request/log/customerLog'//客源日志统一接口
+
+  export default {
+    components:{PageList,BaseCascader,Detail},
+      mixins: [PageList],
+      name:'takeLookRecord',
+        data() {
+            return {
+              queryForm:{
+                leaderId:'',
+                transactionTypeId:'',
+                leadTime:[]
+              },
+              tableData:[],
+              loadingView:false,
+              queryBtnLoading:false,
+              detailDlg:false,
+              currentRowData:null,
+              hackReset:false,
+              transactionTypeOpt:[
+                {value:4,name:'求购'},
+                {value:5,name:'求租'},
+                // {value:6,name:'一手'}
+              ],
+              ct_month:null,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              },
+              getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser', // 介绍人
+              cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+              cascaderProps: { // 级联下拉组件配置选项
+                value: 'code', // 指定选项的值为选项对象的某个属性值
+                label: 'name' // 指定选项标签为选项对象的某个属性值
+              }
+            }
+        },
+        methods: {
+          queryTakeLookRecordData(btn){
+            if(btn){
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            this.loadingView = true
+            this.loadingView = btn
+            let params = Object.assign({},this.queryForm,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+            })
+            if(params.leadTime.length>0){
+              params.beginTime = params.leadTime[0]
+              params.endTime = params.leadTime[1]
+            }
+            queryTakeLookRecordData(params).then(res =>{
+              this.tableData = res.data
+              this.listQuery.total = res.count
+              this.loadingView = false
+            })
+          },
+          toDetail (id, name, type) {
+            this.$router.push({ path: '/customer/customerDetail/'+id, query: { formName: name,transactionTypeId: type}})
+            window.localStorage.setItem('customerList', JSON.stringify(this.tableData))
+          },
+          timeDefaultShow(){//默认显示上个月
+            this.ct_month= new Date();
+            this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+          },
+          handleDelLookRecord(row){
+            console.log(row)
+            this.$confirm('确定要删除带看记录吗？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消',
+              type:'warning'
+            }).then(()=>{
+                let params = {id:row.id}
+                delTakeLookRecord(params).then(res =>{
+                  if(res.success){
+                    this.$message({
+                      type:'success',
+                      message:res.msg
+                    })
+                    let message = {
+                      sourceId:  row.demandId,//资源编号：客源编号
+                      sourceCode:  row.demandId,//资源编号：客源编号
+                      businessTypeId: 2,//业务类型，2：代表客源
+                      sourceTypeId: row.transactionTypeId,//类型：求购
+                      operatTypeId: 224,//操作类型, 删除带看记录
+                      logContent: '删除需求编号为'+ row.demandId+'的带看记录'//日志内容
+                    }
+                    RequeryLogURL.customerDelLog({message:JSON.stringify(message)}).then(res =>{
+                      console.log(res)
+                    }).catch(error =>{
+                      console.log(error)
+                    })
+                    this._loadData(false)
+                  }else{
+                    this.$message({
+                      type:'error',
+                      message:res.msg
+                    })
+                  }
+                }).catch(error =>{
+                  console.log(error)
+                })
+            })
+          },
+          //打开编辑窗体
+          handleEditorLookRecord(row){
+              this.hackReset = false
+              this.$nextTick(() =>{
+                  this.hackReset = true
+                  this.currentRowData = row
+                  this.detailDlg = true
+              })
+          },
+          _loadData(btn){
+            this.queryTakeLookRecordData(btn)
+          },
+          //时间戳格式化
+          _timeFormat(row,column,cellValue){
+              return this.$utils.timeFormat(cellValue)
+          },
+          openOrCloseWds(value){
+             if(value == 1){
+              this.detailDlg = false
+              this._loadData(false)
+             }else if(value == 2){
+               this.detailDlg = false
+             }
+           }
+        },
+        filters:{
+          dpFilter(value){
+            let arr = []
+            arr.push(value)
+            if(arr>0) return arr.length
+            },
+            houseTypeFilter(value){
+                if(value ===0 )return '二手房源'
+                if(value ===1 )return '一手房源'
+            }
+        },
+        mounted() {
+            this.timeDefaultShow()
+        }
+
+    }
+
+</script>
+<style>
+  .houseId {
+    color: #409eff;
+  &:hover {
+     text-decoration: underline;
+   }
+  }
+</style>

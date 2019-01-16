@@ -1,0 +1,30 @@
+<template>
+  <div style="min-height: calc(100vh - 165px); overflow: hidden;">
+    <transition name="fade-transform" mode="out-in">
+      <keep-alive :include="cachedViews">
+        <router-view :key="key"></router-view>
+      </keep-alive>
+      <!--<keep-alive>-->
+        <!--<router-view></router-view>-->
+      <!--</keep-alive>-->
+    </transition>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'AppMain',
+  computed: {
+    cachedViews () {
+      return this.$store.state.tagsView.cachedViews
+    },
+
+    key() {
+      return this.$route.fullPath
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

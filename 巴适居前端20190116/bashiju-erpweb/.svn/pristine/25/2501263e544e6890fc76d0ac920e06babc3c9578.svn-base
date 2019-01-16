@@ -1,0 +1,12 @@
+<template>
+
+</template>
+
+<script>
+  export default {
+    name: 'Report'
+  }
+</script>
+
+<style scoped lang="scss">
+</style>

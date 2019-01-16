@@ -1,0 +1,244 @@
+<template>
+  <el-container >
+     <el-aside width="400px" style="background-color: rgb(238, 241, 246)">
+      <div class="page-content">
+        <div class="page-content-hd">
+          <div>
+            <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+              <el-form-item  prop="taskName">
+                <el-input v-model="form.taskName" placeholder="请选择部门/员工"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+                <el-button @click.native.prevent="_resetForm('form')">清空</el-button>
+                <el-button v-hasOnlyBtn="'addBtn'"  @click.native.prevent="handleAdd">新增</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+        <div class="page-content-bd" v-loading="loadingView">
+          <el-table
+            :data="tableData"
+            border
+            tooltip-effect="light"
+            align="center"
+            style="width: 100%"
+            @row-click="handleRowClick"
+          >
+
+            <el-table-column
+              prop="agentName"
+              align="left"
+              label="员工">
+            </el-table-column>
+
+
+            <el-table-column
+              prop="deptName"
+              align="left"
+              label="部门"
+            >
+            </el-table-column>
+
+
+
+            <el-table-column
+              align="center"
+              label="操作"
+            >
+              <template slot-scope="scope">
+                <el-button   @click="handleEditor(scope.row)" type="text" size="small"  icon="el-icon-edit" ></el-button>
+                <el-button   @click="handleDelete(scope.row)" type="text" size="small" icon="el-icon-delete"></el-button>
+              </template>
+            </el-table-column>
+
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listQuery"
+            @handleSizeChange="handleSizeChange"
+            @handleCurrentChange="handleCurrentChange">
+          </b-pagination>
+        </div>
+        <!--编辑窗体-->
+      </div>
+    </el-aside>
+    <el-main>
+      <div class="page-content">
+        <div class="page-content-hd">
+          <div>
+            <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+              <el-form-item  prop="taskName">
+                <el-input v-model="form.taskName" placeholder="请选择部门/员工"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+                <el-button @click.native.prevent="_resetForm('form')">清空</el-button>
+                <el-button v-hasOnlyBtn="'addBtn'"  @click.native.prevent="handleAdd">新增</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+        <div class="page-content-bd" v-loading="loadingView">
+          <el-table
+            :data="detailData"
+            border
+            tooltip-effect="light"
+            align="center"
+            style="width: 100%"
+          >
+
+            <el-table-column
+              prop="taskName"
+              align="left"
+              label="任务">
+            </el-table-column>
+
+
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="rentHouseAdd"
+              align="left"
+              label="租赁房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+            <el-table-column
+              prop="sellHouseAdd"
+              align="left"
+              label="买卖房源新增"
+            >
+            </el-table-column>
+
+
+
+            <el-table-column
+              align="center"
+              label="操作"
+            >
+              <template slot-scope="scope">
+                <el-button   @click="handleEditor(scope.row)" type="text" size="small"  icon="el-icon-edit" ></el-button>
+                <el-button   @click="handleDelete(scope.row)" type="text" size="small" icon="el-icon-delete"></el-button>
+              </template>
+            </el-table-column>
+
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listQuery"
+            @handleSizeChange="handleSizeChange"
+            @handleCurrentChange="handleCurrentChange">
+          </b-pagination>
+        </div>
+        <!--编辑窗体-->
+      </div>
+    </el-main>
+  </el-container>
+
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryTaskDetail,queryAgentDistributedTaskDetail} from "@/request/office/taskManage";
+  export default {
+      props:{
+        data:{
+          type:Object
+        }
+      },
+        mixins: [PageList],
+        data() {
+            return {
+                form: {},
+                 agentId:'',
+                 listQuery:{limit:10, page:1, total:0},
+                tableData:[],
+                detailData:[],
+                loadingView:false,
+                queryBtnLoading:false,
+            }
+        },
+        methods: {
+          /**
+           * 修改
+           * @param row 行数据
+           */
+          handleEditor(row){
+
+          },
+          handleRowClick(row, event, column){
+            this.agentId = row.agentId
+            this._queryAgentDistributedTaskDetail(this.agentId)
+          },
+        _loadData(btn){
+          if(btn){
+            this.queryBtnLoading = btn
+            this.listQuery.page = 1
+            this.listQuery.currentPage = 1
+          }
+          let params = Object.assign({},this.form,{
+            limit:this.listQuery.limit,
+            page:this.listQuery.page
+          })
+          params.taskId = this.data.id
+          queryTaskDetail(params).then(res =>{
+            this.tableData = res.data
+            this.listQuery.total = res.count
+            this.loadingView = false
+            this.queryBtnLoading = false
+          })
+        },
+          _queryAgentDistributedTaskDetail(taskId){
+            let params ={agentId:this.agentId,taskId:this.data.id}
+            queryAgentDistributedTaskDetail(params).then(res =>{
+              console.log(res)
+              this.detailData = Array(res)
+            })
+          },
+          /**
+           * 删除
+           * @param row 行数据
+           */
+          handleDelete(row){
+
+          }
+        },
+        mounted() {
+            console.log(this.data)
+        }
+
+    }
+
+</script>

@@ -1,0 +1,117 @@
+
+import * as RequestLogURL from '@/request/deal/deallog'
+
+export default {
+
+  methods: {
+    /**
+     * 成交模块【新增】写日志
+     * @param sourceId 资源Id---成交编号
+     * @param sourceCode 资源编号---成交编号
+     * @param sourceTypeId 资源类型--6：买卖 7：租赁 8：一手
+     * @param operatTypeId 操作类型--参照LogHouseOperateTypeEnum枚举类
+     * @param logContent 日志内容
+     */
+    dealAddLog(sourceId, sourceCode, sourceTypeId, operatTypeId, logContent) {
+      console.log("=================")
+      if (sourceId && sourceCode && sourceTypeId && operatTypeId && logContent) {
+        let message = {
+          sourceId: sourceId,
+          sourceCode: sourceCode,
+          businessTypeId: 4,//业务类型，4：代表成交
+          sourceTypeId: sourceTypeId,
+          operatTypeId: operatTypeId,
+          logContent: logContent
+        }
+        RequestLogURL.dealAddLog({message: JSON.stringify(message)}).then(res => {
+          console.log(res)
+        })
+      } else {
+        console.log('传入参数错误')
+      }
+    },
+
+    /**
+     * 成交模块【修改】写日志
+     * @param sourceId 资源Id---成交编号
+     * @param sourceCode 资源编号---成交编号
+     * @param sourceTypeId 资源类型--6：买卖 7：租赁 8：一手
+     * @param operatTypeId 操作类型--参照LogHouseOperateTypeEnum枚举类
+     * @param formName 表单名称
+     * @param originalData 原始数据
+     * @param newData 新数据
+     */
+    dealUpdateLog(sourceId, sourceCode, sourceTypeId, operatTypeId, formName, originalData, newData) {
+      if (sourceId && sourceCode && sourceTypeId && operatTypeId
+         && formName && originalData && newData) {
+        let message = {
+          sourceId: sourceId,
+          sourceCode: sourceCode,
+          businessTypeId: 4,//业务类型，4：代表成交
+          sourceTypeId: sourceTypeId,
+          operatTypeId: operatTypeId,
+          labelData: this.$utils.getFormFields(this.$refs[formName]),
+          originalData: originalData,
+          newData: newData,
+        }
+        RequestLogURL.dealUpdateLog({message: JSON.stringify(message)}).then(res => {
+          console.log(res)
+        })
+      } else {
+        console.log('传入参数错误')
+      }
+    },
+
+    /**
+     * 成交模块【删除】写日志
+     * @param sourceId 资源Id---成交编号
+     * @param sourceCode 资源编号---成交编号
+     * @param sourceTypeId 资源类型--6：买卖 7：租赁 8：一手
+     * @param operatTypeId 操作类型--参照LogHouseOperateTypeEnum枚举类
+     * @param logContent 日志内容
+     */
+    dealDelLog(sourceId, sourceCode, sourceTypeId, operatTypeId, logContent) {
+      if (sourceId && sourceCode && sourceTypeId && operatTypeId && logContent) {
+        let message = {
+          sourceId: sourceId,
+          sourceCode: sourceCode,
+          businessTypeId: 4,//业务类型，4：代表成交
+          sourceTypeId: sourceTypeId,
+          operatTypeId: operatTypeId,
+          logContent: logContent
+        }
+        RequestLogURL.dealDelLog({message: JSON.stringify(message)}).then(res => {
+          console.log(res)
+        })
+      } else {
+        console.log('传入参数错误')
+      }
+    },
+
+    /**
+     * 查询写日志公共方法
+     * @param sourceId 资源Id---成交编号
+     * @param sourceCode 资源编号---成交编号
+     * @param sourceTypeId 资源类型--6：买卖 7：租赁 8：一手
+     * @param operatTypeId 操作类型--参照LogHouseOperateTypeEnum枚举类
+     * @param logContent 日志内容
+     */
+    dealQueryLog(sourceId, sourceCode, sourceTypeId, operatTypeId, logContent) {
+      if (sourceId && sourceCode && sourceTypeId && operatTypeId && logContent) {
+        let message = {
+          sourceId: sourceId,
+          sourceCode: sourceCode,
+          businessTypeId: 4,//业务类型，4：代表成交
+          sourceTypeId: sourceTypeId,
+          operatTypeId: operatTypeId,
+          logContent: logContent
+        }
+        RequestLogURL.dealQueryLog({message: JSON.stringify(message)}).then(res => {
+          console.log(res)
+        })
+      } else {
+        console.log('传入参数错误')
+      }
+    }
+  }
+}

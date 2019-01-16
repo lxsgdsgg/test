@@ -1,0 +1,444 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="" prop="selectCode">
+            <open-city-selector
+              v-model="queryForm.selectCode"
+              :url="cityUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" @change="handleChangeCityQuery" placeholder="选择城市">
+            </open-city-selector>
+          </el-form-item>
+          <el-form-item label="" prop="companyName">
+            <el-input v-model="queryForm.companyName" placeholder="公司名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm">清空</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'addBtn'" type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        
+      >
+
+
+        <el-table-column
+          prop="provinceName"
+          align="center"
+          label="省级名称">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="cityName"
+          align="center"
+          label="城市名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="isOpenName"
+          align="center"
+          label="开通状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="beginTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="开通开始时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="endTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="开通截止时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button  @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button v-if="scope.row.isOpen!=1" @click="handleOpen(scope.row)" type="text" size="small">开通</el-button>
+            <el-button v-if="scope.row.isOpen==1" @click="handleClose(scope.row)" type="text" size="small">关闭</el-button>
+            <el-button  @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" title="公司开通城市" width="450px" height="600px">
+        <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="100px">
+          <el-form-item label="公司" prop="companyId">
+            <el-select style="width: 200px" v-model="addForm.companyId">
+              <el-option value="">--请选择--</el-option>
+              <el-option
+                v-for="item in companyOpts"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              >
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="城市" prop="cityCode">
+            <open-city-selector
+              v-model="addForm.cityCode"
+              :url="cityUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" @change="handleChangeCity" style="width:200px;">
+            </open-city-selector>
+          </el-form-item>
+          
+          <el-form-item label="开始时间" prop="beginTime" >
+            <el-date-picker
+              v-model="addForm.beginTime"
+              type="date"
+              placeholder="选择日期时间" value-format="yyyy-MM-dd" style="width: 200px">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="截止时间" prop="endTime" >
+            <el-date-picker
+              v-model="addForm.endTime"
+              type="date"
+              placeholder="选择日期时间" value-format="yyyy-MM-dd" style="width: 200px">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+            <el-button @click="dialogAddVisible = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/manage/cityOpen' // 请求后端URL路径
+  import OpenCitySelector from '@/components/BaseCascader' // // 城市级联组件
+
+
+  export default {
+    name: 'companyOpenCity',
+    mixins: [PageList],
+    components: {OpenCitySelector},
+    data () {
+      return {
+        cityUrl: 'manage/commonselect/queryOpenProvinceCity',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        queryForm: {
+          selectCode: '',
+          provinceCode: '',
+          cityCode: '',
+          companyName: ''
+          },
+        companyOpts: [],
+        addForm: {
+          cityCode: '',
+          companyId: '',
+          beginTime: '',
+          endTime: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          cityCode: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          companyId: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          beginTime: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+          endTime: [
+            {required: true, message: '请选择', trigger: 'blur'}
+          ],
+        },
+        dialogAddVisible: false,
+        loadingSubmitBtn: false,
+        loadingForm: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        nowQueryForm: {}
+      }
+    },
+    methods: {
+      _resetQueryForm(){
+        this._resetForm('queryForm')
+        this.queryForm.provinceCode=''
+        this.queryForm.cityCode=''
+      },
+      //新增
+      handleAdd(){
+        this._resetForm('addForm')
+        this.currentRowData = null ;// 置空当前操作的行数据
+        this.isAdd = true;
+        this.dialogAddVisible = true;
+        delete this.addForm.id
+      },
+      //编辑
+      handleEdit(row){
+        this._resetForm('addForm')
+        this.currentRowData = Object.assign({}, row)
+        this.dialogAddVisible = true
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+      handleOpen(row){
+          this.setOpen("确定开通吗？",1,row.id);
+      },
+      handleClose(row){
+          this.setOpen("确定关闭吗？",3,row.id);
+      },
+      setOpen(tip,isOpen,id){
+          let param = {
+            id: id,
+            isOpen: isOpen
+          }
+          const params = {
+              jsonData: JSON.stringify(param)
+            }
+          this.$confirm(tip, {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveOrUpdateCompanyCityOpen(params).then(res => {
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '操作失败'
+                })
+              })
+            })
+      },
+      // 删除
+      handleDel (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.cancelCompanyCityOpen({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            //this._loadData(false);
+            for(let i=0;i<this.tableData.length;i++){
+            if(this.tableData[i].id==row.id){
+              this.tableData.splice(i,1)
+            }
+            }
+          })
+        })
+      },
+
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            for(let i=0;i<this.companyOpts.length;i++){
+              if(this.addForm.companyId==this.companyOpts[i].id){
+                this.addForm.companyName = this.companyOpts[i].name
+              }
+            }
+            this.addForm.isOpen = 1;
+            const params = {
+              jsonData: JSON.stringify({...this.addForm})
+            }
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveOrUpdateCompanyCityOpen(params).then(res => {
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+
+      handleChangeCity (val, label, data) {
+        // alert(111);
+        console.log(val, label, data)
+       // alert(data.parent.name)
+        this.addForm.cityName = data.name;
+        this.addForm.provinceCode = data.parentCode;
+        this.addForm.provinceName = data.parent.name;
+      },
+       handleChangeCityQuery(val, label, data){
+        this.queryForm.provinceCode = ''
+        this.queryForm.cityCode = ''
+        if(data.parent==null){
+            this.queryForm.provinceCode = this.queryForm.selectCode
+            delete this.queryForm.selectCode
+        }else{
+            this.queryForm.cityCode = this.queryForm.selectCode
+            delete this.queryForm.selectCode
+        }
+      },
+      getCompanyDataSelect: function () {
+        let params = Object.assign({},{}, {})
+        RequestURL.queryCompanySelectData(params).then((res) => {
+          this.companyOpts = res
+        }).catch(err => {
+          console.log(err)
+        })
+      },
+
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getCompanyData(params).then(res => {
+          //console.log(11111)
+          //console.log(res);
+          this.tableData = res.data.map(item=>{
+            if(item.isOpen==1){
+              item.isOpenName='开通'
+            }else if(item.isOpen==2){
+              item.isOpenName='到期'
+            }else{
+              item.isOpenName='关闭'
+            }
+            return item
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      // 表单回填
+      _setForm () {
+        console.log(this.currentRowData)
+        this.currentRowData.beginTime = this.$utils.timestampToTime(this.currentRowData.beginTime)
+         this.currentRowData.endTime = this.$utils.timestampToTime(this.currentRowData.endTime)
+        this.currentRowData.cityCode = String(this.currentRowData.cityCode)
+        this.currentRowData.companyId = String(this.currentRowData.companyId)
+
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+
+    },
+    mounted () {
+      this.getCompanyDataSelect()
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

@@ -1,0 +1,500 @@
+<!-- 更多条件 -->
+<template>
+  <div :id="dropWrapId">
+    <el-input
+      placeholder="更多"
+      :suffix-icon="isFocus ? 'el-icon-caret-top' : 'el-icon-caret-bottom'"
+      readonly="readonly"
+      :value="inputVal"
+    >
+    </el-input>
+
+    <transition name="el-zoom-in-top">
+
+      <div v-show="isFocus" class="dropdown el-select-dropdown el-popper" x-placement="bottom-start" style="width: 255%">
+        <div class="el-scrollbar">
+
+          <div class="input-wrap">
+            <el-form v-if="selectOpts" :model="form" ref="form" size="mini">
+
+              <el-row>
+                <el-col :span="8">
+
+                  <el-form-item prop="resourceTypeId">
+
+                    <base-select
+                      placeholder="来源"
+                      v-model="form.resourceTypeId"
+                      :data="selectOpts.sourceType"
+                      :props="selectProps"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="floor">
+
+                    <base-section-select v-model="form.floor" :data="regionValue.floor" placeholder="楼层" description="楼"></base-section-select>
+
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="buildDates">
+
+                     <base-section-select v-model="form.buildDates" :data="regionValue.buildDte" placeholder="需求房龄" description="年"></base-section-select>
+
+                  </el-form-item>
+                </el-col>
+
+              </el-row>
+
+
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item prop="dateType">
+
+                    <base-select
+                      placeholder="日期类型"
+                      v-model="form.dateType"
+                      :data="selectOpts.dateType"
+                      :props="selectProps"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="beginDate">
+                    <el-date-picker
+                      v-model="form.beginDate"
+                      type="date"
+                      editable
+                      value-format="yyyy-MM-dd"
+                      placeholder="开始日期"
+                      style="width: 100%"
+                    >
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="endDate">
+                    <el-date-picker
+                      v-model="form.endDate"
+                      type="date"
+                      editable
+                      value-format="yyyy-MM-dd"
+                      placeholder="结束日期"
+                      style="width: 100%"
+                    >
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item prop="agentType">
+
+                    <base-select
+                      placeholder="部门用户类型"
+                      v-model="form.agentType"
+                      :data="selectOpts.agentType"
+                      :props="selectProps"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="departmentOrUser">
+                    <!--<base-cascader-->
+                      <!--:changeOnSelect="true"-->
+                      <!--@change="handleChange"-->
+                      <!--v-model="departmentOrUser"-->
+                      <!--:data="dataOpts"-->
+                      <!--:props="selectPropss"-->
+                      <!--:dataProps="selectDataProps">-->
+                    <!--</base-cascader>-->
+
+                    <base-cascader
+                      :changeOnSelect="false"
+                      v-model="departmentOrUser"
+                      :data="dataOpts"
+                      :props="selectPropss"
+                      :dataProps="selectDataProps"
+                      placeholder="选择用户"
+                      @change="handleChange"
+                    >
+                    </base-cascader>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item  prop="room">
+                    <base-section-select v-model="form.room" placeholder="户型"  :data="regionValue.room" description="室"></base-section-select>
+                  </el-form-item>
+                </el-col>
+
+
+
+              </el-row>
+
+              <el-row>
+
+                <el-col :span="8">
+                  <el-form-item prop="orientationId">
+
+                    <base-select
+                      placeholder="朝向"
+                      v-model="form.orientationId"
+                      :data="selectOpts.orientationIds"
+                      :props="selectProps"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+
+
+                <el-col :span="8">
+                    <el-form-item prop="decorationId">
+
+                      <base-select
+                        placeholder="装修"
+                        v-model="form.decorationId"
+                        :data="selectOpts.decorationids"
+                        :props="selectProps">
+                      </base-select>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="matchingIds">
+
+                    <base-select
+                      placeholder="配套"
+                      v-model="form.matchingIds"
+                      :data="selectOpts.matchings"
+                      :props="selectProps"
+                      :multiple="true"
+                      :collapseTags="true"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item prop="levelType">
+
+                    <base-select
+                      placeholder="客源等级"
+                      v-model="form.levelType"
+                      :data="selectOpts.levelType"
+                      :props="selectProps"
+                    >
+                    </base-select>
+
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+
+              <el-row class="text-center">
+                <el-form-item class="margin-b-none">
+                  <el-button type="primary" @click="handleConfirm">确定</el-button>
+                  <el-button @click="handleReset">重置</el-button>
+                </el-form-item>
+              </el-row>
+            </el-form>
+          </div>
+
+        </div>
+        <div class="popper__arrow" style="left: 35px;"></div>
+      </div>
+
+    </transition>
+  </div>
+</template>
+
+<script>
+  import BaseSelect from '@/components/BaseSelect'
+  import BaseSectionSelect from '@/components/BaseSectionSelect'
+  import * as consts from './consts'
+  import {getBaseInfoSelectOpts} from '@/request/house/houseUsed'
+
+
+  // 楼层 区间数据
+  const floorRegionValue = {
+    min: [
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7'
+    ],
+    max: [
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '不限'
+    ]
+  }
+
+  // 房龄 区间数据
+  const buildDateRegionValue = {
+    min: [
+      '0',
+      '2005',
+      '2006',
+      '2007',
+      '2008',
+      '2010',
+      '2012',
+      '2014',
+      '2015',
+      '2017',
+    ],
+    max: [
+      '2010',
+      '2011',
+      '2012',
+      '2013',
+      '2014',
+      '2015',
+      '2018',
+    ]
+  }
+  const room = {
+  min: [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7'
+  ],
+  max: [
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '不限'
+  ]
+}
+  const price = {
+  min: [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7'
+  ],
+  max: [
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '不限'
+  ]
+}
+  const floorCount = {
+    min: [
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7'
+    ],
+    max: [
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '不限'
+    ]
+  }
+  import {queryOpenCityCompanyDepartUser} from "@/request/customer/customerUsed";
+  import BaseCascader from '@/components/BaseCascader'
+  export default {
+    components: {BaseSelect, BaseSectionSelect,BaseCascader},
+
+    props: {
+      placeholder: {
+        type: String,
+        default: ''
+      }
+    },
+
+    data () {
+      return {
+        form: {
+          houseUsesId: '',
+          payTypeId: '',
+          dateType: '',
+          beginDate: '',
+          endDate: '',
+          deptUserType:'',
+          orientationId: '',
+          decorationId: '',
+          resourceTypeId: '',
+          houseTypeId: '',
+          buildDates: '',
+          matchings:'',
+          departmentOrUser:'',
+        },
+        departmentOrUser:'',
+        inputVal: '',
+        selectOpts: null,
+        selectProps: {
+          label: 'fieldValue', // 指定选项的值绑定为下拉框的label属性
+          value: 'fieldCode' // 指定选项的值绑定为下拉框的Value属性
+        },
+        isFocus: false,
+        handleConfirmed: false,
+        dropWrapId: 'sectionWrap' + new Date().getTime(),
+        regionValue: { // 区间下拉数据
+          room: room,
+          floor: floorRegionValue,
+          buildDte: buildDateRegionValue
+        },
+        dataOpts:[],
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectPropss: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+      }
+    },
+
+    methods: {
+      handleConfirm () {
+        let formInfo = this.handleFormChange()
+        this.$emit('handleConfirmOrReset', formInfo)
+        this.handleConfirmed = true
+      },
+
+      handleFormChange(){
+        let formInfo = Object.assign({}, this.form)
+        let fieldSize = 0
+        Object.keys(formInfo).forEach(key => {
+          if (!formInfo[key]) {
+            delete formInfo[key]
+          } else {
+            fieldSize += 1
+          }
+        })
+
+        if (fieldSize > 0) {
+          this.inputVal = `更多(${fieldSize})`
+        } else {
+          this.inputVal = ''
+        }
+        this.$emit('handleFormChange', formInfo)
+        return formInfo
+      },
+      handleReset () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+        this.inputVal = ''
+        this.departmentOrUser = ''
+        this.$emit('handleConfirmOrReset', null)
+      },
+
+      handleChange(value,name,data){
+        if(data.dataType === 'dept') {
+          this.form.departmentOrUser = {type:1,value:data.code}
+        }else if(data.dataType === 'user'){
+          this.form.departmentOrUser = {type:2,value:data.code}
+        }
+      },
+
+      _fetchData () {
+        getBaseInfoSelectOpts({param: 'customer'}).then(res => {
+          this.selectOpts = res.data || []
+          // // 前端固定写死的下拉数据
+            this.selectOpts.orientationIds = consts.ORIENTATIONIDS // 朝向
+            this.selectOpts.decorationids = consts.DECORATIONIDS // 装修
+            this.selectOpts.datetype = consts.DATETYPE // 日期类型
+            this.selectOpts.levelType = consts.LEVELTYPE // 等级
+            this.selectOpts.agentType = consts.AGENTTYPE // 用户类型
+            this.selectOpts.matchings = consts.MATCHINGS // 配套
+        })
+      },
+      /**
+       * 获取部门和员工数据
+       * @private
+       */
+      _queryReferenceUserSelect(){
+        queryOpenCityCompanyDepartUser({}).then(res=>{
+          this.dataOpts = res
+        })
+      },
+    },
+
+    mounted () {
+      this._queryReferenceUserSelect();
+      this._fetchData()
+      this.$nextTick(() => {
+        document.addEventListener('click', (event) => {
+          let dropWrap =  document.getElementById(this.dropWrapId)
+          if (dropWrap && dropWrap.contains !== null) {
+
+            if (this.handleConfirmed) {
+              this.isFocus = false
+              this.handleConfirmed = false
+              return false
+            }
+            this.isFocus =  dropWrap.contains(event.target)
+          }
+        })
+      })
+    },
+
+    watch: {
+      form: {
+        deep: true,
+        handler () {
+          this.handleFormChange()
+        }
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+  .input-wrap {
+    padding: 10px;
+  }
+</style>

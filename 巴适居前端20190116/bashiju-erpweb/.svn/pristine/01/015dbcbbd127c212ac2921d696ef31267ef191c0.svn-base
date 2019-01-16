@@ -1,0 +1,201 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <!--<el-form :model="queryForm" ref="queryForm" :inline="true" size="small">-->
+        <!---->
+      <!--</el-form>-->
+      <div>
+        <el-button type="primary" @click="handlerSubmit">新增</el-button>
+        <el-button type="success" @click="handlerSubmit">导出当前页</el-button>
+      </div>
+    </div>
+    <div class="page-content-hd">
+      <el-table :data="tableData" align="center" tooltip-effect="light" size="small" :loading="loadingView">
+        <el-table-column label="录入时间" prop="addTime" show-overflow-tooltip width=120px>
+          <template slot-scope="scope">
+            {{$utils.timeFormat(scope.row.addTime,'{y}-{m}-{d} {h}:{i}:{s}')}}
+          </template>
+        </el-table-column>
+        <el-table-column label="录入人" prop="operator" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="支出日期" prop="payDate" show-overflow-tooltip width=120px>
+          <template slot-scope="scope">
+            {{$utils.timeFormat(scope.row.addTime,'{y}-{m}-{d}')}}
+          </template>
+        </el-table-column>
+        <el-table-column label="分摊金额（元）" prop="totalMoney" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="分摊门店（下属门店）" prop="storeDeptName" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="用途说明" prop="remark" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="操作">
+          <el-button type="primary" @click="handlerSubmit">设置分摊详细</el-button>
+          <el-button type="primary" @click="handlerSubmit(scope.row)">修改</el-button>
+          <el-button type="primary" @click="deleteStoreShare(scope.row)">删除</el-button>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList'
+  import RequestURL from '@/request/fin/store'
+
+  export default {
+    name: "storeShare",
+    mixins: [PageList],
+    data(){
+      return {
+        hackReset: true,
+        loadingView: false,
+        saveLoadingBtn: false,
+        queryLoadingBtn: false,
+        editDialogView: false,
+        eidtDetailDialogView: false,
+        tableData: [],
+        queryForm: {
+
+        },
+        editForm:{
+
+        }
+      }
+    },
+    methods:{
+      handlerSubmit(row){
+        this.hackReset = false
+        this.setForm('')
+        if(row){
+          this.isAdd = false
+          this.setForm(row)
+        }
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.editDialogView = true
+        })
+      },
+      handlerSubmitDetatil(row){
+        this.hackReset = false
+        this.setForm('')
+        if(row){
+          this.isAdd = false
+          this.setForm(row)
+        }
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.editDialogView = true
+        })
+      },
+      deleteStoreShare(row){
+        this.$confirm('确认要删除此配置吗','提示',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.deleteStoreShareDataById({id: row.id}).then(res=>{
+            this._showMessage(res.success,res.msg)
+          })
+        })
+      },
+
+      _showMessage(success,msg){
+        if(success){
+          this.$message({
+            type:'success',
+            message: msg
+          })
+        }else{
+          this.$message({
+            type:'error',
+            message: msg
+          })
+        }
+      },
+
+      // 查询数据
+      _loadData(btnQuery){
+        if(btnQuery){
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+          this.loadingQueryBtn = true
+        }
+        this.loadingView = true
+        RequestURL.queryStoreSharePageList().then(res=>{
+          this.tableData = res.data
+          this.listQuery.total = res.total
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        }).catch(err=>{
+          console.log(err)
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        })
+      },
+      saveOrUpdateData(){
+        this.$refs['editForm'].validate(valid=>{
+          if(valid){
+            this.$confirm('确认要提交数据吗','提示',{
+              confirmButtonText: '',
+              cancelButtonText: '',
+              type: 'warning'
+            }).then(()=>{
+              this.saveLoadingBtn = true
+              let params = Object.assign({},this.editForm,{})
+              // 金额元转换为分
+              params.totalMoney = params.totalMoney * 100
+              RequestURL.saveOrUpdateStoreShareData(params).then(res=>{
+                this._showMessage(res.success,res.msg)
+                this.saveLoadingBtn = false
+              }).catch(err=>{
+                console.log(err)
+                this.saveLoadingBtn = false
+              })
+            })
+          }
+        })
+      },
+      saveStoreShareDetailData(){
+        this.$refs['editForm'].validate(valid=>{
+          if(valid){
+            this.$confirm('确认要提交数据吗','提示',{
+              confirmButtonText: '',
+              cancelButtonText: '',
+              type: 'warning'
+            }).then(()=>{
+              this.saveLoadingBtn = true
+              let params = Object.assign({},this.editForm,{})
+              // 金额元转换为分
+              params.totalMoney = params.totalMoney * 100
+              RequestURL.saveStoreShareDetailData(params).then(res=>{
+                this._showMessage(res.success,res.msg)
+                this.saveLoadingBtn = false
+              }).catch(err=>{
+                console.log(err)
+                this.saveLoadingBtn = false
+              })
+            })
+          }
+        })
+      },
+      resetForm(){
+        if(this.$refs['editForm']){
+          this.$refs['editForm'].resetFields()
+        }
+      },
+      setForm(data){
+        this.resetForm()
+        for(let i in this.editForm){
+          this.editForm[i] = data[i]
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

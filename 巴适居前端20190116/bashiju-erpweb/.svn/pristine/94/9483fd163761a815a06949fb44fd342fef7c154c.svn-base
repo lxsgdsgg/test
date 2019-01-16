@@ -1,0 +1,310 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item prop="transactionType">
+            <el-select v-model="queryForm.transactionType" clearable style="width: 120px;" placeholder="客源类型" >
+              <el-option
+                v-for="item in transactionTypeOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="followType">
+            <el-select v-model="queryForm.followType" clearable style="width: 120px;" placeholder="跟进方式" >
+              <!--动态下拉配置数据-->
+              <el-option v-for="item in options" :label="item.fieldValue" :value="item.id" :key="item.id"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="isValid">
+              <el-select v-model="queryForm.isValid" clearable style="width: 120px;" placeholder="跟进类型" >
+                  <el-option
+                    v-for="item in isValidOpt"
+                    :key="item.value"
+                    :label="item.name"
+                    :value="item.value"
+                  ></el-option>
+              </el-select>
+          </el-form-item>
+
+          <el-form-item prop="followerId">
+            <base-cascader placeholder="跟进人" clearable v-model="queryForm.followerId" :url="getReferenceUserSelectUrl"
+                           :props="cascaderProps" :dataProps="cascaderDataProps">
+            </base-cascader>
+          </el-form-item>
+
+
+          <el-form-item prop="maintainId">
+            <base-cascader placeholder="维护人" clearable v-model="queryForm.maintainId" :url="getReferenceUserSelectUrl"
+                           :props="cascaderProps" :dataProps="cascaderDataProps">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item prop="reciveTime">
+            <el-date-picker
+              v-model="queryForm.reciveTime"
+              type="daterange"
+              range-separator="至"
+              :default-value="ct_month"
+              start-placeholder="跟进日期起"
+              end-placeholder="跟进日期止"
+              value-format="yyyy-MM-dd"
+            >
+            </el-date-picker>
+          </el-form-item>
+
+
+
+          <el-form-item>
+            <el-button type="success" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+            <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+
+
+        <el-table-column
+          prop="followTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="跟进时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="followTypeName"
+          show-overflow-tooltip
+          align="left"
+          label="跟进方式">
+        </el-table-column>
+
+        <el-table-column
+          prop="transactionType"
+          align="left"
+          label="类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="demandId"
+          align="left"
+          label="客源编号">
+          <template slot-scope="scope">
+              <a
+                @click="toDetail(scope.row.demandId, scope.row.formName, scope.row.transactionTypeId)"
+                href="javascript:;" class="houseId"  type="text"
+              >
+                {{scope.row.demandId}}
+              </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="isValid"
+          align="left"
+          label="房源状态">
+          <template slot-scope="scope">
+          {{scope.row.isValid |isValidFilter }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="follower"
+          align="left"
+          label="跟进人">
+        </el-table-column>
+
+        <el-table-column
+          prop="maintainer"
+          align="left"
+          label="维护人">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="left"
+          label="部门">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="content"
+          align="left"
+          label="跟进内容">
+        </el-table-column>
+
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <el-button  v-hasMultipleBtn="['detailBtn',scope.row]" @click="handShowFollowUp(scope.row)" type="text" size="small" >查看所有跟进</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <template>
+      <!--查看所有跟进记录的窗体-->
+      <el-dialog
+        title="跟进记录"
+        :visible.sync="showFollowUpDlg"
+        width="50%"
+        :close-on-click-modal="false"
+      >
+        <show-follow-up :data="currentRowData"   v-if="hackReset"></show-follow-up>
+      </el-dialog>
+    </template>
+  </div>
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryFollowUpRecordData} from "@/request/customer/followUpRecord";
+  import  ShowFollowUp from './component/showFollowUp'
+  import BaseCascader from '@/components/BaseCascader'
+  import {getSelectValue} from '@/request/app'
+  export default {
+      name:'followUpRecord',
+      components:{PageList,ShowFollowUp,BaseCascader},
+      mixins: [PageList],
+        data() {
+            return {
+              queryForm:{
+                  reciveTime:[],
+                  followerId:'',
+                  transactionType:'',
+                  maintainId:'',//维护人
+              },
+              tableData:[],
+              transactionTypeOpt:[
+                {value:4,name:'求购'},
+                {value:5,name:'求租'}
+              ],
+              isValidOpt:[
+                {value:1,name:'正常'},
+                {value:0,name:'异常'},
+              ],
+              ct_month:null,
+              currentRowData:null,
+              hackReset:false,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              },
+              getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser', // 介绍人
+              cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+              cascaderProps: { // 级联下拉组件配置选项
+                value: 'code', // 指定选项的值为选项对象的某个属性值
+                label: 'name' // 指定选项标签为选项对象的某个属性值
+              },
+              loadingView:false,
+              showFollowUpDlg:false,
+              queryBtnLoading:false,
+              options:''
+            }
+        },
+        methods: {
+          _loadData(btn){
+              this.queryFollowUpRecordData(btn)
+          },
+          toDetail (id, name, type) {
+            console.log(id)
+            console.log(name)
+            console.log(type)
+            this.$router.push({ path: '/customer/customerDetail/'+id, query: { formName: name,transactionTypeId: type}})
+            window.localStorage.setItem('customerList', JSON.stringify(this.tableData))
+          },
+          //时间戳转换为时间
+          _timeFormat(row,column,cellValue){
+              return this.$utils.timeFormat(cellValue,'{y}-{m}-{d} {h}:{i}:{s}')
+          },
+          queryFollowUpRecordData(loadingBtn){
+            if(loadingBtn){
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            this.loadingView = true
+            this.queryBtnLoading = loadingBtn
+            let params = Object.assign({},this.queryForm,{
+                  limit:this.listQuery.limit,
+                  page:this.listQuery.page
+            })
+            if(params.reciveTime.length>0){
+              params.beginTime = params.reciveTime[0]
+              params.endTime = params.reciveTime[1]
+            }
+            queryFollowUpRecordData(params).then(res =>{
+              this.tableData = res.data
+              this.listQuery.total = res.count
+              this.loadingView = false
+              this.queryBtnLoading = false
+            })
+          },
+          handShowFollowUp(row){
+              this.hackReset = false
+              this.$nextTick(()=>{
+                  this.hackReset = true
+                  this.showFollowUpDlg = true
+                  this.currentRowData =  row.demandId
+              })
+          },
+          timeDefaultShow(){//默认显示上个月
+            this.ct_month= new Date();
+            this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+          },
+          //获取跟进方式数据
+          _getOptions () {
+            getSelectValue( {param: 'followMethod'}).then(res => {
+              this.options = res.data
+              console.log(res.data)
+            })
+          }
+        },
+      filters:{
+        isValidFilter(value){
+            if(value == 1) return '有效'
+        }
+      },
+        mounted() {
+            this.queryFollowUpRecordData(false)
+             this._getOptions();
+              this.timeDefaultShow()
+        }
+
+
+    }
+
+</script>
+
+<style>
+  .houseId {
+    color: #409eff;
+  &:hover {
+     text-decoration: underline;
+   }
+  }
+</style>

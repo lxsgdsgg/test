@@ -1,0 +1,258 @@
+<template>
+    <div>
+        <el-form :model="form" ref="form" label-width="100px" size="small" :inline="true">
+
+          <el-row >
+            <el-col :span="8" ><span style="margin-left: 80px">片区</span></el-col>
+            <el-col :span="8"><span style="margin-left: 120px">责任盘</span></el-col>
+          </el-row>
+              <div v-for="(item,index) in form.disc">
+                      <el-form-item  :prop="'disc'+'.index'+'.regionId'"
+                                    :rules=" {required: true, message: '片区不能为空', trigger: 'change'}"
+                                    @click.native="remenberIndex(index)"
+                      >
+                        <base-cascader
+                          @change="handleChangeRegion"
+                          :changeOnSelect="false"
+                          v-model="item.regionId"
+                          :data="regionSelectOpts"
+                          :props="cascaderProps"
+                          :dataProps="cascaderDataProps">
+                        </base-cascader>
+                      </el-form-item>
+                      <el-form-item
+                        :prop="'disc'+'.index'+'.communityId'"
+                      >
+                        <base-select
+                          v-model="item.communityId"
+                          :data="commnunitArr[index]"
+                          :props="selectPropsLabel"
+                          @change="communitySelect"
+
+                        >
+                        </base-select>
+                      </el-form-item>
+                    <el-form-item>
+                      <el-button type="primary" size="small" @click="handleDel(index)">删除</el-button>
+                    </el-form-item>
+              </div>
+          <el-form-item>
+              <div class="btn-group">
+                <el-form-item>
+                  <el-button @click="handleAdd">新增</el-button>
+                  <el-button @click="handleCancel" >取消</el-button>
+                  <el-button @click="handleSave(form)" >保存</el-button>
+                </el-form-item>
+              </div>
+          </el-form-item>
+        </el-form>
+    </div>
+</template>
+<style></style>
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseSelect from '@/components/BaseSelect'
+  import {queryAreaAndRegion,queryCommunityByRegionId,saveUpdateResponsbilityDisc,queryCityInfoByDept,queryResponsibilityDisk} from "@/request/manage/deptmanage";
+
+  export default {
+      props:{
+          data:{
+            type:Object,
+          }
+      },
+      components:{BaseCascader,BaseSelect},
+        data() {
+            return {
+                form: {
+                    disc:[
+                      {
+                        companyId:this.data.companyId,
+                        companyName:this.data.companyName,
+                        deptId:this.data.id,
+                        deptName:this.data.name,
+                        communityId:'',
+                        communityName:'',
+                        areaCode:'',
+                        regionId:'',
+                        id:''
+                      }
+                    ]
+                },
+                cityCode:'',
+                index:'',//片区下标
+                communitIndex:'',//小区下标
+                saveDiscData:[],
+                removeDatas :[],
+                communitySelectOpts: [], // 小区级联选择数据
+                commnunitArr:[],//
+                regionSelectOpts: [], // 片区级联选择数据
+                cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+                cascaderProps: { // 级联下拉组件配置选项
+                  value: 'code', // 指定选项的值为选项对象的某个属性值
+                  children: 'children', // 指定选项的子选项为选项对象的某个属性值
+                  label: 'name' // 指定选项标签为选项对象的某个属性值
+                },
+                selectPropsLabel: {
+                  label: 'name', // 指定选项的值绑定为下拉框的label属性
+                  value: 'id' // 指定选项的值绑定为下拉框的Value属性
+                },
+            }
+        },
+        methods: {
+          setForm(deptId){
+            queryResponsibilityDisk({deptId:deptId}).then(res =>{
+                for(let i in res){
+                    this.form.disc[i] = res[i]
+                     res[i].regionId = String (this.form.disc[i].regionId)
+                  queryCommunityByRegionId({regionId:this.form.disc[i].regionId || ''}).then(res => {
+                    this.communitySelectOpts[this.index] = res || []
+                    this.commnunitArr.push(this.communitySelectOpts[this.index])
+                    // console.log(this.commnunitArr)
+                  })
+                }
+
+            })
+          },
+          /**
+           * 新增
+           */
+          handleAdd(){
+            const index = this.form.disc.length + 1
+            this.form.disc.push({
+              index:index,
+              companyId:this.data.companyId,
+              companyName:this.data.companyName,
+              deptId:this.data.id,
+              deptName:this.data.name,
+              communityId:'',
+              communityName:'',
+              regionId:'',
+              areaCode:'',
+              id:''
+            })
+            delete  this.form.disc[index].index
+
+          },
+          /**
+           * 删除
+           * @param index 下标
+           */
+          handleDel(index){
+            let temp = this.form.disc[index]
+            if(temp.id){
+              temp.isValid = 0
+              this.removeDatas.unshift(temp)
+            }
+            this.form.disc.splice(index,1);
+          },
+          /**
+           * 取消
+           * */
+          handleCancel(){
+              this.$emit('handleClick',1)
+          },
+          /**
+           *保存
+           * */
+          handleSave(form){
+            if(this.removeDatas.length > 0){
+              this.saveDiscData = this.$jsonUtils.mergeArray(this.form.disc,this.removeDatas)
+              console.log(this.removeDatas)
+            }else{
+              for(let i in this.form.disc){
+                delete this.form.disc[i].index
+              }
+              this.saveDiscData = this.form.disc
+            }
+            console.log( this.saveDiscData)
+            saveUpdateResponsbilityDisc({jsonData:JSON.stringify(this.saveDiscData)}).then(res =>{
+                if(res.success){
+                  this.$message({type: 'success', message: res.msg})
+                  this.handleCancel();
+                }else{
+                  this.$message({type: 'error', message: res.msg})
+                }
+            }).catch(error=>{
+                console.log(error)
+            })
+            console.log(this.saveDivideData)
+          },
+          /**
+           * 选择片区
+           * @param value 值
+           */
+          handleChangeRegion(value,name,data){
+            if(data.dataType!='region'){
+              this.$message({
+                showClose: true,
+                type: 'warning',
+                message: '只能选择片区!'
+              })
+              setTimeout(() => {
+                this.form.disc[this.index].regionId =''//清空
+              }, 50)
+              return false
+            }else{
+              this.form.disc[this.index].regionId = value
+              this.form.disc[this.index].areaCode = data.parent.code
+              this.form.disc[this.index].communityName = data.name
+            }
+
+            queryCommunityByRegionId({regionId: value || ''}).then(res => {
+              this.communitySelectOpts[this.index] = res || []
+              this.commnunitArr.push(this.communitySelectOpts[this.index])
+              console.log(this.index)
+              console.log(this.commnunitArr)
+            })
+          },
+          /**
+           * 记录行下标
+           * @param index
+           */
+          remenberIndex(index){
+             this.index = index
+          },
+          remenberCommIndex(index){
+              this.communitIndex = index
+          },
+          communitySelect(value,name,data){
+            console.log(value)
+            console.log(name,)
+
+              this.form.disc[this.index].communityName =name
+              this.form.disc[this.index].communityId =value
+          },
+          _queryAreaAndRegion(cityCode){
+            queryAreaAndRegion({cityCode: cityCode  || ''}).then(res => {
+              this.regionSelectOpts = res || []
+            })
+          },
+          // _queryCommunityByRegionId(newValue){
+          //   queryCommunityByRegionId({regionId: newValue || ''}).then(res => {
+          //     this.communitySelectOpts = res || []
+          //     this.commnunitArr.push(this.communitySelectOpts[this.index])
+          //   })
+          // },
+        },
+        mounted() {
+            if(this.data.areaCode){
+              this._queryAreaAndRegion(this.data.areaCode)
+            }
+            else{
+              /**
+               *部门不为市级时获取
+               * 部门的城市信息
+               * @param value
+               */
+                queryCityInfoByDept({deptId:this.data.id}).then(res =>{
+                  if(res.areaCode){
+                    this._queryAreaAndRegion(res.areaCode)
+                  }
+                })
+            }
+             this._queryAreaAndRegion(this.data.areaCode)
+             this.setForm(this.data.id)
+        }
+    }
+
+</script>

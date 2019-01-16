@@ -1,0 +1,218 @@
+export default {
+  LOG: {
+    OPERATE_TYPE: {
+      ADD: 1, // 新增
+      UPDATE: 2, // 修改
+      DELETE: 3, // 删除
+      AUTHORIZATION: 4, // 授权
+      SETTINGS: 5, // 设置
+      LOCK_USER: 7, // 用户锁定
+      UNLOCK_USER: 8, // 用户解锁
+      RESET_PASSWORD: 9, // 重置密码
+      UPLOAD_USER_AVATAR: 10, // 用户头像上传
+      TRANSFER_PROCESS_ADD: 433, // 新增过户流程
+      TRANSFER_PROCESS_EDIT: 434, // 修改过户流程
+      TRANSFER_PROCESS_DELETE: 435, // 删除过户流程
+      TRANSFER_PROCESS_CONFIG: 436, // 设置过户流程
+    },
+
+    BUSINESS_OPERATE_TYPE: {
+      /**ADD_PHONE("1","1",新增电话")**/
+      ADD_PHONE: 1,
+
+      /**ADD_PICTURE("2","新增照片")**/
+      ADD_PICTURE: 2,
+
+      /**ADD_HOUSE("3","新增")**/
+      ADD_HOUSE: 3,
+
+      /**UPDATE_HOUSE("4","修改")**/
+      UPDATE_HOUSE: 4,
+
+      /**DEL_HOUSE("5","房源删除")**/
+      DEL_HOUSE: 5,
+
+      /**OWNER_CHANGE("19","变更业主")**/
+      OWNER_CHANGE: 19,
+
+      /**TAOBAO("24","淘宝")**/
+      TAOBAO: 24,
+
+      /** SET_GOOD ("56", "设置靓房") **/
+      SET_GOOD: 56,
+
+      /** CANCEL_GOOD ("56", "取消靓房") **/
+      CANCEL_GOOD: 57,
+
+      /** ADD_HOUSE_FOLLOW_RECORD ("37", "房源跟进") **/
+      ADD_HOUSE_FOLLOW_RECORD: 37,
+
+      /** ADD_HOUSE_REALEXPLORATION ("37", "房源实勘") **/
+      ADD_HOUSE_REALEXPLORATION: 38,
+
+      /**HOUSE_REMIND("58","1","写提醒"),**/
+      HOUSE_REMIND: 58,
+
+      /**ADD_FEEDBACK("36","写带看反馈")**/
+      ADD_FEEDBACK: 36,
+
+      /**HOUSE_BINDCODE("59","1","发送绑定码"),**/
+      HOUSE_BINDCODE: 59,
+
+      /**HOUSE_UPDATE_USES("59","1","更改用途"),**/
+      HOUSE_UPDATE_USES: 69,
+
+      /**HOUSE_SETTOP("60","1","设置置顶"),**/
+      HOUSE_SET_TOP: 60,
+
+      /**HOUSE_CANCEL_TOP("61","1","取消置顶"),**/
+      HOUSE_CANCEL_TOP: 61,
+
+      /**HOUSE_STORE("62","1","收藏"),**/
+      HOUSE_STORE: 62,
+
+      /**HOUSE_CANCEL_STORE("63","1","取消收藏"),**/
+      HOUSE_CANCEL_STORE: 63,
+
+      /**HOUSE_LOOK_NUMBER("64","1","查看门牌"),**/
+      HOUSE_LOOK_NUMBER: 64,
+
+      /**HOUSE_LOOK_ARCHIVES("65","1","查看客户档案"),**/
+      HOUSE_LOOK_ARCHIVES: 65,
+
+      /**HOUSE_CALL_PHONE("66","1","拨打隐私电话"),**/
+      HOUSE_CALL_PHONE: 66,
+
+      /**HOUSE_LOOK_MIN_PRICE("67","1","查看底价"),**/
+      HOUSE_LOOK_MIN_PRICE: 67,
+
+      /**HOUSE_UPDATE_MIN_PRICE("68","1","修改底价"),**/
+      HOUSE_UPDATE_MIN_PRICE: 68,
+
+      /**UPDATE_VR_URL("32","修改VR看房地址")**/
+      UPDATE_VR_URL: 32,
+
+      /**LOOK_HOUSE_PHONE("39", "查看电话"),**/
+      LOOK_HOUSE_PHONE: 39,
+
+      /**UPDATE_PHONE("26","2","修改电话")**/
+      UPDATE_PHONE: 26,
+
+      /**DEL_PHONE("23","删除电话")**/
+      DEL_PHONE: 23,
+
+      /**MAINER_CHANGE("15","变更维护人")**/
+      MAINER_CHANGE: 15,
+
+      /**ENTRUST_CHANGE("18","变更委托")**/
+      ENTRUST_CHANGE: 18,
+
+      /**SET_UNIQUE("34","设置独家")**/
+      SET_UNIQUE: 34,
+
+      /**SET_PICTURE_PEOPLE("35","设置图片人")**/
+      SET_PICTURE_PEOPLE: 35,
+
+      /**ADD_KEY("21","新增钥匙")**/
+      ADD_KEY: 21,
+
+      /**DEL_FOLLOW("31","删除跟进")**/
+      DEL_FOLLOW: 31,
+
+      /**DEAL_DOWNLOAD_SINGLE_PICTURE("422","4","单张下载图片")**/
+      DEAL_DOWNLOAD_SINGLE_PICTURE: 422,
+
+      /**DEL_PICTURE("17","删除图片")**/
+      DEL_PICTURE: 17,
+
+      /**DEL_PICTURE("70","设置图片封面")**/
+      HOUSE_SET_COVER: 70,
+
+      /**DEL_PICTURE("71","设置图片类型")**/
+      HOUSE_UPDATE_PIC_TYPE: 71,
+
+      /**NEW_HOUSE_SYN("307","3","外网同步")**/
+      NEW_HOUSE_SYN: 307,
+
+      /**NEW_HOUSE_CANCEL_SYN("312","3","取消外网同步")**/
+      NEW_HOUSE_CANCEL_SYN: 312,
+
+      /**NEW_HOUSE_SET_GOOD("308","3","项目推荐")**/
+      NEW_HOUSE_SET_GOOD: 308,
+
+      /**NEW_HOUSE_CANCEL_GOOD("313","3","取消推荐")**/
+      NEW_HOUSE_CANCEL_GOOD: 313,
+
+      /**DELETE_NEW_HOUSE("302","3","删除")**/
+      DELETE_NEW_HOUSE: 302,
+
+      /**ADD_NEW_HOUSE("300","3","新增")**/
+      ADD_NEW_HOUSE: 300,
+
+      /**UPDATE_NEW_HOUSE("301","3","修改")**/
+      UPDATE_NEW_HOUSE: 301,
+
+      /**NEW_HOUSE_DEAL("303","3","成交")**/
+      NEW_HOUSE_DEAL: 303,
+
+      /**NEW_HOUSE_SET_CUSTOMER_SERVICE("315","3","修改客服信息"),**/
+      NEW_HOUSE_SET_CUSTOMER_SERVICE: 315,
+
+      /**NEW_HOUSE_SET_COMMISSION("316","3","修改佣金"),**/
+      NEW_HOUSE_SET_COMMISSION: 316,
+
+      /**NEW_HOUSE_ADD_IMG("305","3","新增户型图")**/
+      NEW_HOUSE_ADD_IMG: 305,
+
+      /**NEW_HOUSE_UPDATE_IMG("306","3","修改户型图")**/
+      NEW_HOUSE_UPDATE_IMG: 306,
+
+      /**NEW_HOUSE_ADD_VIDEO("310","3","上传户型图视频"),**/
+      NEW_HOUSE_ADD_VIDEO: 310,
+
+      /**NEW_HOUSE_DEL_IMG("317","3","删除户型图"),**/
+      NEW_HOUSE_DEL_IMG: 317,
+
+      /**MAINER_TRANSFER("14","信息转移")**/
+      MAINER_TRANSFER: 14,
+
+      /**HOUSE_SET_SYN("72","二手房源外网同步")**/
+      HOUSE_SET_SYN: 72,
+
+      /**HOUSE_CANCEL_SYN("72","二手房源取消外网同步")**/
+      HOUSE_CANCEL_SYN: 73
+
+    },
+
+    SOURCE_TYPE: {
+      MANAGE: {
+        USER: 1, // 用户
+        DEPARTMENT: 2, // 部门
+        ROLE: 3, // 角色
+        TRANSFER_PROCESS: 25, // 过户流程配置
+      },
+
+      SYSTEM: {
+        MENU: 1, // 菜单
+      }
+    },
+
+    BUSINESS_TYPE: {
+      HOUSE: 1, // 二手房源
+      CUSTOMER: 2, // 客源
+      NEW_HOUSE: 3, // 新房
+      DEAL: 4, // 成交
+    },
+
+    BUSINESS_SOURCE_TYPE: {
+      SELL_HOUSE: 1, // 出售
+      RENT_HOUSE: 2, // 出租
+      SELL_ADN_RENT_HOUSE: 3, // 租售
+      SELL_CUSTOMER: 4, // 求购
+      RENT_CUSTOMER: 5, // 求租
+      SELL_DEAL: 6, // 买卖成交
+      RENT_DEAL: 7, // 租赁成交
+      NEW_DEAL: 8, // 一手成交
+    }
+  }
+}

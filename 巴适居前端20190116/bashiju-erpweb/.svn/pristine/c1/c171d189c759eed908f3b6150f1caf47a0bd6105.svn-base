@@ -1,0 +1,382 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div>
+        <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+          <el-form-item  prop="status"  >
+            <el-select v-model="form.status" style="width: 150px" placeholder="收取状态">
+              <el-option
+                v-for="item in CommissionStatusOpt"
+                :label="item.name"
+                :value="item.value"
+                :key="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="dealType">
+            <el-select v-model="form.dealType" style="width: 150px" placeholder="交易类型">
+              <el-option
+                v-for="item in dealTypeOpt"
+                :label="item.name"
+                :value="item.value"
+                :key="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <!--<el-form-item  prop="timeType">-->
+            <!--<el-select v-model="form.timeType" style="width: 150px" placeholder="时间类型">-->
+              <!--<el-option-->
+                <!--v-for="item in timeTypeOpt"-->
+                <!--:label="item.fieldValue"-->
+                <!--:value="item.id"-->
+                <!--:key="item.id"-->
+              <!--&gt;</el-option>-->
+            <!--</el-select>-->
+          <!--</el-form-item>-->
+
+
+          <el-form-item  prop="time">
+            <el-date-picker
+              type="datetimerange"
+              v-model="form.time"
+              value-format="yyyy-MM-dd HH:mm:ss"
+              range-separator="至"
+              :default-value="ct_month"
+              start-placeholder="收取时间开始"
+              end-placeholder="收取时间结束"
+              align="right">
+            </el-date-picker>
+          </el-form-item>
+
+
+          <el-form-item  prop="traderId">
+            <base-cascader placeholder="成交人" clearable v-model="form.traderId" :url="getReferenceUserSelectUrl"
+                           :props="cascaderProps" :dataProps="cascaderDataProps" style="width: 150px">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item prop="communityId">
+            <community-selector
+              style="width: 180px"
+              :changeOnSelect="false"
+              v-model="form.communityId"
+              :url="areasUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps"
+              placeholder="选择小区"
+            >
+            </community-selector>
+          </el-form-item>
+
+
+
+          <!--<el-form-item label="模糊" prop="Keyword">-->
+            <!--<el-input v-model="form.Keyword" placeholder="模糊"></el-input>-->
+          <!--</el-form-item>-->
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click.native.prevent="resetForm">清空</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="status"
+          align="left"
+          label="收取状态">
+          <template slot-scope="scope">
+            {{scope.row.status | statusFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="dealType"
+          align="left"
+          label="成交类型">
+          <template slot-scope="scope">
+            {{scope.row.dealType | dealTypeFilter}}
+          </template>
+        </el-table-column>
+
+
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="dealId"
+          align="left"
+          label="合同号">
+        </el-table-column>
+
+        <el-table-column
+          prop="areaName"
+          align="left"
+          label="区">
+        </el-table-column>
+
+        <el-table-column
+          prop="regionName"
+          align="left"
+          label="片区">
+        </el-table-column>
+
+        <el-table-column
+          prop="communityName"
+          align="left"
+          label="小区">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsName"
+          align="left"
+          label="座栋">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingHouseName"
+          align="left"
+          label="房号">
+        </el-table-column>
+
+        <el-table-column
+          prop="billNo"
+          align="left"
+          label="票据号">
+        </el-table-column>
+
+        <el-table-column
+          prop="moneyProjName"
+          align="left"
+          label="项目费用">
+        </el-table-column>
+
+        <el-table-column
+          prop="price"
+          align="left"
+          label="金额">
+        </el-table-column>
+
+        <el-table-column
+          prop="settlementTypeName"
+          align="left"
+          label="结算方式">
+        </el-table-column>
+
+        <el-table-column
+          prop="payerType"
+          align="left"
+          label="缴费人">
+          <template slot-scope="scope">
+            {{scope.row.payerType | payerTypeFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="traderName"
+          align="left"
+          label="成交人">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="remark"
+          align="left"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          prop="estimatePayTime"
+          align="left"
+          :formatter="dateFormat"
+          label="计划时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="actualPayTime"
+          align="left"
+          :formatter="dateFormat"
+          label="收取时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="sureTime"
+          align="left"
+          :formatter="dateFormat"
+          label="确认时间">
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+  </div>
+
+</template>
+<script>
+  import CommunitySelector from '@/components/BaseCascader/index'//小区选着
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import {queryCommissionRecordData,dropDown} from "@/request/deal/commissionRecord";
+  import  pageList from '@/mixins/pageList'
+  import BaseCascader from '@/components/BaseCascader'
+  export default {
+    components:{pageList,BaseCascader,CommunitySelector},
+    mixins: [pageList],
+    data() {
+      return {
+        form:{
+          status: '',
+          Keyword:'',//模糊查询关键字
+          traderId:'',//成交人
+          time:'',
+          timeType:'',//时间类型
+          dealType:'',//交易类型
+          communityId:''
+        },
+        tableData:[],
+        dealTypeOpt:[],
+        CommissionStatusOpt:[],
+        timeTypeOpt:[
+          {id:0,fieldValue:'收取时间'},
+          {id:1,fieldValue:'计划时间'}
+        ],
+        statusOpt:[
+          {id:0,fieldValue:'未处理'},
+          {id:1,fieldValue:'已处理'},
+          {id:2,fieldValue:'已取消'}
+        ],
+        isValidOpt:[
+          {id:0,fieldValue:'无效'},
+          {id:1,fieldValue:'有效'},
+        ],
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 介绍人
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        loadingView:false,
+        queryBtnLoading:false,
+        editorDialog:false,
+        cancelDialog:false,
+        hackReset:false,
+        cancelData:null,
+        areasUrl: queryCommunitySelectWithRegion,
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        ct_month:null,
+        listQuery:{
+          limit:10,
+          page:1,
+          total:0
+        }
+      }
+    },
+    methods: {
+      // handleQuery () {
+      //   this.listQueryParams = Object.assign({}, this.form)
+      //   this._loadData(true)
+      // },
+      //查询数据
+      _loadData(queryBtn){
+        if(queryBtn){
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        let params = Object.assign({}, this.form, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        if(params.time.length>0){
+          params.beginTime = params.time[0]
+          params.endTime = params.time[1]
+        }
+        this.loadingView = true
+        this.queryBtnLoading = queryBtn
+        queryCommissionRecordData(params).then(res =>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.queryBtnLoading = false
+        }).catch(error =>{
+          console.log(error)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+      // 时间格式转化
+      dateFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+      },
+      timeDefaultShow(){//默认显示上个月
+        this.ct_month= new Date();
+        this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+      },
+      timeFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue)
+      },
+      // _loadData(queryBtn){
+      //   this.queryCommissionRecordData(queryBtn)
+      // },
+      resetForm(){
+        this.$refs['form'].resetFields()
+      },
+      //下拉数据源
+      dropDown(){
+        dropDown().then(res =>{
+          this.dealTypeOpt = res.dealType
+          this.CommissionStatusOpt = res.commissionStatus
+        })
+      }
+    },
+    filters:{
+      statusFilter(value){
+          if(value == '00') return '计划'
+          if(value == '01') return '确认'
+          if(value == '02') return '已确认'
+          if(value == '03') return '驳回'
+      },
+      payerTypeFilter(value){
+        // 0--业主
+        // 1--客户
+          if(value == 0){
+            return '业主'
+          } else {
+            return '客户'
+          }
+      },
+      dealTypeFilter(value){
+        if(value == '00') return '买卖成交'
+        if(value == '01') return '租赁成交'
+        if(value == '02') return '一手房成交'
+      }
+    },
+    mounted(){
+      this.dropDown()
+      this.timeDefaultShow()
+   }
+  }
+</script>
+
+<style scoped>
+
+</style>

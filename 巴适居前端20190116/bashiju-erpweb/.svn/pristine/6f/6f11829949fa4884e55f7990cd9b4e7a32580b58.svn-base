@@ -1,0 +1,394 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div>
+        <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+          <el-form-item  prop="name">
+            <el-input v-model="form.name" placeholder="岗位名称"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click.native.prevent="resetForm">清空</el-button>
+            <el-button v-hasOnlyBtn="'addBtn'"  @click.native.prevent="handleAdd">新增岗位</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+        <!--<el-table-column-->
+          <!--prop="id"-->
+          <!--align="left"-->
+          <!--label="Id">-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          prop="name"
+          align="left"
+          label="名称">
+        </el-table-column>
+
+        <el-table-column
+          show-overflow-tooltip
+          prop="workCityName"
+          align="left"
+          label="工作所在城市">
+        </el-table-column>
+
+        <el-table-column
+          prop="count"
+          align="left"
+          label="招聘人数"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="education"
+          align="left"
+          label="学历要求">
+          <template slot-scope="scope">
+                {{scope.row.education | eductionFilter }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="majorSubject"
+          align="left"
+          label="所需专业">
+        </el-table-column>
+
+
+        <!--<el-table-column-->
+          <!--prop="minWorking"-->
+          <!--align="left"-->
+          <!--label="最低工作年限">-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="maxWorking"-->
+          <!--align="left"-->
+          <!--label="最高工作年限">-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="minWages"-->
+          <!--align="left"-->
+          <!--label="薪资">-->
+          <!--<template slot-scope="scope">-->
+             <!--{{scope.row | wagesFilter}}-->
+          <!--</template>-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="mobile"-->
+          <!--align="left"-->
+          <!--label="招聘电话">-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="endTime"-->
+          <!--align="left"-->
+          <!--:formatter="dateFormat"-->
+          <!--label="招聘截止时间">-->
+          <!--&lt;!&ndash;<template slot-scope="scope">&ndash;&gt;-->
+            <!--&lt;!&ndash;{{scope.row.payerType | payerTypeFilter}}&ndash;&gt;-->
+          <!--&lt;!&ndash;</template>&ndash;&gt;-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="requirement"-->
+          <!--align="left"-->
+          <!--label="任职要求">-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="duty"-->
+          <!--align="left"-->
+          <!--label="主要职责">-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          prop="publisher"
+          align="left"
+          label="职位发布人">
+        </el-table-column>
+
+        <el-table-column
+          prop="publishTime"
+          align="left"
+          :formatter="dateFormat"
+          label="职位发布时间">
+        </el-table-column>
+
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button   @click="handleDetail(scope.row)" type="text" size="small">详情</el-button>
+            <el-button  v-hasMultipleBtn="['updBtn',scope.row]" @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button  v-hasMultipleBtn="['delBtn',scope.row]" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <!--编辑窗体-->
+    <template>
+      <el-dialog
+        title="编辑"
+        :visible.sync="editDialogVisible"
+        width="600px">
+        <editor @handleClick="handleEditDialog" v-if="hackReset" :data="currentRowData" :isAdd="isAdd"></editor>
+      </el-dialog>
+
+      <el-dialog
+        :title="dialogTitle"
+        :visible.sync="detailDialogVisible"
+        width="800px">
+        <detail @handleClick="closeDetailDialog" v-if="hackReset" :data="currentRowData"></detail>
+      </el-dialog>
+    </template>
+
+  </div>
+
+</template>
+<script>
+  import CommunitySelector from '@/components/BaseCascader/index'//小区选着
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import {queryRecruitInfo,delRecruitInfoById} from "@/request/office/recruitInfo";
+  import  pageList from '@/mixins/pageList'
+  import BaseCascader from '@/components/BaseCascader'
+  import Editor from './component/editor'//编辑
+  import Detail from './component/detail'
+  import  *  as  RequestLogUrl from '@/request/log/mangePlatformLog'
+
+  export default {
+    components:{pageList,BaseCascader,CommunitySelector,Editor,Detail},
+    mixins: [pageList],
+    name:'recruitInfo',
+    data() {
+      return {
+        form:{
+          name:'',//模糊查询关键字
+          traderId:'',//成交人
+          time:'',
+          timeType:'',//时间类型
+          dealType:'',//交易类型
+          communityId:''
+        },
+        tableData:[],
+        dealTypeOpt:[],
+        CommissionStatusOpt:[],
+        timeTypeOpt:[
+          {id:0,fieldValue:'收取时间'},
+          {id:1,fieldValue:'计划时间'}
+        ],
+        statusOpt:[
+          {id:0,fieldValue:'未处理'},
+          {id:1,fieldValue:'已处理'},
+          {id:2,fieldValue:'已取消'}
+        ],
+        isValidOpt:[
+          {id:0,fieldValue:'无效'},
+          {id:1,fieldValue:'有效'},
+        ],
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 介绍人
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        loadingView:false,
+        queryBtnLoading:false,
+        editorDialog:false,
+        cancelDialog:false,
+        hackReset:false,
+        cancelData:null,
+        areasUrl: queryCommunitySelectWithRegion,
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        isAdd:false,
+        editDialogVisible:false,//编辑
+        detailDialogVisible:false,//详情
+        dialogTitle:'',//动态标题
+        currentRowData:null,
+        listQuery:{
+          limit:10,
+          page:1,
+          total:0
+        }
+      }
+    },
+    methods: {
+      //查询数据
+      _queryRecruitInfo(queryBtn){
+        if(queryBtn){
+          this.queryBtnLoading = queryBtn
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        let params = Object.assign({},this.form,{
+          limit:this.listQuery.limit,
+          page:this.listQuery.page
+        })
+        if(params.time.length>0){
+          params.beginTime = params.time[0]
+          params.endTime = params.time[1]
+        }
+        this.loadingView = true
+        queryRecruitInfo(params).then(res =>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.queryBtnLoading = false
+        }).catch(()=>{
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+      // 时间格式转化
+      dateFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+      },
+      timeFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue)
+      },
+      _loadData(queryBtn){
+        this._queryRecruitInfo(queryBtn)
+      },
+      resetForm(){
+        this.$refs['form'].resetFields()
+      },
+      //下拉数据源
+      dropDown(){
+        dropDown().then(res =>{
+          this.dealTypeOpt = res.dealType
+          this.CommissionStatusOpt = res.commissionStatus
+        })
+      },
+      //編輯
+      handleEdit(row){
+        this.hackReset = false
+        this.$nextTick(() =>{
+          this.dialogTitle ='编辑'
+          this.hackReset = true
+          this.editDialogVisible = true
+          this.isAdd = false
+          this.currentRowData = row
+        })
+      },
+      //新增
+      handleAdd(row){
+        this.hackReset = false
+        this.$nextTick(() =>{
+          this.dialogTitle ='新增'
+          this.hackReset = true
+          this.editDialogVisible = true
+          this.isAdd = true
+          this.currentRowData = row
+        })
+      },
+      //详情
+      handleDetail(row){
+        this.hackReset = false
+        this.$nextTick(() =>{
+          this.hackReset = true
+          this.detailDialogVisible = true
+          this.isAdd = true
+          this.currentRowData = row
+        })
+      },
+      //删除
+      handleDelete(row){
+        this.$confirm('确定删除该岗位？',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() =>{
+          let params = {id:row.id}
+          delRecruitInfoById(params).then(res =>{
+            console.log(res)
+            if(res.success){
+              this.$message({type:'success',message:res.msg})
+              let message = {
+                sourceCode:  row.name,
+                sourceTypeId:24,// 24：招聘信息管理
+                operatTypeId: 3,//操作类型7: 删除,
+                logContent:'删除岗位:'+row.name//日志内容
+              }
+              RequestLogUrl.manageQueryLog({message:JSON.stringify(message)}).then(res=>{
+                console.log(res)
+              }).catch(error =>{
+                console.log(error)
+              })
+              this._loadData(false)
+            }else{
+              this.$message({type:'warning',message:res.msg})
+            }
+          }).catch(error =>{
+            console.log(error)
+          })
+        }).catch(() =>{
+          this.$message({type:info,message:'已取消'})
+        })
+      },
+      handleEditDialog(value){
+          if(value == 1 ){
+            this.editDialogVisible = false
+          }else if(value == 2){
+            this.editDialogVisible = false
+            this._loadData(false)
+          }
+
+      },
+      closeDetailDialog(value){
+        if(value==1) {
+          this.detailDialogVisible =false
+        }
+        if(value==2) {
+          this.detailDialogVisible =false
+          this._loadData(false)
+        }
+      }
+    },
+    filters:{
+      eductionFilter(value ){
+          if(value == 0)return '高中及以上'
+          if(value == 1)return '大专及以上'
+          if(value == 2)return '本科及以上'
+          if(value == 3)return '硕士及以上'
+          if(value == 4)return '博士及以上'
+      },
+      wagesFilter(value){
+         if(value.minWages && value.maxWages) return '123'
+      }
+
+
+    },
+    mounted(){
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

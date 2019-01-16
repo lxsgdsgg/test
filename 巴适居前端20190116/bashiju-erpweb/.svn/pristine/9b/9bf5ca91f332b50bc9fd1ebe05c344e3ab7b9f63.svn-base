@@ -1,0 +1,115 @@
+<template>
+      <div class="page-content">
+        <div class="page-content-bd" v-loading="loadingView" style="height: 300px">
+          <el-table
+            :data="tableData"
+            border
+            tooltip-effect="light"
+            align="center"
+            style="width: 100%"
+          >
+
+            <el-table-column
+              prop="deptName"
+              align="left"
+              width="100px;"
+              label="部门">
+            </el-table-column>
+
+            <el-table-column
+              prop="operator"
+              show-overflow-tooltip
+              align="left"
+              width="100px;"
+              label="员工">
+            </el-table-column>
+
+            <el-table-column
+              prop="addTime"
+              align="left"
+              :formatter=" _timeFormat"
+              label="操作时间">
+            </el-table-column>
+
+            <el-table-column
+              prop="operatType"
+              align="left"
+              label="操作类型">
+            </el-table-column>
+
+            <el-table-column
+              show-overflow-tooltip
+              prop="content"
+              align="left"
+              label="日志内容">
+            </el-table-column>
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listQuery"
+            @handleSizeChange="handleSizeChange"
+            @handleCurrentChange="handleCurrentChange">
+          </b-pagination>
+        </div>
+     </div>
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryKeyLog} from "@/request/house/keyManagement";
+
+  export default {
+      components:{PageList},
+      mixins: [PageList],
+      props:{
+        data:{
+          type:Number
+        }
+      },
+        data() {
+            return {
+              form:{
+                hsKeyId:''
+              },
+              loadingView:false,
+              tableData:[],
+              listQuery:{
+                 limit:10,
+                 page:1,
+                 total:0
+              }
+            }
+        },
+        methods: {
+
+          _loadData(btn){
+            this.queryKeyLog(btn)
+          },
+          queryKeyLog(){
+            this.loadingView =true
+            let params = Object.assign({},this.form,{
+              limit:this.listQuery.limit,
+              page:this.listQuery.page
+            })
+            queryKeyLog(params).then(res =>{
+                this.tableData = res.data
+                this.listQuery.total = res.count
+                 this.loadingView =false
+            }).catch(() =>{
+              this.loadingView =false
+            })
+          },
+          //时间戳转换为日期
+          _timeFormat(row,column,cellValue){
+            return this.$utils.timeFormat(cellValue)
+          }
+        },
+        mounted() {
+            //初始化賦值
+            this.form.hsKeyId = this.data
+            this.queryKeyLog()
+        }
+
+    }
+
+</script>

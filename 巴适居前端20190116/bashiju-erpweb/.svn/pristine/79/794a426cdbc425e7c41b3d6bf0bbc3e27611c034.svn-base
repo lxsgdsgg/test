@@ -1,0 +1,602 @@
+<template>
+  <div class="page-content">
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <div class="grid-content">
+          <!--查询表单-->
+          <div class="page-content-hd">
+            <div class="query-form">
+              <el-form size="small" :inline="true" :model="areaForm" ref="areaForm" class="demo-form-inline">
+                <el-form-item label="选择城市" prop="code">
+                  <city-selector
+                    v-model="areaForm.code"
+                    :url="cityUrl"
+                    :props="cascaderProps"
+                    :dataProps="cascaderDataProps"
+                  >
+                  </city-selector>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button type="primary" @click.native.prevent="handlerQuery(true)" :loading="queryAreaBtnLoading">查询</el-button>
+                  <el-button @click.native.prevent="resetForm('areaForm')">清空</el-button>
+                </el-form-item>
+
+              </el-form>
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingAreaView">
+              <el-table :data="tableDataArea" @row-click="queryRegionPageList"
+                        border align="center" style="width: 100%" size="small" stripe highlight-current-row>
+              <el-table-column
+                prop="name"
+                align="left"
+                label="区划名称">
+              </el-table-column>
+
+              <el-table-column
+                prop="code"
+                align="left"
+                label="区划编码">
+              </el-table-column>
+
+              <el-table-column
+                prop="longitude"
+                align="left"
+                label="坐标经度">
+              </el-table-column>
+
+              <el-table-column
+                prop="latitude"
+                align="left"
+                label="坐标纬度"
+              >
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+                style="width: 200px;"
+              >
+                <template slot-scope="scope">
+                  <el-button @click="handleRegionAdd(scope.row)" type="text" size="small" v-if="scope.row.level > 2">新增片区</el-button>
+                  <el-button @click="setAreaCoodinate(scope.row)" type="text" size="small">设置坐标</el-button>
+                  <!--<el-button @click.prevent.stop="setAreaCoodinate(scope.row)" type="text" size="small">设置坐标</el-button>-->
+                  <!--<el-button v-hasMultipleBtn="['addRegion', scope.row]" @click="handleRegionAdd(scope.row)" type="text" size="small">新增片区</el-button>-->
+                  <!--<el-button v-hasMultipleBtn="['setAreaPoint', scope.row]" @click="setAreaCoodinate(scope.row)" type="text" size="small">设置坐标</el-button>-->
+                </template>
+              </el-table-column>
+
+            </el-table>
+            <!--分页控件-->
+            <b-pagination
+              :listQuery="listAreaQuery"
+              @handleSizeChange="handleAreaSizeChange"
+              @handleCurrentChange="handleAreaCurrentChange">
+            </b-pagination>
+          </div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="grid-contente">
+          <!--查询表单-->
+          <div class="page-content-hd">
+            <div class="query-form">
+              <el-form size="small" :inline="true" :model="regionForm" ref="regionForm">
+                <el-form-item label="片区名称" prop="name">
+                  <el-input v-model="regionForm.name" placeholder="片区名称"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button
+                    type="primary"
+                    @click.native.prevent="handlerRegionQuery(true)"
+                    :loading="queryRegionBtnLoading">查询</el-button>
+                  <el-button @click.native.prevent="resetForm('regionForm')">清空</el-button>
+                </el-form-item>
+
+              </el-form>
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingRegionView">
+            <el-table :data="tableRegionData" border align="left" style="width: 100%">
+
+              <el-table-column
+                prop="name"
+                align="left"
+                width="200px"
+                label="片区名称">
+              </el-table-column>
+
+              <el-table-column
+                prop="longitude"
+                align="left"
+                label="坐标经度">
+              </el-table-column>
+
+              <el-table-column
+                prop="latitude"
+                align="left"
+                label="坐标纬度">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                width="200px"
+                label="操作">
+                <template slot-scope="scope">
+                  <el-button @click.stop="setRegionCoordinate(scope.row)" type="text" size="small">设置坐标</el-button>
+                  <el-button @click.stop="handleRegionEdit(scope.row,'regionEditForm')" type="text" size="small">修改</el-button>
+                  <el-button @click.stop="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+                  <!--<el-button v-hasMultipleBtn="['setRegionPoint', scope.row]" @click="setRegionCoordinate(scope.row)" type="text" size="small">设置坐标</el-button>-->
+                  <!--<el-button v-hasMultipleBtn="['regionEditBtn', scope.row]" @click="handleRegionEdit(scope.row,'regionEditForm')" type="text" size="small">修改</el-button>-->
+                  <!--<el-button v-hasMultipleBtn="['regionDelBtn', scope.row]" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>-->
+                </template>
+              </el-table-column>
+
+            </el-table>
+            <!--分页控件-->
+            <b-pagination
+              :listQuery="listRegionQuery"
+              @handleSizeChange="handleRegionSizeChange"
+              @handleCurrentChange="handleRegionCurrentChange">
+            </b-pagination>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
+    <!--编辑数据弹框-->
+    <el-dialog size="small"
+      title="片区编辑"
+      :visible.sync="editDialogVisible"
+      :close-on-click-modal="false"
+      width="400px">
+
+      <el-form :model="regionEditForm" :rules="rules" ref="regionEditForm" label-width="100px">
+        <el-form-item label="片区名称" prop="name" placeholder="请填写片区名称">
+          <el-input v-model="regionEditForm.name" size="small"></el-input>
+        </el-form-item>
+
+        <el-form-item class="margin-b-none">
+          <el-button type="primary" @click="handlerSubmit" :loading="loadingRegionBtn" size="small">确认</el-button>
+          <el-button @click="handleCancel" size="small">取消</el-button>
+        </el-form-item>
+
+      </el-form>
+    </el-dialog>
+
+    <!--初始化地图-->
+    <el-dialog size="small"
+               title="设置坐标"
+               :visible.sync="coordinateDlg"
+               :close-on-click-modal="false"
+               top="10vh"
+               width="90%">
+
+        <set-map-coordinate
+          v-if="hackReset"
+          @handleClick="handleSetCoordinateDialog"
+          :data="this.currentRowData"
+          :coordinateType="coordinateType">
+        </set-map-coordinate>
+
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+
+  import {
+    queryAreaPageList,
+    queryRegionPageList,
+    getRegionListByName,
+    addRegion,
+    updateRegion,
+    deleteRegion,
+    updateRegionPoint,
+    updateAreaPoint
+  } from '@/request/manage/region'
+  import CitySelector from '@/components/BaseCascader'
+  import SetMapCoordinate from './components/SetMapCoordinate'
+
+  export default {
+    name: "region",
+    components: {CitySelector, SetMapCoordinate},
+    data(){
+      return {
+        cityUrl: 'manage/commonselect/queryOpenCity',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        areaCode: '',
+        coordinateType: '',
+        hackReset: true,
+        coordinateDlg: false,
+        editDialogVisible: false,
+        loadingAreaView: false,
+        loadingRegionView: false,
+        queryAreaBtnLoading: false,
+        queryRegionBtnLoading: false,
+        loadingRegionBtn: false,
+        tableDataArea: [],
+        currentRowData: null,
+        tableRegionData: [],
+        areaForm:{
+          code: '530100'//默认城市为昆明
+        },
+        regionForm: {
+          name: ''
+        },
+        regionEditForm: {
+          id: '',
+          name: '',
+          areaCode: ''
+        },
+        listAreaQuery:{page:1,limit: 10,total: 0},
+        listRegionQuery:{page:1,limit: 10,total: 0},
+        // 数据校验
+        rules : {
+          regionName:[
+            {required : true ,message: '片区名称不可为空',trigger: blur}
+          ]
+        },
+        // listQueryAreaParams: {},
+        // listQueryRegionParams: {}
+      }
+    },
+    methods: {
+      //页面改变
+      handleAreaSizeChange(val) {
+        this.listAreaQuery.limit = val
+        this.queryAreaPageList(false)
+      },
+      //当前页改变
+      handleAreaCurrentChange(val) {
+        this.listAreaQuery.page = val
+        this.queryAreaPageList(false)
+      },
+      //页面改变
+      handleRegionSizeChange(val) {
+        this.listRegionQuery.limit = val
+        this.queryRegionPageListForFirst(this.areaCode)
+      },
+      //当前页改变
+      handleRegionCurrentChange(val) {
+        this.listRegionQuery.page = val
+        this.queryRegionPageListForFirst(this.areaCode)
+      },
+      // 新增片区
+      handleRegionAdd(row) {
+        this.show = true
+        this.areaCode = row.code
+        this.currentRowData = null
+        this.resetForm('regionEditForm')
+        this.isAdd = true
+        this.currentRowData = row
+        this.setForm('regionEditForm','')
+        this.editDialogVisible = true
+      },
+      // 片区修改
+      handleRegionEdit(row,formName){
+        this.resetForm(formName)
+        this.currentRowData = null
+        this.isAdd = false
+        this.$nextTick(() => {
+          this.currentRowData = row
+          this.setForm(formName,this.currentRowData)
+          this.editDialogVisible = true
+        })
+      },
+      // 设置行政区坐标
+      setAreaCoodinate(row) {
+        this.hackReset = false
+        this.areaCode = row.code
+        this.show = true
+        this.$nextTick(() => {
+          this.hackReset = true
+          this.coordinateType = "1"
+          this.currentRowData = row
+          this.coordinateDlg = true
+        })
+      },
+      // 设置片区坐标
+      setRegionCoordinate(row){
+        this.hackReset = false
+        this.$nextTick(() => {
+          this.hackReset = true
+          this.currentRowData = row
+          this.coordinateType = "2"
+          this.coordinateDlg = true
+        })
+      },
+      // 提交表单
+      handlerSubmit() {
+        if(this.isAdd){
+          this.addRegion()
+        }else{
+          this.updateRegion()
+        }
+      },
+      // 取消或保存成功后的回调方法
+      handleSetCoordinateDialog(actionType) {
+        if (actionType && actionType === 1) {
+          this.coordinateDlg = false
+          this.queryAreaPageList(false)
+        } else if (actionType && actionType === 2) {
+          this.coordinateDlg = false
+          this.queryRegionPageListForFirst(this.areaCode)
+        }else if(actionType && actionType === 3){
+          this.coordinateDlg = false
+        }else{
+          this.$message({
+            type: 'info',
+            message: '暂不支持此操作'
+          })
+        }
+      },
+      //取消操作
+      handleCancel () {
+        this.editDialogVisible = false
+      },
+      //时间格式化函数
+      timeFormat(row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue)
+      },
+
+      // 修改时设置界面数据
+      setForm: function (formName,data) {
+        this.resetForm(formName)
+        for (let i in this.regionEditForm) {
+          this.regionEditForm[i] = data[i]
+        }
+      },
+
+      //重置界面数据
+      resetForm (formName) {
+        this.$refs[formName] && this.$refs[formName].resetFields()
+      },
+
+      /*点击查询按钮的查询*/
+      handlerQuery(isLoading){
+        this.listAreaQuery.page = 1
+        this.listAreaQuery.currentPage = 1
+        this.queryAreaPageList(isLoading)
+      },
+
+      /*点击查询按钮的查询*/
+      handlerRegionQuery(isLoading){
+        if(isLoading){
+          this.listRegionQuery.page = 1
+          this.listRegionQuery.currentPage = 1
+        }
+        if(this.regionForm.name){
+          this.queryRegionPageListByName(isLoading)
+        }else{
+          this.queryRegionPageListForFirst(this.areaCode)
+        }
+      },
+
+      // 查询页面列表数据
+      queryAreaPageList(isLoading){
+        this.queryAreaBtnLoading = isLoading
+        this.loadingView = true
+        let params = Object.assign({}, this.areaForm, {
+          page: this.listAreaQuery.page,
+          limit: this.listAreaQuery.limit
+        })
+        queryAreaPageList(params).then((res) => {
+          this.tableDataArea = res.data
+          this.listAreaQuery.total = res.count
+          this.queryAreaBtnLoading = false
+          this.loadingAreaView = false
+          this.queryRegionPageListForFirst(this.tableDataArea[0].code)
+        }).catch(err => {
+          console.log(err)
+          this.loadingAreaView = false
+          this.queryAreaBtnLoading = false
+        })
+      },
+
+      // 初始化页面时，查询第一个行政区划下属的片区信息
+      queryRegionPageListForFirst(code){
+        this.queryRegionBtnLoading = false
+        this.loadingRegionView = true
+        let params = {code: code,page : this.listRegionQuery.page,limit: this.listRegionQuery.limit};
+        queryRegionPageList(params).then((res) => {
+          this.tableRegionData = res.data
+          this.listRegionQuery.total = res.count
+          this.queryRegionBtnLoading = false
+          this.loadingRegionView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingRegionView = false
+          this.queryRegionBtnLoading = false
+        })
+      },
+
+      // 当点击列表时，查询片区页面列表数据
+      queryRegionPageList(row, event){
+        if(event){
+          event.stopPropagation()
+          event.preventDefault()
+        }
+        this.areaCode = row.code;
+        this.currentRowData = row
+        this.queryRegionBtnLoading = false
+        this.loadingRegionView = true
+        let params = {code: row.code,page : this.listRegionQuery.page,limit: this.listRegionQuery.limit};
+        queryRegionPageList(params).then((res) => {
+          this.tableRegionData = res.data
+          this.listRegionQuery.total = res.count
+          this.queryRegionBtnLoading = false
+          this.loadingRegionView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingRegionView = false
+          this.queryRegionBtnLoading = false
+        })
+      },
+
+      // 输入搜索条件时，查询片区页面列表数据
+      queryRegionPageListByName(isLoading){
+        this.queryRegionBtnLoading = isLoading
+        this.loadingRegionView = true
+        let params = Object.assign({}, this.regionForm, {
+          page: this.listRegionQuery.page,
+          limit: this.listRegionQuery.limit
+        })
+        params.cityCode = this.areaForm.code
+        getRegionListByName(params).then((res) => {
+          this.tableRegionData = res.data
+          this.listRegionQuery.total = res.count
+          this.queryRegionBtnLoading = false
+          this.loadingRegionView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingRegionView = false
+          this.queryRegionBtnLoading = false
+        })
+      },
+
+      // 修改片区信息
+      updateRegion: function(){
+        this.$refs['regionEditForm'].validate((valid) => {
+          if (valid) {
+            let params = {...this.regionEditForm}
+            let param = {id: params.id,name: params.name,code:params.areaCode}
+            this.$confirm('确认保存数据吗？是否继续?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingRegionBtn = true
+              updateRegion(param).then(res => {
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg,
+                  })
+                  this.editDialogVisible = false
+                  this.loadingRegionBtn = false
+                  this.queryRegionPageListForFirst(params.areaCode)
+                } else {
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                  this.editDialogVisible = false
+                  this.loadingRegionBtn = false
+                  this.currentRowData = null
+                }
+              }).catch(() => {
+                this.$message({
+                  type: 'warning',
+                  message: res.msg
+                })
+                this.editDialogVisible = false
+                this.loadingRegionBtn = false
+                this.currentRowData = null
+              })
+            }).catch(() => {
+              this.$message({
+                type: 'info',
+                message: '取消!'
+              })
+              this.editDialogVisible = false
+              this.loadingRegionBtn = false
+              this.currentRowData = null
+            })
+          }
+        })
+      },
+
+      // 保存片区信息
+      addRegion: function(){
+        this.$refs['regionEditForm'].validate((valid) => {
+          if (valid) {
+            let params = {...this.regionEditForm}
+            let param = {regionName: params.name,areaCode: this.areaCode,regionLongitude: '',regionLatitude: ''}
+            this.$confirm('确认保存数据吗？是否继续?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingRegionBtn = true
+              addRegion(param).then(res => {
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg,
+                  })
+                  this.editDialogVisible = false
+                  this.loadingRegionBtn = false
+                  this.queryRegionPageListForFirst(this.areaCode)
+                } else {
+                  alert()
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                  this.editDialogVisible = false
+                  this.loadingRegionBtn = false
+                  this.currentRowData = null
+                }
+              }).catch((err) => {
+                this.$message({
+                  type: 'warning',
+                  message: '系统异常'
+                })
+                this.editDialogVisible = false
+                this.loadingRegionBtn = false
+                this.currentRowData = null
+              })
+            })
+          }
+        })
+      },
+      // 删除片区信息
+      handleDelete (row) {
+        this.$confirm('确定删除该片区?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const param = {id: row.id}
+          deleteRegion(param).then(res => {
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this.queryRegionPageListForFirst(row.areaCode)
+            } else {
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            this.$message({
+              type: 'error',
+              message: '操作异常'
+            })
+          })
+        })
+        //   .catch((err) => {
+        //   this.$message({
+        //     type: 'info',
+        //     message: '已取消操作!'
+        //   })
+        // })
+      }
+    },
+    mounted() {
+      this.queryAreaPageList(false)
+    }
+  }
+</script>
+<style scoped>
+
+</style>

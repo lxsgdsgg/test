@@ -1,0 +1,802 @@
+<template>
+  <div>
+    <el-form class="wrapper" :model="dealForm" ref="dealForm" :rules="rules" label-width="100px" size="small">
+
+      <div class="content">
+        <el-row>
+
+          <el-col :span="10">
+            <el-form-item label="成交日期" prop="dealTime">
+
+              <el-date-picker
+                style="width: 100%;"
+                v-model="dealForm.dealTime"
+                type="date"
+                placeholder="选择日期"
+                format="yyyy 年 MM 月 dd 日"
+                value-format="yyyy-MM-dd">
+              </el-date-picker>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="5">
+            <el-form-item label="自动分成" prop="auto" label-width="80px">
+
+              <el-switch
+                v-model="dealForm.auto">
+              </el-switch>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="9">
+            <el-form-item label="成交人" prop="traderId" label-width="60px">
+
+              <base-cascader
+                :changeOnSelect="false"
+                @change="handleChange"
+                v-model="dealForm.traderId"
+                :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+              </base-cascader>
+
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+        <el-row>
+
+          <el-col :span="12">
+            <el-form-item label="合同号" prop="agreementId">
+
+              <el-input v-model="dealForm.agreementId"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="成交价格(万)" prop="price">
+
+              <el-input v-model="dealForm.price" @blur="getCommissionPrice"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="应收佣金(元）" prop="commissionPrice">
+
+              <el-input v-model="dealForm.commissionPrice" :readonly="true" placeholder="由成交价格自动计算"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+           <el-col :span="12">
+            <el-form-item label="房屋用途" prop="houseUsesId">
+
+              <el-select v-model="dealForm.houseUsesId" placeholder="请选择" >
+                <el-option
+                  v-for="item in selecthouseUses"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+            </el-select>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="补充条款" prop="supplementInfo">
+
+              <el-input type="textarea" v-model="dealForm.supplementInfo"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+        <hr>
+
+        <el-row>
+
+          <el-col :span="12">
+            <el-form-item label="坐栋" prop="houseAdress">
+              <el-input readonly="readonly" v-model="houseAdress"></el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="楼层" prop="floorCount">
+
+              <el-input style="width: 46%" readonly="readonly" v-model="dealForm.floorCount">
+                <i slot="suffix">楼</i>
+              </el-input>
+              <span style="margin: 0 5px"> / </span>
+              <el-input style="width: 46%" readonly="readonly" v-model="dealForm.totalLayers">
+                <i slot="suffix">楼</i>
+              </el-input>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="16">
+            <el-form-item label="户型描述" required class="margin-b-none">
+              <el-col :span="4">
+                <el-form-item prop="room"><el-input v-model.number="dealForm.room"><i slot="suffix" class="suffix">室</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="hall"><el-input v-model.number="dealForm.hall"><i slot="suffix" class="suffix">厅</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="toilet"><el-input v-model.number="dealForm.toilet"><i slot="suffix" class="suffix">卫</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="kitchen"><el-input v-model.number="dealForm.kitchen"><i slot="suffix" class="suffix">厨</i></el-input></el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="1">-</el-col>
+              <el-col :span="4">
+                <el-form-item prop="balcony"><el-input v-model.number="dealForm.balcony"><i slot="suffix" class="suffix">阳台</i></el-input></el-form-item>
+              </el-col>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="8">
+            <el-form-item label="建筑面积" prop="buildSpace">
+
+              <el-input v-model="dealForm.buildSpace">
+                <i slot="suffix">m²</i>
+              </el-input>
+
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+        <hr>
+
+        <el-row>
+
+          <el-col :span="12">
+            <el-form-item label="乙方编号" prop="demandId">
+              <el-input style="width: 210px" readonly="readonly" v-model="dealForm.demandId"></el-input>
+              <el-button size="small" @click="selectCustomer" >选择乙方</el-button>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="乙方姓名" prop="custName">
+
+              <el-input style="width: 185px" v-model="dealForm.custName"></el-input>
+
+              <el-select style="width: 100px" clearable v-model="gender" placeholder="性别">
+                <el-option v-for="item in GENDER_OPTS" :label="item.label" :value="item.value"></el-option>
+              </el-select>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="联系地址" prop="contactAdress">
+
+              <el-input v-model="contactAdress"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="证件号码" prop="IDCard">
+
+              <el-input v-model="IDCard"></el-input>
+
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+
+        <hr>
+
+        <div class="money-table">
+
+          <h2 class="text-center">
+            费用项设置
+            <el-button @click="handleAddTableRow" class="ml10" type="primary" plain size="mini" icon="el-icon-plus">新增项</el-button>
+          </h2>
+          <el-table
+            size="mini"
+            :data="moneyTableData"
+            style="width: 100%">
+
+            <el-table-column
+              width="130"
+              label="费用类型">
+
+              <template slot-scope="scope">
+                <el-select v-model="scope.row.moneyType" size="mini" @change="initMoneyProject(scope.row)">
+                  <el-option label="中介类费用" value="0"></el-option>
+                  <el-option label="金融类费用" value="1"></el-option>
+                </el-select>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="130"
+              label="费用项目">
+
+              <template slot-scope="scope">
+                <el-select size="mini" v-model="scope.row.moneyProjId"  @change="selectMoneyProjHandel(scope.row)">
+                  <el-option
+                    v-for="option in scope.row.moneyProjData"
+                    :key="option.value"
+                    :label="option.label"
+                    :value="option.value">
+                  </el-option>
+              </el-select>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="120"
+              label="交费人">
+
+              <template slot-scope="scope">
+                <el-select v-model="scope.row.payerType" size="mini">
+                  <el-option label="业主" value="0"></el-option>
+                  <el-option label="客户" value="1"></el-option>
+                </el-select>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="120"
+              label="金额">
+
+              <template slot-scope="scope">
+                <el-input
+                  size="mini"
+                  v-model="scope.row.price">
+                  <i slot="suffix" class="fa fa-rmb mr5" style="vertical-align: sub"></i>
+                </el-input>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="190"
+              label="预计交费日期">
+              <template slot-scope="scope">
+                <el-date-picker
+                  size="mini"
+                  style="width: 100%;"
+                  v-model="scope.row.estimatePayTime"
+                  type="date"
+                  placeholder="选择日期"
+                  format="yyyy 年 MM 月 dd 日"
+                  value-format="yyyy-MM-dd">
+                </el-date-picker>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="150"
+              label="备注">
+
+              <template slot-scope="scope">
+                <el-input
+                  size="mini"
+                  v-model="scope.row.remark">
+                </el-input>
+              </template>
+
+            </el-table-column>
+
+            <el-table-column
+              width="80"
+              label="操作">
+              <template slot-scope="scope">
+                <el-button @click="handleRowReset(scope.$index,scope.row)" type="text">清除</el-button>
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </div>
+
+      </div>
+
+      <el-form-item class="btn-groups" label-width="0">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+        <el-button @click="cancelSubmit">取消</el-button>
+
+      </el-form-item>
+
+    </el-form>
+    <el-dialog title="客源列表"  width="800px" :visible.sync="dialogContentVisible" append-to-body>
+      <el-form  label-position="right"   ref="contentForm" >
+        <el-form-item>
+          <el-select v-model="addForm.status" placeholder="状态" style="width: 120px;">
+            <el-option  label="有效全部" value="0"></el-option>
+            <el-option  label="有效公客" value="1"></el-option>
+            <el-option  label="有效私客" value="2"></el-option>
+            <el-option  label="淘宝池" value="3"></el-option>
+          </el-select>
+          <base-cascader
+            v-model="addForm.userId"
+            :changeOnSelect="false"
+            :url="getReferenceUserSelectUrl"
+            :props="selectProps"
+            :dataProps="selectDataProps" @change="onChange" style="width:150px">
+          </base-cascader>
+          <el-button type="primary" @click="queryTable">查询</el-button>
+          <el-button type="primary"  @click="queryClear">清空</el-button>
+        </el-form-item>
+        <el-form-item>
+          <div class="page-content-bd" v-loading="loadingView">
+            <el-table :data="customerData" border style="width: 100%" highlight-current-row
+                       @row-click="selectedCustomer">
+              <el-table-column align="center" prop="id" label="需求编号"  >
+              </el-table-column>
+              <el-table-column align="center" prop="status" label="状态">
+              </el-table-column>
+              <el-table-column align="center" prop="custName" label="客户姓名">
+              </el-table-column>
+              <el-table-column align="center" prop="region" label="需求区域">
+             </el-table-column>
+             <el-table-column align="center" prop="space" label="需求面积">
+              </el-table-column>
+              <el-table-column align="center" prop="price" label="需求价格">
+             </el-table-column>
+              <el-table-column align="center" prop="maintainer" label="维护人">
+              </el-table-column>
+            </el-table>
+            <!--分页控件-->
+            <b-pagination
+              :listQuery="listQuery"
+              @handleSizeChange="handleSizeChange"
+              @handleCurrentChange="handleCurrentChange">
+            </b-pagination>
+          </div>
+        </el-form-item>
+      </el-form>
+
+    </el-dialog>
+
+  </div>
+</template>
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import {GENDER_OPTS} from '../consts'
+  import {queryCustomerList} from '@/request/manage/ContractManage'
+  import { addNewHouseDeal,queryCommissionPrice}  from '@/request/house/houseNew'
+  import {querySelectItems}  from '@/request/deal/houseDeal'
+
+
+
+  export default {
+    components: {BaseCascader},
+    props: {
+      peopleSelectOpts: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+      roomInfo: {
+        type: Object,
+        default () {
+          return null
+        }
+      }
+
+    },
+    data () {
+      // 自定义金额验证
+      var money = (rule, value, callback) => {
+        let reg = /^[0-9]+/
+        if(!value){
+          return callback(new Error('金额不能为空'))
+        }
+        if(value<=0){
+           return callback(new Error('金额需大于0'))
+        }
+        if (reg.test(value)) {
+          callback();
+        }
+        return callback(new Error('只能输入数字或小数'));
+      };
+      return {
+        selecthouseUses:[
+          {
+            value:'house',
+            label: '住宅'
+          },
+          {
+            value:'villa',
+            label: '别墅'
+          },
+          {
+            value:'apartment',
+            label: '公寓'
+          },
+          {
+            value:'shops',
+            label: '商铺'
+          },
+          {
+            value:'officeBuiling',
+            label: '写字楼'
+          },
+          {
+            value:'wareHouse',
+            label: '仓库'
+          },
+          {
+            value:'factory',
+            label: '厂房'
+          },
+          {
+            value:'parking',
+            label: '车位'
+          },
+          {
+            value:'land',
+            label: '土地'
+          }
+
+        ],
+        GENDER_OPTS: GENDER_OPTS,
+        //form值
+        dealForm: {
+          dealDate: '',
+          auto: true,
+          traderId: '',
+          agreementId: '',
+          price: '',
+          commissionPrice: '',
+          supplementInfo: '',
+          floorCount: '',
+          totalLayers: '',
+          room: '',
+          hall: '',
+          toilet: '',
+          kitchen: '',
+          balcony: '',
+          buildSpace: '',
+          demandId: '',
+          custName: ''
+        },
+        rules:{
+            'dealDate':[
+              { required: true, message: '请选择成交日期', trigger: 'blur' }
+            ],
+            'traderId':[
+              { required: true, message: '请选择成交人', trigger: 'blur' }
+              ],
+            'agreementId':[
+              { required: true, message: '请填写合同号', trigger: 'blur' }
+              ],
+            'houseUsesId':[
+              { required: true, message: '请选择用途', trigger: 'blur' }
+              ],
+            'price':[
+              { required: true, message: '成交价格不能为空', trigger: 'blur' },
+              { validator: money, trigger: 'blur' }
+            ],
+            'commissionPrice':[
+              { required: true, message: '应收佣金不能为空', trigger: 'blur' }
+            ],
+            'room':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+             'hall':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+             'toilet':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+             'kitchen':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+             'balcony':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+            'buildSpace':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+             'demandId':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+            'custName':[
+              { required: true, message: '不能为空', trigger: 'blur' }
+            ],
+        
+            },
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 选员工
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        loadingView: false,
+        loadingSubmitBtn: false,
+        moneyTableData: [{}],
+        dialogContentVisible: false,
+        currentRow: {},
+        customerId: '',
+        customerData: [],
+        listQuery: {
+          page: 1,
+          limit: 5,
+          total: 0,
+          pageSizes:[5,10,20],
+          pageSize:5
+        },
+        contentForm: {},
+        addForm: {
+          type: '',
+          userId: '',
+          status:''
+        },
+        agencyData: [],
+        financeData: [],
+        moneyProjData: [],
+        houseAdress: '',
+        gender: '',
+        contactAdress: '',
+        IDCard: ''
+      }
+    },
+    methods: {
+      getCommissionPrice(){
+          let param = {
+            price: this.dealForm.price*10000
+          }
+          queryCommissionPrice(param).then((res)=>{
+                if (res.success){
+                  this.dealForm.commissionPrice = res.data
+                }else {
+                  this.dealForm.commissionPrice = 0
+                }
+              }).catch(()=>{
+                this.dealForm.commissionPrice = 0
+              })
+      },
+      initMoneyProject(item){
+        if (item.moneyType === '0') {
+            item.moneyProjData = this.agencyData
+        }
+        if (item.moneyType === '1') {
+          item.moneyProjData = this.financeData
+        }
+      },
+      selectMoneyProjHandel(row){
+        for (let  i =0 ; i<this.moneyProjData.length;i++){
+          if (row.moneyProjId===this.moneyProjData[i].value){
+              row.moneyProjName = this.moneyProjData[i].label
+              return
+          }
+        }
+      },
+      handleChange () {},
+     _resetForm () {
+        this.$refs['dealForm'] && this.$refs['dealForm'].resetFields()
+        this.moneyTableData.forEach((item,index)=>{
+          item.moneyType = ''
+          item.moneyProjId = ''
+          item.payerType = ''
+          item.price = ''
+          item.estimatePayTime = ''
+          item.remark = ''
+          return item;
+        })
+      },
+      handleAddTableRow () {
+        this.moneyTableData.push({})
+      },
+
+      // 清除行
+      handleRowReset (index,row) {
+        this.moneyTableData.splice(index,1)
+        console.log(row)
+        this.$set(row, 'moneyType', '')
+        this.$set(row, 'moneyProjId', '')
+        this.$set(row, 'payerType', '')
+        this.$set(row, 'price', '')
+        this.$set(row, 'estimatePayTime', '')
+        this.$set(row, 'remark', '')
+      },
+      selectCustomer() {
+        this.currentRow = {}
+        this.customerId = ''
+        this.dialogContentVisible = true
+        this.queryListData()
+      },
+      selectedCustomer(row, event, column) {
+           this.dealForm.demandId = row.id
+           this.dealForm.custName = row.custName
+           this.customerId = row.id
+           this.dialogContentVisible = false
+
+      },
+
+      queryListData: function () {
+        this.loadingView = true
+        let params = Object.assign({},{
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        let conditions={'transactionTypeId':4}
+
+        if (this.addForm.status==='1'){
+          conditions.discStatusId=2
+        }
+        if (this.addForm.status==='2'){
+          conditions.discStatusId=1
+        }
+        if (this.addForm.status==='3'){
+          conditions.taobaoStatusId=1
+        }
+        if (this.addForm.type==='dept'){
+          conditions.mainterDeptId=this.addForm.userId
+        }
+        if (this.addForm.type==='user'){
+          conditions.maintainId=this.addForm.userId
+        }
+        params.conditions = JSON.stringify(conditions)
+        queryCustomerList(params).then((res) => {
+          this.customerData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingView = false
+        })
+      },
+       handleCurrentRowChange(row){
+        this.currentRow = row
+      },
+      handleSizeChange(val) {
+        this.listQuery.limit = val
+        this.queryListData(false)
+      },
+      handleCurrentChange(val) {
+        this.listQuery.page = val
+        this.queryListData()
+      },
+       onChange (val, label, data) {
+        // alert(111);
+        console.log(val, label, data)
+        this.addForm.type = data.dataType;
+
+      },
+      queryClear(){
+        this.addForm.userId = ''
+        this.addForm.status=''
+        this.addForm.type=''
+      },
+      queryTable(){
+        this.queryListData()
+      },
+      handleSubmit(){
+          this.$refs['dealForm'].validate((valid) => {
+            if (valid) {
+              this.dealForm.buildingHouseId = this.roomInfo.houseId
+              this.dealForm.dealType = '02'
+              this.dealForm.houseUses = this.selecthouseUses.find(item => item.value === this.dealForm.houseUsesId).label
+              if(this.dealForm.auto==true){
+                this.dealForm.auto = 1
+              }else{
+                 this.dealForm.auto = 0
+              }
+              this.dealForm.owner = this.roomInfo.developers
+              let param = {...this.dealForm}
+
+              let commissionsJson = this.moneyTableData
+              commissionsJson.map(item=>{
+                item.moneyProjName = item.moneyProjData.find(yitem => yitem.value === item.moneyProjId).label
+                delete item.moneyProjData
+
+                return item
+              })
+              /*
+              for (let i=0;i<this.costList.length;i++){
+                if (this.costList[i].moneyType!=''&&this.costList[i].moneyProjId!=''
+                  &&this.costList[i].payerType!=''&&this.costList[i].price!=''&&this.costList[i].estimatePayTime!=''){
+                  let item = {}
+                  item.moneyType=this.costList[i].moneyType
+                  item.moneyProjId=this.costList[i].moneyProjId
+                  item.moneyProjName=this.costList[i].moneyProjName
+                  item.payerType=this.costList[i].payerType
+                  item.price=this.costList[i].price
+                  item.estimatePayTime=this.costList[i].estimatePayTime
+                  item.remark=this.costList[i].remark
+                  commissionsJson.push(item)
+                }
+              }
+              */
+             //JSON.stringify(commissionsJson)
+              let dealParam = {'dataJson':JSON.stringify(param),'commissionsJson':JSON.stringify(commissionsJson)}
+              addNewHouseDeal(dealParam).then((res)=>{
+                if (res.success){
+                  this.$message({
+                    type: 'success',
+                    message: '保存成功！'
+                  })
+                  this.$emit('saveDeal',true)
+                }else {
+                  this.$emit('saveDeal',false)
+                }
+              }).catch(()=>{
+                this.$emit('saveDeal',false)
+              })
+
+            } else {
+              console.log('error submit!!');
+              return false;
+            }
+          });
+        },
+        cancelSubmit(){
+          this.$emit('cancelDeal',null)
+        },
+        setRommInfo () {
+          this.dealForm.floorCount = this.roomInfo.floor
+          this.dealForm.totalLayers = this.roomInfo.floorTotal
+          this.houseAdress = this.roomInfo.buildingName + this.roomInfo.buildUnitAlias + this.roomInfo.unitName + this.roomInfo.unitAlias + this.roomInfo.houseNo
+        }
+    },
+    mounted () {
+        //中介费下拉初始化
+        querySelectItems({'param':'agencyFee'}).then((res)=>{
+          if (res.success){
+            this.agencyData = []
+            for(let i=0;i<res.data.length;i++){
+              let data = {'label':res.data[i].fieldValue,'value':res.data[i].fieldCode}
+              this.agencyData.push(data)
+            }
+          }
+        })
+        //金融类费用初始化
+        querySelectItems({'param':'financeFee'}).then((res)=>{
+          if (res.success){
+            this.financeData = []
+            for(let i=0;i<res.data.length;i++){
+              let data = {'label':res.data[i].fieldValue,'value':res.data[i].fieldCode}
+              this.financeData.push(data)
+            }
+          }
+        })
+        this.setRommInfo()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .wrapper {
+    height: 585px;
+  }
+  .content {
+    height: 550px;
+    max-height: 550px;
+    overflow-y: auto;
+  }
+
+  .money-table {
+    h2 {
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .btn-groups {
+    margin-bottom: 0; text-align: center; padding-top: 15px; border-top: 1px dashed #ddd;
+  }
+</style>

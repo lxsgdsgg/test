@@ -1,0 +1,462 @@
+<template>
+  <div style="height: 500px;overflow: auto">
+    <div id="showBuilding">
+      <p>已选择==>{{this.oneBuildingData.name}}{{this.oneBuildingData.buildUnitAlias}}==>{{this.oneUnitData.name}}{{this.oneUnitData.unitAlias}}</p>
+      <br>
+      <el-row :gutter="0">
+        <el-col :span="3">
+          <el-table
+            :data="buildingData"
+            align="left" border
+            style="width: 100%;color:#66b1ff;"
+            @row-click="queryBuildingUnitListByBuildingIdWhenClickTable"
+            @cell-mouse-leave="cellMouseLeave"
+            @cell-mouse-enter="cellMouseEnter"
+            height="450"
+          >
+            <el-table-column
+              label="座栋名称"
+              prop="name"
+              align="left"
+            >
+              <template slot-scope="scope">
+                {{scope.row.name + scope.row.buildUnitAlias}}
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+
+        <el-col :span="3">
+          <el-table
+            :data="unitData"
+            align="left"
+            border style="width: 100%;color:#66b1ff;"
+            @row-click="queryHouseDataByBuildingId"
+            @cell-mouse-leave="cellMouseLeave"
+            @cell-mouse-enter="cellMouseEnter"
+            height="450"
+          >
+            <el-table-column
+              label="单元名称"
+              prop="name"
+              align="left"
+            >
+              <template slot-scope="scope">
+                {{scope.row.name + scope.row.unitAlias}}
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+
+        <div>
+          <el-col :span="18">
+            <!--@cell-mouse-leave="cellMouseLeave" @cell-mouse-enter="cellMouseEnter"-->
+            <el-table border style="width: 100%;" :data="showHouseData"
+                 height="450" v-loading="loadingView" @cell-dblclick="doubleClickReturn" >
+              <el-table-column
+                align="center"
+                v-for="(item,index) in unitHouseCount"
+                :label="'第'+ item +'户'"
+                :key="index" width="160px"
+                :prop="'houseNumber' + item"
+              >
+                <template slot-scope="scope">
+                  <!--新房销控--红色-->
+                  <div v-if="returnTempObj(scope.row['houseNumber' + item]) && isNewHouse" style="margin: 0 -12px;background-color: #EBADAD;">
+                    {{scope.row['houseNumber' + item]}}
+                    <br>
+                    {{returnTransactionTypeName(scope.row['houseNumber' + item])}}
+                    <br>
+                    <a @click="toDetail(returnTempObj(scope.row['houseNumber' + item]))" href="javascript:;" class="houseId"  type="text">
+                      {{returnHouseNo(scope.row['houseNumber' + item])}}
+                    </a>
+                    <br>
+                    {{returnSpace(scope.row['houseNumber' + item]) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}}{{returnPrice(scope.row['houseNumber' + item])}}
+                    <br>
+                    {{returnHuxing(scope.row['houseNumber' + item])}}
+                  </div>
+                  <!--有效房源--黄色-->
+                  <div v-else-if="returnTempObj(scope.row['houseNumber' + item])
+                      && !isNewHouse
+                      && returnTempObj(scope.row['houseNumber' + item]).statusId ==='1'"
+                      style="margin: 0 -12px;background-color:#E7E8A2;">
+                    {{scope.row['houseNumber' + item]}}
+                    <br>
+                    {{returnTransactionTypeName(scope.row['houseNumber' + item])}}
+                    <br>
+                    <a @click="toDetail(returnTempObj(scope.row['houseNumber' + item]))" href="javascript:;" class="houseId"  type="text">
+                      {{returnHouseNo(scope.row['houseNumber' + item])}}
+                    </a>
+                    <br>
+                    {{returnSpace(scope.row['houseNumber' + item]) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}}{{returnPrice(scope.row['houseNumber' + item])}}
+                    <br>
+                    {{returnHuxing(scope.row['houseNumber' + item])}}
+                  </div>
+                  <!--出租房源，红色-->
+                  <div v-else-if="returnTempObj(scope.row['houseNumber' + item])
+                      && !isNewHouse
+                      && returnTempObj(scope.row['houseNumber' + item]).statusId ==='2'"
+                       style="margin: 0 -12px;background-color: #EBADAD;">
+                            {{scope.row['houseNumber' + item]}}
+                    <br>
+                    {{returnTransactionTypeName(scope.row['houseNumber' + item])}}
+                    <br>
+                    <a @click="toDetail(returnTempObj(scope.row['houseNumber' + item]))" href="javascript:;" class="houseId"  type="text">
+                      {{returnHouseNo(scope.row['houseNumber' + item])}}
+                    </a>
+                    <br>
+                    {{returnSpace(scope.row['houseNumber' + item]) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}}{{returnPrice(scope.row['houseNumber' + item])}}
+                    <br>
+                    {{returnHuxing(scope.row['houseNumber' + item])}}
+                  </div>
+                  <!--失效房源，绿色-->
+                  <div v-else-if="returnTempObj(scope.row['houseNumber' + item])" style="margin: 0 -12px;background-color: #C4E9C4;">
+                    {{scope.row['houseNumber' + item]}}
+                    <br>
+                    {{returnTransactionTypeName(scope.row['houseNumber' + item])}}
+                    <br>
+                    <a @click="toDetail(returnTempObj(scope.row['houseNumber' + item]))" href="javascript:;" class="houseId"  type="text">
+                      {{returnHouseNo(scope.row['houseNumber' + item])}}
+                    </a>
+                    <br>
+                    {{returnSpace(scope.row['houseNumber' + item]) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}}{{returnPrice(scope.row['houseNumber' + item])}}
+                    <br>
+                    {{returnHuxing(scope.row['houseNumber' + item])}}
+                  </div>
+                  <div v-else>
+                    {{scope.row['houseNumber' + item]}}
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-col>
+        </div>
+      </el-row>
+    </div>
+  </div>
+</template>
+
+<script>
+
+  import * as BuildingUnit from '@/request/manage/community'
+  import PageList from '@/mixins/pageList'
+
+  export default {
+    name: "BuildingUnitComponent",
+    mixins:[PageList],
+    props:{
+      data:{
+        // 包含：buildingId：座栋ID，buildingsName：座栋名称，buildingAlias：座栋别名
+        type: Object,
+        default(){
+          return null
+        }
+      },
+      baseInfo:{
+        // 房源基本信息
+        type: Object,
+        default(){
+          return null
+        }
+      },
+      // 小区ID
+      communityId:{
+        type: [String, Number],
+        default(){
+          return ''
+        }
+      },
+      // 公司ID，子组件传入房源的公司ID
+      companyId:{
+        type: [String, Number],
+        default(){
+          return ''
+        }
+      },
+      // 是否新房，子组件传入
+      isNewHouse:{
+        type: Boolean,
+        default(){
+          return false
+        }
+      }
+    },
+    data(){
+      return {
+        loadingView: false,
+        buildingData:[],
+        unitData: [],
+        houseData: Object,
+        showHouseData: [],
+        unitHouseCount: '',
+        oneUnitData: '',
+        oneBuildingData: '',
+        retObj: {},
+        floorTotal: '',
+        erHouseSale: null,
+        newHouseSale: null,
+        houseAllData: null
+      }
+    },
+    methods:{
+      returnTransactionTypeName(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          return true
+        }
+        return false
+      },
+      returnTempObj(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          return temp
+        }
+        return null
+      },
+      returnBackgroudColor(houseNo){
+        if(this.isNewHouse){
+          return
+        }
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          return temp
+        }
+        return null
+      },
+      returnTransactionTypeName(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          if(this.isNewHouse){
+            return '我售出售'
+          }else{
+            return temp.status + temp.transactionType
+          }
+        }
+        return ''
+      },
+      returnHouseNo(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          return '[' + temp.houseId + ']'
+        }
+        return ''
+      },
+      returnSpace(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp){
+          return temp.buildSpace + 'm²'
+        }
+        return ''
+      },
+      returnPrice(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp && temp.sellingPrice){
+          return temp.sellingPrice + '万'
+        }
+        if(temp && temp.rentPrice){
+          return temp.rentPrice + '元'
+        }
+        return ''
+      },
+      returnHuxing(houseNo){
+        let temp = this.houseAllData[houseNo]
+        if(temp && temp.room && temp.hall && temp.kitchen && temp.toilet && temp.balcony){
+          return temp.room + '室' + temp.hall + '厅' + temp.kitchen + '厨' + temp.toilet + '卫' + temp.balcony + '阳台'
+        }
+        return ''
+      },
+
+      toDetail(row){
+        this.$emit('enterHouseDetail')
+        this.$router.push({ path: '/house/houseUsedDetail/' + row.id + '/' + row.houseId, query: { formName: row.houseUsesId}})
+      },
+      // 双击单元格时出发此方法
+      doubleClickReturn(row, column, cell, event){
+        this.retObj = {}
+        this.retObj.buildingId = this.oneBuildingData.id
+        this.retObj.buildingName = this.oneBuildingData.name
+        this.retObj.buildUnitAlias = this.oneBuildingData.buildUnitAlias
+        this.retObj.unitId = this.oneUnitData.id
+        this.retObj.unitName = this.oneUnitData.name
+        this.retObj.unitAlias = this.oneUnitData.unitAlias
+        this.retObj.houseNo = row[column.property]
+        this.retObj.houseId = row[this.retObj.houseNo]
+        this.retObj.floor = row.floor
+        this.retObj.floorTotal = this.floorTotal;
+        this.$emit('dbCellClick', this.retObj)
+      },
+      // 鼠标进入单元格时出发
+      cellMouseEnter (row, column, cell, event) {
+        let el = event.target
+        this.$utils.addClass(el, 'cellActive')
+      },
+      // 鼠标离开单元格时出发
+      cellMouseLeave () {
+        let el = event.target
+        this.$utils.removeClass(el, 'cellActive')
+      },
+      // 根据座栋ID查询单元信息
+      queryBuildingUnitListByBuildingId(id){
+        let params = {bid:id,
+            page: this.listQuery.page,limit: this.listQuery.limit
+        }
+        BuildingUnit.queryBuildingUnitListByBuildingId(params).then(res=>{
+          this.unitData = res.data
+          this.unitHouseCount = this.unitData[0].unitHouseCount
+          this.oneUnitData = this.unitData[0]
+          this.queryHouseDataByBuildingId(this.unitData[0])
+        }).catch(err=>{
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+        })
+      },
+
+      // 根据座栋ID查询单元信息 --座栋信息表的点击事件响应
+      queryBuildingUnitListByBuildingIdWhenClickTable(row){
+        this.oneBuildingData = row
+        let params = {bid:row.id,
+          page: this.listQuery.page,limit: this.listQuery.limit
+        }
+        BuildingUnit.queryBuildingUnitListByBuildingId(params).then(res=>{
+          this.unitData = res.data
+          this.unitHouseCount = this.unitData[0].unitHouseCount
+          this.oneUnitData = this.unitData[0]
+          this.queryHouseDataByBuildingId(this.unitData[0])
+        }).catch(err=>{
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+        })
+      },
+
+      // 根据单元ID查询房屋信息
+      queryHouseDataByBuildingId(row){
+        this.floorTotal = row.floorTotal
+        let tempDataObj = []
+        let params = {buildingUnitId: row.id}
+        this.oneUnitData = row
+        this.loadingView = true
+        this.showHouseData = []
+        BuildingUnit.queryUnitsByBuildingId(params).then(res=>{
+          this.houseData = res.data
+          if(this.isNewHouse){
+            this.getSellHouseInfo(row.id)
+          }else{
+            this.queryHouseSalesStatusByUnit(row.id,this.companyId)
+          }
+          this.showHouseData.sort(this.up)
+          this.loadingView = false
+        }).catch(err=>{
+          console.log(err)
+          this.loadingView = false
+        })
+      },
+
+      buildHouseData(){
+        if(this.isNewHouse){
+          this.houseAllData = this.newHouseSale
+        }else{
+          this.houseAllData = this.erHouseSale
+        }
+        for(let i in this.houseData){
+          let datas = this.houseData[i].datas
+          let floor = this.houseData[i].floor
+          let tempData = datas.split(",")
+          let result = {}
+          for(let j in tempData){
+            if(tempData[j]){
+              let secondTemp = tempData[j]
+              let key = 'houseNumber'.concat(++j)
+              let houseNo = secondTemp.split(';')
+
+              // 拼接销控信息
+              // let saleMsg = '  '
+              // if(houseData && houseData[houseNo[0]]){
+              //   let oneHouseSaleInfo = houseData[houseNo[0]]
+              //   saleMsg = '<a href="javascript:;">' + `${oneHouseSaleInfo.houseCode}` +'</a>\n' +
+              //       `${saleMsg}${oneHouseSaleInfo.room}室${oneHouseSaleInfo.hall}厅${oneHouseSaleInfo.kitchen}厨${oneHouseSaleInfo.toilet}卫${oneHouseSaleInfo.buildSpace}m²`
+              //   // console.log(saleMsg)
+              // }
+              // result[key] = houseNo[0] + '\n' +  saleMsg
+              result[key] = houseNo[0]
+              result[houseNo[0]] = houseNo[1]
+            }
+          }
+          result['floor'] = floor
+          this.showHouseData.unshift(result)
+          this.showHouseData.sort(this.up)
+        }
+      },
+      //按升序排列
+      up(x,y){
+        return x.floor-y.floor
+      },
+
+      // 根据小区ID查询座栋列表
+      queryBuildingsByCommunityId(){
+        let params = Object.assign({},{cid: this.communityId},{page: 0,limit: 0})
+        BuildingUnit.queryBuildingsByCommunityId(params).then(res=>{
+          this.buildingData = res.data
+          this.oneBuildingData = this.buildingData[0]
+          this.queryBuildingUnitListByBuildingId(this.buildingData[0].id)
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      /**
+       * 查询二手房销控
+       * @param buildingUnitId 单元ID
+       * @param companyId 公司ID
+       */
+      queryHouseSalesStatusByUnit(buildingUnitId,companyId){
+        BuildingUnit.queryHouseSalesStatusByUnit({buildingUnitId: buildingUnitId,companyId: companyId}).then(res=>{
+          this.erHouseSale = res.data.houseList
+          this.buildHouseData()
+        })
+      },
+
+      // 查询新房销控 bulidingUnitId:单元ID
+      getSellHouseInfo(bulidingUnitId){
+        BuildingUnit.getSellHouseInfo({bulidingUnitId: bulidingUnitId}).then(res=>{
+          this.newHouseSale = res.data
+          this.buildHouseData()
+        })
+      }
+    },
+    mounted(){
+      this.buildingData = []
+      if(this.communityId){
+        this.queryBuildingsByCommunityId()
+      }else{
+        this.queryBuildingUnitListByBuildingId(this.data.id)
+        this.buildingData[0] = this.data
+        this.oneBuildingData = this.data
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .houseId {
+    color: #409eff;
+    &:hover {
+       text-decoration: underline;
+    }
+  }
+
+  .cellDiv {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 23px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+</style>

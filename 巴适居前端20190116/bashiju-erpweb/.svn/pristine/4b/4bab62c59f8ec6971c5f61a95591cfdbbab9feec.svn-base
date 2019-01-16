@@ -1,0 +1,16 @@
+import * as consts from '../../consts'
+
+export default {
+  data () {
+    return {
+      PERMISSION_BTN: consts.PERMISSION_BTN
+    }
+  },
+
+  computed: {
+    // 按钮权限
+    btnPermission () {
+      return this.$store.getters.permissions
+    }
+  }
+}

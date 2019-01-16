@@ -1,0 +1,1222 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+         <el-form-item label="" prop="selectId">
+             <base-cascader
+                @change="handleChangeRemind"
+                v-model="queryForm.selectId"
+                :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps" placeholder="公司、部门、员工">
+            </base-cascader>
+          </el-form-item>
+         
+          <el-form-item label="" prop="months">
+            <el-date-picker
+              v-model="queryForm.startMonth"
+              type="month"
+              placeholder="开始月份" value-format="yyyy-MM" >
+            </el-date-picker>
+            <el-date-picker
+              v-model="queryForm.endMonth"
+              type="month"
+              placeholder="截止月份" value-format="yyyy-MM" >
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm">重置</el-button>
+          </el-form-item>
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'wagesInfoMake'"  type="primary" @click="handleAddWages">生成上月工资</el-button>
+            <el-button v-hasOnlyBtn="'wagesInfoMake'"   @click="handleSure">上月全部通过</el-button>
+            <el-button v-hasOnlyBtn="'wagesInfoMake'"   @click="handleReject">上月全部驳回</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        @row-click="_showValue"
+        border
+        :summary-method="getSummaries1"
+        show-summary
+        highlight-current-row
+        align="center"
+        style="width: 100%"
+        
+      >
+
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="userName"
+          align="center"
+          label="员工">
+        </el-table-column>
+
+        <el-table-column
+          prop="months"
+          align="center"
+          label="月份">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="基本工资(元)">
+            <template slot-scope="scope">
+              <template v-if="scope.row.edit">
+                <el-input class="edit-input" size="mini"  v-model="scope.row.basePay" @blur="blurBasePay(scope.row)"></el-input>
+              </template>
+
+              <span v-else>{{ scope.row.basePay }}</span>
+            </template>
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="奖金(元)">
+          <template slot-scope="scope">
+           <a
+              @click="_showBonusPay(scope.row)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.bonusPay}}
+            </a>
+         </template>
+        </el-table-column>
+
+         <el-table-column
+          align="center"
+          label="罚款(元)">
+          <template slot-scope="scope">
+           <a
+              @click="_showFinePay(scope.row)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.finePay}}
+            </a>
+         </template>
+        </el-table-column>
+
+         <el-table-column
+          align="center"
+          label="福利(元)">
+          <template slot-scope="scope">
+           <a
+              @click="_showWelfarePay(scope.row)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.welfarePay}}
+            </a>
+         </template>
+        </el-table-column>
+
+         <el-table-column
+          prop="commissionsPay"
+          align="center"
+          label="提成(元)">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="社保扣费金额(元)">
+           <template slot-scope="scope">
+           <a
+              @click="_showSsfAmount(scope.row)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.ssfAmount}}
+            </a>
+         </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="taxAmount"
+          align="center"
+          label="纳税金额(元)">
+        </el-table-column>
+
+         <el-table-column
+          prop="hangOutAmount"
+          align="center"
+          label="实际应发金额(元)">
+        </el-table-column>
+        <el-table-column
+          prop="examineStatusName"
+          align="center"
+          label="审核状态">
+        </el-table-column>
+        <el-table-column
+          prop="auditor"
+          align="center"
+          label="审核人">
+        </el-table-column>
+        <el-table-column
+          prop="rejectReason"
+          align="center"
+          label="驳回原因">
+        </el-table-column>
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <div v-hasMultipleBtn="['wagesInfoUpdateBtn',scope.row]" v-if="scope.row.examineStatus==0">
+              <el-button v-if="scope.row.edit" type="success" @click="handleEditBasepay(scope.row)" size="mini" icon="el-icon-circle-check-outline">Ok</el-button>
+              <el-button v-else size="mini"  @click='clickEdit(scope.row)' icon="el-icon-edit">编辑基本工资</el-button>
+            </div>
+            <!-- <el-button v-hasMultipleBtn="['wagesInfoSure',scope.row]" v-if="scope.row.examineStatus==0" @click="handleSure(scope.row)" type="text" size="small">通过</el-button>
+            <el-button v-hasMultipleBtn="['wagesInfoReject',scope.row]" v-if="scope.row.examineStatus==0" @click="handleReject(scope.row)" type="text" size="small">驳回</el-button> -->
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+       <b-dialog :show.sync="dialogShowBonusDetail" title="员工奖励明细" width="750px" height="600px">
+        <el-table
+          :data="bonusPayData"
+          border
+          align="center"
+          style="width: 100%"
+          height="380"
+        >
+          
+          <el-table-column
+            prop="classesName"
+            align="center"
+            label="奖励项目">
+          </el-table-column>
+
+          <el-table-column
+            prop="amount"
+            align="center"
+            label="金额">
+          </el-table-column>
+
+          <el-table-column
+            prop="desertsDate"
+            align="center"
+            label="奖励日期">
+          </el-table-column>
+
+          <el-table-column
+            prop="reason"
+            align="center"
+            label="原因">
+          </el-table-column>
+
+        </el-table>
+      </b-dialog>
+      <b-dialog :show.sync="dialogShowFineDetail" title="员工罚款明细" width="750px" height="600px">
+        <el-table
+          :data="finePayData"
+          border
+          align="center"
+          style="width: 100%"
+          height="380"
+        >
+          
+          <el-table-column
+            prop="classesName"
+            align="center"
+            label="罚款项目">
+          </el-table-column>
+
+          <el-table-column
+            prop="amount"
+            align="center"
+            label="金额">
+          </el-table-column>
+
+          <el-table-column
+            prop="desertsDate"
+            align="center"
+            label="罚款日期">
+          </el-table-column>
+
+          <el-table-column
+            prop="reason"
+            align="center"
+            label="原因">
+          </el-table-column>
+
+        </el-table>
+      </b-dialog>
+      <b-dialog :show.sync="dialogShowWelfarePay" title="员工福利明细" width="750px" height="600px">
+        <el-table
+          :data="welfarePayData"
+          border
+          align="center"
+          style="width: 100%"
+          height="380"
+        >
+          
+          <el-table-column
+            prop="projName"
+            align="center"
+            label="项目名称">
+          </el-table-column>
+
+          <el-table-column
+            align="center"
+            label="金额">
+              <template slot-scope="scope">
+                <el-input v-if="scope.row.edit" class="edit-input" size="mini" @focus="editCompanyPay(scope.row)" v-model="scope.row.companyPay" @blur="blurCompanyPay(scope.row)"></el-input>
+                <span v-else>{{ scope.row.companyPay }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            align="center"
+            label="操作"
+          >
+            <template slot-scope="scope">
+              <!-- <el-button v-if="scope.row.edit" type="success" @click="handleConfirmEdit(scope.row)" size="mini" icon="el-icon-circle-check-outline">Ok</el-button> -->
+              <el-button v-hasMultipleBtn="['wagesInfoUpdateBtn',scope.row]" type="primary" @click="handleClickEdit(scope.row)" size="mini" icon="el-icon-edit">编辑福利</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-button type="primary" :loading="loadingSaveEditWelfarePay" style="margin-top:20px;margin-left:45%" @click="handleConfirmEditWelfarePay">保存</el-button>
+      </b-dialog>
+
+      <b-dialog :show.sync="dialogShowSsfAmount" title="员工社保明细" width="750px" height="600px">
+        <el-table
+          :data="ssfAmountData"
+          border
+          align="center"
+          style="width: 100%"
+          height="380"
+        >
+
+          <el-table-column
+            prop="projName"
+            align="center"
+            label="项目名称">
+          </el-table-column>
+
+          <el-table-column
+            prop="companyPay"
+            align="center"
+            label="公司支付金额">
+          </el-table-column>
+
+          <el-table-column
+            prop="privatePay"
+            align="center"
+            label="个人支付金额">
+          </el-table-column>
+
+        </el-table>
+      </b-dialog>
+      <b-dialog :show.sync="dialogRejectReason" title="驳回原因" width="400px">
+        <el-form v-loading="loadingForm" label-width="100px" :model="rejectForm" ref="rejectForm" :rules="rejectRules">
+
+          <el-form-item label="驳回原因" prop="rejectReason">
+            <el-input v-model="rejectForm.rejectReason"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingRejectBtn" @click="rejectSave">确认</el-button>
+            <el-button  @click="dialogRejectReason=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogMakeWages" title="生成员工工资" width="450px" height="600px">
+        <el-form size="small" ref="wageForm" :rules="wageFormRules"  :model="wageForm" >
+            
+            <el-form-item label="选择公司" prop="companyId">
+              <el-select style="width: 100%" v-model="wageForm.companyId">
+                <el-option value="">--请选择--</el-option>
+                <el-option
+                  v-for="item in companyOpts"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+          </el-form-item>
+           <el-form-item label="月份" prop="months">
+            <el-date-picker
+              v-model="wageForm.months"
+              type="month"
+              placeholder="选择日期" value-format="yyyy-MM" style="width:100%">
+            </el-date-picker>
+          </el-form-item>
+
+          <!-- <el-form-item label="选择员工" prop="userId">
+              <base-cascader
+                v-model="wageForm.userId"
+                :changeOnSelect="false"
+                :url="getReferenceUserSelectUrl"
+                :props="cascaderProps"
+                :dataProps="cascaderDataProps" @change="onChange">
+              </base-cascader>
+            </el-form-item> -->
+
+            <el-form-item style="padding-left:60%">
+              <el-button type="primary" @click.native.prevent="makeWage" :loading="loadingmakeWage">生成</el-button>
+              <el-button @click.native.prevent="dialogMakeWages = false">取消</el-button>
+            </el-form-item>
+            
+          </el-form>
+        </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/emolument' // 请求后端URL路径
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/finLog'
+  
+  export default {
+    name: 'employeeWages',
+    mixins: [PageList],
+    components: {BaseDeptCascader,BaseCascader},
+    data () {
+      return {
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        selectStatus: [{value:0,label:'否'},{value:1,label:'是'}],
+        queryForm: {
+          selectId: '',
+          startMonth: '',
+          endMonth: '',
+          companyId: '',
+          deptId: '',
+          userId: ''
+        },
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 选员工
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        addForm: {
+          deptId: '',
+          months: '',
+          commissionPrice: '',
+          commissionRate: ''
+        },
+        // 表单校验配置
+        wageFormRules: {
+          companyId: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+          months: [
+            {required: true, message: '请选择月份', trigger: 'blur'}
+          ]
+        },
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        dialogAddVisible: false,
+        dialogShowWelfarePay: false,
+        dialogShowSsfAmount: false,
+        dialogShowBonusDetail: false,
+        dialogShowFineDetail: false,
+        dialogMakeWages: false,
+        dialogRejectReason:false,
+        loadingSubmitBtn: false,
+        loadingSaveEditWelfarePay: false,
+        loadingmakeWage: false,
+        loadingForm: false,
+        loadingRejectBtn: false,
+        currentRowData: null, // 当前操作的行数据
+        isAdd: false,
+        selectType: [],
+        welfarePayData: [],
+        ssfAmountData: [],
+        moneyArr: [],
+        bonusPayData: [],
+        finePayData: [],
+        tableDataId:'',
+        companyOpts: [],
+        wageForm:{},
+        nowQueryForm: {},
+        rejectForm: {},
+        idForReject: '',
+        queryData: [],
+        userName: '',
+        yBasePay: ''
+      }
+    },
+    methods: {
+      
+      // 获取部门或人
+      handleChangeRemind (val, name, data) {
+        
+        if (data.dataType == 'company') {
+          this.queryForm.companyId = data.code
+          delete this.queryForm.deptId
+          delete this.queryForm.userId
+          delete this.queryForm.selectId
+
+        }else if (data.dataType == 'dept') {
+          this.queryForm.deptId = data.code
+          delete this.queryForm.companyId
+          delete this.queryForm.userId
+          delete this.queryForm.selectId
+
+        }else if(data.dataType == 'user'){
+          this.queryForm.userId = data.code
+          delete this.queryForm.companyId
+          delete this.queryForm.deptId
+          delete this.queryForm.selectId
+        }else{
+          setTimeout(() => {
+            this.queryForm.deptId = ''
+            this.queryForm.userId = ''
+            this.queryForm.selectId = ''
+            this.queryForm.companyId = ''
+          }, 50)
+        }
+      },
+      _resetQueryForm(){
+        this._resetForm('queryForm')
+        this.queryForm.startMonth=''
+        this.queryForm.endMonth=''
+        this.queryForm.deptId = ''
+        this.queryForm.userId = ''
+        this.queryForm.selectId = ''
+        this.queryForm.companyId = ''
+      },
+      
+      handleClickEdit (row) {
+       let rowId = row.id
+       this.welfarePayData.forEach((item, index) => {
+        if (rowId === item.id) {
+          item.edit = true
+          this.$set(this.welfarePayData, index, item)
+        }
+       })
+      },
+
+      // handleConfirmEdit (row) {
+      //   let rowId = row.id
+      //  this.welfarePayData.forEach((item, index) => {
+      //   if (rowId === item.id) {
+      //     item.edit = false
+      //     this.$set(this.welfarePayData, index, item)
+      //   }
+      //  })
+      // },
+      
+      //生成上月工资
+      handleAddWages(row){
+        
+        this._queryData().then(val=>{
+          if(this.queryData[0]!=null){
+          
+            if(this.queryData[0].examineStatus==1){
+              this.$alert('工资已审核，不能再生成','提示')
+            }else{
+              //this.dialogMakeWages = true;
+              this.makeWage()
+            }
+          }else{
+          //this.dialogMakeWages = true;
+          this.makeWage()
+         }
+        })
+      },
+
+      makeWage(){
+          
+          let date = new Date();
+          let year = date.getFullYear();
+          let month = date.getMonth();
+          if(month<10){
+            month = "0"+ month
+          }
+          let months = year + "-"+month
+          const params = {
+            months: '2018-12',
+            userIds: ''
+          }
+          this.loadingmakeWage = true
+          RequestURL.makeEmployeeWages(params).then(res => {
+          this.loadingmakeWage = false
+          this.dialogMakeWages = false
+          if (res.success) {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            this._loadData(false)
+            //记日志
+              let logContent = "生成"+months+"月份工资"
+              let message = {
+              sourceId: '',
+              sourceCode: months+"月份工资",
+              businessTypeId: 5,//业务类型，
+              sourceTypeId: 10,
+              operatTypeId: 540,
+              logContent: logContent
+            }
+            dealAddLog({message: JSON.stringify(message)}).then(res => {
+              console.log(res)
+            })
+          }else{
+            this.$message({
+              type: 'warning',
+              message: res.msg
+            })
+          }
+        }).catch((err) => {
+          console.log(err);
+          this.loadingmakeWage = false
+          this.dialogMakeWages = false
+          this.$message({
+            type: 'info',
+            message: err.msg || '生成失败'
+          })
+        })
+        return Promise.resolve
+      },
+
+      //编辑
+      handleEdit(row){
+        this._resetForm('addForm')
+        this.currentRowData = row ;// 
+        this.isAdd = false;
+        this.dialogAddVisible = true;
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+      editCompanyPay(row){
+
+      },
+
+      //审核通过
+      handleSure(){
+        this.$confirm('确定全部审核通过吗？', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                  let date = new Date();
+                  let year = date.getFullYear();
+                  let month = date.getMonth();
+                  if(month<10){
+                    month = "0"+ month
+                  }
+                  let months = year + "-"+month
+                  let params = {
+                    months: months,
+                    examineStatus: '1'
+                }
+                RequestURL.examineEmployeeWages(params).then(res => {
+                  console.log(res)
+                  if (res.success) {
+                        this.$message({
+                          type: 'success',
+                          message: res.msg || '操作成功'
+                        })
+                        
+                        //this.tableData.find(item => item.id === row.id).examineStatusName = "已审核"
+                        //this.tableData.find(item => item.id === row.id).examineStatus = "1"
+                       // this.tableData.find(item => item.id === row.id).auditor = res.data
+                      /* this.tableData.map(item=>{
+                         item.examineStatusName = "已审核"
+                         item.examineStatus = "1"
+                         item.auditor = res.data
+                       }) */
+                       this._loadData()
+                       //记日志
+                          let logContent = months+"月份工资审核通过"
+                          let message = {
+                          sourceId: '',
+                          sourceCode: months+"月份工资",
+                          businessTypeId: 5,//业务类型，
+                          sourceTypeId: 10,
+                          operatTypeId: 541,
+                          logContent: logContent
+                        }
+                        dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                          console.log(res)
+                        })
+                      }
+                }).catch((err) => {
+                    console.log(err);
+                    this.$message({
+                      type: 'info',
+                      message: err.msg || '操作失败'
+                    })
+                  })
+              })
+
+      },
+
+      //驳回弹框
+      handleReject(){
+        this._resetForm('rejectForm')
+        //this.idForReject = row.id;
+        this.dialogRejectReason = true;
+      },
+
+      // 驳回确认
+      rejectSave () {
+        this.$refs['rejectForm'].validate((valid) => {
+            if (valid) {
+                let date = new Date();
+                  let year = date.getFullYear();
+                  let month = date.getMonth();
+                  if(month<10){
+                    month = "0"+ month
+                  }
+                let months = year + "-"+month
+                let params = {
+                months: months,
+                examineStatus: '2',
+                rejectReason: this.rejectForm.rejectReason
+              }
+              this.$confirm('确定全部驳回吗?', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.loadingRejectBtn = true;
+                RequestURL.examineEmployeeWages(params).then(res => {
+                  this.loadingRejectBtn = false;
+                  this.dialogRejectReason = false
+                  if (res.success) {
+                    this.$message({
+                      type: 'success',
+                      message: res.msg || '操作成功'
+                    })
+                    this._loadData(false);
+                    //记日志
+                          let logContent = months+"月份工资驳回"
+                          let message = {
+                          sourceId: '',
+                          sourceCode: months+"月份工资",
+                          businessTypeId: 5,//业务类型，
+                          sourceTypeId: 10,
+                          operatTypeId: 542,
+                          logContent: logContent
+                        }
+                        dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                          console.log(res)
+                        })
+                  }else{
+                    this.$message({
+                      type: 'warning',
+                      message: res.msg
+                    })
+                  }
+                }).catch((err) => {
+                  console.log(err);
+                  this.loadingRejectBtn = false
+                  this.dialogRejectReason = false
+                  this.$message({
+                    type: 'info',
+                    message: err.msg || '保存失败'
+                  })
+                })
+              })
+            }
+        })
+        
+
+      },
+      blurCompanyPay(row){
+          let reg = /^[0-9]+/
+          if(reg.test(row.companyPay)){
+            if(row.companyPay<=0){
+              row.companyPay=''
+            }
+            
+          }else{
+            row.companyPay=''
+          }
+      },
+      // 提交福利
+      handleConfirmEditWelfarePay () {
+        this.loadingSaveEditWelfarePay = true
+        let dataRrr = [];
+        let hasNull = false;
+        for(let i=0;i<this.welfarePayData.length;i++){
+          
+          let dataItem = {
+            id: this.welfarePayData[i].id,
+            wagesInfoId: this.tableDataId,
+            companyPay: this.welfarePayData[i].companyPay,
+          }
+          dataRrr.push(dataItem);
+          if(this.welfarePayData[i].companyPay===''){
+              hasNull = true
+          }
+        }
+        const params = {
+          jsonData: JSON.stringify(dataRrr)
+        }
+        if(hasNull){
+            this.$alert('金额不能有空值', '提示')
+            this.loadingSaveEditWelfarePay = false
+        }else{
+            RequestURL.updateEmployeeWelfarePay(params).then(res => {
+              this.loadingSaveEditWelfarePay = false
+              this.dialogShowWelfarePay = false
+              if (res.success) {
+                /*
+                let newWelfarePay = 0
+                this.welfarePayData.forEach((item, index) => {
+                  newWelfarePay = newWelfarePay + parseInt(item.companyPay)
+                })
+                this.tableData.map(item => {
+                  if(item.id==this.tableDataId){
+                      item.welfarePay = newWelfarePay
+                  }
+                  return item;
+                })
+                */
+              this._loadData()
+                
+                this.$message({
+                  type: 'success',
+                  message: res.msg || '操作成功'
+                })
+                //记日志
+                  let logContent = ""
+                  for(let i=0;i<this.welfarePayData.length;i++){
+                    if(this.welfarePayData[i].companyPay!=dataRrr[i].companyPay){
+                        logContent = logContent+';福利：'+this.welfarePayData[i].projName+',原金额：'+this.welfarePayData[i].companyPay+',现金额：'+dataRrr[i].companyPay
+                    }
+                   
+                   }
+                  let message = {
+                  sourceId: '',
+                  sourceCode:'用户:'+this.userName,
+                  businessTypeId: 5,//业务类型，
+                  sourceTypeId: 10,
+                  operatTypeId: 544,
+                  logContent: logContent
+                }
+                dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                  console.log(res)
+                })
+                
+
+                
+              }else{
+                this.$message({
+                  type: 'warning',
+                  message: res.msg
+                })
+              }
+            }).catch((err) => {
+              console.log(err);
+              this.loadingSaveEditWelfarePay = false
+              this.dialogShowWelfarePay = false
+              this.$message({
+                type: 'info',
+                message: err.msg || '保存失败'
+              })
+            })
+        }
+        
+
+        
+      },
+
+       // 删除
+      handleDel (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delCompanyComConfig({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            //this._loadValueData(this.currentDynamicConfigureItem.widgetCode,this.currentDynamicConfigureItem.type);
+            for(let i=0;i<this.tableData.length;i++){
+              if(this.tableData[i].id==row.id){
+                this.tableData.splice(i,1);
+              }
+            }
+          })
+        })
+      },
+      blurBasePay(row){
+        let reg = /^[0-9]+/
+        if(reg.test(row.basePay)){
+          if(row.basePay<=0){
+            row.basePay=''
+          }
+          
+        }else{
+          row.basePay=''
+        }
+      },
+      clickEdit(row){
+        this.yBasePay = row.basePay
+        row.edit=!row.edit
+      },
+      handleEditBasepay(row){
+          row.edit = false
+          const params = {
+            id: row.id,
+            basePay: row.basePay
+          }
+          let reg = /^[0-9]+/
+          if(row.basePay===''){
+            this.$alert('工资必须填值', '提示')
+          }else if(!reg.test(row.basePay)){
+            this.$alert('工资必须为数字或小数', '提示')
+          }else if(row.basePay<=0){
+            this.$alert('金额必须大于0', '提示')
+          }else{
+            RequestURL.updateEmployeeBasePay(params).then(res => {
+          
+              if (res.success) {
+                
+                this.$message({
+                  type: 'success',
+                  message: res.msg || '操作成功'
+                })
+                //记日志
+                let logContent = "原基本工资："+this.yBasePay+"=>"+row.basePay
+                let message = {
+                  sourceId: '',
+                  sourceCode:'用户:'+row.userName,
+                  businessTypeId: 5,//业务类型，
+                  sourceTypeId: 10,
+                  operatTypeId: 543,
+                  logContent: logContent
+                }
+                dealQueryLog({message: JSON.stringify(message)}).then(res => {
+                  console.log(res)
+                })
+
+                
+              }else{
+                this.$message({
+                  type: 'warning',
+                  message: res.msg
+                })
+              }
+            }).catch((err) => {
+              console.log(err);
+              this.$message({
+                type: 'info',
+                message: err.msg || '保存失败'
+              })
+            })
+          }
+          
+      },
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        if(!btnQuery){
+          let date = new Date();
+          let year = date.getFullYear();
+          let month = date.getMonth();
+          if(month<10){
+            month = "0"+ month
+          }
+          let months = year+"-"+month
+          this.nowQueryForm.startMonth = months
+          this.nowQueryForm.endMonth = months
+        }
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getEmployeeWagesInfo(params).then(res => {
+          
+          //console.log(11111)
+          console.log(res);
+          this.tableData = res.data.map(item => {
+            if(item.examineStatus==0){
+                item.examineStatusName = '未审核'
+            }else if(item.examineStatus==1){
+                item.examineStatusName = '已审核'
+            }else if(item.examineStatus==2){
+                item.examineStatusName = '已驳回'
+            }
+            item.edit = false
+            return item;
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+         
+          // this.bonusPayData = res.data[0].bonusDetail
+          // this.finePayData = res.data[0].fineDetail
+          // this.ssfAmountData = res.data[0].ssfDetail
+          // this.welfarePayData = res.data[0].welfareDetail
+          
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      //生成查询
+      _queryData () {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth();
+        if(month<10){
+          month = "0"+ month
+        }
+        let months = year+"-"+month
+        this.nowQueryForm.startMonth = months
+        this.nowQueryForm.endMonth = months
+        
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getEmployeeWagesInfo(params).then(res => {
+          console.log(res);
+          this.queryData = res.data
+        }).catch(() => {
+          
+        })
+        return Promise.resolve
+      },
+      onChange(){
+
+      },
+      // 表单回填
+      _setForm () {
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+      _showValue(row, event, column){
+        this.moneyArr = []
+        //console.log(row.widgetCode)
+        
+
+      },
+
+      _showBonusPay(row){
+        if(row.bonusDetail){
+            this.bonusPayData = JSON.parse(row.bonusDetail)
+        }
+        
+        this.dialogShowBonusDetail=true
+      },
+      _showFinePay(row){
+        if(row.fineDetail){
+          this.finePayData = JSON.parse(row.fineDetail)
+        }
+        
+        this.dialogShowFineDetail=true
+      },
+      _showWelfarePay(row){
+        this.tableDataId = row.id
+        this.userName = row.userName
+        if(row.welfareDetail){
+            this.welfarePayData = JSON.parse(row.welfareDetail)
+            this.welfarePayData.map(item => {
+              item.edit = false
+              item.wagesInfoUpdateBtn = row.wagesInfoUpdateBtn
+              return item;
+            })
+        }
+        
+        this.dialogShowWelfarePay=true
+      },
+
+       _showSsfAmount(row){
+        if(row.ssfDetail){
+            this.ssfAmountData = JSON.parse(row.ssfDetail)
+        }
+        
+        this.dialogShowSsfAmount=true
+      },
+
+      _showDetail(row, column, cell, event){
+          console.log(row)
+          console.log(column)
+          if(column.property=="bonusPay"){
+            if(row.bonusDetail){
+                this.bonusPayData = JSON.parse(row.bonusDetail)
+            }
+            
+            this.dialogShowBonusDetail=true
+          }
+          if(column.property=="finePay"){
+            if(row.fineDetail){
+              this.finePayData = JSON.parse(row.fineDetail)
+            }
+            
+            this.dialogShowFineDetail=true
+          }
+          if(column.property=="welfarePay"){
+            this.tableDataId = row.id
+            if(row.welfareDetail){
+                this.welfarePayData = JSON.parse(row.welfareDetail)
+                this.welfarePayData.map(item => {
+                  item.edit = false
+                  item.wagesInfoUpdateBtn = row.wagesInfoUpdateBtn
+                  return item;
+                })
+            }
+            
+            this.dialogShowWelfarePay=true
+          }
+          if(column.property=="ssfAmount"){
+            if(row.ssfDetail){
+                this.ssfAmountData = JSON.parse(row.ssfDetail)
+            }
+            
+            this.dialogShowSsfAmount=true
+          }
+      },
+       getCompanyDataSelect: function () {
+        this.companyOpts = []
+        let params = Object.assign({},{}, {})
+        RequestURL.queryCompanySelectData(params).then((res) => {
+          this.companyOpts = res
+        }).catch(err => {
+          console.log(err)
+        })
+      },
+      getSummaries1(param) {
+        const { columns, data } = param;
+        console.log(columns);
+        console.log(data);
+        const sums = [];
+        columns.forEach((column, index) => {
+          if (index === 0) {
+            sums[index] = '合计';
+            return;
+          }
+          let values = 0;
+          if(index === 4){
+            values = data.map(item => Number(item.basePay));
+          }
+           if(index === 5){
+            values = data.map(item => Number(item.bonusPay));
+          }
+           if(index === 6){
+             values = data.map(item => Number(item.finePay));
+          }
+           if(index === 7){
+             values = data.map(item => Number(item.welfarePay));
+          }
+           if(index === 8){
+             values = data.map(item => Number(item.commissionsPay));
+          }
+           if(index === 9){
+            values = data.map(item => Number(item.ssfAmount));
+          }
+           if(index === 10){
+            values = data.map(item => Number(item.taxAmount));
+          }
+           if(index === 11){
+            values = data.map(item => Number(item.hangOutAmount));
+          }
+          
+          
+          if (index === 4 || index === 5 || index === 6 ||index === 7 || index === 8 || index === 9 || index === 10 || index === 11) {
+            sums[index] = values.reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0);
+            sums[index] += ' 元';
+          } else {
+            sums[index] = '';
+          }
+        });
+
+        return sums;
+      }
+
+    },
+    mounted () {
+       //人员选择
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = date.getMonth();
+      if(month<10){
+        month = "0"+ month
+      }
+      let months = year+"-"+month
+      this.queryForm.startMonth = months;
+      this.queryForm.endMonth = months;
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+  .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

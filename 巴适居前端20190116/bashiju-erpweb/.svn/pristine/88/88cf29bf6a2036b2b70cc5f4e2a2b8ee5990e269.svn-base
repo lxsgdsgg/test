@@ -1,0 +1,402 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+        <el-form size="small" :inline="true" :model="form" ref="form">
+          <el-form-item  prop="realNum">
+            <el-input v-model="form.realNum" placeholder="真实电话号码"></el-input>
+          </el-form-item>
+
+          <el-form-item prop="companyId">
+              <el-select style="width: 100%" v-model="form.companyId" placeholder="公司">
+                <el-option
+                  v-for="item in companyDataOpt"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+          </el-form-item>
+
+          <el-form-item prop="deptId" >
+            <base-dept-cascader  v-model="form.deptId" placeholder="部门"></base-dept-cascader>
+          </el-form-item>
+
+          <el-form-item  prop="agentName">
+            <el-input v-model="form.agentName" placeholder="经纪人名称"></el-input>
+          </el-form-item>
+
+
+          <el-form-item>
+            <el-button type="primary" @click=" _loadData(true)" :loading="loadingBtn">查询</el-button>
+            <el-button @click.native.prevent="handleReset">清空</el-button>
+            <el-button v-hasOnlyBtn="'bindBtn'" @click.native.prevent="handleAddDiolorg">绑定虚拟号码</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table :data="tableData" border align="left" style="width: 100%">
+
+
+        <el-table-column
+          prop="companyName"
+          align="left"
+          label="公司"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="left"
+          label="部门">
+        </el-table-column>
+
+
+
+
+        <el-table-column
+          prop="agentName"
+          align="left"
+          label="经纪人名称">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="realNum"
+          align="left"
+          label="真实号码">
+        </el-table-column>
+
+        <el-table-column
+          prop="virtualNum"
+          align="left"
+          label="虚拟号码">
+        </el-table-column>
+
+        <el-table-column
+          prop="virtualExtensionNum"
+          align="left"
+          label="虚拟分机号码">
+        </el-table-column>
+
+        <el-table-column
+          prop="alibabaCode"
+          align="left"
+          label="阿里关系编码">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="addTime"
+          align="left"
+          :formatter="timeFormat"
+          label="添加时间">
+        </el-table-column>
+
+        <el-table-column
+          align="left"
+          label="操作">
+          <template slot-scope="scope">
+            <el-button  v-hasMultipleBtn="['untieBtn',scope.row]"  type="text" size="small" @click="handleDelete(scope.row)">解绑</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+
+      <template>
+      <el-dialog
+        title="绑定虚拟号码"
+        :visible.sync="editorDialog"
+        :close-on-click-modal="false"
+        width="25%"
+        @close="closeDialog"
+      >
+        <el-form :model="bindForm"  label-width="85px" :rules="rules" style="width: 100%"  ref="bindForm" >
+          <el-form-item label="用户姓名" prop="userId" ref="userId">
+            <base-cascader
+              :changeOnSelect="false"
+              @change="handleChangeRemind"
+              v-model="bindForm.userId"
+              :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item label="真实电话" prop="realPhone" size="medium">
+            <el-input v-model="bindForm.realPhone"></el-input>
+          </el-form-item>
+
+
+          <el-form-item>
+            <div class="btn-group">
+              <el-button type="primary" :isLoading="loadingBtn" @click.native.prevent="handleSubmit">确认</el-button>
+              <el-button  @click="handleCancel">取消</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </template>
+    </div>
+  </div>
+
+</template>
+<style></style>
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import PageList from '@/mixins/pageList'
+  import {queryPhoneSecurityData,unBindViertualPhone,bindViertualPhone} from "@/request/manage/phoneSecurityManag";
+  import BaseDeptCascader from '@/components/BaseCascader/dept'//部门控件
+  import {queryReferenceUserSelect,queryRegionSelect,queryDeptSelect,queryOpenCityCompanyDepart} from '@/request/manage/common'//数据
+  import * as RequestURL from '@/request/manage/cityOpen' // 请求后端URL路径
+  import * as RequeryLogUrl from '@/request/log/systemPlatformLog'//客源日志统一接口
+  export default {
+    components:{PageList,BaseCityCascader,BaseDeptCascader,BaseCascader},
+    mixins:[PageList],
+    name:'phoneSecurityManage',
+    data() {
+      var realPhone = (rule, value, callback) => {
+        let reg = /^1[3|4|5|7|8][0-9]\d{8}$/
+        console.log(reg.test(value));
+        if(!value){
+          return callback(new Error('电话号码不能为空'))
+        }
+        if (reg.test(value)) {
+          callback();
+        }
+        return callback(new Error('请输入正确的手机号'));
+      };
+      return {
+        form:{
+          agentName:'',
+          companyId:'',
+          agentId:'',
+          realNum:'',
+          deptId:''
+        },
+        tableData:[],
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        companySelectOpts:[],
+        companyDataOpt:[],//公司数据
+        loadingView:false,
+        loadingBtn:false,
+        currentRowData:null,
+        editorDialog:false,
+        bindForm:{
+          realPhone:'',
+          userId:''
+        },
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        peopleSelectOpts: {
+          type: Array,
+          default () {
+            return []
+          }
+        },
+        listQuery:{
+          limit:10,
+          page:1,
+          total:0
+        },
+        rules: {
+          userId: [
+            {required: true, message: '必填项', trigger: 'change'}
+          ],
+          realPhone: [
+            {required: true, message: '必填项', trigger: 'change'},
+            { validator: realPhone, trigger: 'change' }
+          ],
+        }
+      }
+    },
+    methods: {
+      _loadData(){
+        this.queryPhoneSecurityData(false)
+      },
+      //时间戳格式化
+      timeFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue)
+      },
+      handleSelectAgent(val,name,data){
+        if(data.dataType!='user'){
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择经纪人!'
+          })
+          setTimeout(() => {
+            this.$refs['deptId'].resetField()
+            this.bindForm.deptId = ''
+          }, 50)
+        }else{
+
+        }
+      },
+      handleCancel(){
+          this.editorDialog = false
+          this.$refs['bindForm'].resetFields()
+      },
+      //窗体点击叉叉关闭时间
+      closeDialog(){
+        this.$refs['bindForm'].resetFields()
+      },
+      handleAdd(){
+        this.hackReset = false
+        this.$nextTick(() =>{
+          this.hackReset = true
+          this.isAdd = true;
+          this.currentRowData = null
+          this.editorDialog = true
+        })
+      },
+      //绑定窗体
+      handleAddDiolorg(){
+          this.$nextTick(() =>{
+              this.editorDialog = true;
+          })
+      },
+      //绑定
+      handleSubmit(row){
+          this.$refs['bindForm'].validate((valid)=>{
+              if(valid){
+            this.$confirm('确定要绑定虚拟号码吗？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消'
+            }).then(() =>{
+                  let param = {...this.bindForm}
+                  bindViertualPhone(param).then(res =>{
+                    if(res.success){
+                      this.$message({type:'success',message:res.msg})
+                      let message = {
+                        sourceCode:  param.realPhone,//资源编号：客源编号
+                        sourceTypeId:18,// 18：电话号码安全管理
+                        operatTypeId: 1,//操作类型1: 表示新增,
+                        logContent: '绑定隐私号:'+param.realPhone//日志内容
+                      }
+                      RequeryLogUrl.systemAddLog({message:JSON.stringify(message)}).then(res=>{
+                        console.log(res)
+                      }).catch(error =>{
+                        console.log(error)
+                      })
+                      this._loadData(false)
+                      this.editorDialog = false
+                    }else{
+                      this.$message({type:'warning',message:res.msg})
+                    }
+                  }).catch(error =>{
+                    console.log(error)
+                  })
+               })
+            }else{
+            }
+          })
+      },
+      //解绑
+      handleDelete(row){
+        this.$confirm('确定要解绑虚拟号码吗？',{
+          confirmBtnText:'确定',
+          cancelBtnText:'取消'
+        }).then(() =>{
+          let param = {realPhone:row.realNum}
+          unBindViertualPhone(param).then(res =>{
+            if(res.success){
+              this.$message({type:'success',message:res.msg})
+              let message = {
+                // sourceId:  row.demandId,//资源编号：客源编号
+                sourceCode:  row.agentName,
+                sourceTypeId:18,//类型：电话号码安全管理
+                operatTypeId: 3,//操作类型 删除,
+                logContent: row.agentName+'解绑隐私号:'+row.realNum//日志内容
+              }
+              RequeryLogUrl.systemQueryLog({message:JSON.stringify(message)}).then(res=>{
+                console.log(res)
+              }).catch(error =>{
+                console.log(error)
+              })
+              this._loadData(false)
+            }else{
+              this.$message({type:'warning',message:res.msg})
+            }
+          }).catch(error =>{
+            console.log(error)
+          })
+        })
+      },
+      //重置输入框
+      handleReset(){
+        this.$refs['form'].resetFields()
+      },
+      //查询数据
+      queryPhoneSecurityData(btn){
+        if(btn){
+          this.loadingBtn = btn
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.loadingView = true
+
+        let params = Object.assign({},this.form,{
+          limit:this.listQuery.limit,
+          page:this.listQuery.page
+        })
+        queryPhoneSecurityData(params).then(res =>{
+          this.tableData = res.data
+          console.log(res.data)
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.loadingBtn = false
+        }).catch(() =>{
+            this.loadingView = false
+            this.loadingBtn = false
+        })
+      },
+      _loadData(btn){
+        this.queryPhoneSecurityData(btn)
+      },
+
+      queryCompanyData(){
+        let params = Object.assign({},{}, {})
+        RequestURL.queryCompanySelectData(params).then(res =>{
+          this.companyDataOpt = res
+        })
+      },
+      // 获取提醒人名称
+      handleChangeRemind (val, name, data) {
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.formUpdateRemind.receivePeopleName = ''
+            this.formUpdateRemind.receivePeopleId = ''
+          }, 50)
+
+        }
+      },
+    },
+    mounted() {
+      //人员选择
+      queryReferenceUserSelect({}).then(res => {
+         this.peopleSelectOpts = res
+      })
+      queryOpenCityCompanyDepart({}).then(res =>{
+          this.companySelectOpts = res
+      })
+      this.queryCompanyData();
+    }
+
+  }
+
+</script>

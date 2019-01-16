@@ -1,0 +1,542 @@
+<template>
+  <div>
+    <span style="color: gray">过户进度</span>
+    <div class="pull-right">
+      <el-button v-hasMultipleBtn="['addTransitBtn',dealInfo]" v-if="dealInfo.transferStatus !== '02' && dealInfo.isBreach !== 1" type="primary" @click="handlerClick" size="mini">新增进度</el-button>
+      <el-button v-hasMultipleBtn="['cancelTransitBtn',dealInfo]" type="primary" @click="cancelTransferSchedule" v-if="dealInfo.isBreach !== 1" size="mini">取消过户</el-button>
+      <el-button v-hasMultipleBtn="['adjustTransitTimeBtn',dealInfo]" v-if="dealInfo.transferStatus !== '02' && dealInfo.isBreach !== 1" type="primary" @click="handlerAdjustPlanClick" size="mini">调整时间</el-button>
+    </div>
+    <div style="margin-top: 25px;">
+      <el-table :data="tableData" border align="center" style="margin-top: 10px;" tooltip-effect="light" size="small">
+        <el-table-column label="进度状态" prop="status" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{returnScheduleStatus(scope.row)}}
+          </template>
+        </el-table-column>
+        <el-table-column label="进度名称" prop="scheduleName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="预计时间" prop="estimateFinishTime" show-overflow-tooltip></el-table-column>
+        <el-table-column label="完成时间" prop="actualFinishTime" show-overflow-tooltip></el-table-column>
+        <el-table-column label="操作人" prop="operator" show-overflow-tooltip></el-table-column>
+        <el-table-column label="操作时间" prop="updateTime" :formatter="_timeFormat" show-overflow-tooltip></el-table-column>
+        <el-table-column label="备注" prop="remark" show-overflow-tooltip></el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <!--v-hasMultipleBtn="['editTransitBtn',scope.row]"-->
+            <!--v-hasMultipleBtn="['delTransitBtn',scope.row]"-->
+            <el-button size="mini" type="button" style="color: #409eff" @click="handlerUpdateClick(scope.$index,scope.row)" v-if="dealInfo.isBreach !== 1">修改</el-button>
+            <el-button size="mini" type="primary" @click="deleteTransitSchedule(scope.row)" v-if="dealInfo.isBreach !== 1">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <template>
+      <el-dialog
+        title="新增过户进度"
+        :visible.sync = "addDialogVisible"
+        :close-on-click-modal="false"
+        width="400px"
+      >
+        <el-form :model="addForm" ref="addForm" label-width="100px" :rules="rules">
+          <el-form-item label="进度名称" prop="scheduleId">
+            <base-select v-model="addForm.scheduleId" :data="transactionOpts" @change="getSelectName"></base-select>
+          </el-form-item>
+          <el-form-item label="预计时间" prop="estimateFinishTime">
+            <el-date-picker
+              v-model="addForm.estimateFinishTime"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="addTransferSchedule" :loading="saveLoadingBtn">保存</el-button>
+            <el-button type="primary" @click="cancelClick">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+
+      <el-dialog
+        title="编辑过户进度"
+        :visible.sync = "editDialogVisible"
+        :close-on-click-modal="false"
+        width="400px"
+      >
+        <el-form :model="editForm" ref="editForm" label-width="100px" :rules="rulesUpdate" :disabled="isEdit">
+          <el-form-item label="进度状态" prop="status" >
+            <el-select v-model="editForm.status" @change="checkStatus">
+              <el-option label="未完成" value="0"></el-option>
+              <el-option label="已完成" value="1"></el-option>
+              <el-option label="已驳回" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="备注" prop="remark">
+            <el-input type="textarea" v-model="editForm.remark" :autosize="{ minRows: 2, maxRows:6}" maxlength="300"></el-input>
+          </el-form-item>
+
+          <el-form-item label="完成时间" prop="actualFinishTime">
+            <el-date-picker
+              v-model="editForm.actualFinishTime"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="预计时间" prop="estimateFinishTime">
+            <el-date-picker
+              v-model="editForm.estimateFinishTime"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="modifyTransitSchedule" :loading="saveLoadingBtn">保存</el-button>
+            <el-button type="primary" @click="cancelClick">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+
+      <el-dialog
+        title="调整过户时间"
+        :visible.sync = "editPlanDialogVisible"
+        :close-on-click-modal="false"
+        width="700px"
+      >
+        <el-form :model="editForm" ref="editForm" label-width="100px" :rules="rulesBatch" :inline="true" size="small">
+          <div v-if="tableData" v-for="item in tableData">
+            <el-form-item label="进度名称">
+              <el-input v-model="item.scheduleName" disabled></el-input>
+            </el-form-item>
+
+
+            <el-form-item label="预计时间">
+              <el-date-picker
+                v-model="item.estimateFinishTime"
+                type="date"
+                value-format="yyyy-MM-dd"
+                placeholder="选择日期">
+              </el-date-picker>
+            </el-form-item>
+          </div>
+          <div class="btn-group">
+            <el-button type="primary" @click="modifyTransitSchedulePlan" size="small" :loading="adjustTimeBtn">保存</el-button>
+            <el-button type="primary" @click="cancelClick" size="small">取消</el-button>
+          </div>
+        </el-form>
+      </el-dialog>
+    </template>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import PageList from '@/mixins/pageList'
+  import BaseSelect from '@/components/BaseSelect'
+  import DealBaseWriteLogMixins from './DealBaseWriteLogMixins'
+
+  export default {
+    name: "TransitSchedule",
+    mixins: [PageList,DealBaseWriteLogMixins],
+    components: {BaseSelect},
+    props:{
+      dealId: {
+        type: String,
+        required: true,
+        default() {
+          return ''
+        }
+      },
+      dealInfo:{
+        type: Object,
+        required: true,
+        default(){
+          return null
+        }
+      }
+    },
+    data(){
+      return {
+        saveLoadingBtn: false,
+        adjustTimeBtn: false,
+        tableData: [],
+        addDialogVisible: false,
+        editDialogVisible: false,
+        editPlanDialogVisible: false,
+        transactionUrl: 'manage/transferProcess/queryTransferProcName',
+        addForm:{
+          scheduleId: '',
+          scheduleName: '',
+          estimateFinishTime: ''
+        },
+        editForm:{
+          id: '',
+          status: '',
+          remark: '',
+          estimateFinishTime: '',
+          actualFinishTime: ''
+        },
+        planForm: {
+          id: '',
+          // scheduleName: '',
+          estimateFinishTime: ''
+        },
+        rules:{
+          scheduleName:[{required: true,message:'此项为必填项',trigger:'change'}],
+          estimateFinishTime:[{required: true,message:'此项为必填项',trigger:'change'}],
+          status:[{required: true,message:'此项为必填项',trigger:'change'}]
+        },
+        rulesUpdate:{
+          estimateFinishTime:[{required: true,message:'此项为必填项',trigger:'change'}],
+          // actualFinishTime:[{required: true,message:'此项为必填项',trigger:'change'}],
+          status:[{required: true,message:'此项为必填项',trigger:'change'}]
+        },
+        rulesBatch:{
+          estimateFinishTime:[{required: true,message:'此项为必填项',trigger:'change'}],
+        },
+        transactionOpts: '',
+        index: 0,
+        isEdit: false,
+        originalData: {},
+        oriTableData: []
+      }
+    },
+    methods:{
+      checkStatus(index){
+        this.isEdit = false
+        if(this.tableData[this.index-1].status === '0'){
+          this.$message({
+            type: 'warning',
+            message: '请按照流程顺序进行'
+          })
+          this.isEdit = true
+          return false
+        }
+      },
+      getSelectName(value,name){
+        this.addForm.scheduleName = name
+      },
+      cancelClick(){
+        this.addDialogVisible = false
+        this.editDialogVisible = false
+        this.editPlanDialogVisible = false
+      },
+      // 新增点击
+      handlerClick(){
+        this.$nextTick(()=>{
+          this.resetForm()
+          this.addDialogVisible = true
+        })
+      },
+      // 修改点击
+      handlerUpdateClick(index,row){
+        this.isEdit = false
+        this.index = index
+        this.$nextTick(()=>{
+          this.resetForm()
+          this.setForm(row)
+          this.editDialogVisible = true
+        })
+      },
+      // 调整计划
+      handlerAdjustPlanClick(){
+        this.oriTableData = this.$jsonUtils.copyArr(this.tableData)
+        this.$nextTick(()=>{
+          this.resetForm()
+          this.editPlanDialogVisible = true
+        })
+      },
+
+      returnScheduleStatus(row){
+        if(row.status === '0'){
+          return '未完成'
+        }else if(row.status === '1'){
+          return '已完成'
+        }else if(row.status === '2'){
+          return '已驳回'
+        }
+      },
+      _getTableData(){
+        RequestURL.queryTransferSchedulePage({dealId : this.dealId}).then(res=>{
+          this.tableData = res
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+      // 调整计划
+      modifyTransitSchedulePlan(){
+        this.$confirm('确定提交数据修改吗？','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let submitData = []
+          for(let i in this.tableData){
+            let obj = {}
+            obj.id = this.tableData[i].id
+            obj.estimateFinishTime = this.tableData[i].estimateFinishTime
+            submitData[i] = obj
+          }
+          let params = {jsonData: JSON.stringify(submitData)}
+          this.adjustTimeBtn = true
+          RequestURL.batchUpdateTransferScheduleTime(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this.adjustTimeBtn = false
+            this.cancelClick()
+
+            let logContent = ''
+            for(let i in this.tableData){
+              let oriTemp = this.oriTableData[i]
+              let newTemp = this.tableData[i]
+              if(newTemp.estimateFinishTime !== oriTemp.estimateFinishTime){
+                logContent = logContent + `${oriTemp.scheduleName}:预计时间${oriTemp.estimateFinishTime}调整为${newTemp.estimateFinishTime};`
+              }
+            }
+            this.dealQueryLog(this.dealId,this.dealId,'6','414',logContent)
+          }).catch(err=>{
+            this.adjustTimeBtn = false
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+
+      /**
+       * 更新过户进度
+       */
+      modifyTransitSchedule(row){
+        this.$refs['editForm'].validate((valid)=>{
+          if(valid){
+            this.$confirm('确定提交数据修改吗？','提示',{
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(()=>{
+              let params = {dealId: this.dealId,jsonData: JSON.stringify({...this.editForm})}
+              this.saveLoadingBtn = true
+              RequestURL.updateTransferSchedule(params).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                }else{
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+                this.saveLoadingBtn = false
+                this.cancelClick()
+                this._getTableData()
+                let operatorTypeId
+                if(params.status === '1'){
+                  operatorTypeId = '407'//过户完成
+                }else{
+                  operatorTypeId = '415'//修改过户
+                }
+                this.dealUpdateLog(this.dealId,this.dealId,'6',operatorTypeId
+                  ,this.$utils.getFormFields(this.$refs['editForm']),this.originalData,{...this.editForm})
+              }).catch(err=>{
+                this.saveLoadingBtn = false
+                this.$message({
+                  type: 'error',
+                  message: err.data.msg
+                })
+              })
+            })
+          }
+        })
+      },
+
+      resetForm(){
+        if(this.$refs['editForm']){
+          this.$refs['editForm'].resetFields()
+        }
+        if(this.$refs['addForm']){
+          this.$refs['addForm'].resetFields()
+        }
+      },
+      setForm(data){
+        let temp = data
+        for(let i in this.editForm){
+          if(data){
+            this.editForm[i] = temp[i]
+          }
+        }
+        this.originalData = Object.assign({},{...this.editForm})
+      },
+
+      /**
+       * 新增过户进度
+       */
+      addTransferSchedule(){
+        this.$refs['addForm'].validate((valid)=>{
+          if(valid){
+            this.$confirm('确定提交数据吗？','提示',{
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(()=>{
+              let params = {dealId: this.dealId,jsonData: JSON.stringify({...this.addForm})}
+              this.saveLoadingBtn = true
+              RequestURL.addTransferSchedule(params).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                }else{
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+                this.saveLoadingBtn = false
+                this.cancelClick()
+                this._getTableData()
+                this.dealAddLog(this.dealId,this.dealId,'6','400','新增过户节点:' + this.addForm.scheduleName)
+              }).catch(err=>{
+                this.saveLoadingBtn = false
+                this.$message({
+                  type: 'error',
+                  message: err.data.msg
+                })
+              })
+            })
+          }
+        })
+      },
+
+      /**
+       * 删除过户进度
+       * @param row
+       */
+      deleteTransitSchedule(row){
+        this.$confirm('确定删除数据吗？','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let params = {id: row.id}
+          RequestURL.deleteTransferSchedule(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this._getTableData()
+            this.dealDelLog(this.dealId,this.dealId,'6','409','删除过户节点:' + row.scheduleName)
+          }).catch(err=>{
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+      /**
+       * 取消过户进度
+       * @param row
+       */
+      cancelTransferSchedule() {
+        this.$confirm('确定要取消吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let params = {dealId: this.dealId}
+          RequestURL.cancelTransferSchedule(params).then(res => {
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            } else {
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this._getTableData()
+            this.dealQueryLog(this.dealId,this.dealId,'6','405','取消过户')
+          }).catch(err => {
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+      /**
+       * 批量更新过户进度
+       * @param row
+       */
+      batchUpdateTransferScheduleTime(row){
+        this.$confirm('确定要提交数据吗？','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let params = {id: row.id}
+          RequestURL.batchUpdateTransferScheduleTime(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+          }).catch(err=>{
+            this.$message({
+              type: 'info',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+      /**
+       * 查询过户流程信息
+       */
+      queryTransferProcName(){
+        RequestURL.queryTransferProcName().then(res=>{
+          this.transactionOpts = this.$utils.jsonToArr(res, 'id', 'name')
+        })
+      },
+    },
+
+    mounted(){
+      this.queryTransferProcName()
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

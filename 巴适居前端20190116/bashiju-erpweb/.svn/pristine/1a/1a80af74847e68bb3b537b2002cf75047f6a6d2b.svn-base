@@ -1,0 +1,47 @@
+/*******************************************************************************************************/
+/** *************************************** OA文章管理 ***************************************/
+/*******************************************************************************************************/
+import { onGet, onPost } from '../main'
+
+
+// 获取人事信息列表
+export const getPersonnelList = params=>{
+  return onPost('oa/getPersonnelList', params)
+}
+//上传文章封面
+export const uploadImg = params=>{
+  return onPost('oa/uploadImg', params)
+}
+//保存人事信息
+export const savePersonnel = params=>{
+  return onPost('oa/savePersonnel', params)
+}
+//保存人事变动
+export const savePersonnelChange = params=>{
+  return onPost('oa/savePersonnelChange', params)
+}
+//删除文章
+export const delArticle = params=>{
+  return onPost('oa/delArticle', params)
+}
+
+// 获取审核列表
+export const getPersonnelExamine = params=>{
+  return onPost('oa/getPersonnelExamine', params)
+}
+// 确认审核
+export const surePersonnel = params=>{
+  return onPost('oa/surePersonnel', params)
+}
+
+// 驳回
+export const rejectPersonnel = params=>{
+  return onPost('oa/rejectPersonnel', params)
+}
+
+
+
+
+
+
+

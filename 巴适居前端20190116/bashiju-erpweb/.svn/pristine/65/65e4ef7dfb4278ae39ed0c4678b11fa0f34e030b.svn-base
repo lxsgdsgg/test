@@ -1,0 +1,47 @@
+/*********************房源等级条件设置后台接口************************/
+
+
+import {onPost,onGet} from "../main";
+
+export  const getResHouseLevelConditionData = params =>{
+  return onPost('manage/resHouseLevelCondition/getResHouseLevelConditionData',params)
+}
+
+export  const delResHouseLevelCondition = params =>{
+  return onPost('manage/resHouseLevelCondition/delResHouseLevelCondition',params)
+}
+
+export  const saveOrUpdateResHouseLevelCondition = params =>{
+  return onPost('manage/resHouseLevelCondition/saveOrUpdateResHouseLevelCondition',params)
+}
+
+//房屋用途下拉数据源
+export  const dropDownData = params =>{
+  return onPost('manage/resHouseLevelCondition/dropDownData',params)
+}
+
+//获取动态下拉的值
+export  const getDynamicValue = params =>{
+  return onPost('manage/dynamicConfigure/getSelectValue/many',params)
+}
+
+
+
+export  const getDynamicValueConditions = params =>{
+  return onPost('manage/dynamicConfigure/getSelectValue/many',params)
+}
+
+
+
+export  const getPriceAndSpaceOption = params =>{
+  return onPost('manage/dynamicConfigure/getRegionValue/many',params)
+}
+
+// 区域 片区
+export const queryAreaAndRegion = params => {
+  return onGet('manage/commonselect/queryAreaAndRegion', params)
+}
+
+
+
+

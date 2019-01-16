@@ -1,0 +1,272 @@
+<template>
+  <div class="page-content" v-loading="loadingView">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small"  :inline="true"  class="demo-form-inline">
+          <el-form-item label="类型" >
+            <el-select v-model="queryType" clearable placeholder="请选择">
+              <el-option
+                v-for="item in queryOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery">查询</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'addBtn'" type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" >
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+
+      >
+
+        <el-table-column
+          align="center"
+          label="类型">
+          <template slot-scope="scope">
+            <span v-if="scope.row.type===0">二手房</span>
+            <span v-if="scope.row.type===1">出租房</span>
+            <span v-if="scope.row.type===2">新房</span>
+            <span v-if="scope.row.type===3">小区</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="conditionCode"
+          align="center"
+          label="编号">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="conditionName"
+          align="center"
+          label="名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="valueCodes"
+          align="center"
+          label="值">
+        </el-table-column>
+
+        <el-table-column
+          prop="valueNames"
+          align="center"
+          label="值描述">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['editBtn', scope.row]"  @click="handleUpdate(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button v-hasMultipleBtn="['delBtn', scope.row]" @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <el-dialog :title="dialogTitle" width="600px" :visible.sync="dialogVisible">
+      <el-form  label-position="right" label-width="100px" :model="conditionForm" ref="conditionForm" :rules="rules">
+        <el-form-item label="类型" prop="type">
+          <el-select v-model="conditionForm.type"  placeholder="请选择">
+            <el-option
+              v-for="item in queryOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="编号" prop="conditionCode">
+          <el-input v-model="conditionForm.conditionCode" placeholder="请输入编号"></el-input>
+        </el-form-item>
+        <el-form-item label="名称" prop="conditionName">
+          <el-input v-model="conditionForm.conditionName" placeholder="请输入名称"></el-input>
+        </el-form-item>
+        <el-form-item label="值" prop="valueCodes">
+          <el-input type="textarea" autosize v-model="conditionForm.valueCodes" placeholder="请输入值"></el-input>
+        </el-form-item>
+        <el-form-item label="值描述" prop="valueNames">
+          <el-input type="textarea" autosize v-model="conditionForm.valueNames" placeholder="请输入值"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary"  @click="saveCondition">确 定</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import {queryConditionList,addQueryCondition,updateQueryCondition,deleteQueryCondition}  from '@/request/manage/queryCodition'
+  export default{
+    mixins: [PageList],
+    data () {
+      return {
+        dialogTitle:'新增',
+        dialogVisible:false,
+        loadingView:false,
+        queryType:'',
+        queryOptions: [{label:'二手房',value:0},{label:'出租房',value:1},{label:'新房',value:2},{label:'小区',value:3}],
+        tableData:[],
+        conditionForm:{type:'',conditionCode:'',conditionName:'',valueCodes:'',valueNames:''},
+        rules:{
+          type: [
+            { required: true, message: '请选择类型', trigger: 'change' }
+          ],
+          conditionCode: [
+            { required: true, message: '请输入内容', trigger: 'blur' },
+            { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
+          ],
+          conditionName: [
+            { required: true, message: '请输入内容', trigger: 'blur' },
+            { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
+          ],
+          valueCodes: [
+            { required: true, message: '请输入内容', trigger: 'blur' },
+            { min: 1, max: 100, message: '长度在 1 到 100 个字符', trigger: 'blur' }
+          ],
+          valueNames: [
+            { required: true, message: '请输入内容', trigger: 'blur' },
+            { min: 1, max: 100, message: '长度在 1 到 100 个字符', trigger: 'blur' }
+          ]
+        }
+      }
+    },
+    methods:{
+      handleQuery () {
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData()
+      },
+      _loadData(){
+          console.log(this.queryType)
+        let param = {}
+        param.type = this.queryType
+        param.limit = this.listQuery.limit
+        param.page = this.listQuery.page
+        this.loadingView = true
+        queryConditionList(param).then((res)=>{
+          this.loadingView = false
+          if (res.data){
+            this.tableData = res.data
+            this.listQuery.total = res.count
+          }else {
+            this.tableData = []
+            this.listQuery.total = 0
+          }
+        }).catch(() => {
+          this.loadingView = false
+        })
+      },
+      handleAdd(){
+        this.dialogTitle = '新增'
+        this.dialogVisible = true
+        this.conditionForm = {type:'',conditionCode:'',conditionName:'',valueCodes:'',valueNames:''}
+        if (this.$refs['conditionForm']){
+          this.$refs['conditionForm'].resetFields();
+        }
+      },
+      saveCondition(){
+        this.$refs['conditionForm'].validate((valid) => {
+          if (valid) {
+            this.loadingView = true
+            let param = {jsonData:JSON.stringify(this.conditionForm)}
+            if (this.conditionForm.id){
+              updateQueryCondition(param).then((res)=>{
+                this.loadingView = false
+                 if (res.success){
+                   this.$message({
+                     type: 'success',
+                     message: res.msg || '操作成功'
+                   })
+                   this.dialogVisible = false
+                   this._loadData ()
+                 }else {
+                   this.$message({
+                     type: 'warning',
+                     message: res.msg || '操作失败'
+                   })
+                 }
+              })
+            }else {
+              addQueryCondition(param).then((res)=>{
+                this.loadingView = false
+                if (res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this.dialogVisible = false
+
+                  this.handleQuery()
+                }else {
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg || '操作失败'
+                  })
+                }
+              })
+            }
+          }
+        })
+      },
+      handleUpdate(row){
+        this.dialogTitle = '编辑'
+        this.dialogVisible = true
+        if (this.$refs['conditionForm']){
+          this.$refs['conditionForm'].resetFields();
+        }
+        this.conditionForm = {id:row.id,type:row.type,conditionCode:row.conditionCode,conditionName:row.conditionName,valueCodes:row.valueCodes,valueNames:row.valueNames}
+        console.log(this.conditionForm)
+      },
+      handleDel(row){
+        this.$confirm('确定要删除吗？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadingView = true
+          deleteQueryCondition({id: row.id}).then(res => {
+            this.loadingView = false
+            this._loadData()
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+          }).catch(()=>{
+            this.loadingView = false
+          })
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+
+</style>

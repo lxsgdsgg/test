@@ -1,0 +1,338 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div>
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+          <el-form-item  prop="transactionType">
+            <el-select v-model="queryForm.transactionType" placeholder="房源交易类型">
+                  <el-option label="出售" value="1"></el-option>
+                  <el-option label="出租" value="2"></el-option>
+                  <el-option label="租售" value="3"></el-option>
+            </el-select>
+          </el-form-item>
+
+            <el-form-item  prop="levelType">
+              <el-select v-model="queryForm.levelType" placeholder="房屋等级">
+                <el-option label="A等级" value="A"></el-option>
+                <el-option label="B等级" value="B"></el-option>
+              </el-select>
+            </el-form-item>
+
+          <el-form-item class="margin-b-none"  prop="cityCode">
+            <!--<base-city-cascader v-model="queryForm.cityCode" @click="handleSelectCity"></base-city-cascader>-->
+            <!--<city-selector  :url="getUrl" :dataProps="cascaderDataProps" :props="cascaderProps" v-model="queryForm.cityCode"></city-selector>-->
+            <base-cascader  :changeOnSelect="false" v-model="queryForm.cityCode" placeholder="选择城市" :url="queryOpenCityCountyUrl" :props="cascaderProps" :dataProps="cascaderDataProps"></base-cascader>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="getResHouseLevelConditionData(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click.native.prevent="resetQueryForm">清空</el-button>
+          </el-form-item>
+
+          <el-form-item>
+            <el-dropdown @command="handleAdd">
+              <el-button v-hasOnlyBtn="'addBtn'">
+                新增<i class="el-icon-arrow-down el-icon--right"></i>
+              </el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="1">出售新增</el-dropdown-item>
+                <el-dropdown-item command="2">出租新增</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+
+
+
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+
+        <el-table-column
+          prop="transactionType"
+          align="left"
+          label="房源交易类型">
+          <template slot-scope="scope">
+            <!--格式化-->
+            {{scope.row.transactionType | validateTransactionType}}
+          </template>
+
+        </el-table-column>
+
+        <el-table-column
+          prop="levelType"
+          align="left"
+          label="等级">
+          <template slot-scope="scope">
+            {{scope.row.levelType|validateLevelType}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="录入时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="name"
+          align="left"
+          label="方案名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="remark"
+          :html="form.remark"
+          align="left"
+          show-overflow-tooltip
+          label="条件">
+
+          <template slot-scope="scope">
+            <div v-html="scope.row.remark"></div>
+          </template>
+
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['editBtn',scope.row]"  @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button v-hasMultipleBtn="['delBtn',scope.row]" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+
+      <div class="bor"  style="margin-left: 300px" >
+        <label style="color: #007bff">提醒</label>
+        <hr style="border:1px dashed #c0c0c0;">
+        <label style="color:revert">
+          A、B级-有效且符合设置条件
+          C级-有效且非A、B级
+          D级-非有效、待确认及暂缓
+        </label>
+      </div>
+    </div>
+    <!--编辑窗体-->
+    <template>
+        <el-dialog
+          :title="dynamicTitle"
+          :visible.sync="editorHouseLevelConditionDialog"
+          :close-on-click-modal="false"
+          top="30vh"
+          width="600px">
+          <house-level-conditioin-editor @handleClick="handEditorHouseCondition" :data="currentRowData"   :transactionType="transactionType"  v-if="hackReset" :isAdd="isAdd"></house-level-conditioin-editor>
+        </el-dialog>
+    </template>
+  </div>
+</template>
+
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {getResHouseLevelConditionData,delResHouseLevelCondition} from "@/request/manage/resHouseLevelCondition";
+  import HouseLevelConditioinEditor from './component/houseLevelConditioinEditor'
+  import {queryAllRegionList} from '@/request/manage/community'
+  import CitySelector from '@/components/BaseCascader'
+  import * as selectUrl from '@/request/manage/common' // 获取下拉框数据 url地址
+  import BaseCascader from '@/components/BaseCascader'
+  import  *  as  RequestLogUrl from '@/request/log/mangePlatformLog'
+    export default {
+      name:'resHouseLevelCondition',
+      mixins:[PageList],
+      components:{CitySelector,PageList,HouseLevelConditioinEditor,BaseCascader},
+        data() {
+            return {
+              queryForm:{
+                transactionType:'',
+                levelType:'',
+                cityCode:''
+              },
+              dynamicTitle:null,//动态标题
+              getUrl:'manage/commonselect/queryThirdLevelCitySelect',
+              queryOpenCityCountyUrl: selectUrl.queryOpenCityCountyUrl, // 区县
+              cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+              cascaderProps: { // 级联下拉组件配置选项
+                value: 'code', // 指定选项的值为选项对象的某个属性值
+                children: 'children', // 指定选项的子选项为选项对象的某个属性值
+                label: 'name' // 指定选项标签为选项对象的某个属性值
+              },
+              tableData:[],
+              loadingView:false,
+              queryBtnLoading:false,
+              editorHouseLevelConditionDialog:false,
+              currentRowData:null,
+              transactionType:'',
+              isAdd:false,
+              hackReset:false,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              }
+            }
+        },
+        methods: {
+          whatAdd(value){
+
+
+          },
+          handleSelectCity(val,name){
+          /*  this.queryForm.cityCode = val*/
+          },
+          //查询数据
+          getResHouseLevelConditionData(isLoading){
+            if(isLoading){
+              this.queryBtnLoading = isLoading
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+              this.loadingView = true
+              let params = Object.assign({},this.queryForm,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+              })
+              getResHouseLevelConditionData(params).then(res =>{
+                this.tableData = res.data
+                this.listQuery.total = res.count
+                this.loadingView = false
+                this.queryBtnLoading = false
+              }).catch(error =>{
+                console.log(error)
+                this.loadingView = false
+                this.queryBtnLoading = false
+              })
+          },
+          //删除
+          handleDelete(val){
+            this.$confirm('确定要删除吗？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消',
+              type:'warning'
+
+            }).then(() =>{
+              let params = {id:val.id}
+              delResHouseLevelCondition(params).then(res =>{
+                if(res.success){
+                  this.$message({type:'success',message:res.msg})
+                  let message = {
+                    sourceCode:  val.name,//资源编号：客源编号
+                    sourceTypeId:6,// 6：房源等级条件
+                    operatTypeId: 3,//操作类型2: 表示修改,
+                    logContent:'删除房源等级条件：'+val.name//日志内容
+                  }
+                  RequestLogUrl.manageQueryLog({message:JSON.stringify(message)}).then(res=>{
+                    console.log(res)
+                  }).catch(error =>{
+                    console.log(error)
+                  })
+                  this.getResHouseLevelConditionData(false)
+                }else{
+                  this.$message({type:'success',message:'删除失败'})
+                }
+              }).catch(error =>{
+                this.$message({
+                  type:'info',
+                  message:error.msg
+                })
+              })
+            }).catch( () =>{
+              this.$message({
+                type:'info',
+                message:'已取消'
+              })
+            })
+          },
+          //新增
+          handleAdd(value){
+            this.hackReset = false;
+            this.$nextTick(() =>{
+              this.hackReset = true
+              this.currentRowData = null
+              this.isAdd = true
+              let transcationType =''
+              // value = 1 ? transcationType ='出售' : transcationType='出租'
+              this.dynamicTitle = '新增'+transcationType+'房源等级条件'
+              if(value == 1){
+                this.transactionType = 1
+                this.editorHouseLevelConditionDialog = true
+              }else if(value == 2 ){
+                this.transactionType = 2
+                this.editorHouseLevelConditionDialog = true
+              }
+
+            })
+          },
+          //编辑
+          handleEdit(row){
+            this.hackReset = false
+            this.$nextTick(() =>{
+              this.hackReset = true;
+              this.isAdd =false
+              this.currentRowData = row
+              this.dynamicTitle = '编辑房源等级条件'
+              this.transactionType =  Number(row.transactionType)
+              this.editorHouseLevelConditionDialog = true
+            })
+          },
+          handEditorHouseCondition(value){
+            if(value && value == 1){
+              this.editorHouseLevelConditionDialog =false
+              this.getResHouseLevelConditionData(false)
+            }else{
+              if(value && value == 2){
+                this.editorHouseLevelConditionDialog =false
+              }
+            }
+          },
+          //清空搜索框
+         resetQueryForm(){
+           this.$refs['queryForm'].resetFields()
+         },
+         //格式化时间
+          _timeFormat(row,culmn,cellValue){
+            return this.$utils.timeFormat(cellValue)
+          },
+          _loadData(){
+            this.getResHouseLevelConditionData(false)
+          }
+        },
+        filters:{
+          validateTransactionType: function (transactionType) {
+            if(transactionType==1 )return '出售'
+            if(transactionType == 2) return '出租'
+            if(transactionType ==3) return '租售'
+          },
+          validateLevelType:function (levelType) {
+            if(levelType == 'A')return 'A等级'
+            if(levelType == 'B')return 'B等级'
+          }
+        }
+        ,
+        mounted() {
+            this.getResHouseLevelConditionData(false)
+        }
+
+    }
+
+</script>
+<style>
+  .bor{border:1px dashed #c0c0c0;width:200px;height:80px;margin-top:10px}
+</style>

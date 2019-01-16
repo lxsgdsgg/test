@@ -1,0 +1,108 @@
+<!-- 新增修改反馈 -->
+<template>
+  <el-form ref="form" :model="form" size="medium" label-width="80px">
+
+    <el-form-item
+      label="反馈内容" prop="content"
+      :rules="[
+         { required: true, message: '该项为必填项', trigger: 'blur' }
+       ]"
+    >
+      <el-input
+        type="textarea" v-model="form.content"
+      >
+      </el-input>
+    </el-form-item>
+
+    <el-form-item class="margin-b-none">
+      <el-button type="primary" @click="handleSubmit" :loading="loadingSubmitBtn">保存</el-button>
+      <el-button @click="$emit('handleBtnClick', 2)">取消</el-button>
+    </el-form-item>
+  </el-form>
+</template>
+
+<script>
+  import {saveAgentFeedback} from '@/request/house/houseUsed'
+  export default {
+    props: {
+      params: {
+        type: Object,
+        default () {
+          return {}
+        }
+      },
+      isAdd: {
+        type: Boolean,
+        default () {
+          return true
+        }
+      }
+    },
+    data () {
+      return {
+        form: {
+          content: ''
+        },
+        loadingSubmitBtn: false
+      }
+    },
+
+    methods: {
+      handleSubmit () {
+
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              let params = {...this.form, ...this.params}
+
+              let cfg = {
+                headers: {
+                  'Content-Type': 'application/json;charset=UTF-8;'
+                }
+              }
+
+              if (this.isAdd) {
+                params.id = ''
+              }
+
+              saveAgentFeedback(params, cfg).then(res => {
+                this.$message({
+                  type: 'success',
+                  message: res.msg || '操作成功',
+                  showClose: true
+                })
+                this.$emit('handleBtnClick', 1)
+
+                // 向后台传递日志数据
+                let message = {
+                  sourceCode: this.params.title, // 资源标识
+                  sourceTypeId: this.params.transactionTypeId, // 资源类型
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.ADD_FEEDBACK, // 操作类型
+                  logContent: `房源：${this.params.title}新增反馈 -> '${this.form.content}'` // 日志内容
+                }
+                this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      resetForm () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

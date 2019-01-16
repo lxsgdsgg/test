@@ -1,0 +1,12 @@
+/*********************房源相关图片审核**********************/
+
+import {onPost,onGet} from "../main";
+
+export const  getHouseRelationPictureData = params =>{
+  return onPost('house/houseRelationPicture/getHousePictureExamineData',params)
+}
+
+
+export const  houseRelationPictureExam = params =>{
+  return onPost('house/houseRelationPicture/examineApplication',params)
+}

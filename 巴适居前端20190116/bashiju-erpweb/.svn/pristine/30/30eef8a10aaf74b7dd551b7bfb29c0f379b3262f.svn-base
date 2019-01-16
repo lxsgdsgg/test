@@ -1,0 +1,230 @@
+<!-- 新增客源跟进 -->
+<template>
+  <el-form v-loading="loadingView" :model="form" :rules="rules" ref="form" label-width="100px">
+
+    <div>
+      <el-form-item class="inline-block" label="方案名称" prop="followType">
+        <el-select class="w180 mr15" clearable v-model="form.followType" placeholder="请选择">
+          <el-option v-for="item in options" :label="item.fieldValue" :value="item.id" :key="item.id"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item class="inline-block" label="通知撤单" prop="isCancelNotice">
+        <el-switch
+          v-model="form.isCancelNotice">
+        </el-switch>
+      </el-form-item>
+    </div>
+
+    <el-form-item label="跟进内容" prop="followContent">
+      <el-input type="textarea" v-model="form.followContent"></el-input>
+    </el-form-item>
+
+    <el-form-item label="提醒人" prop="receivePeopleId">
+      <base-cascader
+        :changeOnSelect="false"
+        @change="handleChange"
+        v-model="form.receivePeopleId"
+        :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+      </base-cascader>
+    </el-form-item>
+
+    <el-form-item label="提醒时间" prop="remindTime">
+      <el-date-picker
+        v-model="form.remindTime"
+        type="date"
+        placeholder="选择日期"
+        format="yyyy 年 MM 月 dd 日"
+        value-format="yyyy-MM-dd">
+      </el-date-picker>
+    </el-form-item>
+
+    <el-form-item label="提醒内容" prop="remindContent">
+      <el-input type="textarea" v-model="form.remindContent"></el-input>
+    </el-form-item>
+
+    <el-form-item class="margin-b-none">
+      <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+      <el-button @click="_resetForm">重置</el-button>
+    </el-form-item>
+
+  </el-form>
+</template>
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import {getSelectValue} from '@/request/app'
+  import {saveCustomerFollowAndRemind} from '@/request/customer/customerUsed'
+  import {customerAddLog, customerUpdateLog, customerQueryLog,customerDelLog} from '@/request/log/customerLog'
+  export default {
+    components: {BaseCascader},
+    props: {
+      peopleSelectOpts: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+      transactionTypeId:{
+        type: [Number, String],
+        required: true
+      },
+      demandId: {
+        type: [Number, String]
+      }
+    },
+    data () {
+      return {
+        options: [],
+        loadingView: false,
+        loadingSubmitBtn: false,
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        form: {
+          followType: '',
+          followContent: '',
+          isCancelNotice: false,
+          receivePeopleId: '',
+          remindTime: '',
+          remindContent: '',
+          receivePeopleName: ''
+        },
+        // 表单校验配置
+        rules: {
+          followType: [
+            {required: true, message: '该项为必填项', trigger: 'change'}
+          ],
+          followContent: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ]
+        },
+      }
+    },
+
+    methods: {
+      handleSubmit () {
+
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+
+            this.$confirm('确定保存编辑的信息吗?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+
+              this.loadingSubmitBtn = true
+
+              let params = {}
+
+              let {followType, followContent, isCancelNotice, receivePeopleId, remindTime, remindContent, receivePeopleName} = this.form
+              //let houseId = this.$route.query.houseId
+              let demandId = this.demandId
+              let followTypeName = this.options.find(item => {
+                console.log(item.id)
+                console.log(followType)
+                return item.id === followType
+              }).fieldValue
+              this.form.followTypeName = followTypeName
+              params.followInfo = {
+                followType: followType,
+                content: followContent,
+                followTypeName: followTypeName,
+                demandId: demandId
+              }
+              params.isCancelNotice = isCancelNotice ? 1 : 0
+              params.remindInfo = {
+                receivePeopleId: receivePeopleId,
+                remindContent: remindContent,
+                remindTime: remindTime,
+                receivePeopleName: receivePeopleName
+              }
+
+              let cfg = {
+                headers: {
+                  'Content-Type': 'application/json;charset=UTF-8;'
+                }
+              }
+              saveCustomerFollowAndRemind(params, cfg).then(res => {
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'success',
+                  message: res.msg
+                })
+                // 传递给父组件
+                let emitData = {
+                  followTypeName: followTypeName,
+                  content: followContent,
+                  operator: this.$store.getters.userName,
+                  addTime: new Date().getTime()
+                }
+
+                this.$emit('submit', emitData)
+
+                //记日志
+                let logContent = "跟进方式:"+this.form.followTypeName+";跟进内容:"+this.form.followContent
+                let message = {
+                sourceId: this.demandId,
+                sourceCode: this.demandId,
+                businessTypeId: 2,//业务类型，
+                sourceTypeId: this.transactionTypeId,
+                operatTypeId: 221,
+                logContent: logContent,
+                remark: this.$route.query.formName
+              }
+              customerAddLog({message: JSON.stringify(message)}).then(res => {
+                console.log(res)
+              })
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+
+          }
+        })
+      },
+
+      handleChange (val, name, data) {
+        this.form.receivePeopleName = name
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.form.receivePeopleName = ''
+            this.form.receivePeopleId = ''
+          }, 50)
+
+        }
+      },
+
+      _resetForm () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+        this.form.receivePeopleName = ''
+      },
+
+      _getOptions () {
+        getSelectValue({param: 'followMethod'}).then(res => {
+         // console.log(res.data)
+          this.options = res.data
+        })
+      }
+    },
+
+    mounted () {
+      this._getOptions()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

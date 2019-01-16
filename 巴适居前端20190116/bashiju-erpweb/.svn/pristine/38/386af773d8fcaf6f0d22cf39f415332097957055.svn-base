@@ -1,0 +1,77 @@
+<template>
+  <div>
+    <span style="color: gray">操作日志</span>
+    <div style="margin-top: 25px;">
+      <el-table :data="tableData" border align="center" style="margin-top: 10px;" tooltip-effect="light" size="small">
+        <el-table-column label="时间" prop="addTime" show-overflow-tooltip width=140px>
+          <template slot-scope="scope">
+            {{$utils.timeFormat(scope.row.addTime,'{y}-{m}-{d} {h}:{i}:{s}')}}
+          </template>
+        </el-table-column>
+        <el-table-column label="类型" prop="operatTypeName" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="操作人" prop="operator" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="所在部门" prop="departmentName" show-overflow-tooltip width=120px></el-table-column>
+        <el-table-column label="操作内容" prop="logContent" show-overflow-tooltip></el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import PageList from '@/mixins/pageList'
+
+  export default {
+      name: "DealActionLog",
+      mixins: [PageList],
+      props:{
+        dealId:{
+          type: String,
+          required: true,
+          default() {
+            return ''
+          }
+        }
+      },
+      data(){
+        return {
+          tableData: []
+        }
+      },
+      methods:{
+
+        _loadData(btnQuery){
+          if(btnQuery){
+            this.listQuery.page = 1
+            this.listQuery.currentPage = 1
+          }
+          this._getTableData()
+        },
+
+        _getTableData(){
+          console.log(this.dealId)
+          let params = Object.assign({},{dealId: this.dealId},{
+            page: this.listQuery.page,
+            limit: this.listQuery.limit
+          })
+          RequestURL.queryDealActionLogByDealId(params).then(res=>{
+            this.tableData = res.data
+            this.listQuery.total = res.count
+          })
+        },
+        _timeFormat(){
+          return this.$utils.timeFormat()
+        }
+      }
+    }
+</script>
+
+<style scoped>
+
+</style>

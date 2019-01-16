@@ -1,0 +1,215 @@
+<template>
+  <div style="min-height: 550px">
+    <el-button class="mb15" icon="el-icon-document" size="mini" @click="viewPhoneLog">查看电话日志</el-button>
+    <el-table
+      border
+      max-height="480"
+      :data="tableData"
+      v-loading="loadingView"
+    >
+
+      <el-table-column
+        prop="addTime"
+        :formatter="_timeFormat"
+        label="时间"
+        width="200"
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="operatTypeName"
+        label="操作类型"
+        width="150"
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="sourceTypeName"
+        label="资源类型"
+        width="100"
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="operator"
+        label="操作人"
+        width="150"
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="departmentName"
+        label="所在部门"
+        width="200"
+      >
+      </el-table-column>
+
+      <el-table-column
+        prop="logContent"
+        label="操作内容">
+      </el-table-column>
+
+    </el-table>
+
+    <b-pagination
+      :listQuery="listQuery"
+      @handleSizeChange="handleSizeChange"
+      @handleCurrentChange="handleCurrentChange">
+    </b-pagination>
+
+    <el-dialog
+      title="查看电话日志"
+      :visible.sync="dialogVisible"
+      width="600px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+
+      <el-table
+        border
+        max-height="480"
+        :data="phoneTableData"
+      >
+
+        <el-table-column
+          prop="addTime"
+          :formatter="_timeFormat"
+          label="时间"
+          width="200"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          label="查看人"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="departmentName"
+          label="所在部门"
+        >
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="phoneListQuery"
+        @handleSizeChange="handlePhoneSizeChange"
+        @handleCurrentChange="handlePhoneCurrentChange">
+      </b-pagination>
+
+    </el-dialog>
+
+  </div>
+</template>
+
+<script>
+  import {queryHouseActionLogPageList, auxTelephoneViewLogPageList} from '@/request/log/housePlatformLog'
+
+  export default {
+    props: {
+      houseCode: {
+        required: true
+      },
+    },
+
+    data () {
+      return {
+        tableData: [],
+        phoneTableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        phoneListQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        loadingView: false,
+        dialogVisible: false
+      }
+    },
+
+    methods: {
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+
+      handlePhoneSizeChange (val) {
+        this.phoneListQuery.limit = val
+        this._getPhoneTableData()
+      },
+
+      handlePhoneCurrentChange () {
+        this.phoneListQuery.page = val
+        this._getPhoneTableData()
+      },
+
+      viewPhoneLog () {
+        this.dialogVisible = true
+        this._getPhoneTableData()
+      },
+
+      _getTableData () {
+        this.loadingView = true
+
+        const params = {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page,
+          jsonData: JSON.stringify({
+            sourceCode: this.houseCode
+          })
+        }
+
+        queryHouseActionLogPageList(params).then(res => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+        }).catch(() => {
+          this.loadingView = false
+        })
+      },
+
+      _getPhoneTableData () {
+        const params = {
+          limit: this.phoneListQuery.limit,
+          page: this.phoneListQuery.page,
+          jsonData: JSON.stringify({
+            sourceCode: this.houseCode
+          })
+        }
+
+        auxTelephoneViewLogPageList(params).then(res => {
+          this.phoneTableData = res.data
+          this.phoneListQuery.total = res.count
+        }).catch(() => {
+        })
+      },
+
+      // 格式化日期
+      _timeFormat (row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d} {h}:{i}:{s}')
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

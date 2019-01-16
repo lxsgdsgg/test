@@ -1,0 +1,357 @@
+<template>
+  <div>
+    <span style="color: gray">代收付款</span>
+    <div class="pull-right">
+      <el-button v-hasMultipleBtn="['addPayRecord',dealInfo]" type="primary" @click="handlerEdit('')" size="mini">新增</el-button>
+      <el-button v-hasMultipleBtn="['exportPaymentBtn',dealInfo]" type="primary" @click="" size="mini">导出当前页</el-button>
+    </div>
+    <div style="margin-top: 25px;">
+      <el-table :data="tableData" border align="center" style="margin-top: 10px;" tooltip-effect="light" size="small">
+        <el-table-column label="状态" prop="examineStatus" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{returnCheckStatus(scope.row)}}
+          </template>
+        </el-table-column>
+        <el-table-column label="票据号" prop="billNo" show-overflow-tooltip></el-table-column>
+        <el-table-column label="支付方" prop="payerType" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.payerType === 0 ? '业主' : '客户'}}
+          </template>
+        </el-table-column>
+        <el-table-column label="支付时间" prop="tradeTime" :formatter="_timeFormat"show-overflow-tooltip></el-table-column>
+        <el-table-column label="代收付款类型" prop="transactionType" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.transactionType === 0?'代收款':'代付款'}}
+          </template>
+        </el-table-column>
+        <el-table-column label="费用类型" prop="moneyTypeName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="金额" prop="price" show-overflow-tooltip>
+          <template slot-scope="scope">
+            ￥{{scope.row.price}}
+          </template>
+        </el-table-column>
+        <el-table-column label="结算方式" prop="settlementTypeName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="备注" prop="remark" show-overflow-tooltip></el-table-column>
+        <el-table-column label="操作" width="160">
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['editPaymentBtn',dealInfo]" size="mini" type="button" style="color: #409eff" @click="handlerEdit(scope.row)">修改</el-button>
+            <el-button v-hasMultipleBtn="['delPaymentBtn',dealInfo]" size="mini" type="primary" @click="deletePayment(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <template>
+      <el-dialog
+        title="编辑代收付款"
+        :visible.sync="dialogVisibleEdit"
+        width="750px"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="editForm" ref="editForm" :inline="true" label-width="120px" size="small" :rules="rules">
+          <el-form-item label="票据号" prop="billNo">
+            <el-input v-model="editForm.billNo" style="width: 215px" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="代收付款" prop="transactionType">
+            <el-select v-model="editForm.transactionType">
+              <el-option label="代收款" value="0"></el-option>
+              <el-option label="代付款" value="1"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="费用类型" prop="moneyTypeId">
+            <base-select :data="financeFee" v-model="editForm.moneyTypeId" style="width: 215px" @change="moneyProjIdName"></base-select>
+          </el-form-item>
+
+          <el-form-item label="金额" prop="price">
+            <el-input v-model="editForm.price" style="width: 215px" type="number" :min=0>
+              <i slot="suffix" >元</i>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="支付方" prop="payerType">
+            <el-select v-model="editForm.payerType" clearable style="width: 215px">
+              <el-option label="业主" value="0"></el-option>
+              <el-option label="客户" value="1"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="支付时间" prop="tradeTime">
+            <el-date-picker
+              v-model="editForm.tradeTime"
+              value-format="yyyy-MM-dd"
+              style="width: 215px"
+              type="date">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="结算方式" prop="settlementTypeId">
+            <base-select :data="settlementTypeArr" v-model="editForm.settlementTypeId"
+                 style="width: 215px" @change="settlementTypeName"></base-select>
+          </el-form-item>
+
+          <el-form-item label="备注" prop="remark">
+            <el-input type="textarea"
+                autosize :autosize="{ minRows: 2, maxRows: 4}"
+                maxlength="100" v-model="editForm.remark" style="width: 565px"></el-input>
+          </el-form-item>
+          <div class="btn-group">
+            <el-button type="primary" @click="saveOrUpdatePayRecord" size="small" :loading="saveLoadingBtn">保存</el-button>
+            <el-button type="primary" @click="handlerCancel('0')" size="small">取消</el-button>
+          </div>
+        </el-form>
+      </el-dialog>
+    </template>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import {queryContractInfo, querySelectItems, addHouseDeal } from '@/request/deal/houseDeal'
+  import BaseSelect from '@/components/BaseSelect'
+
+  import PageList from '@/mixins/pageList'
+
+  export default {
+    name: "PaymentToBeReceived",
+    components: {BaseSelect},
+    mixins: [PageList],
+    props:{
+      dealId :{
+        type: String,
+        required: true,
+        default() {
+          return ''
+        }
+      },
+      dealInfo:{
+        type: Object,
+        required: true
+      }
+    },
+    data(){
+      return {
+        saveLoadingBtn: false,
+        tableData: [],
+        dialogVisibleEdit: false,
+        editForm:{
+          billNo: '',
+          transactionType: '',
+          moneyTypeId: '',
+          moneyTypeName: '',
+          price: '',
+          payerType: '',
+          tradeTime: '',
+          settlementTypeId: '',
+          settlementTypeName: '',
+          remark: ''
+        },
+        payRecord: [],
+        rulesUpdate:[{}],
+        hackReset: true,
+        financeFee: [],
+        settlementTypeArr: [],
+        rules: {
+          billNo: [{required: true, message: '此项必填项', trigger: 'blur'}],
+          transactionType: [{required: true, message: '此项必填项', trigger: 'change'}],
+          moneyProjId: [{required: true, message: '此项必填项', trigger: 'change'}],
+          price: [{required: true, message: '此项必填项', trigger: 'blur'}],
+          payerType: [{required: true, message: '此项必填项', trigger: 'change'}],
+          actualPayTime: [{required: true, message: '此项必填项', trigger: 'change'}],
+          settlementTypeId: [{required: true, message: '此项必填项', trigger: 'change'}]
+        }
+      }
+    },
+    methods:{
+      // 返回审核状态
+      returnCheckStatus(row){
+        if(row.examineStatus && row.examineStatus === '1'){
+          return '已审核'
+        }
+        else if(row.examineStatus && row.examineStatus === '2'){
+          return '已驳回'
+        }else{
+          return '未审核'
+        }
+      },
+
+      // 取到费用类型的名称
+      moneyProjIdName(val,name){
+        this.editForm.moneyTypeName = name
+      },
+
+      // 获取结算方式名称
+      settlementTypeName(val,name){
+        this.editForm.settlementTypeName = name
+      },
+
+      // 取消操作
+      handlerCancel(action){
+        if(action === '1'){
+          this.dialogVisibleEdit = false
+          this._getTableData()
+        }else{
+          this.dialogVisibleEdit = false
+        }
+      },
+
+      handlerEdit(row){
+        this.$nextTick(()=>{
+          this._resetForm('editForm')
+          if(!row){
+            this.getBillNoForCommission()
+          }else{
+            row.moneyTypeId = String(row.moneyTypeId)
+            row.payerType = String(row.payerType)
+            row.transactionType = String(row.transactionType)
+            row.price = row.price
+            row.tradeTime = this.$utils.timeFormat(row.tradeTime,'{y}-{m}-{d}')
+            if(row.settlementTypeId) {
+              row.settlementTypeId = String(row.settlementTypeId)
+            }
+            this.editForm.id = row.id
+          }
+          this.setForm(row)
+          this.dialogVisibleEdit = true
+        })
+      },
+
+      //费用初始化
+      queryFinSelectItems(){
+        querySelectItems({'param':'moneyType'}).then((res)=>{
+          if (res.success){
+            for(let i=0;i<res.data.length;i++){
+              let data = {'name':res.data[i].fieldValue,'id': String(res.data[i].id)}
+              this.financeFee.push(data)
+            }
+          }
+        })
+      },
+
+      // 查询【结算方式】下拉数据
+      querySettlementType(){
+        querySelectItems({'param':'settlementType'}).then((res)=>{
+          if (res.success){
+            for(let i=0;i < res.data.length;i++){
+              let data = {'name':res.data[i].fieldValue,'id': String(res.data[i].id)}
+              this.settlementTypeArr.push(data)
+            }
+          }
+        })
+      },
+
+      // 获取票据编号
+      getBillNoForCommission(){
+        RequestURL.getBillNoForCommission().then(res=>{
+          this.editForm.billNo = res
+        }).catch(err=>{
+          this.$message({
+            type: 'error',
+            message: '获取票据编号失败!'
+          })
+        })
+      },
+
+      // 查询代收付款列表
+      _getTableData(){
+        if(!this.dealId){
+          return
+        }
+        RequestURL.queryPayRecordsByDealId({dealId:this.dealId}).then(res=>{
+          this.tableData = res
+          for(let i in this.tableData){
+            if(this.tableData[i].price){
+              this.tableData[i].price = this.tableData[i].price / 100
+            }
+          }
+        }).catch(err=>{
+          console,log(err)
+        })
+      },
+
+      /**
+       * 新增或修改代收付款信息
+       */
+      saveOrUpdatePayRecord(){
+        this.$refs['editForm'].validate((valid)=>{
+          if(valid){
+            this.$confirm('确认要提交数据吗？','警告',{
+              confirmButtonText: '',
+              cancelButtonText: '',
+              type: 'warning'
+            }).then(()=>{
+              let params = {dealId: this.dealId,jsonData: JSON.stringify({...this.editForm})}
+              this.saveLoadingBtn = true
+              RequestURL.savePayRecordd(params).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                }else{
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+                this.saveLoadingBtn = false
+                this.handlerCancel('1')
+              }).catch(err=>{
+                this.saveLoadingBtn = false
+                this.$message({
+                  type: 'error',
+                  message: err.data.msg
+                })
+              })
+            })
+          }
+        })
+      },
+
+      // 删除代收付款
+      deletePayment(row){
+        this.$confirm('确认要删除数据吗？','警告',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.delPayRecordd({id: row.id}).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this._getTableData()
+          }).catch(err=>{
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+
+      // 重置表单
+      setForm(data){
+        for(let i in this.editForm){
+          this.editForm[i] = data[i]
+        }
+      }
+    },
+    mounted(){
+      this.querySettlementType()
+      this.queryFinSelectItems()
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

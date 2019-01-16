@@ -1,0 +1,289 @@
+/*********************************************************************************/
+/***************************** 常用自定义辅助工具函数 *******************************/
+/*********************************************************************************/
+
+import Cookies from 'js-cookie'
+import Vue from 'vue'
+
+export function hasClass (el, className) {
+  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
+  return reg.test(el.className)
+}
+
+export function addClass (el, className) {
+  if (hasClass(el, className)) {
+    return
+  }
+
+  let newClass = el.className.split(' ')
+  newClass.push(className)
+  el.className = newClass.join(' ')
+}
+
+export function removeClass (el, className) {
+  if (!hasClass(el, className)) {
+    return
+  }
+
+  let classString = el.className
+  const nameIndex = classString.indexOf(className)
+
+  classString = classString.substr(0, nameIndex) + classString.substr(nameIndex + className.length)
+
+  el.className = classString
+}
+
+export function getCookie (CookieKey) {
+  return Cookies.get(CookieKey)
+}
+
+export function setCookie (CookieKey, value) {
+  return Cookies.set(CookieKey, value)
+}
+
+export function removeCookie (CookieKey) {
+  return Cookies.remove(CookieKey)
+}
+
+/**
+ * 获取地址栏目标参数
+ */
+export function getUrlParam (name) {
+  let reg = new RegExp('(^|\\?|&)' + name + '=([^&]*)(\\s|&|$)', 'i')
+  if (reg.test(window.location.href)) {
+    return unescape(RegExp.$2.replace(/\+/g, ' '))
+  }
+  return null
+}
+
+/**
+ * 将具有父子关系的原始数据格式化成树形结构数据
+ * @returns {Array} 树形结构数据
+ * @param _data
+ * @param _props
+ */
+export function toTreeData (_data, _props) {
+  let data = _data.concat()
+  let props = _props || {
+    id: 'id',
+    parent: 'parentId'
+  }
+
+  // 删除 所有 children,以防止多次调用
+  data.forEach(function (item) {
+    delete item.children
+  })
+
+  // 将数据存储为 以 id 为 KEY 的 map 索引数据列
+  let map = {}
+  data.forEach(function (item) {
+    if(item.level){
+      let level = item.level
+      let key =  item[props.id]
+      map[level + '' + key] = item
+    } else {
+      map[item[props.id]] = item
+    }
+
+  })
+
+  let val = []
+
+  data.forEach(function (item) {
+    // 以当前遍历项，的pid,去map对象中找到索引的id
+    let parent
+
+    if (item.level) {
+      let curLevel = item.level
+      let parentLevel = item.level - 1
+      let itemParent = item[props.parent]
+
+      if (map[parentLevel +''+ itemParent]) {
+        parent = map[parentLevel +''+ itemParent]
+      }
+    } else {
+      parent = map[item[props.parent]]
+    }
+
+    item.parent = parent || null
+
+    if (parent) {
+      (parent.children || (parent.children = [])).push(item)
+    } else {
+      // 如果没有在map中找到对应的索引ID,那么直接把 当前的item添加到 val结果集中，作为顶级
+      val.push(item)
+    }
+  })
+  return val
+}
+
+// 树转数组
+export function treeToArray (data, parent = null, level = null) {
+  let tmp = []
+  Array.from(data).forEach(function (record) {
+    let _level = 1
+    if (level !== undefined && level !== null) {
+      _level = level + 1
+    }
+    Vue.set(record, '_level', _level)
+    // 如果有父元素
+    if (parent) {
+      Vue.set(record, 'parent', parent)
+    }
+    tmp.push(record)
+    if (record.children && record.children.length > 0) {
+      const children = treeToArray(record.children, record, _level)
+      tmp = tmp.concat(children)
+    }
+  })
+  return tmp
+}
+
+/**
+ * 设置表单信息
+ * @param form
+ * @param data
+ * @param callback
+ */
+export function setFormInfo (form, data, callback) {
+  Object.keys(form).forEach(key => {
+    if (data[key] !== 'undefined' && data[key] !== null) {
+      form[key] = data[key]
+    }
+  })
+
+  if (callback && typeof callback === 'function') {
+    callback()
+  }
+}
+
+/**
+ * 时间 格式化
+ * @returns {string} 格式化后的字符串
+ * @param time
+ * @param cFormat
+ */
+export function timeFormat (time, cFormat) {
+
+
+  if (time) {
+    // const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
+    const format = cFormat || '{y}-{m}-{d}'
+    let date
+    if (typeof time === 'object') {
+      date = time
+    } else {
+      if (('' + time).length === 10) time = parseInt(time) * 1000
+      date = new Date(time)
+    }
+    const formatObj = {
+      y: date.getFullYear(),
+      m: date.getMonth() + 1,
+      d: date.getDate(),
+      h: date.getHours(),
+      i: date.getMinutes(),
+      s: date.getSeconds(),
+      a: date.getDay()
+    }
+    const timeStr = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
+      let value = formatObj[key]
+      if (key === 'a') return ['一', '二', '三', '四', '五', '六', '日'][value - 1]
+      if (result.length > 0 && value < 10) {
+        value = '0' + value
+      }
+      return value || 0
+    })
+    return timeStr
+  } else {
+    return ''
+  }
+}
+
+/**
+ * 时间戳转日期格式
+ * @param timestamp 时间戳
+ * @param _flag 是否需要时分秒
+ * @returns {string} 日期字符串
+ */
+export function timestampToTime (timestamp, _flag) {
+  let flag = _flag || false
+
+  // 时间戳为10位需*1000，时间戳为13位的话不需乘1000
+  if (('' + timestamp).length === 10) {
+    timestamp = parseInt(timestamp) * 1000
+  } else {
+    timestamp = parseInt(timestamp)
+  }
+
+
+  let date = new Date(timestamp)
+  let Y = date.getFullYear() + '-'
+  let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+  let D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate())
+
+  if (flag) {
+    let h = ' ' + date.getHours() + ':'
+    let m = date.getMinutes() + ':'
+    let s = date.getSeconds()
+
+    return Y + M + D + h + m + s
+  }
+
+  return Y + M + D
+}
+
+/**
+ * json 转数组 key value形式
+ * @param json
+ * @param key 键名
+ * @param val 键值
+ * @returns {Array}
+ */
+export function jsonToArr (json, _key, _val) {
+  const key = _key || 'key'
+  const value = _val || 'value'
+
+  let arr = []
+
+  for (let k of Object.keys(json)) {
+    let obj = {}
+    obj[key] = k
+    obj[value] = json[k]
+    arr.push(obj)
+  }
+  return arr
+}
+
+/**
+ * 生成后台记录日志所需的表单信息对象
+ * @param _ref 表单DOM对象
+ * @param propArg 要获取的表单属性
+ * @returns {Object}
+ */
+export function getFormFields (_ref, propArg) {
+  if (!_ref) return null
+
+  let ref = Object.assign({}, _ref)
+  let result = {}
+  let fields = ref.fields || []
+
+  fields.forEach(item => {
+    let _prop = ''
+    if (propArg) {
+      _prop = item.$attrs[propArg]
+    } else {
+      _prop = item['prop']
+    }
+
+    if (_prop) {
+      result[_prop] = {
+        label: item.label,
+        value: item.fieldValue
+      }
+    }
+
+  })
+
+  return result
+
+}

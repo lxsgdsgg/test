@@ -1,0 +1,33 @@
+const app = {
+  state: {
+    isLock: false
+  },
+
+  mutations: {
+    SET_LOCK: (state) => {
+      state.isLock = true
+    },
+
+    CLEAR_LOCK: (state) => {
+      state.isLock = false
+    }
+  },
+
+  actions: {
+    setLock({ commit, state}) {
+      return new Promise(resolve => {
+        commit('SET_LOCK')
+        resolve(state.isLock)
+      })
+    },
+
+    clearLock ({ commit, state}) {
+      return new Promise(resolve => {
+        commit('CLEAR_LOCK')
+        resolve(state.isLock)
+      })
+    }
+  },
+}
+
+export default app

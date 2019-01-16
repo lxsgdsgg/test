@@ -1,0 +1,25 @@
+const getters = {
+  visitedViews: state => state.tagsView.visitedViews,
+  cachedViews: state => state.tagsView.cachedViews,
+  showIframe: state => state.tagsView.showIframe,
+  iframeTabData: state => state.tagsView.iframeTabData,
+  userInfo: state => state.user.info,
+  userName: state => state.user.name,
+  isLock: state => state.app.isLock,
+  btnPermission: state => state.permission.btnPermission,
+  permissions: state => {
+      let btnPermission = state.permission.btnPermission
+      let permissions = {}
+      btnPermission.forEach(item => {
+        if (item.permission === 1) {
+          permissions[item.btnName] = true
+        } else if (item.permission === 0) {
+          permissions[item.btnName] = false
+        }
+      })
+      return permissions
+  },
+  houseUsedCached: state => state.house.used.cachedData,
+  houseUsedCachedList: state => state.house.used.cachedList
+}
+export default getters

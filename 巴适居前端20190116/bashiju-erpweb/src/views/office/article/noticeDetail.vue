@@ -1,0 +1,150 @@
+<template>
+  <div class="wrapper">
+    <div class="content">
+      <div class="title-wrap">
+        <p class="title text-center">{{data.title}}</p>
+      </div>
+
+      <div class="desc-wrap">
+        <div class="item">
+          <label>类型:</label>
+          <!--<span>{{data.classesName}}</span>-->
+          <el-tag style="color: #e41e2b;" size="small">{{data.classesName}}</el-tag>
+        </div>
+
+        <div class="item">
+          <label>发布人:</label>
+          <span>{{data.operator}}</span>
+        </div>
+
+        <div class="item">
+          <label>发布时间:</label>
+          <span>{{$utils.timeFormat(data.updateTime, '{y}-{m}-{d} {h}:{i}:{s}')}}</span>
+        </div>
+
+        <div class="item">
+          <label>浏览次数:</label>
+          <span>{{data.browseCnt}}</span>
+        </div>
+      </div>
+
+      <el-card shadow="always">
+        <div class="notice-content" v-html="data.content">
+        </div>
+
+        <div class="browseName">
+          <label>浏览人:</label>
+          <span>{{data.browseName}}</span>
+        </div>
+      </el-card>
+
+    </div>
+  </div>
+</template>
+
+<script>
+  import {queryArticleDetail, noticeBrowse} from '@/request/office/article' // 请求后端URL路径
+
+  export default {
+    name: 'noticeDetail',
+    data () {
+      return {
+        data: {}
+      }
+    },
+    methods: {
+      // 设置导航标签标题
+      setTagsViewTitle() {
+        let tempRoute = Object.assign({}, this.$route)
+        let code = tempRoute.params && tempRoute.params.id
+
+        const route = Object.assign({}, tempRoute, { title: '公告详情-' + code  })
+        this.$store.dispatch('updateVisitedView', route)
+      },
+
+      fetchData () {
+        const id = this.$route.params.id
+        queryArticleDetail({id}).then(res => {
+          this.data = res.data
+
+          const {id, browseCnt} = res.data
+          let params = {
+            id,
+            browseCnt
+          }
+          noticeBrowse(params)
+        })
+      }
+    },
+    mounted () {
+      this.setTagsViewTitle()
+      this.fetchData()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .wrapper {
+    min-height: calc(100vh - 165px);
+    padding: 40px 45px 20px 50px;
+    background-color: #fff;
+    .content {
+      width: 1100px;
+      margin: 0 auto;
+    }
+
+    .title-wrap {
+      line-height: 35px;
+      margin-bottom: 20px;
+      font-size: 20px;
+      .title {
+        color: #606266;
+        font-weight: 700;
+      }
+
+      .text {
+        color: #303133;
+      }
+    }
+
+    .desc-wrap {
+      display: flex;
+      margin-bottom: 20px;
+      /*border-bottom: 1px dashed #DCDFE6;*/
+
+      .item {
+        flex: 1;
+        line-height: 40px;
+
+        label {
+          text-align: right;
+          float: left;
+          color: #606266;
+          padding: 0 12px 0 0;
+          box-sizing: border-box;
+          font-weight: 700;
+        }
+        span {
+          color: #606266;
+        }
+      }
+    }
+
+    .browseName {
+      float: right;
+      line-height: 50px;
+
+      label {
+        text-align: right;
+        float: left;
+        color: #606266;
+        padding: 0 12px 0 0;
+        box-sizing: border-box;
+        font-weight: 700;
+      }
+      span {
+        color: #606266;
+      }
+    }
+  }
+</style>

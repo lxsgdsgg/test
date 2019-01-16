@@ -1,0 +1,319 @@
+<!-- 匹配客户 -->
+<template>
+  <div style="min-height: 550px">
+       <el-form ref="queryForm" :inline="true" size="small" :model="queryForm" >
+
+         <!--<el-form-item label="" prop="conditionArea" style="width: 150px;">-->
+           <!--<base-cascader :changeOnSelect="false" v-model="conditionArea" :url="getRegionSelectUrl" :props="cascaderProps" :dataProps="cascaderDataProps" @change="conditionChange"></base-cascader>-->
+       <!---->
+       <!---->
+         <!--</el-form-item>-->
+         <el-form-item label="" prop="conditionArea" style="width: 150px">
+           <base-cascader :changeOnSelect="false" v-model="conditionArea" :url="getRegionSelectUrl" :props="cascaderProps" :dataProps="cascaderDataProps" @change="conditionChange"></base-cascader>
+         </el-form-item>
+
+         <el-form-item  prop="space">
+                <base-section-select v-model="space" :data="regionValue.space" placeholder="面积区间" description="平米"></base-section-select>
+         </el-form-item>
+
+         <el-form-item  prop="price">
+                <base-section-select v-model="price" :data="regionValue.price" placeholder="价格" description="万元"></base-section-select>
+         </el-form-item>
+
+         <el-form-item  prop="room">
+           <base-section-select v-model="room" :data="regionValue.room" placeholder="室" description="室"></base-section-select>
+         </el-form-item>
+
+         <el-form-item  prop="floor">
+               <base-section-select v-model="floor" :data="regionValue.floor" placeholder="楼层" description="层"></base-section-select>
+         </el-form-item>
+
+         <el-form-item>
+             <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+             <el-button type="primary"  @click.native.prevent="resetForm" >清空</el-button>
+         </el-form-item>
+       </el-form>
+    <el-table
+      :data="tableData"
+      v-loading="loadingView"
+    >
+
+      <el-table-column
+        prop="status"
+        label="状态">
+      </el-table-column>
+
+      <el-table-column
+        prop="id"
+        label="客源编号">
+        <template slot-scope="scope">
+          <a
+            @click="toDetail(scope.row.id, scope.row.formName, scope.row.transactionTypeId)"
+            href="javascript:;" class="houseId"  type="text"
+          >
+            {{scope.row.id}}
+          </a>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="areas"
+        label="区域">
+      </el-table-column>
+
+      <el-table-column
+        label="面积">
+        <template slot-scope="scope">
+            {{scope.row.minSpace+'-'+scope.row.maxSpace+'㎡'}}
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="minRoom"
+        label="户型">
+        <template slot-scope="scope">
+          {{scope.row.minRoom+'-'+scope.row.maxRoom+'室'}}
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="minPrice"
+        label="价格">
+      </el-table-column>
+
+      <el-table-column
+        prop="minFloorCount"
+        label="楼层">
+      </el-table-column>
+
+      <el-table-column
+        prop="maintainer"
+        label="维护人">
+      </el-table-column>
+
+    </el-table>
+
+    <b-pagination
+      :listQuery="listQuery"
+      @handleSizeChange="handleSizeChange"
+      @handleCurrentChange="handleCurrentChange">
+    </b-pagination>
+  </div>
+</template>
+
+<script>
+  import CommunitySelector from '@/components/BaseCascader/index'
+  import {matchingCustomer} from '@/request/house/houseUsed'
+  import {queryCommunitySelectWithRegion,getRegionValue} from '@/request/app'
+  import BaseSectionSelect from '@/components/BaseSectionSelect'
+  import BaseCascader from '@/components/BaseCascader'
+  import * as selectUrl from '@/request/manage/common' // 获取下拉框数据 url地址
+  export default {
+    components:{CommunitySelector,BaseSectionSelect,BaseCascader},
+    props: {
+      transactionTypeId: {
+        type: [Number, String],
+        required: true
+      }
+    },
+    data () {
+      return {
+        queryForm:{
+           space:'',
+          room:'',
+          price:'',
+          floor:''
+        },
+        conditionArea:'',
+        space:{},
+        room:{},
+        floor:{},
+        price:{},
+        tableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        option1:[],
+        option2:[],
+        option3:[],
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+
+        getRegionSelectUrl: selectUrl.queryOpenCityCountyRegionUrl, // 片区
+        areasUrl: queryCommunitySelectWithRegion,
+        loadingView: false,
+        loadingQueryBtn: false,
+        regionValue: {
+          sell: {},
+          rent: {},
+          space: {},
+          floor:{}
+        } //
+      }
+    },
+
+    methods: {
+      handleQuery () {
+        this.listQuery.page = 1
+        this._getTableData(false)
+      },
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      conditionChange(value,name,data){
+
+        console.log(data)
+        if (data) {
+          // Todo 级联选择暂时不支持多选 后面加入
+          if(data.dataType == 'area'){
+            //行政区域
+            this.queryForm.areas =
+              [{
+                type: 1,
+                value: data.code
+              }]
+          }else if(data.dataType == 'region'){
+            this.queryForm.areas =
+              [{
+                type: 2,
+                value: data.code
+              }]
+          }else{
+            //小区
+            this.queryForm.areas =
+              [{
+                type: 3,
+                value: data.code
+              }]
+          }
+        }
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+
+      _getTableData (btn) {
+        this.loadingView = true
+        this.loadingQueryBtn =  btn
+        if(this.price.length>0){
+          this.queryForm.maxPrice = this.price.max
+        }
+        let conditions = {
+          transactionTypeId: this.transactionTypeId || '',
+            ...this.queryForm
+        }
+        conditions.minPrice = this.price.min
+        conditions.maxPrice = this.price.max
+        conditions.minRoom = this.room.min
+        conditions.maxRoom = this.room.max
+        conditions.minFloor = this.floor.min
+        conditions.maxFloor = this.floor.max
+        conditions.minSpace = this.space.min
+        conditions.maxSpace = this.space.max
+        const params = {
+          conditions: JSON.stringify(conditions),
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        }
+
+        delete this.queryForm.space
+        delete this.queryForm.price
+        delete this.queryForm.room
+        delete this.queryForm.floor
+        delete this.queryForm.conditionArea
+        delete this.queryForm.conditionArea
+        console.log(params)
+        matchingCustomer(params).then(res => {
+          this.tableData = res.data
+          console.log(res.data)
+          debugger;
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        }).catch(() => {
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        })
+      },
+      toDetail (id, name, type) {
+        this.$router.push({ path: '/customer/customerDetail/'+id, query: {formName: name,transactionTypeId: type}})
+        window.localStorage.setItem('customerList', JSON.stringify(this.tableData))
+      },
+      resetForm(){
+        this.$refs['queryForm'].resetFields()
+        this.space = ''
+        this.price = ''
+        this.room = ''
+        this.floor = ''
+        this.conditionArea = ''
+        this.areas = '',
+        delete this.queryForm.areas
+      }
+      ,
+      //下拉区间数据源
+      _getRegionValue(){
+        // 获取售价区间
+        const sapceParams = {
+          widgetCode: 'spaceRange',
+          tag: 2
+        }
+        getRegionValue(sapceParams).then(res => {
+          this.regionValue.space = res.data || []
+        })
+        const roomParams = {
+          widgetCode: 'roomRange',
+          tag: 2
+        }
+        getRegionValue(roomParams).then(res => {
+          this.regionValue.room = res.data || []
+        })
+        const sellParams = {
+          widgetCode: 'sellPriceRange',
+          tag: 2
+        }
+        getRegionValue(sellParams).then(res => {
+          this.regionValue.price = res.data || []
+        })
+        const floorParams = {
+          widgetCode: 'floorRange',
+          tag: 2
+        }
+        getRegionValue(floorParams).then(res => {
+          this.regionValue.floor = res.data || []
+        })
+
+      },
+      // 格式化日期
+      _timeFormat (row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue)
+      },
+      //小区change事件
+      handleCommunityChange(){
+
+      }
+    },
+    mounted(){
+        this._getRegionValue()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

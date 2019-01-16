@@ -1,0 +1,300 @@
+<template>
+  <div class="page-content">
+    <el-row>
+      <div class="page-content-hd">
+        <div>
+          <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+            <el-form-item  prop="taskName">
+              <el-input v-model.trim="form.taskName" placeholder="任务名称"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+              <el-button @click.native.prevent="_resetForm('form')">清空</el-button>
+              <el-button   @click.native.prevent="handleAdd">新增</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </div>
+      <div class="page-content-bd" v-loading="loadingView">
+        <el-table
+          :data="tableData"
+          border
+          tooltip-effect="light"
+          align="center"
+          style="width: 100%"
+        >
+
+          <el-table-column
+            prop="name"
+            align="left"
+            label="名称">
+          </el-table-column>
+
+
+          <el-table-column
+            prop="beginTime"
+            align="left"
+            :formatter="timeFormat"
+            label="任务开始时间"
+          >
+          </el-table-column>
+
+
+          <el-table-column
+            prop="endTime"
+            align="left"
+            :formatter="timeFormat"
+            label="任务结束时间">
+          </el-table-column>
+
+
+          <el-table-column
+            align="center"
+            label="操作"
+          >
+            <template slot-scope="scope">
+              <el-button   @click="handleDistribution(scope.row)" type="text" size="small">任务分配</el-button>
+              <el-button   @click="handleDetail(scope.row)" type="text" size="small">任务详情</el-button>
+              <el-button   @click="handleEditor(scope.row)" type="text" size="small"  icon="el-icon-edit" ></el-button>
+              <el-button   @click="handleDelete(scope.row)" type="text" size="small" icon="el-icon-delete"></el-button>
+            </template>
+          </el-table-column>
+
+        </el-table>
+        <!--分页控件-->
+        <b-pagination
+          :listQuery="listQuery"
+          @handleSizeChange="handleSizeChange"
+          @handleCurrentChange="handleCurrentChange">
+        </b-pagination>
+      </div>
+    </el-row>
+    <!--编辑窗体-->
+    <template>
+      <el-dialog
+        title="分配任务"
+        :visible.sync="distributionDialogVisible"
+        width="720px">
+        <Task-Distributed @handleClick="handleDistributDialog" v-if="hackReset" :data="currentDistrubuteRowData" :isAdd="isAdd"></Task-Distributed>
+      </el-dialog>
+
+      <el-dialog
+        :title="dynamicTitil"
+        :visible.sync="updateDialogVisible"
+        width="500px">
+        <Edit @handleClick="closeUpdDialog" v-if="hackReset" :data="currentRowData" :isAdd="isAdd"></Edit>
+      </el-dialog>
+
+      <el-dialog
+        title="任务详情"
+        :visible.sync="detailDialogVisible"
+        width="1200px">
+        <Task-Detail @handleClick="closeDetailDialog" v-if="hackReset" :data="currentDetailRowData" :isAdd="isAdd"></Task-Detail>
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryTask,delTask} from "@/request/office/taskManage";
+  import TaskDistributed from './component/taskDistributed'
+  import Edit from './component/edit'
+  import TaskDetail from './component/taskDetail'
+  import  *  as  RequestLogUrl from '@/request/log/oaLog'
+  export default {
+      components:{Edit,TaskDistributed,TaskDetail},
+      mixins: [PageList],
+      name:'taskManage',
+        data() {
+            return {
+                form: {
+                  taskName:'',//任务名称
+                },
+              dynamicTitil:null,
+              hackReset:false,
+              isAdd:false,
+              currentRowData:null,
+              currentDistrubuteRowData:null,
+              currentDetailRowData:null,
+              tableData:[],
+              distributionDialogVisible:false,
+              updateDialogVisible:false,
+              detailDialogVisible:false,
+              listQuery:{limit:10, page:1, total:0},
+              queryBtnLoading:false,
+              loadingView:false
+            }
+        },
+        methods: {
+          /**
+           * 分配
+           * @param row 行数据
+           */
+          handleDistribution(row){
+            this.hackReset = false
+            this.$nextTick(() =>{
+              // this.isAdd = true
+              this.hackReset = true
+              this.currentDistrubuteRowData = row
+              this.distributionDialogVisible = true
+            })
+          },
+          /**
+           * 详情
+           * @param row  行数据
+           */
+          handleDetail(row){
+              this.hackReset = false
+              this.$nextTick(() =>{
+                this.hackReset = true
+                this.currentDetailRowData = row
+                console.log(row)
+                this.detailDialogVisible = true
+              })
+          },
+
+          /**
+           * 新增
+           * @param row  行数据
+           */
+          handleAdd(){
+
+            this.hackReset = false
+            this.$nextTick(() =>{
+              this.dynamicTitil = '新增任务'
+              this.isAdd = true
+              this.hackReset = true
+              this.updateDialogVisible = true
+            })
+          },
+          /**
+           * 修改
+           * @param row  行数据
+           */
+          handleEditor(row){
+
+              this.hackReset = false
+              this.$nextTick(() =>{
+                this.dynamicTitil = '修改任务'
+                this.isAdd = false
+                this.hackReset = true
+                this.currentRowData  = row
+                this.updateDialogVisible = true
+              })
+          },
+          /**
+           * 删除
+           * @param row  行数据
+           */
+          handleDelete(row){
+            let params = {taskId:row.id}
+            delTask(params).then(res=>{
+                if(res.success){
+                  this.$message({type:'success',message:res.msg})
+                  let message = {
+                    sourceCode: row.name,
+                    businessTypeId: 6,//业务类型，
+                    sourceTypeId: 17,
+                    operatTypeId: 619,
+                    logContent: '删除任务：'+row.name
+                  }
+                  RequestLogUrl.oaDelLog({message: JSON.stringify(message)}).then(res => {
+                    console.log(res)
+                  })
+                  this._loadData(false)
+                }else{
+                  this.$message({type:'warning',message:res.msg})
+                }
+            }).catch(error =>{
+                console.log(error)
+            })
+          },
+          /**
+           * 清空输入框
+           * @param form 输入框名称
+           * @private
+           */
+          _resetForm(form){
+            this.$refs[form].resetFields()
+          },
+          /**
+           * 时间戳格式化
+           * @param row
+           * @param column
+           * @param cellValue
+           * @returns {*}
+           */
+          timeFormat(row,column,cellValue){
+            return this.$utils.timeFormat(cellValue,'{y}-{m}-{d} ')
+          },
+          closeUpdDialog(value){
+            if(value == 1){
+              this.updateDialogVisible = false
+            }else{
+              this.updateDialogVisible = false
+              this._loadData(false)
+            }
+          },
+          /**
+           * 关闭任务详情
+           * @param value
+           */
+          closeDetailDialog(value){
+            if(value == 1){
+              this.detailDialogVisible = false
+            }else{
+              this.detailDialogVisible = false
+              this._loadData(false)
+            }
+          },
+          /**
+           * 关闭任务分配
+           * @param value
+           */
+          handleDistributDialog(value){
+            if(value == 1){
+              this.distributionDialogVisible = false
+            }else{
+              this.distributionDialogVisible = false
+              this._loadData(false)
+            }
+          },
+          _loadData(btn){
+            this._queryTask(btn)
+          },
+          _queryTask(btn){
+            if(btn){
+              this.queryBtnLoading = btn
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+              this.loadingView = true
+              this.queryBtnLoading = true
+            let params = Object.assign({},this.form,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+              })
+            queryTask(params).then(res =>{
+                this.tableData = res.data
+                this.listQuery.total = res.count
+                this.loadingView = false
+                this.queryBtnLoading = false
+            }).catch(error =>{
+                this.loadingView = false
+                this.queryBtnLoading = false
+                console.log(error)
+            })
+          }
+
+        },
+        mounted() {
+
+        }
+
+    }
+
+</script>

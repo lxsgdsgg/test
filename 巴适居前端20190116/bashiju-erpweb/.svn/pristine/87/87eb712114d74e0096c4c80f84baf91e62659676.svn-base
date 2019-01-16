@@ -1,0 +1,276 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-loginLog">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm">
+          <el-form-item prop="name">
+            <el-input v-model.trim="queryForm.name" placeholder="用户名称" ></el-input>
+          </el-form-item>
+
+          <el-form-item prop="time">
+              <el-date-picker
+                v-model="time"
+                type="daterange"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                :default-value="ct_month"
+                range-separator="至"
+                start-placeholder="添加时间开始日期"
+                end-placeholder="添加时间结束日期"
+                align="right">
+            </el-date-picker>
+
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="queryLoginLog(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click="resetForm">清空</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%">
+
+
+        <el-table-column
+          prop="name"
+          align="center"
+          label="名称"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="phone"
+          align="center"
+          label="电话"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="ip"
+          align="center"
+          label="IP地址"
+          show-overflow-tooltip
+          width="140"
+        >
+        </el-table-column>
+
+
+        <el-table-column
+          prop="loginTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="登陆时间"
+          width="156"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+
+
+        <el-table-column
+          prop="departmentName"
+          align="center"
+          label="部门名称"
+        >
+        </el-table-column>
+
+
+        <el-table-column
+          prop="departmentId"
+          align="center"
+          label="部门编号"
+        >
+        </el-table-column>
+
+        <!--<el-table-column-->
+          <!--prop="companyId"-->
+          <!--align="center"-->
+          <!--label="公司编号"-->
+
+        <!--&gt;-->
+        <!--</el-table-column>-->
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司名称"
+          width="150"
+        >
+        </el-table-column>
+
+
+
+        <el-table-column
+          prop="addTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="添加时间"
+          width="152"
+        >
+        </el-table-column>
+
+
+        <el-table-column
+          prop="operator"
+          align="center"
+          label="操作人"
+        >
+        </el-table-column>
+
+        <!--<el-table-column-->
+          <!--prop="areaCode"-->
+          <!--align="center"-->
+          <!--label="区域代码"-->
+        <!--&gt;-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          prop="areaName"
+          align="center"
+          label="区域名称"
+        >
+        </el-table-column>
+
+
+
+        <el-table-column
+          prop="remark"
+          align="center"
+          label="备注信息"
+        >
+        </el-table-column>
+        <el-table-column
+          prop="operatorType"
+          align="center"
+          label="操作人类型"
+        >
+        </el-table-column>
+        <el-table-column
+          prop="source"
+          align="center"
+          label="资源"
+        >
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+  import {queryLoginLog} from '@/request/manage/loginLog'
+  import pageList from '@/mixins/pageList'
+  export default {
+        name:'loginLog',
+          mixins:[pageList],
+          data(){
+            return {
+              queryForm:{
+                beginAddTime:'',
+                endAddTime:''
+              },
+              ct_month:null,
+              tableData:[],
+              loadingView:false,
+              queryBtnLoading:false,
+              time:[],
+              listQuery:{
+                  page:1,
+                  limit:10,
+                  total:0
+              },
+              pickerOptions2: {
+                shortcuts: [{
+                  text: '最近一周',
+                  onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                    picker.$emit('pick', [start, end]);
+                  }
+                }, {
+                  text: '最近一个月',
+                  onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                    picker.$emit('pick', [start, end]);
+                  }
+                }, {
+                  text: '最近三个月',
+                  onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                    picker.$emit('pick', [start, end]);
+                  }
+                }]
+              }
+            }
+          },
+          methods:{
+              _loadData(btnQuery){
+                this.queryLoginLog(btnQuery)
+              }
+              ,
+              _timeFormat(row,column,cellValue){
+                return this.$utils.timeFormat(cellValue)
+              }
+              ,
+            timeDefaultShow(){//默认显示上个月
+              this.ct_month= new Date();
+              this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+            },
+            //时间格式转换
+              queryLoginLog(isLoding){
+                if(isLoding){
+                  this.listQuery.page = 1
+                  this.listQuery.currentPage = 1
+                }
+                this.loadingView =true
+                this.queryBtnLoading = isLoding
+                //拆分时间并绑定包queryForm
+                if(this.time!='' && this.time!=null){
+                  this.queryForm.beginAddTime = this.time[0];//开始
+                  this.queryForm.endAddTime = this.time[1];//结束
+                }
+                let params = Object.assign({},this.queryForm,{
+                    page:this.listQuery.page,
+                    limit:this.listQuery.limit
+                })
+                queryLoginLog(params).then(res =>{
+                      this.tableData = res.data
+                      this.listQuery.total = res.count
+                      this.loadingView = false
+                      this.queryBtnLoading = false;
+                }).then(error =>{
+                  console.log(error)
+                  this.loadingView = false
+                  this.queryBtnLoading = false;
+                })
+              },
+            //清空按钮
+            resetForm(from){
+              this.$refs['queryForm'].resetFields()
+              this.time = ''
+            }
+          },
+        mounted(){
+            this.queryLoginLog(false)
+          this.timeDefaultShow();
+        }
+    }
+</script>
+
+<style scoped>
+
+</style>

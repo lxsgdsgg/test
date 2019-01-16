@@ -1,0 +1,667 @@
+<template>
+  <div class="wrapper">
+
+    <div class="toolbar">
+
+      <div v-if="btnPermission[PERMISSION_BTN.EDIT]" @click="handleEditBaseInfo" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_updateInfo" width="35" height="35"></icon>
+        </div>
+        <p>修改信息</p>
+      </div>
+
+      <div v-if="btnPermission[PERMISSION_BTN.SELL_DEAL]" @click="handleDeal" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_deal" width="35" height="35"></icon>
+        </div>
+        <p>买卖成交</p>
+      </div>
+
+      <div v-if="btnPermission[PERMISSION_BTN.COMMUNITY_DETAIL]" @click="viewCommunityDetail" class="toolbar-item">
+        <div class="icon">
+          <icon name="community_detail" width="35" height="35"></icon>
+        </div>
+        <p>小区详细</p>
+      </div>
+
+      <div v-if="btnPermission[PERMISSION_BTN.SET_OVER_ALL_VIEW]" @click="handleSetOverallView" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_video" width="35" height="35"></icon>
+        </div>
+        <p>全景看房</p>
+      </div>
+
+      <div @click="viewPrev" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_prev1" width="35" height="35"></icon>
+        </div>
+        <p>上一条</p>
+      </div>
+
+      <div @click="viewNext" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_next1" width="35" height="35"></icon>
+        </div>
+        <p>下一条</p>
+      </div>
+
+    </div>
+
+    <el-tabs v-model="activeName" @tab-click="handleTabClick" type="card" style="max-width: 1280px;">
+
+      <el-tab-pane label="基本信息" name="1">
+        <base-info @loadDataFinish="loadDataFinish" :id="this.id" :imgList="imgList" ref="baseInfo"></base-info>
+      </el-tab-pane>
+
+      <!--<el-tab-pane label="图片" name="2">-->
+      <!--</el-tab-pane>-->
+
+      <el-tab-pane label="户型图" name="3">
+        <house-type-img @loadDataFinish="loadDataFinishImg" :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" :buildingsData="this.buildingsData"></house-type-img>
+      </el-tab-pane>
+
+      <el-tab-pane label="价格" name="4">
+        <price :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" ref="price"></price>
+      </el-tab-pane>
+
+      <el-tab-pane label="预售证号" name="5">
+        <presale-permit :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" :buildingsData="this.buildingsData" ref="presalePermit"></presale-permit>
+      </el-tab-pane>
+
+      <el-tab-pane label="开盘时间" name="6">
+        <open-date :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" :buildingsData="this.buildingsData" ref="openDate"></open-date>
+      </el-tab-pane>
+
+      <el-tab-pane label="交房时间" name="7">
+        <deliver-date :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" :buildingsData="this.buildingsData"  ref="deliverDate"></deliver-date>
+      </el-tab-pane>
+
+      <el-tab-pane label="项目动态" name="8">
+        <dynamic :projectId="this.id" :sourceCode="this.baseInfo && this.baseInfo.name" ref="dynamic"></dynamic>
+      </el-tab-pane>
+
+      <el-tab-pane label="带看记录" name="9">
+        <look-record :projectId="this.id" ref="lookRecord"></look-record>
+      </el-tab-pane>
+
+    </el-tabs>
+
+    <template>
+      <el-dialog
+        title="全景看房设置"
+        :visible.sync="dialogVisibleSetOverallView"
+        width="400px"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="formSetOverallView" ref="formSetOverallView" label-width="100px">
+          <el-form-item label="全景看房地址" prop="panorama">
+            <el-input v-model="formSetOverallView.panorama" placeholder="www.xxx.com"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="handleSaveSetOverallView">确认</el-button>
+            <el-button @click="dialogVisibleSetOverallView = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+
+      </el-dialog>
+
+      <el-dialog
+        title="小区详细"
+        :visible.sync="communityDetailDlgVisible"
+        :close-on-click-modal="false"
+        top="5vh"
+        width="70%"
+      >
+        <community-detail-component :data="communityParams" @close="handleCommunityEdit"></community-detail-component>
+      </el-dialog>
+
+      <!-- 写提醒 -->
+      <el-dialog
+        title="写提醒"
+        :visible.sync="dialogVisibleUpdateRemind"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateRemind" :model="formUpdateRemind" :rules="rulesUpdateRemind" size="medium" label-width="80px">
+          <el-form-item label="提醒人" prop="receivePeopleId">
+            <base-cascader
+              :changeOnSelect="false"
+              @change="handleChangeRemind"
+              v-model="formUpdateRemind.receivePeopleId"
+              :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item label="提醒时间" prop="remindTime">
+            <el-date-picker
+              v-model="formUpdateRemind.remindTime"
+              type="date"
+              placeholder="选择日期"
+              format="yyyy 年 MM 月 dd 日"
+              value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="提醒内容" prop="remindContent">
+            <el-input type="textarea" v-model="formUpdateRemind.remindContent"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateRemind">保存</el-button>
+            <el-button @click="dialogVisibleUpdateRemind = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <el-dialog
+        title="修改信息"
+        :visible.sync="dialogVisibleEditBaseInfo"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        top="5vh"
+        width="1000px"
+      >
+
+        <form-comp :formInfo="editFormInfo" :isAdd="false" @handleConfirm="handleAddConfirm" @handleCancel="dialogVisibleEditBaseInfo = false"></form-comp>
+
+      </el-dialog>
+
+      <el-dialog
+        title="销控情况"
+        :visible.sync="dialogVisibleBuilding"
+        :close-on-click-modal="false"
+        width="60%"
+        top="15vh"
+        :modal-append-to-body="false">
+        <building-unit-component v-if="dialogVisibleBuildingReset" :communityId="communityId"  @dbCellClick="selectRoomDeal"></building-unit-component>
+      </el-dialog>
+
+      <!-- 租凭 买卖成交 -->
+      <el-dialog
+        title="一手成交"
+        :visible.sync="dialogVisibleDeal"
+        width="850px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :modal-append-to-body="false"
+      >
+        <deal-form-comp
+          @cancelDeal="cancelDeal"
+          @saveDeal="saveDeal"
+          :roomInfo="roomInfo"
+          :peopleSelectOpts="peopleSelectOpts"
+          ref="dealDialog"
+          v-if="hackReset"
+        >
+        </deal-form-comp>
+
+      </el-dialog>
+
+    </template>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/house/houseNew' // 请求后端URL路径
+  import {queryBuildingsByCommunityId} from '@/request/manage/community'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseInfo from './BaseInfo/index'
+  import CommunityDetailComponent from '@/views/manage/system/community/components/DetailComponent' // 小区详情
+  import FormComp from '../formComp'
+  import HouseTypeImg from './HouseTypeImg'
+  import DealFormComp from './DealFormComp'
+  import {Dynamic, Price, OpenDate, PresalePermit, DeliverDate, LookRecord} from './listTable/exports'
+  import BuildingUnitComponent from '@/views/manage/system/community/components/BuildingUnitComponent' // 坐栋
+  import * as consts from '../consts'
+
+  export default {
+    name: 'houseNewDetail',
+
+    components: {
+      LookRecord,
+      BuildingUnitComponent,
+      DealFormComp,
+      HouseTypeImg, FormComp, BaseInfo, CommunityDetailComponent, BaseCascader, Dynamic, Price, OpenDate, PresalePermit, DeliverDate},
+
+    data () {
+      return {
+        PERMISSION_BTN: consts.PERMISSION_BTN,
+        activeName: '1',
+        dialogVisibleSetOverallView: false,
+        dialogVisibleUpdateRemind: false,
+        dialogVisibleEditBaseInfo: false,
+        dialogVisibleDeal: false,
+        communityDetailDlgVisible: false,
+        dialogVisibleBuilding: false,
+        dialogVisibleBuildingReset: true,
+        formUpdateRemind: {
+          receivePeopleId: '',
+          remindContent: '',
+          remindTime: '',
+          receivePeopleName: ''
+        },
+        rulesUpdateRemind: {
+          receivePeopleId: [
+            { required: true, message: '信息填写有误', trigger: 'change' }
+          ],
+          remindContent: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          remindTime: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ]
+        },
+        formSetOverallView: {
+          panorama: ''
+        },
+        baseInfo: null,
+        communityParams: null,
+        peopleSelectOpts: [],
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        editFormInfo: null,
+        buildingsData: [],
+        imgList: [],
+        communityId: '',
+        roomInfo: {},
+        thisHouseUsesId: [],
+        thisHouseUses: [],
+        developers: '',
+        hackReset: true
+      }
+    },
+
+    computed: {
+      id () {
+        return this.$route.params.id
+      },
+
+      // 按钮权限
+      btnPermission () {
+        return this.$store.getters.permissions
+      }
+    },
+
+    methods: {
+      handleTabClick (tab) {
+        let name = tab.name
+
+        if (name === '4') {
+          this.$refs['price'] && this.$refs['price']._getTableData()
+        }
+
+        if (name === '5') {
+          this.$refs['presalePermit'] && this.$refs['presalePermit']._getTableData()
+        }
+
+        if (name === '6') {
+          this.$refs['openDate'] && this.$refs['openDate']._getTableData()
+        }
+
+        if (name === '7') {
+          this.$refs['deliverDate'] && this.$refs['deliverDate']._getTableData()
+        }
+
+        if (name === '8') {
+          this.$refs['dynamic'] && this.$refs['dynamic']._getTableData()
+        }
+
+        if (name === '9') {
+          this.$refs['lookRecord'] && this.$refs['lookRecord']._getTableData()
+        }
+      },
+
+      // 监听子组件数据获取
+      loadDataFinish (data) {
+        // 楼盘基本信息
+        this.baseInfo = data['newHouseInfo']
+        this.communityId = data['newHouseInfo'].communityId
+        this.thisHouseUsesId = data['houseUsesId'] || [],
+        this.thisHouseUses = data['houseUses'] || [],
+        this.developers = data['newHouseInfo'].developers
+        // 传递给修改信息表单的数据
+        this.editFormInfo = Object.assign({}, data['newHouseInfo'], {
+          houseUses: data['houseUses'] || [],
+          houseTypes: data['houseTypes'] || [],
+          decorations: data['decorations'] || [],
+          houseId: this.id,
+          communityId: this.baseInfo.communityId,
+        })
+      },
+
+      // 监听房源户型图数据获取
+      loadDataFinishImg (data){
+        this.imgList = data
+      },
+
+       // 成交保存
+      saveDeal (result) {
+        if (result) {
+          this.dialogVisibleDeal = false
+        }
+      },
+
+      // 取消成交弹框
+      cancelDeal () {
+        this.$confirm('确定关闭正在编辑的窗口?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.dialogVisibleDeal = false
+        })
+      },
+
+      // 点击修改
+      handleEditBaseInfo () {
+        this.dialogVisibleEditBaseInfo = true
+      },
+
+      // 监听修改
+      handleAddConfirm () {
+        this.$refs['baseInfo']._loadData()
+        this.dialogVisibleEditBaseInfo = false
+      },
+
+      // 设置全景看房地址
+      handleSetOverallView () {
+        this.formSetOverallView.panorama = this.baseInfo.panoramaUrl || ''
+        this.dialogVisibleSetOverallView = true
+      },
+
+      // 设置全景看房地址保存
+      handleSaveSetOverallView () {
+        this.$confirm('确定保存编辑的信息吗?',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).then(() => {
+          let params = {
+            newHouseId: this.id,
+            address: this.formSetOverallView.panorama
+          }
+          RequestURL['setOverallView'](params).then(() => {
+            this.$message({
+              type: 'success',
+              message: '操作成功',
+              duration: 2000,
+              showClose: true
+            })
+            this.dialogVisibleSetOverallView = false
+
+            this.baseInfo.panorama = this.formSetOverallView.panorama
+          })
+        })
+      },
+
+      // 写提醒保存
+      submitFormUpdateRemind () {
+        this.$refs['formUpdateRemind'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let params = {
+                remindInfo: {
+                  receivePeopleId: this.formUpdateRemind.receivePeopleId,
+                  remindContent: this.formUpdateRemind.remindContent,
+                  remindTime: this.formUpdateRemind.remindTime,
+                  receivePeopleName: this.formUpdateRemind.receivePeopleName
+                }
+              }
+
+              saveHouseFollowAndRemind(params, this.requestCfg).then(res => {
+                this._msg('success', res.msg)
+                this.loadingSubmitBtn = false
+                this.dialogVisibleUpdateRemind = false
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 获取提醒人名称
+      handleChangeRemind (val, name, data) {
+        this.formUpdateRemind.receivePeopleName = name
+        if (data.dataType !== 'user') {
+
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.formUpdateRemind.receivePeopleName = ''
+            this.formUpdateRemind.receivePeopleId = ''
+          }, 50)
+
+        }
+      },
+
+      // 查看小区详细
+      viewCommunityDetail () {
+        this.communityParams = {
+          id: this.baseInfo.communityId,
+          areaCode: this.baseInfo.areaCode,
+          areaName: this.baseInfo.areaName
+        }
+        this.communityDetailDlgVisible = true
+      },
+      // 提交小区详细数据后的回调函数
+      handleCommunityEdit () {
+        this.communityDetailDlgVisible = false
+      },
+
+      // 操作买卖成交
+      handleDeal () {
+        this.dialogVisibleBuildingReset = false
+        this.$nextTick(()=>{
+          this.dialogVisibleBuildingReset = true
+        })
+        this.dialogVisibleBuilding = true
+
+      },
+      //选择房号进行成交
+      selectRoomDeal(obj){
+        this.roomInfo.buildingId = obj.buildingId
+        this.roomInfo.buildingName = obj.buildingName
+        this.roomInfo.buildUnitAlias = obj.buildUnitAlias
+        this.roomInfo.unitId = obj.unitId
+        this.roomInfo.unitName = obj.unitName
+        this.roomInfo.unitAlias = obj.unitAlias
+        this.roomInfo.houseNo = obj.houseNo
+        this.roomInfo.houseId = obj.houseId
+        this.roomInfo.floorTotal = obj.floorTotal
+        this.roomInfo.floor = obj.floor
+        this.roomInfo.houseUsesId = this.thisHouseUsesId
+        this.roomInfo.houseUses = this.thisHouseUses
+        this.roomInfo.developers=this.developers
+
+        this.hackReset = false
+        this.$nextTick(()=>{
+          this.hackReset = true
+          this.dialogVisibleDeal = true
+        })
+
+        this.$refs['dealDialog'] && this.$refs['dealDialog']._resetForm()
+        this.$refs['dealDialog'] && this.$refs['dealDialog'].setRommInfo()
+        //this.roomInfo
+      },
+      // 上一条
+      viewPrev () {
+        this._goPage('prev')
+      },
+
+      // 下一条
+      viewNext () {
+        this._goPage('next')
+      },
+
+      _goPage (action) {
+        let list = JSON.parse(window.localStorage.getItem('newHouseList')) || []
+        let id = this.id
+        let goIndex = 0
+
+        list.forEach((item, index) => {
+
+          if (Number(id) === item.id) {
+            if (action === 'prev') {
+              goIndex = index - 1
+            }
+
+            if (action === 'next') {
+              goIndex = index + 1
+            }
+          }
+        })
+
+        if (goIndex < 0) {
+          goIndex = 0
+          this.$message({
+            type: 'info',
+            message: '已经是本页第一条了!'
+          })
+          return
+        }
+
+        if (goIndex > list.length - 1) {
+          goIndex = list.length - 1
+          this.$message({
+            type: 'info',
+            message: '已经是本页最后一条了!'
+          })
+          return
+        }
+
+        let menuId = this.$route.query.menu_id
+        // this.$router.push({ path: '/house/houseNewDetail/' + list[goIndex].id + '/' + list[goIndex].name, query: {menu_id: menuId}})
+        this.$router.push({ path: '/house/houseNewDetail/' + list[goIndex].id , query: {name: list[goIndex].name,menu_id: menuId}})
+      },
+
+      // 设置导航标签标题
+      setTagsViewTitle() {
+        let tempRoute = Object.assign({}, this.$route)
+        let name = tempRoute.query && tempRoute.query.name
+        const route = Object.assign({}, tempRoute, { title: name })
+        this.$store.dispatch('updateVisitedView', route)
+      }
+
+    },
+
+    mounted () {
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+      this.setTagsViewTitle()
+    },
+
+    watch: {
+      'baseInfo.communityId' (newValue) {
+        if (newValue) {
+          queryBuildingsByCommunityId({cid: newValue, page: 0,limit: 0}).then(res => {
+            this.buildingsData = res.data
+          })
+        }
+
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+  $color-red: #e41e2b;
+  $red-hover: #e0000f;
+  $color-blue: #26B2C9;
+  $blue-hover: #40C9C6;
+  $border-color: #dcdfe6;
+
+
+  .wrapper {
+    padding: 10px;
+    background-color: #fff;
+  }
+
+  .toolbar {
+    min-width: 1250px;
+    padding: 15px;
+    display: flex;
+    .toolbar-item {
+      padding: 15px;
+      -webkit-transition: all 0.38s ease-out;
+      transition: all 0.38s ease-out;
+      border-radius: 6px;
+      text-align: center;
+      color: #303133;
+      min-width: 86px;
+      min-height: 86px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $blue-hover;
+        color: #fff;
+      }
+
+      .icon {
+        margin-bottom: 5px;
+      }
+    }
+
+    .toolbar-group-btn {
+      margin: 0 15px;
+      font-size: 12px;
+
+      p {
+        margin-top: 5px;
+        cursor: pointer;
+        &:hover {
+          color: $blue-hover;
+        }
+
+        span {
+          vertical-align: super;
+        }
+      }
+    }
+  }
+
+  .text-btn {
+    font-size: 12px;
+    color: $color-blue;
+    transition: all 0.3s;
+
+    &:hover {
+      color: $blue-hover;
+    }
+  }
+
+  .text-red {
+    color: $color-red;
+  }
+  .text-grey {
+    color: #9F9F9F;
+  }
+  .font-12 {
+    font-size: 12px;
+  }
+</style>

@@ -1,0 +1,19 @@
+/************************房产文章分类后台接口*****************************/
+
+import {onPost,onGet} from "../main";
+
+export const queryHouseArticleClassify = params =>{
+  return onPost('manage/housePropertyArticleClasses/queryHousePropertyArticleClasses',params)
+}
+
+export const saveOrUpdatehouseArticleClassify = params =>{
+  return onPost('manage/housePropertyArticleClasses/saveOrUpdateHousePropertyArticleClasses',params)
+}
+
+export const delHouseArticleClassify = params =>{
+  return onPost('manage/housePropertyArticleClasses/delHousePropertyArticleClasses',params)
+}
+
+export const getParenLevel = params =>{
+  return onPost('manage/housePropertyArticleClasses/queryHousePropertyArticleClassesNameByLevel',params)
+}

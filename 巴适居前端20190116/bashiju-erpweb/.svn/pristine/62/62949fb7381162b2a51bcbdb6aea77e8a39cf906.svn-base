@@ -1,0 +1,255 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+
+        <el-form-item prop="deptId">
+          <base-dept-cascader  v-model="queryForm.deptId" placeholder="部门"></base-dept-cascader>
+        </el-form-item>
+
+        <el-form-item  prop="approval">
+          <el-select v-model="queryForm.approval" placeholder="日报状态">
+            <el-option label="未上报" value="1"></el-option>
+            <el-option label="已上报" value="2"></el-option>
+            <el-option label="已审批" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+
+
+        <el-form-item>
+          <el-button type="primary" @click.native.prevent="_loadData" :loading="queryBtnLoading">查询</el-button>
+          <el-button @click.native.prevent="_resetForm('queryForm')">清空</el-button>
+        </el-form-item>
+
+
+      </el-form>
+    </div>
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+
+        <el-table-column
+          prop="date"
+          align="left"
+          label="日期"
+          :formatter="_dateFormat"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          align="left"
+          label="上报日期"
+          :formatter="_timeFormat"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          align="left"
+          :formatter="_timeFormat"
+          label="批示日期">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="deptName"
+          align="left"
+          label="部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="user"
+          align="left"
+          label="用户"
+        >
+        </el-table-column>
+
+
+        <el-table-column
+          prop="approval"
+          align="left"
+          label="状态">
+          <template slot-scope="scope">
+            {{scope.row.approval | statusFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="experience"
+          align="left"
+          label="心得">
+        </el-table-column>
+
+        <el-table-column
+          prop="approvalName"
+          align="left"
+          label="批示人">
+        </el-table-column>
+
+        <el-table-column
+          prop="approval"
+          align="left"
+          label="批示内容">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button  @click="handleShow(scope.row)" type="text" size="small">查看</el-button>
+            <el-button  @click="handleInstruction(scope.row)" type="text" size="small" v-if="!scope.row.approval">批示</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+      <!--日报审批窗体-->
+    </div>
+    <template>
+      <el-dialog
+        title="日报审批"
+        :visible.sync="reportDialog"
+        :close-on-click-modal="false"
+        width="1000px">
+        <Show :data="currentRowData"  v-if="hackReset"  @handleClick="handleCloseReport"></Show>
+      </el-dialog>
+      <el-dialog
+        title="日报审批"
+        :visible.sync="examDialog"
+        :close-on-click-modal="false"
+        width="1000px">
+        <Exam :data="currentExamRowData"  v-if="hackReset"  @handleClick="handleCloseExam"></Exam>
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryDailyReportExam} from "@/request/manage/reportExam";
+  import Show from './component/show'
+  import Exam from './component/exam'
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  export default {
+      name:'exam',
+      mixins:[PageList],
+      components:{Show,Exam,BaseDeptCascader},
+        data() {
+            return {
+               queryForm: {
+                 deptId:'',
+               },
+                tableData:[],
+                loadingView:false,
+                queryBtnLoading:false,
+                currentRowData:null,
+                currentExamRowData:null,
+                reportDialog:false,
+                examDialog:false,
+                hackReset:false,
+                listQuery:{
+                  limit:10,
+                  page:1,
+                  total:0
+                }
+            }
+        },
+        methods: {
+            _loadData(btn){
+              if(btn){
+                this.queryBtnLoading = btn
+                this.listQuery.page = 1
+                this.listQuery.currentPage = 1
+              }
+              this.loadingView = true
+              let params = Object.assign({},this.queryForm,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+              })
+              this.queryBtnLoading = btn
+              queryDailyReportExam(params).then(res =>{
+                  this.tableData = res.data
+                  this.loadingView = false
+                  this.queryBtnLoading = false
+                this.listQuery.total = res.count
+              }).catch(error =>{
+                console.log(error)
+                this.loadingView = false
+                this.queryBtnLoading = false
+              })
+            },
+            //date格式化时间
+            _dateFormat(row,culmn,cellValue){
+              return this.$utils.timeFormat(cellValue)
+            },
+            _timeFormat(row,culmn,cellValue){
+              return this.$utils.timeFormat(cellValue,'{y}-{m}-{d} {mm}:{ss}')
+            },
+          /**
+           * 查看
+           * @param row 行数据
+           */
+            handleShow(row){
+                this.hackReset = false
+                this.$nextTick(()=>{
+                  this.hackReset = true
+                  this.currentRowData = row
+                  this.reportDialog = true
+                })
+
+            },
+            //打开批示窗体
+            handleInstruction(row){
+              this.hackReset = false
+              this.$nextTick(()=>{
+                this.hackReset = true
+                this.currentExamRowData = row
+                this.examDialog = true
+              })
+            },
+            //关闭查看窗体
+            handleCloseReport(value){
+                this.reportDialog = false
+            },
+            //关闭查看窗体
+            handleCloseExam(value){
+                this.examDialog = false
+            },
+          _resetForm(form){
+              this.$refs[form].resetFields()
+          }
+        },
+        filters:{
+          statusFilter(value){
+              if(value==''){
+                return '未审批'
+              }else{
+                return '审批'
+              }
+          }
+        },
+        mounted() {
+
+
+        }
+
+    }
+
+</script>

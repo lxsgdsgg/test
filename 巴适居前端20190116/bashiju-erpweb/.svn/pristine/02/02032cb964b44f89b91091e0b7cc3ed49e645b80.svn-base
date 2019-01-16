@@ -1,0 +1,282 @@
+<template>
+  <div>
+    <el-form :model="form"  label-width="100px" ref="form" :rules="rules" class="demo-ruleForm">
+      <el-row>
+        <el-col :span="12">
+
+          <el-form-item label="选择城市" prop="cityCode">
+            <base-city-cascader  @change="handleCity" v-model="form.cityCode"></base-city-cascader>
+          </el-form-item>
+
+
+          <!--<el-form-item label="交易类型" prop="levelType">-->
+            <!--<el-select v-model="form.transactionType"  placeholder="请选择"     @change="getTransactionTypeName">-->
+              <!--<el-option-->
+                <!--v-for="item in transactionTypeOpt"-->
+                <!--:key="item.id"-->
+                <!--:label="item.fieldValue"-->
+                <!--:value="item.id"-->
+              <!--&gt;</el-option>-->
+            <!--</el-select>-->
+          <!--</el-form-item>-->
+
+          <el-form-item label="方案名称" prop="name">
+            <el-input type="text" v-model="form.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="带看次数" prop="lookCount">
+            <el-input type="text" v-model="form.lookCount"></el-input>
+          </el-form-item>
+
+          <el-form-item label="条件" prop="conditions">
+            <base-select @change="getLabel" style="width: 100%" :multiple="true" :props="conditionsProp" :data="conditionsOpt"  v-model="form.conditions"></base-select>
+          </el-form-item>
+
+        </el-col>
+        <el-col :span="12">
+
+          <el-form-item label="等级" prop="levelType">
+            <el-select v-model="form.levelType"  placeholder="请选择">
+              <el-option
+                v-for="item in levelTypeOpt"
+                :key="item.value"
+                :label="item.fieldValue"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="价格区间" prop="price">
+            <base-section-select  v-model="form.price" :data="regionValue.price" placeholder="价格" description="万元"></base-section-select>
+          </el-form-item>
+
+          <el-form-item label="面积区间" prop="space">
+            <base-section-select  v-model="form.space" :data="regionValue.space" placeholder="面积" description="m²"></base-section-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item>
+        <div class="btn-group">
+            <el-button type="primary"  @click="handleSubmit">确认</el-button>
+            <el-button  @click="handleCancel">取消</el-button>
+        </div>
+      </el-form-item>
+    </el-form>
+
+  </div>
+</template>
+<style></style>
+<script>
+  import BaseSelect from '@/components/BaseSelect'
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import {getDynamicValue,getPriceAndSpaceOption} from '@/request/manage/resHouseLevelCondition'
+  import {saveOrUpdateResCustLevelCondition} from "@/request/manage/resCustLevelCondition";
+  import {getRegionValue} from '@/request/app'//请求去间数据
+  import BaseSectionSelect from '@/components/BaseSectionSelect'//区间控件
+
+  export default {
+      name:'custLevelConditionEditor',
+      components:{BaseCityCascader,BaseSelect,BaseSectionSelect},
+      props:{
+        data:{
+          type:Object
+        },
+        isAdd:{
+          type:Boolean
+        },
+        transactionType:{
+          type:Number
+        }
+      },
+        data() {
+            return {
+              form:{
+                cityCode:'',
+                cityName:'',
+                space:'',
+                price:'',
+                maxPrice:'',
+                minPrice:'',
+                minSpace:'',
+                maxSpace:'',
+                name:'',
+                transactionType:'',
+                levelType:'',
+                lookCount:'',
+                conditions:''
+              },
+              transactionTypeName:'',
+              regionValue: {
+                price:{},
+                space:{}
+              },
+              conditionsOptions:[],
+              conditionsOpt:[
+                {id:1,fieldValue:'复看'},
+                {id:2,fieldValue:'下定'},
+                {id:3,fieldValue:'急切'},
+                {id:4,fieldValue:'封盘'},
+                {id:5,fieldValue:'淘宝池'},
+              ],
+              conditionName:'',
+              spaceOptions:[],
+              priceOption:[],
+              transactionTypeOpt:[
+                {id:'4',fieldValue:'求租'},
+                {id:'5',fieldValue:'求购'}
+              ],
+              levelTypeOpt:[
+                {id:'A',fieldValue:'A等级'},
+                {id:'B',fieldValue:'B等级'}
+              ],
+              conditionsProp:{
+                label: 'fieldValue',
+                value: 'id'
+              },
+              rules:{
+                cityCode:[
+                  {required:true,message:'必填项',trigger: 'change' }
+                ],
+                name:[
+                  {required:true,message:'必填项',trigger: 'change' }
+                ],
+                levelType:[
+                  {required:true,message:'必填项',trigger: 'change' }
+                ]
+              }
+            }
+
+        },
+        methods: {
+          handleCity(value,name){
+              this.form.cityName = name
+          },
+          //条件下拉数据
+          getDynamicValue(){
+            let params = {param:"res_house"}
+            getDynamicValue(params).then(res =>{
+              this.conditionsOptions = res.data.conditions
+            })
+          },
+          //区间数据
+          _getRegionValue() {
+            const sellPriceRange = {
+              widgetCode: 'sellPriceRange',
+              tag: 2
+            }
+            getRegionValue(sellPriceRange).then(res => {
+              this.regionValue.price = res.data || []
+            })
+            const spaceRange = {
+              widgetCode: 'spaceRange',
+              tag: 2
+            }
+            getRegionValue(spaceRange).then(res => {
+              this.regionValue.space = res.data || []
+            })
+          },
+          getConditonName(value){
+              console.log(value)
+          }
+          ,
+          //表单赋值
+          setForm(data){
+            for(let i in  this.form){
+              if(data[i]){
+                this.form[i] = data[i]
+                if(data['conditions'])this.form.conditions = data['conditions'].split(',').map(Number)
+              }
+              // //拼装价格区间格式为[xxx-xxx]
+              // if( data['minPrice']==0  && data['maxPrice']!= ''){//[170-250]
+              //   this.form.price =  data['minPrice']/1000000+"-"+data['maxPrice']/1000000
+              // }else{//从0开始
+              //   this.form.price =  data['minPrice']/1000000+"-"+data['maxPrice']/1000000
+              // }
+              // if( data['minSpace']!= '' && data['maxSpace'] !='') this.form.space =  data['minSpace']+"-"+data['maxSpace']//拼装面积
+            }
+            this.form.space = {
+              min: data.minSpace,
+              max: data.maxSpace
+            }
+            this.form.price = {
+              min: data.minPrice/1000000,
+              max: data.maxPrice/1000000
+            }
+          },
+          handleSubmit(){
+                this.$refs['form'].validate((valide) =>{
+                  if(valide){
+                    this.$confirm('确定要保存吗？',{
+                      confirmBtnText:'确定',
+                      cancelBtnText:'取消'
+                    }).then(()=>{
+
+                      let param ={...this.form}
+
+                      //价格
+                      param.minPrice = param.price.min
+                      param.maxPrice = param.price.max
+                      //面积
+                      param.minSpace = param.space.min
+                      param.maxSpace = param.space.max
+
+                      //删除不要的数据sss
+                      delete param.price
+                      delete param.space
+                      //设置默认值
+                      if(!param.minPrice) param.minPrice=0
+
+                      if(!param.maxPrice) param.maxPrice=0
+
+                      if(!param.minSpace) param.minSpace=0
+
+                      if(!param.maxSpace) param.maxSpace=0
+
+                      //把conditon拆分成字符串
+                      const conditions = param.conditions
+                      if( typeof conditions === 'object'){
+                        param.conditions = conditions.join()
+                      }
+                      param.remark ='需求区域-'+this.form.cityName+ ';条件为:'+this.conditionName+';';
+                      //判断是否新增
+                      this.form.lookCount?param.lookCount = this.form.lookCount: param.lookCount =0
+                      !this.isAdd ?param.id = this.data.id:param.id =''
+                      param.maxPrice = param.maxPrice *1000000
+                      param.minPrice = param.minPrice*1000000
+                      console.log(param)
+                      saveOrUpdateResCustLevelCondition({jsonData:JSON.stringify(param)}).then(res =>{
+                        if(res.success){
+                          this.$message({type:'success',message:res.msg})
+                          this.$emit('handleClick',1)
+                        }else{
+                          this.$message({type:'warning',message:res.msg})
+                        }
+                      }).catch(error =>{
+                        console.log(error)
+                       // this.$emit('handleClick',1)
+                      })
+                    })
+                  }
+                })
+          },
+          //取消
+          handleCancel(){
+            this.$emit('handleClick',1)
+          },
+          //获取条件的名称
+          getLabel(value,name){
+              this.conditionName = name.join(',');
+          }
+        },
+        mounted() {
+            if(!this.isAdd){
+              this.setForm(this.data)
+            }
+            this.form. transactionType = this.transactionType
+            this._getRegionValue()
+            this.getDynamicValue()
+        }
+
+    }
+
+</script>

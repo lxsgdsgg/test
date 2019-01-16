@@ -1,0 +1,227 @@
+<!-- 新增房源跟进 -->
+<template>
+  <el-form v-loading="loadingView" :model="form" :rules="rules" ref="form" label-width="100px" size="mini">
+    <div>
+      <el-form-item class="inline-block" label="方案名称" prop="followTypeId">
+        <el-select class="w180 mr15" clearable v-model="form.followTypeId" placeholder="请选跟进方式">
+          <el-option v-for="item in options" :label="item.fieldValue" :value="item.id" :key="item.id"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item class="inline-block" label="通知撤单" prop="isCancelNotice">
+        <el-switch
+          v-model="form.isCancelNotice">
+        </el-switch>
+      </el-form-item>
+    </div>
+
+    <el-form-item label="跟进内容" prop="content">
+      <el-input type="textarea" v-model="form.content" minlength=6></el-input>
+    </el-form-item>
+
+    <el-form-item label="提醒人" prop="reminderId">
+      <base-cascader
+        :changeOnSelect="false"
+        @change="handleChange"
+        v-model="form.reminderId"
+        :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+      </base-cascader>
+    </el-form-item>
+
+    <el-form-item label="提醒时间" prop="remindTime">
+      <el-date-picker
+        v-model="form.remindTime"
+        type="date"
+        placeholder="选择日期"
+        format="yyyy 年 MM 月 dd 日"
+        value-format="yyyy-MM-dd">
+      </el-date-picker>
+    </el-form-item>
+
+    <el-form-item label="提醒内容" prop="remindContent">
+      <el-input type="textarea" v-model="form.remindContent"></el-input>
+    </el-form-item>
+
+    <el-form-item class="margin-b-none">
+      <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+      <el-button type="primary" @click="cancelSubmit">取消</el-button>
+    </el-form-item>
+
+  </el-form>
+</template>
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import {getSelectValue} from '@/request/app'
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import DealBaseWriteLogMixins from './DealBaseWriteLogMixins'
+
+
+  export default {
+    components: {BaseCascader},
+    mixins:[DealBaseWriteLogMixins],
+    props: {
+      dealId:{
+        type:String,
+        required: true
+      },
+      peopleSelectOpts: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+      dealType:{
+        type: String,
+        required: true,
+        default(){
+          return ''
+        }
+      }
+    },
+    data () {
+      // 自定义跟进记录字数不少与六个字
+      let checkLength = (rule, value, callback)=>{
+        let newValue = value.replace(/^\s*|\s*$/g,"")
+        if (!newValue) callback()
+        if (newValue.length < 6) {
+          callback(new Error('跟进记录字数不能少于6个'))
+        } else {
+          callback()
+        }
+      }
+
+      return {
+        options: [],
+        loadingView: false,
+        loadingSubmitBtn: false,
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        form: {
+          followTypeId: '',
+          content: '',
+          isCancelNotice: false,
+          reminderId: '',
+          remindTime: '',
+          remindContent: '',
+          reminder: ''
+        },
+        // 表单校验配置
+        rules: {
+          followTypeId: [
+            {required: true, message: '该项为必填项', trigger: 'change'}
+          ],
+          content: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+            {validator: checkLength,message: '跟进字数不少于6个',trigger: 'blur'}
+          ]
+        },
+      }
+    },
+
+    methods: {
+      cancelSubmit(){
+        this.$emit('submit', '')
+      },
+      handleSubmit () {
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+
+            this.$confirm('确定保存编辑的信息吗?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              let params = {}
+              let {followTypeId, content, isCancelNotice, reminderId, remindTime, remindContent, reminder} = this.form
+              let followType = this.options.find(item => {
+                return item.id === followTypeId
+              }).fieldValue
+
+              params = {
+                followTypeId: followTypeId,
+                content: content,
+                followType: followType,
+                reminderId: reminderId,
+                remindContent: remindContent,
+                remindTime: remindTime,
+                reminder: reminder
+              }
+              params.isCancelNotice = isCancelNotice ? 1 : 0
+
+              RequestURL.savefollowRecord({dealId:this.dealId,jsonData: JSON.stringify(params)}).then(res => {
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'success',
+                  message: res.msg
+                })
+                // 传递给父组件
+                let emitData = {
+                  followType: followType,
+                  content: content,
+                  operator: this.$store.getters.userName,
+                  addTime: new Date().getTime()
+                }
+                this.$emit('submit', emitData)
+
+                let sourceTypeId
+                if(this.dealType === '00'){
+                  sourceTypeId = '6'
+                }else if(this.dealType === '01'){
+                  sourceTypeId = '7'
+                }else if(this.dealType === '02'){
+                  sourceTypeId = '8'
+                }
+                this.dealAddLog(this.dealId, this.dealId, sourceTypeId, '424', '添加跟进记录')
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+      },
+
+      handleChange (val, name, data) {
+        this.form.reminder = name
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.form.reminder = ''
+            this.form.reminderId = ''
+          }, 50)
+
+        }
+      },
+
+      _resetForm () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+        this.form.reminder = ''
+      },
+
+      _getOptions () {
+        getSelectValue({param: 'followMethod'}).then(res => {
+          this.options = res.data
+        })
+      }
+    },
+
+    mounted () {
+      this._resetForm()
+      this._getOptions()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

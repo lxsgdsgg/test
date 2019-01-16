@@ -1,0 +1,321 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <el-form :model="queryForm" ref="queryForm" :inline="true" size="small" class="query-form">
+        <el-form-item label="选择部门" prop="deptId">
+          <dept-select v-model="queryForm.deptId" :changeOnSelect="false" @change="jurgeSelect"></dept-select>
+        </el-form-item>
+        <el-form-item label="主机类型" prop="userType">
+          <el-select v-model="queryForm.userType">
+            <el-option label="独立主机" value="0"></el-option>
+            <el-option label="主机" value="1"></el-option>
+            <el-option label="分机" value="2"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审核状态" prop="checkStatus">
+          <el-select v-model="queryForm.checkStatus">
+            <el-option label="未审核" value="0"></el-option>
+            <el-option label="已审核" value="1"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="电脑位置" prop="computerInfo">
+          <el-input v-model="queryForm.computerInfo" type="text"></el-input>
+        </el-form-item>
+        <el-form-item label="管理者" prop="manageName">
+          <el-input v-model="queryForm.manageName"></el-input>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="loadQueryBtn">查询</el-button>
+          <el-button @click="resetForm('queryForm')">清空</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="page-content-hd">
+      <el-table :data="tableData" border align="center" v-loading="loadingView" size="mini">
+        <el-table-column prop="userTypeName" label="主机类别" align="left"></el-table-column>
+        <el-table-column prop="computerInfo" label="电脑位置" align="left"></el-table-column>
+        <el-table-column prop="checkName" label="审核状态" align="left"></el-table-column>
+        <el-table-column prop="deptName" label="所属部门" align="left"></el-table-column>
+        <el-table-column prop="manageName" label="管理者" align="left"></el-table-column>
+        <el-table-column prop="operator" label="创建用户" align="left"></el-table-column>
+        <el-table-column prop="addTime" label="注册时间" align="left" :formatter="_timeFormat"></el-table-column>
+        <el-table-column prop="checkTime" label="审核时间" align="left" :formatter="_timeFormat"></el-table-column>
+        <el-table-column prop="ip" label="电脑IP" align="left"></el-table-column>
+        <el-table-column prop="lastLoginSuccessTime" label="最后登陆时间" align="left" :formatter="_timeFormat"></el-table-column>
+        <el-table-column label="操作区域" width="150px">
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['userCheckBtn',scope.row]" @click="checkUserRegister(scope.row)" v-if="scope.row.checkStatus === 0" size="small" type="text">审核</el-button>
+            <el-button v-hasMultipleBtn="['checkInfoDel',scope.row]" @click="deleteUserRegisterInfo(scope.row)" size="small" type="text">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+      <b-dialog
+        title="用户注册审核"
+        :show.sync="editDlgVisible"
+        :close-on-click-modal="false"
+        top="15vh"
+        width="400px"
+      >
+        <el-form :model="editForm" ref="editForm" :rules="rules" label-width="100px">
+          <el-form-item label="管理者" prop="manageId">
+            <base-cascader v-model="editForm.manageId" :url="getReferenceUserSelectUrl"
+               :props="cascaderProps" :dataProps="cascaderDataProps"
+               :changeOnSelect="false" style="width: 240px;" @change="getMangeName"></base-cascader>
+          </el-form-item>
+
+          <el-form-item label="主机类型" prop="userType">
+            <el-select v-model="editForm.userType" style="width: 240px;">
+              <el-option label="独立主机" value="0"></el-option>
+              <el-option label="主机" value="1"></el-option>
+              <el-option label="分机" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="电脑位置" prop="computerInfo">
+            <el-input v-model="editForm.computerInfo" type="text" style="width: 240px;"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="saveOrUpdateUserRegisterInfo" :loading="confirmBtn">保存</el-button>
+            <el-button @click="handleCancel">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+    </div>
+  </div>
+</template>
+
+<script>
+  import * as CommonURL from '@/request/manage/common'
+  import * as UserRegisterManageURL from '@/request/manage/userRegisterManage'
+  import PageList from '@/mixins/pageList'
+  import DeptSelect from '@/components/BaseCascader/dept'
+  import ManagementSelect from '@/components/BaseCascader'
+  import BaseCascader from '@/components/BaseCascader'
+  import {manageAddLog,manageUpdateLog,manageQueryLog,manageDelLog} from '@/request/log/mangePlatformLog'
+
+  export default {
+    name: "userRegisterCheck",
+    mixins:[PageList],
+    components: { DeptSelect, ManagementSelect, BaseCascader },
+    data(){
+      return{
+        tableData: [],
+        editDlgVisible: false,
+        currentRowData: '',
+        loadQueryBtn: false,
+        loadingView: false,
+        confirmBtn: false,
+        queryForm:{
+          deptId: '',
+          userType: '',
+          checkStatus: '',
+          computerInfo: '',
+          manageName: ''
+        },
+        editForm:{
+          id: '',
+          operatorId: '',
+          manageId: '',
+          userType: '',
+          computerInfo: '',
+          manageName: ''
+        },
+        getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser', // 介绍人
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        rules:{
+          manageId:{required: true,message: '该项为必填' ,trigger: onchange},
+          userTypeId:{required: true,message: '该项为必填' ,trigger: blur}
+        }
+      }
+    },
+    methods: {
+      jurgeSelect(value,name,data){
+        if (data.dataType !== 'dept') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择部门!'
+          })
+          setTimeout(() => {
+            this.queryForm.deptId = ''
+          }, 50)
+        }
+      },
+
+      handleCancel() {
+        this.editDlgVisible = false
+      },
+
+      getMangeName(value,name,data){
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+          setTimeout(() => {
+            this.editForm.manageId = ''
+            this.editForm.manageName = ''
+          }, 50)
+        }else{
+          this.editForm.manageName = name
+        }
+      },
+      /**
+       * 查询页面数据
+       * @param btnQuery
+       * @private
+       */
+      _loadData(btnQuery){
+        let param = {...this.queryForm}
+        let params = Object.assign({},param,{
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        if(btnQuery){
+          this.loadQueryBtn = true
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.loadingView = true
+        UserRegisterManageURL.queryUserRegisterAllInfoPage(params).then(res=>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadQueryBtn = false
+          this.loadingView = false
+        }).catch(err=>{
+          console.log(err)
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+          this.loadQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+      // 用户注册审核
+      checkUserRegister(row){
+        this.resetForm('editForm')
+        this.$nextTick(()=>{
+          this.isAdd = false
+          this.currentRowData = row
+          this.currentRowData.manageId = String(row.manageId)
+          this.setForm(this.editForm)
+          this.editDlgVisible = true
+        })
+      },
+      /**
+       * 保存 新增或修改的城市管理分配信息
+       */
+      saveOrUpdateUserRegisterInfo(){
+        this.$refs['editForm'].validate((valid)=>{
+          if(valid){
+            this.$confirm('确定审核此数据吗?','提示',{
+              confirmButtonText: '',
+              cancelButtonText: '',
+              type: 'warning'
+            }).then(()=>{
+              let params = {...this.editForm}
+              params.userTypeId = params.userType
+              this.confirmBtn = true
+              UserRegisterManageURL.saveOrUpdateUserRegisterInfo({jsonData: JSON.stringify(params)}).then(res=>{
+                if(res.success){
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                  this.editDlgVisible = false
+                  this.confirmBtn = false
+                  this._loadData(false)
+                }else{
+                  this.confirmBtn = false
+                  this.$message({
+                    type: 'error',
+                    message: res.msg
+                  })
+                }
+              })
+              let message = {sourceCode:params.manageName,sourceTypeId:'5',operatTypeId:'4'
+                ,logContent: `用户注册审核:${params.manageName}`}
+              manageAddLog({message: JSON.stringify(message)})
+            })
+            //   .catch(err=>{
+            //   this.$message({
+            //     type: 'infor',
+            //     message: '已取消'
+            //   })
+            // })
+          }
+        })
+      },
+
+      // 删除用户注册信息
+      deleteUserRegisterInfo(row){
+        let params = {id: row.id}
+        this.$confirm('确定删除用户注册信息吗','提示',{
+          confirmButtonText: '',
+          cancelButtonText: '',
+          type: 'warning'
+        }).then(()=>{
+          UserRegisterManageURL.deleteUserRegisterInfo(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this._loadData(false)
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+          })
+          let message = {sourceCode:row.manageName,sourceTypeId:'5',operatTypeId:'3'
+            ,logContent: `删除用户注册信息： ${row.manageName}`}
+          manageDelLog({message: JSON.stringify(message)})
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '已取消'
+        //   })
+        // })
+      },
+
+      // 重置表单数据
+      resetForm(formName){
+        this.$refs[formName] && this.$refs[formName].resetFields()
+      },
+
+      // 设置表单数据
+      setForm(formName){
+        if(formName){
+          for(let i in formName){
+            formName[i] = this.currentRowData[i]
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

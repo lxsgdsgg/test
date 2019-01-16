@@ -1,0 +1,356 @@
+<template>
+  <div>
+    <el-form :model="companyForm" ref="companyForm" :rules="rules" label-width="120px" class="demo-form">
+
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="公司编号"   prop="id" ref="id">
+            <el-input v-model="companyForm.id"  :disabled="!isAdd"  v-on:change="checkCompanyIdIsExist" clearable></el-input>
+            <span class="errorMsg">{{errorMsg}}</span>
+          </el-form-item>
+
+          <el-form-item label="法定代人名称" prop="legrepname">
+            <el-input v-model="companyForm.legrepname"></el-input>
+          </el-form-item>
+
+          <el-form-item label="法人证件号码" prop="doccode">
+            <el-input v-model="companyForm.doccode"></el-input>
+          </el-form-item>
+
+          <el-form-item label="法代人证件号码" prop="legdoccode">
+            <el-input v-model="companyForm.legdoccode"></el-input>
+          </el-form-item>
+
+          <el-form-item label="联系人名称" prop="contname">
+            <el-input v-model="companyForm.contname"></el-input>
+          </el-form-item>
+
+          <el-form-item label="所属城市" prop="regaddrcity">
+              <base-city-cascader   v-model="companyForm.regaddrcity"></base-city-cascader>
+          </el-form-item>
+
+          <el-form-item label="公司邮箱" prop="cusemail">
+            <el-input v-model="companyForm.cusemail" prop="cusemail"></el-input>
+          </el-form-item>
+
+          <el-form-item label="状态" prop="status">
+            <!--<el-input v-model="companyForm.status"></el-input>-->
+            <el-select style="width: 100%" v-model="companyForm.status">
+              <el-option
+                v-for="item in companyStatusOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="公司名称" prop="name">
+            <el-input v-model="companyForm.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="法人证件类型" prop="Doctype">
+            <el-select style="width: 100%" v-model="companyForm.Doctype" placeholder="请选择">
+                <!--<el-option label="营业执照编码" value="01"></el-option>-->
+               <!--<el-option label="统一社会信用代码" value="02"></el-option>-->
+               <!--<el-option label="组织机构代码证" value="03"></el-option>-->
+               <!--<el-option label="经营许可证" value="04"></el-option>-->
+               <!--<el-option label="税务登记证" value="05"></el-option>-->
+               <!--<el-option label="其他" value="99"></el-option>-->
+              <el-option
+                v-for="item in DoctypeOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value">
+              </el-option>
+
+            </el-select>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="法代证件类型" prop="legDoctype">
+            <el-select style="width: 100%" v-model="companyForm.legDoctype" placeholder="请选择">
+                 <!--<el-option label="身份证" value="01"></el-option>-->
+                 <!--<el-option label="护照" value="02"></el-option>-->
+                 <!--<el-option label="军官证" value="03"></el-option>-->
+                 <!--<el-option label="户口簿" value="04"></el-option>-->
+                 <!--<el-option label="士兵证" value="05"></el-option>-->
+                 <!--<el-option label="港澳来往内地通行证" value="06"></el-option>-->
+                 <!--<el-option label="台湾同胞来往内地通行证" value="07"></el-option>-->
+                 <!--<el-option label="临时身份证" value="08"></el-option>-->
+                 <!--<el-option label="外国人居留证" value="09"></el-option>-->
+                 <!--<el-option label="警官证" value="10"></el-option>-->
+                 <!--<el-option label="其他" value="99"></el-option>-->
+
+              <el-option
+                v-for="item in legDoctypeOpt"
+                :key="item.value"
+                :label="item.name"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="法人电话号码" prop="legdocmobile">
+            <el-input v-model="companyForm.legdocmobile"></el-input>
+          </el-form-item>
+
+          <el-form-item label="联系人电话" prop="contphone">
+            <el-input v-model="companyForm.contphone"></el-input>
+          </el-form-item>
+
+          <el-form-item label="公司注册地址" prop="regaddrdetail">
+            <el-input v-model="companyForm.regaddrdetail"></el-input>
+          </el-form-item>
+
+          <el-form-item label="公司网址" prop="url">
+              <el-input v-model="companyForm.url"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <div class="btn-group">
+        <el-button type="primary" @click="handleSubmit">确认</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </div>
+
+    </el-form>
+  </div>
+</template>
+
+<script>
+
+
+  import CitySelector from '@/components/BaseCascader'
+import BaseDeptCascader from '@/components/BaseCascader/dept'
+import BaseCascader from '@/components/BaseCascader'
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import  {saveOrUpdateCompany,queryCompanyIdIsExist,getCompanyStatus} from '@/request/manage/company';
+  import * as RequeryLogUrl from '@/request/log/systemPlatformLog'//客源日志统一接口
+  export default {
+  name: 'companyEdit',
+ components: {CitySelector,BaseDeptCascader,BaseCascader, CitySelector,BaseCityCascader},
+  props:{
+    data:{
+      type:Object
+    },
+    isAdd:{
+      type:Boolean
+    }
+  },
+  data () {
+
+    var phone = (rule, value, callback) => {
+      let reg = /^1[3|4|5|7|8][0-9]\d{8}$/
+      console.log(reg.test(value));
+      if(!value){
+        return callback(new Error('电话号码不能为空'))
+      }
+      if (reg.test(value)) {
+        callback();
+      }
+      return callback(new Error('请输入正确的手机号'));
+    };
+    return {
+      companyForm: {
+        id: '',
+        legrepname: '',
+        doccode: '',
+        legdoccode: '',
+        contname: '',
+        regaddrcity: '',
+        cusemail: '',
+        status: '',
+        name: '',
+        Doctype: '',
+        legDoctype: '',
+        legdocmobile: '',
+        contphone: '',
+        regaddrdetail: '',
+        url: ''
+      },
+      originalData:[],
+      companyStatusOpt:'',//公司状态
+      legDoctypeOpt:'',//法代证件类型
+      DoctypeOpt:'',//法人证件类型
+      errorMsg:'',
+      rules: {
+        legrepname: [
+          {required: true, message: '法定代人名称不能为空', trigger: 'change'},
+        ],
+        doccode: [
+          {required: true, message: '法人证件号码', trigger: 'change'},
+          {max:18,message:'法人证件号码长度为18位数字',trigger:['blur','change']}
+        ],
+        contname: [
+          {required:true,message:'联系人名称不能为空',trigger: 'change'}
+        ],
+        regaddrcity: [
+          { required: true, message: '所属城市不能为空', trigger: 'change'}
+        ],
+        cusemail: [
+          {required: true, message: '公司邮箱邮箱不能为空', trigger: 'change'}
+          ,{type:'email',message:'请输入正确的邮箱地址',trigger:['blur','change']}
+        ],
+        status: [
+          {required: true, message: '状态不能为空 ', trigger: 'change'}
+        ],
+        name:[
+          {required:true,message:'公司名称不能为空',trigger: 'change'}
+        ],
+        Doctype:[
+          {required:true,message:'公司名称不能为空',trigger: 'change'}
+        ],
+        legdocmobile:[
+          {required:true,message:'法人电话号码不能为空',trigger: 'change'},
+          { validator: phone, trigger: 'blur' }
+        ],
+        legDoctype:[
+          {required:true,message:'法代证件类型不能为空',trigger: 'change'},
+        ],
+
+        contphone:[
+          {required:true,message:'联系人电话不能为空',trigger: 'change'},
+          { validator: phone, trigger: 'change' }
+
+        ],
+        id:[
+          {required:true,message:'公司编号不能为空',trigger: 'change'},
+        ],
+        legdoccode:[
+          {required:true,message:'法代人证件号码不能为空',trigger: 'change'}
+        ]
+      },
+      getCascaderOptionsUrl: 'manage/commonselect/queryReferenceUserSelect',
+      cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+      cascaderProps: { // 级联下拉组件配置选项
+        value: 'code', // 指定选项的值为选项对象的某个属性值
+        children: 'children', // 指定选项的子选项为选项对象的某个属性值
+        label: 'name' // 指定选项标签为选项对象的某个属性值
+      }
+    }
+  },
+  methods: {
+    //取消
+    handleCancel () {
+      this.$emit('handleClick', 2)
+    },
+    handleCity(val,name){
+      this.companyForm.regaddrcity = value
+    }
+    ,
+    handleSubmit () {
+      this.$refs['companyForm'].validate((valid) =>{
+      if(valid){
+          let params = {...this.companyForm}
+        this.$confirm('确定保存编辑的信息吗?',{
+            confirmButtonText:'确定',
+            cancelButtonText:'取消',
+            type:'warning'
+        }).then(() =>{
+          this.loadingBtn = true
+          saveOrUpdateCompany({jsonData: JSON.stringify(params)}).then(res =>{
+            if(res.success){
+              this.$message({type:'success', message:res.msg})
+              debugger;
+              if(!this.isAdd){
+                let message = {
+                  sourceCode:  params.name,//资源编号：客源编号
+                  sourceTypeId:20,// 20：公司管理
+                  operatTypeId: 2,//操作类型2: 表示修改,
+                  labelData: this.$utils.getFormFields(this.$refs['companyForm']),
+                  originalData: this.originalData,
+                  newData: params,
+                }
+                RequeryLogUrl.systemUpdateLog({message:JSON.stringify(message)}).then(res=>{
+                  console.log(res)
+                }).catch(error =>{
+                  console.log(error)
+                })
+              } else{
+                let message = {
+                  sourceCode:  params.name,//资源编号：客源编号
+                  sourceTypeId:20,// 20：公司管理
+                  operatTypeId: 1,//操作类型1: 表示新增,
+                  logContent: '新增公司:'+params.name//日志内容
+                }
+                RequeryLogUrl.systemAddLog({message:JSON.stringify(message)}).then(res=>{
+                  console.log(res)
+                }).catch(error =>{
+                  console.log(error)
+                })
+              }
+              this.loadingBtn = false
+              //关闭窗口
+              this.$emit('handleClick',1)
+            }else{
+              this.$message({
+                type:'warning',
+                message:res.msg
+              })
+              this.loadingBtn = false
+            }
+          }).catch(() =>{
+            this.$message({
+              type:'info',
+              message:'取消！'
+            })
+          })
+        })
+       }
+      })
+    },
+    setForm: function (data) {
+      this.resetForm()
+      for (let i in this.companyForm) {
+        if (data[i]) {
+          this.companyForm[i] = data[i]
+        }
+        this.originalData =  Object.assign({}, {...this.companyForm})
+      }
+    },
+    resetForm () {
+      this.$refs['companyForm'] && this.$refs['companyForm'].resetFields()
+    },
+    handleChangeCity (val, name) {
+      this.form.regaddrcity = name
+      this.form.regaddrdetail = val
+    },
+    //输入框值改变事件
+    checkCompanyIdIsExist(val){
+      //参数
+      let params = {companyId:val}
+      queryCompanyIdIsExist(params).then(res =>{
+         if(res.isExist){
+           this.errorMsg = '公司编号已存在'
+           return false
+         }else{
+           this.errorMsg =''
+         }
+       })
+    },
+    //获取下拉数据
+    _getCompanyStatus(){
+      getCompanyStatus().then(res =>{
+         this.companyStatusOpt = res.status;
+         this.DoctypeOpt = res.doctype;
+         this.legDoctypeOpt = res.legdoctype;
+      })
+    }
+  },mounted(){
+      if(!this.isAdd){
+          this.setForm(this.data)
+      }
+      this._getCompanyStatus();
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+  .errorMsg{
+    color: red;
+  }
+</style>

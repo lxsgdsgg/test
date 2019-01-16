@@ -1,0 +1,630 @@
+<template>
+  <div style="min-height: 500px">
+    <div
+      v-if="resultData"
+      v-loading="loadingView"
+      element-loading-text="拼命加载中"
+      class="box-card wrapper"
+    >
+
+      <div class="info-item top clearfix">
+        <div class="carousel pull-left">
+          <el-carousel height="280px" :autoplay="false">
+            <el-carousel-item class="item" v-for="item in imgList" :key="item.id">
+              <img class="image" :src="item.url" alt="">
+            </el-carousel-item>
+          </el-carousel>
+        </div>
+
+        <div class="desc pull-left">
+
+          <div class="desc-item">
+            <div class="label">楼盘名称</div>
+            <div class="text">{{resultData.newHouseInfo.name}}</div>
+          </div>
+
+          <div class="desc-item">
+            <div class="label">区域</div>
+            <div class="text">{{areaName}} <a v-if="btnPermission[PERMISSION_BTN.VSC_BTN]" @click="viewBuilding" href="javascript:;" class="text-btn ml10">查看销控</a></div>
+          </div>
+
+          <div class="desc-item">
+            <div class="label">产权年限</div>
+            <div class="text">{{resultData.newHouseInfo.propertyLimit}}年</div>
+          </div>
+
+          <div class="desc-item">
+            <div class="label">地址</div>
+            <div class="text">{{resultData.newHouseInfo.address}}</div>
+          </div>
+
+          <div class="clearfix">
+            <div class="desc-item pull-left">
+              <div class="label">维护人</div>
+              <div class="text">{{resultData.newHouseInfo.custServicer}}</div>
+            </div>
+
+            <div class="desc-item pull-left">
+              <div class="label">联系电话</div>
+              <div class="text">{{resultData.newHouseInfo.custMobile}}</div>
+            </div>
+
+            <el-button
+              v-if="btnPermission[PERMISSION_BTN.UPDATE_PHONE]"
+              @click="handleEditService"
+              style="margin-top: 13px; margin-left: 20px" class="text-btn" type="text" icon="el-icon-edit" size="mini">
+              修改
+            </el-button>
+          </div>
+
+          <div class="clearfix">
+            <div class="desc-item pull-left">
+              <div class="label">结算佣金</div>
+              <div class="text">{{resultData.newHouseInfo.settlementCommissions}}元</div>
+            </div>
+
+            <div class="desc-item pull-left">
+              <div class="label">渠道佣金</div>
+              <div class="text">{{resultData.newHouseInfo.channelCommissions}}元</div>
+            </div>
+
+            <el-button v-if="btnPermission[PERMISSION_BTN.UPDATE_COMM]" @click="handleEditCommissions" style="margin-top: 13px; margin-left: 20px" class="text-btn" type="text" icon="el-icon-edit" size="mini">修改</el-button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="info-item center">
+        <el-row class="mb20">
+          <el-col :span="6" class="desc-item">
+            <div class="label">开盘时间</div>
+            <div class="text">{{this.$utils.timeFormat(resultData.newHouseInfo.openDate, '{y}-{m}-{d}')}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">交房时间</div>
+            <div class="text">{{this.$utils.timeFormat(resultData.newHouseInfo.deliverDate, '{y}-{m}-{d}')}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">物业用途</div>
+            <div class="text">{{houseUses}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">房屋类型</div>
+            <div class="text">{{houseTypes}}</div>
+          </el-col>
+        </el-row>
+
+        <el-row class="mb20">
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">出售状态</div>
+            <div class="text" v-if="resultData.newHouseInfo.saleType === 0">待售</div>
+            <div class="text" v-if="resultData.newHouseInfo.saleType === 1">在售</div>
+            <div class="text" v-if="resultData.newHouseInfo.saleType === 2">售罄</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">预售证号</div>
+            <div class="text">{{resultData.newHouseInfo.prePermitName}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">车位数量</div>
+            <div class="text">{{resultData.newHouseInfo.parkCnt}}个</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">物业费</div>
+            <div class="text">{{resultData.newHouseInfo.propertyFees}}元/月/平米</div>
+          </el-col>
+        </el-row>
+
+        <el-row class="mb20">
+          <el-col :span="6" class="desc-item">
+            <div class="label">容积率</div>
+            <div class="text">{{resultData.newHouseInfo.capacityRatio}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">绿化率</div>
+            <div class="text">{{resultData.newHouseInfo.greenRate + '%'}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">建筑面积</div>
+            <div class="text">{{resultData.newHouseInfo.buildingArea + '平米'}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">占地面积</div>
+            <div class="text">{{resultData.newHouseInfo.floorArea + '平米'}}</div>
+          </el-col>
+
+
+        </el-row>
+
+        <el-row class="mb20">
+          <el-col :span="6" class="desc-item">
+            <div class="label">装修情况</div>
+            <div class="text">{{decoration}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">均价</div>
+            <div class="text">{{resultData.newHouseInfo.salePrice / 100}}元</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">合作日期</div>
+            <div class="text">{{resultData.newHouseInfo.beginTime}}</div>
+          </el-col>
+
+          <el-col :span="6" class="desc-item">
+            <div class="label">已签合作协议</div>
+            <div class="text">{{resultData.newHouseInfo.isAgreement === 0 ? '否' : '是'}}</div>
+          </el-col>
+
+        </el-row>
+
+        <el-row class="mb20">
+          <el-col :span="6" class="desc-item">
+            <div class="label">物业公司</div>
+            <div class="text">{{resultData.newHouseInfo.propertyName}}</div>
+          </el-col>
+
+          <el-col :span="12" class="desc-item">
+            <div class="label">开发商</div>
+            <div class="text">{{resultData.newHouseInfo.developers}}</div>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="12" class="desc-item">
+            <div class="label">售楼部地址</div>
+            <div class="text">{{resultData.newHouseInfo.salesDeptAdd}}</div>
+          </el-col>
+        </el-row>
+
+      </div>
+
+      <el-dialog
+        title="查看销控"
+        :visible.sync="dialogVisibleBuilding"
+        :close-on-click-modal="false"
+        width="60%"
+        top="15vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <building-unit-component :communityId="resultData.newHouseInfo.communityId" :isNewHouse="true"></building-unit-component>
+      </el-dialog>
+
+      <el-dialog
+        title="修改佣金"
+        :visible.sync="dialogVisibleCommissions"
+        :close-on-click-modal="false"
+        width="350px"
+        :modal-append-to-body="false">
+
+        <el-form :model="commissionsForm" :rules="commissionsRules" ref="commissionsForm" label-width="100px">
+
+          <el-form-item label="渠道佣金" prop="channelCommissions">
+            <el-input v-model="commissionsForm.channelCommissions">
+              <i slot="suffix" style="font-size: 12px;margin-right: 5px">元</i>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="结算佣金" prop="settlementCommissions">
+            <el-input v-model="commissionsForm.settlementCommissions">
+              <i slot="suffix" style="font-size: 12px;margin-right: 5px">元</i>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button :loading="loadingSubmitBtn" @click="commissionsFormSave" type="primary">确定</el-button>
+            <el-button @click="dialogVisibleCommissions = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+
+      </el-dialog>
+
+      <el-dialog
+        title="修改维护人信息"
+        :visible.sync="dialogVisibleService"
+        :close-on-click-modal="false"
+        width="350px"
+        :modal-append-to-body="false">
+
+        <el-form :model="serviceForm" ref="serviceForm" label-width="100px">
+
+          <el-form-item label="维护人" prop="custServicerId"
+                        :rules="[
+            { required: true, message: '请选择维护人', trigger: 'change'}
+          ]"
+          >
+            <base-cascader
+              :changeOnSelect="false"
+              v-model="serviceForm.custServicerId"
+              :data="peopleSelectOpts"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps"
+              placeholder="请选择维护人"
+              @change="handleChangeService"
+            >
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item label="维护人电话" prop="mobile">
+            <el-input readonly="readonly" v-model="serviceForm.mobile">
+            </el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button :loading="loadingSubmitBtn" @click="serviceFormSave" type="primary">确定</el-button>
+            <el-button @click="dialogVisibleService = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+
+      </el-dialog>
+
+    </div>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/house/houseNew' // 请求后端URL路径
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import BaseCascader from '@/components/BaseCascader/index'
+  // import BuildingUnitComponent from '@/views/manage/system/community/components/BuildingUnitComponent' // 坐栋
+  import BuildingUnitComponent from '@/views/manage/system/community/components/MarketingControlComponent' // 坐栋
+  import * as consts from '../../consts'
+
+  export default {
+    props: {
+      id: {
+        type: [Number, String]
+      },
+
+      imgList: {
+        type: Array,
+        default () {
+          return []
+        }
+      }
+    },
+
+    components: {BuildingUnitComponent, BaseCascader},
+
+    data () {
+      return {
+        PERMISSION_BTN: consts.PERMISSION_BTN,
+        loadingView: false,
+        dialogVisibleBuilding: false,
+        dialogVisibleCommissions: false,
+        dialogVisibleService: false,
+        loadingSubmitBtn: false,
+        dialogVisibleEdit: false,
+        resultData: null,
+        buildingData: null,
+        commissionsForm: {
+          channelCommissions: '',
+          settlementCommissions: ''
+        },
+        commissionsRules: {
+          channelCommissions: {required: true, message: '请填写渠道佣金', trigger: 'blur'},
+          settlementCommissions: {required: true, message: '请填写结算佣金', trigger: 'blur'},
+        },
+        serviceForm: {
+          custServicerId: '',
+          mobile: ''
+        },
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        peopleSelectOpts: [],
+        serviceData: {},
+        orgCommissionsFormData: {}
+      }
+    },
+
+    methods: {
+
+      // 修改佣金
+      handleEditCommissions () {
+        this.$refs['commissionsForm'] && this.$refs['commissionsForm'].resetFields()
+        this.commissionsForm.channelCommissions = this.resultData['newHouseInfo'].channelCommissions
+        this.commissionsForm.settlementCommissions = this.resultData['newHouseInfo'].settlementCommissions
+        this.orgCommissionsFormData = Object.assign({}, this.commissionsForm)
+        this.dialogVisibleCommissions = true
+      },
+
+      // 修改佣金提交
+      commissionsFormSave () {
+
+        this.$refs['commissionsForm'].validate(valid=> {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息?',
+              {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }
+            ).then(() => {
+              this.loadingSubmitBtn = true
+              let params = Object.assign({}, this.commissionsForm, {
+                projectId: this.id
+              })
+              RequestURL['updateCommissions'](params).then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功',
+                  showClose: true,
+                  duration: 2000
+                })
+
+                this.resultData['newHouseInfo'].channelCommissions = this.commissionsForm.channelCommissions
+                this.resultData['newHouseInfo'].settlementCommissions = this.commissionsForm.settlementCommissions
+
+                this.loadingSubmitBtn = false
+                this.dialogVisibleCommissions = false
+
+                // 向后台传递日志数据
+                let message = {
+                  sourceId: this.resultData.newHouseInfo.id, // 资源ID
+                  sourceCode: this.resultData.newHouseInfo.name, // 资源编号
+                  businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+                  sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_SET_COMMISSION, // 操作类型
+                  newData: params,
+                  originalData: this.orgCommissionsFormData,
+                  labelData: this.$utils.getFormFields(this.$refs['commissionsForm'])
+                }
+                this.$updateLog.newHouse.houseUpdateLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+
+            })
+          }
+        })
+
+      },
+
+      // 修改维护人信息
+      handleEditService () {
+        this.$refs['serviceForm'] && this.$refs['serviceForm'].resetFields()
+
+        this.serviceForm.custServicerId = String(this.resultData['newHouseInfo'].custServicerId)
+        this.serviceForm.mobile = this.resultData['newHouseInfo'].custMobile
+
+        this.dialogVisibleService = true
+      },
+
+      handleChangeService (val, name, data) {
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.serviceData = {}
+          }, 50)
+
+        }
+
+        this.serviceForm.mobile = data.mobile
+        this.serviceData = data
+      },
+
+      // 修改维护人提交
+      serviceFormSave () {
+        this.$refs['serviceForm'].validate(valid=> {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息?',
+              {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }
+            ).then(() => {
+              this.loadingSubmitBtn = true
+              let params = {
+                projectId: this.id,
+                custServicerId: this.serviceForm.custServicerId
+              }
+              RequestURL['updateCustServicer'](params).then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功',
+                  showClose: true,
+                  duration: 2000
+                })
+
+                this.loadingSubmitBtn = false
+                this.dialogVisibleService = false
+                let orgName = this.resultData['newHouseInfo'].custServicer
+
+                this.resultData['newHouseInfo'].custServicer = this.serviceData.name
+                this.resultData['newHouseInfo'].custServicerId = this.serviceForm.custServicerId
+                this.resultData['newHouseInfo'].custMobile = this.serviceData.mobile
+
+                // 向后台传递日志数据
+                let message = {
+                  sourceId: this.resultData.newHouseInfo.id, // 资源ID
+                  sourceCode: this.resultData.newHouseInfo.name, // 资源编号
+                  businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.NEW_HOUSE, // 业务类型
+                  sourceTypeId:this.$DICT_CODE.LOG.BUSINESS_SOURCE_TYPE.NEW_DEAL,//资源类型
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.NEW_HOUSE_SET_CUSTOMER_SERVICE, // 操作类型
+                  logContent: `修改维护人信息->维护人由${orgName}改为${this.serviceData.name}`
+                }
+                this.$updateLog.newHouse.houseQueryLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+
+            })
+          }
+        })
+      },
+
+      // 查看销控
+      viewBuilding () {
+        this.dialogVisibleBuilding = true
+      },
+
+      _loadData () {
+        this.loadingView = true
+        RequestURL['getNewHouseInfo']({newHouseId: this.id}).then(res => {
+          this.resultData = res.data
+          this.$emit('loadDataFinish', res.data)
+          this.loadingView = false
+
+        }).catch(() => {
+          // 如果没有请求到数据 移除导航标签 跳转到列表页面
+          const view = this.$route
+          this.$store.dispatch('delVisitedViews', view).then(() => {
+            this.$router.push({ path: '/house/houseNew'})
+          })
+        })
+      }
+    },
+
+    mounted () {
+      this._loadData()
+
+      // 获取相关用户员工级联数据
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+    },
+
+    computed: {
+      areaName () {
+        return `${this.resultData.newHouseInfo.areaName}-${this.resultData.newHouseInfo.regionName}-${this.resultData.newHouseInfo.name}`
+      },
+
+      houseTypes () {
+        let houseTypes = this.resultData.houseTypes || []
+        return houseTypes.map(item => item.name).join()
+      },
+
+      houseUses () {
+        let houseUses = this.resultData.houseUses || []
+        return houseUses.map(item => item.name).join()
+      },
+
+      decoration () {
+        let decorations = this.resultData.decorations || []
+        return decorations.map(item => item.descs).join()
+      },
+
+      // 按钮权限
+      btnPermission () {
+        return this.$store.getters.permissions
+      }
+    },
+
+    watch: {
+      id () {
+        if (this.id) {
+          // this._loadData()
+        }
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+  $border-color: #dcdfe6;
+  $blue-hover: #40C9C6;
+  $color-blue: #26B2C9;
+
+  .wrapper {
+    width: 80%;
+    .info-item {
+      padding: 30px 0;
+      border-bottom: 1px solid $border-color;
+
+      &.top {
+        padding-top: 0;
+        .carousel {
+          width: 50%;
+
+          .item {
+            padding: 10px;
+          }
+          .image {
+            display: block;
+            margin: 0 auto;
+            max-height: 260px;
+          }
+        }
+        .desc {
+          width: 50%;
+        }
+      }
+
+      &.center {
+        .desc-item {
+          margin-top: 0;
+        }
+      }
+
+      .desc-item {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+
+        .label {
+          margin-right: 10px;
+          color: #9F9F9F;
+          min-width: 85px;
+          text-align: right;
+        }
+
+        .text {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .el-carousel__item h3 {
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.75;
+    line-height: 150px;
+    margin: 0;
+  }
+
+  .el-carousel__item:nth-child(2n) {
+    background-color: #99a9bf;
+  }
+
+  .el-carousel__item:nth-child(2n+1) {
+    background-color: #d3dce6;
+  }
+
+  .text-btn {
+    font-size: 12px;
+    color: $color-blue;
+    transition: all 0.3s;
+
+    &:hover {
+      color: $blue-hover;
+    }
+  }
+
+</style>

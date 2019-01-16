@@ -1,0 +1,77 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+
+import router from './router'
+
+import store from './store'
+
+import ElementUi from 'element-ui'
+import './common/sass/element-variables.scss'
+
+import Mock from './mock/mock'
+
+// 全局样式
+import './common/sass/common.scss'
+
+// font-awesome字体图标
+import 'font-awesome/css/font-awesome.min.css'
+
+// request
+import {onPost, onGet, request} from './request/main'
+
+// 自定义工具函数
+import * as utils from './common/js/utils'
+import * as jsonUtils from './common/js/jsonUtils'
+
+// 向后台传递日志信息
+import * as updateLogs from './request/log/export'
+
+import dictCode from './common/js/dictCode'
+
+// 全局组件
+import Icon from 'vue-svg-icon/Icon'
+import BDialog from './components/BaseDialog/BaseDialog'
+import BPagination from './components/BasePagination/index'
+
+// 按钮权限指令
+import onlyBtnPermission from './directive/onlyBtnPermission'
+import multipleBtnPermission from './directive/multipleBtnPermission'
+
+Vue.use(onlyBtnPermission)
+Vue.use(multipleBtnPermission)
+
+// svg图标组件
+Vue.component('icon', Icon)
+
+// 封装 element 弹框
+Vue.component('b-dialog', BDialog)
+
+// 封装 element 分页
+Vue.component('b-pagination', BPagination)
+
+// 数据模拟
+Mock.init()
+
+Vue.use(ElementUi)
+
+// 绑定到Vue原型中方便使用
+Vue.prototype.$request = request
+Vue.prototype.$post = onPost
+Vue.prototype.$get = onGet
+Vue.prototype.$utils = utils
+Vue.prototype.$jsonUtils = jsonUtils
+Vue.prototype.$updateLog = updateLogs
+Vue.prototype.$DICT_CODE = dictCode
+
+Vue.config.productionTip = false
+
+/* eslint-disable no-new */
+window.$vm = new Vue({
+  el: '#app',
+  router,
+  store,
+  components: { App },
+  template: '<App/>'
+})

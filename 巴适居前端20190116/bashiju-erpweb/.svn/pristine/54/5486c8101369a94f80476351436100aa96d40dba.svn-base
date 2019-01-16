@@ -1,0 +1,673 @@
+<template>
+  <div>
+
+    <el-form size="small" v-loading="loadingView" :model="form" :rules="rules" ref="form" label-width="130px">
+
+      <el-form-item label="交易类型" prop="transactionTypeId">
+        <el-select class="w180 mr15" clearable v-model="form.transactionTypeId" placeholder="交易类型">
+          <el-option v-for="item in transactionType" :label="item.label" :value="item.value" :key="item.value"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="状态" required class="margin-b-none">
+
+        <el-col :span="11">
+          <el-form-item prop="statusId">
+            <el-select clearable v-model="form.statusId" placeholder="状态">
+              <el-option v-for="item in statusOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col style="text-align: center" :span="2">-</el-col>
+
+        <el-col :span="11">
+          <el-form-item prop="discStatusId">
+            <el-select clearable v-model="form.discStatusId"  placeholder="盘状态">
+              <el-option v-for="item in discStatusOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+      </el-form-item>
+
+      <el-form-item label="小区" prop="communityId" ref="communityId" >
+        <community-selector
+          style="width: 180px"
+          :changeOnSelect="false"
+          v-model="form.communityId"
+          :url="areasUrl"
+          :props="cascaderProps"
+          :dataProps="cascaderDataProps"
+          placeholder="选择小区"
+          @change="handleCommunityChange"
+        >
+        </community-selector>
+
+        <el-button @click="openBuildingUnitDialog" style="font-size: 12px" class="ml10" type="text" v-if="this.param.houseUsesId !== 'parking'">选择坐栋</el-button>
+      </el-form-item>
+
+          <el-form-item label="车位号"  prop="parkingLot" required class="margin-b-none" v-if="this.param.houseUsesId === 'parking'">
+              <el-input v-model="form.parkingLot"></el-input>
+          </el-form-item>
+
+          <el-form-item label="门牌号" required class="margin-b-none" v-if="this.param.houseUsesId !== 'parking'">
+            <el-col :span="7">
+              <el-form-item prop="buildingsName">
+                <el-input v-model="form.buildingsName" readonly="readonly">
+                  <i slot="suffix" style="font-size: 12px;margin-right: 5px">坐栋</i>
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col style="text-align: center" :span="1">-</el-col>
+            <el-col :span="7">
+              <el-form-item prop="buildingsUnitName">
+                <el-input v-model="form.buildingsUnitName" readonly="readonly">
+                  <i slot="suffix" style="font-size: 12px;margin-right: 5px">单元</i>
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col style="text-align: center" :span="1">-</el-col>
+            <el-col :span="7">
+              <el-form-item prop="buildingHouseName">
+                <el-input v-model="form.buildingHouseName" readonly="readonly">
+                  <i slot="suffix" style="font-size: 12px;margin-right: 5px">房号</i>
+                </el-input>
+              </el-form-item>
+            </el-col>
+          </el-form-item>
+
+      <el-form-item class="inline-block" label="楼层描述" prop="floorDesId">
+        <el-select class="w180 mr15" clearable v-model="form.floorDesId" placeholder="楼层描述">
+          <el-option v-for="item in floorDesOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="是否发送绑定码" prop="isSendBindCode">
+
+        <el-switch
+          v-model="form.isSendBindCode">
+        </el-switch>
+
+      </el-form-item>
+
+      <el-form-item label="姓名" required class="margin-b-none">
+        <el-col :span="11">
+          <el-form-item prop="owner">
+            <el-input v-model="form.owner"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col style="text-align: center" :span="2">-</el-col>
+        <el-col :span="11">
+          <el-form-item prop="nameTitle">
+            <el-select clearable v-model="form.nameType" placeholder="性别">
+              <el-option v-for="item in genderOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-form-item>
+
+      <el-form-item label="电话" required class="margin-b-none">
+        <el-col :span="11">
+          <el-form-item prop="phone">
+            <el-input v-model="form.phone"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col style="text-align: center" :span="2">-</el-col>
+        <el-col :span="11">
+          <el-form-item prop="relateType">
+            <el-select clearable v-model="form.relateType" placeholder="电话">
+              <el-option v-for="item in relateTypeOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-form-item>
+
+      <p class="msg">* 固话与区号间请用"-"分隔，例如:022-8888888</p>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleNext">下一步</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <!-- 座栋信息查看 -->
+    <el-dialog
+      title="选择座栋"
+      :visible.sync="dialogVisibleBuildingUnit"
+      width="800px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <building-unit-component v-if="hackResetBuilding" @dbCellClick="buildingCellClick" :communityId="form.communityId"></building-unit-component>
+    </el-dialog>
+
+    <!-- 房源基本信息编辑 -->
+
+    <!-- 住宅 -->
+    <el-dialog
+      title="新增房源"
+      :visible.sync="dialogVisibleHouse"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <house-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></house-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增商铺"
+      :visible.sync="shopsDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <shops-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></shops-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增公寓"
+      :visible.sync="apartmentDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <apartment-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></apartment-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增仓库"
+      :visible.sync="wareHouseDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <ware-house-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></ware-house-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增厂房"
+      :visible.sync="factoryDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <factory-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></factory-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增车位"
+      :visible.sync="parkingDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <parking-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></parking-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增土地"
+      :visible.sync="landDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <land-form @handleClick="handleAddHouseClick" v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></land-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增写字楼"
+      :visible.sync="officeBuilingDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <office-form @handleClick="handleAddHouseClick"  v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></office-form>
+    </el-dialog>
+
+    <el-dialog
+      title="新增别墅"
+      :visible.sync="villaDialogVisible"
+      width="1100px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <villa-form @handleClick="handleAddHouseClick"  v-if="hackReset" :formInfo="addHouseFormInfo" :isAdd="true" :type="param.houseUsesId"></villa-form>
+    </el-dialog>
+
+    <el-dialog
+      title="房源"
+      :visible.sync="existedHouseDialogVisible"
+      width="1100px"
+      @close='closeExistHouseDialog'
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <ExistedHouse :data="existedHouseData" v-if="hackReset" @handleClick="closeExistHouseDialog"></ExistedHouse>
+    </el-dialog>
+
+  </div>
+</template>
+
+<script>
+  import {saveHouseFollowAndRemind, queryCountHousing, queryBuildingInfo, addHouse,queryHouseDiscStatus,queryHouseByPhone} from '@/request/house/houseUsed'
+  import {STATUS_OPTS, TRANSACTION_TYPE, FLOOR_DES_OPTS, GENDER_OPTS, RELATE_TYPE_OPTS, DISC_STATUS_TYPE} from './consts'
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import CommunitySelector from '@/components/BaseCascader/index'
+
+  import BuildingUnitComponent from '@/views/manage/system/community/components/BuildingUnitComponent' // 坐栋
+  import ExistedHouse from './existedHouse' //用户输入电话的已存在的房源列表
+
+  import addHouseForm from './formComp/house' // 房源form组件
+  import addShopsForm from './formComp/shops' //商铺form组件
+  import addApartmentForm from './formComp/apartment' //公寓form组件
+  import addWareHouseForm from './formComp/wareHouse'//仓库form组件
+  import addFactoryFrom from './formComp/factory' //工厂form组件
+  import addParking from './formComp/parking'  //车位form组件
+  import addLand from './formComp/land' //土地form组件
+  import addOfficeBuiling from './formComp/officeBuiling'
+  import addVilla from './formComp/villa' //别墅form组件
+
+  import {HouseForm, ShopsForm, ApartmentForm, WareHouseForm, FactoryForm, ParkingForm, LandForm, OfficeForm, VillaForm} from './formComp/exports' // 修改基本信息=
+
+  import {checkMobile} from '@/common/js/validator'
+
+  export default {
+    components: {
+      CommunitySelector, BuildingUnitComponent,
+      HouseForm, ShopsForm, ApartmentForm, WareHouseForm, FactoryForm, ParkingForm, LandForm, OfficeForm, VillaForm,
+      ExistedHouse
+    },
+    props: {
+      param: { // 父组件传递过来的参数 房屋用途类型等
+        type: Object,
+        required: true
+      }
+    },
+    data () {
+      return {
+        statusOpts: STATUS_OPTS,
+        transactionType: TRANSACTION_TYPE,
+        floorDesOpts: FLOOR_DES_OPTS,
+        genderOpts: GENDER_OPTS,
+        relateTypeOpts: RELATE_TYPE_OPTS,
+        discStatusOpts: DISC_STATUS_TYPE,
+        // discStatusOpts: '',
+        loadingView: false,
+        loadingSubmitBtn: false,
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        form: {
+          transactionTypeId: '1',
+          communityId: '',
+          isSendBindCode: false,
+          statusId: '1',
+          discStatusId: '1',
+          buildingsName: '',
+          buildingsUnitName: '',
+          buildingHouseName: '',
+          parkingLot:'',//车位号
+          floorDesId: '1',
+          floorDes:'',
+          nameType: '1',
+          owner: '',
+          phone: '',
+          relateType: '1',
+        },
+        // 表单校验配置
+        rules: {
+          transactionTypeId: [
+            {required: true, message: '该项为必填项', trigger: 'change'}
+          ],
+          statusId: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          discStatusId: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          communityId: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          parkingLot: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ],
+          // buildingsUnitName: [
+          //   {required: true, message: '该项为必填项', trigger: 'blur'},
+          // ],
+          // buildingHouseName: [
+          //   {required: true, message: '该项为必填项', trigger: 'blur'},
+          // ],
+          floorDesId: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          owner: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ],
+          nameType: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          phone: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+            { validator: checkMobile, trigger: 'blur' },
+          ],
+          relateType: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+        },
+
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        hackReset:true,
+        isAdd:false,
+        areasUrl: queryCommunitySelectWithRegion,
+        addHouseFormInfo: null,
+        dialogVisibleHouse: false,
+        dialogVisibleBuildingUnit: false,
+        shopsDialogVisible:false,
+        apartmentDialogVisible:false,
+        wareHouseDialogVisible:false,
+        factoryDialogVisible:false,
+        parkingDialogVisible:false,
+        landDialogVisible:false,
+        officeBuilingDialogVisible:false,
+        villaDialogVisible:false,
+        existedHouseDialogVisible:false,
+        existedHouseData:null,
+        currentBuildingData: null,
+        hackResetBuilding: true
+      }
+    },
+    methods: {
+      openBuildingUnitDialog () {
+        if (this.form.communityId) {
+          this.hackResetBuilding = false
+          this.$nextTick(() => {
+            this.hackResetBuilding = true
+            this.dialogVisibleBuildingUnit = true
+          })
+        } else {
+          this.$message({
+            type: 'warning',
+            message: '请先选择小区',
+            showClose: true
+          })
+        }
+
+      },
+
+      // 点击座栋单元格
+      buildingCellClick (data) {
+        // 选中的座栋房间信息
+        this.currentBuildingData = data
+        this.form.buildingsName = data.buildingName + data.buildUnitAlias
+        this.form.buildingsUnitName = data.unitName + data.unitAlias
+        this.form.buildingHouseName = data.houseNo
+
+        this.dialogVisibleBuildingUnit = false
+      },
+
+      handleNext () {
+        this.hackReset = false
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+            let paramsP = {}
+            paramsP.phone = this.form.phone
+            paramsP.communityId = this.form.communityId
+            queryHouseByPhone(paramsP).then(res =>{
+              if(res.success){
+                if(res.data.length){
+                  this.hackReset = false
+                  this.$nextTick(()=>{
+                    this.hackReset = true
+                    this.existedHouseData = res.data
+                    this.existedHouseDialogVisible = true;
+                  })
+                }else{
+                    this.closeExistHouseDialog()
+                }
+              }
+            })
+          }
+        })
+      },
+
+      handleCommunityChange (val, name, data) {
+        if (data.dataType !== 'community') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择小区!'
+          })
+          setTimeout(() => {
+            this.$refs['communityId'].resetField()
+          }, 50)
+        }
+      },
+
+      _resetForm () {
+        this.$refs['form'] && this.$refs['form'].resetFields()
+      },
+
+      handleCancel () {
+        this.$emit('handleClick', 2)
+      },
+
+      handleAddHouseClick (action, _params) {
+        if (action === 1) {
+          // 合并参数
+
+          let params = {..._params, ...this.form, ...this.param}
+          params.transactionType = this._getOptName(this.form.transactionTypeId, this.transactionType)
+          params.status = this._getOptName(this.form.statusId, this.statusOpts)
+          params.nameTitle = this._getOptName(this.form.nameType, this.genderOpts)
+          params.relateName = this._getOptName(this.form.relateType, this.relateTypeOpts)
+          params.parkingLot = this.form.parkingLot
+          params.floorDes = this._getOptName(this.form.floorDesId, this.floorDesOpts)
+          // 坐栋参数
+          if(this.param.houseUsesId == 'parking'){
+
+          }else{
+            params.buildingsId = this.currentBuildingData.buildingId
+            params.bulidingUnitId = this.currentBuildingData.unitId
+            params.buildingHouseId = this.currentBuildingData.houseId
+          }
+          if (params.discStatusId == 1) {
+            params.discStatus = '私盘'
+          } else if (params.discStatusId == 2) {
+            params.discStatus = '公盘'
+          }
+          params.isSendBindCode ? params.isSendBindCode = '1' : params.isSendBindCode = '0'
+          console.log(JSON.stringify(params))
+          addHouse({dataJson: JSON.stringify(params)}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+            this.dialogVisibleHouse = false
+            this.villaDialogVisible = false
+            this.shopsDialogVisible = false
+            this.officeBuilingDialogVisible = false
+            this.apartmentDialogVisible = false
+            this.wareHouseDialogVisible = false
+            this.factoryDialogVisible = false
+            this.parkingDialogVisible = false
+            this.landDialogVisible = false
+            this.existedHouseDialogVisible = false
+            this.$emit('handleClick', 1)
+
+            // 向后台传递日志数据
+            let message = {
+              sourceCode: _params.titles, // 资源标识
+              sourceTypeId: _params.transactionTypeId, // 资源类型
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.ADD_HOUSE, // 操作类型
+              logContent: `新增二手房源：${_params.titles}` // 日志内容
+            }
+            this.$updateLog.house.houseAddLog({message: JSON.stringify(message)})
+
+          }).catch(error =>{
+              loadingView = false,
+              loadingSubmitBtn =false
+          })
+        } else {
+          this.hackReset = false
+          this.$emit('handleClick', 2)
+          this.dialogVisibleHouse = false
+          this.officeBuilingDialogVisible =false
+          this.villaDialogVisible = false
+          this.shopsDialogVisible = false
+          this.apartmentDialogVisible = false
+          this.wareHouseDialogVisible = false
+          this.factoryDialogVisible = false
+          this.parkingDialogVisible = false
+          this.landDialogVisible = false
+          this.existedHouseDialogVisible = false
+
+        }
+      },
+      //获取录入房源是否默认私盘数据源
+      _queryHouseDiscStatus(){
+        queryHouseDiscStatus().then(res =>{
+             if(res.success){
+                this.discStatusOpts = res.data
+             }
+        })
+      },
+      //查询
+      queryHouseByPhone1(){
+        let params = {}
+        params.phone = this.form.phone
+        params.communityId = this.form.communityId
+        queryHouseByPhone(params).then(res =>{
+           if(res.success){
+                if(res.data.length){
+                    this.hackReset = false
+                    this.$nextTick(()=>{
+                      this.hackReset = true
+                      this.existedHouseData = res.data
+                      this.existedHouseDialogVisible = true;
+                    })
+                }
+           }else{
+             return  false
+           }
+        })
+      },
+      _getOptName (value, opts) {
+        // console.log(value, opts)
+        let name = ''
+        opts.forEach(item => {
+          if (item.value === value){
+            name = item.label
+          }
+        })
+        return name
+      },
+      closeExistHouseDialog(){
+        this.existedHouseDialogVisible = false
+
+
+        if(this.param.houseUsesId == 'parking'){
+          this.$nextTick(()=>{
+            this.hackReset = true
+            this.addHouseFormInfo = {
+              baseInfo: {
+                transactionTypeId: this.form.transactionTypeId,
+              }
+            }
+            this.parkingDialogVisible = true
+          })
+        }else{
+          // 获取该房源是否录入过
+          queryCountHousing({houseId: this.currentBuildingData.houseId}).then(res => {
+            if (res.data !== 0) {
+              this.$message({
+                type: 'warning',
+                message: '系统房源数据已存在该户 !',
+                showClose: true
+              })
+              return false
+            }
+            // 获取该楼层梯户信息
+            queryBuildingInfo({buildingId: this.currentBuildingData.houseId}).then(res => {
+              this.$nextTick(() => {
+                this.hackReset = true
+                this.addHouseFormInfo = {
+                  baseInfo: {
+                    floorCount: res.data.floor,
+                    totalLayers: res.data.floorTotal,
+                    elevatorCount: res.data.unitElevatorCount,
+                    householdCount: res.data.unitHouseCount,
+                    transactionTypeId: this.form.transactionTypeId
+                  },
+                }
+                // 根据房源用途 弹出对应表单
+                switch (this.param.houseUsesId) {
+                  case 'house': // 住宅
+                    this.dialogVisibleHouse = true
+                    break
+                  case 'shops'://商铺
+                    this.shopsDialogVisible = true
+                    break
+                  case 'apartment'://公寓
+                    this.apartmentDialogVisible = true
+                    break
+                  case 'wareHouse'://仓库
+                    this.wareHouseDialogVisible = true
+                    break
+                  case 'factory'://工厂
+                    this.factoryDialogVisible = true
+                    break
+                  case 'parking'://车位
+                    this.parkingDialogVisible = true
+                    break
+                  case 'land'://土地
+                    this.landDialogVisible = true
+                    break
+                  case 'officeBuiling'://写字楼
+                    this.officeBuilingDialogVisible = true
+                    break
+                  case 'villa'://别墅
+                    this.villaDialogVisible = true
+                    break
+                  default:
+                    this.dialogVisibleHouse = true
+                }
+              })
+            })
+          })
+        }
+      }
+    },
+    mounted(){
+      // this._queryHouseDiscStatus()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .msg {
+    margin-bottom: 15px;
+    color: red;
+    font-size: 12px;
+    text-align: center;
+  }
+</style>

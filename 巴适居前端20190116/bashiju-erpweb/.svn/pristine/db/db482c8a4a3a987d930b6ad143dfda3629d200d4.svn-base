@@ -1,0 +1,304 @@
+<template>
+  <div class="page-content" style="height: 400px">
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+        v-if="this.data.houseType === 0"
+      >
+
+        <el-table-column
+          prop="houseId"
+          align="left"
+          label="房源编号"
+          width="120px"
+        >
+          <template slot-scope="scope">
+            <a
+              @click="toDetail(scope.row.id, scope.row.houseUsesId, scope.row.houseId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.houseId}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="communityName"
+          align="left"
+          label="小区名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsName"
+          align="left"
+          label="座栋">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="buildingHouseName"
+          align="left"
+          label="门牌号">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="buildSpace"
+          align="left"
+          label="面积">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="sellingPrice"
+          align="left"
+          label="售价(万元)">
+          <template slot-scope="scope">
+              {{scope.row.sellingPrice/1000000}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="rentPrice"
+          align="left"
+          label="租价(元)"
+          :formatter="rentPriceFormatter"
+        >
+        </el-table-column>
+
+      </el-table>
+      <el-table
+        :data="newHouseTableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+        v-if="this.data.houseType === 1"
+      >
+
+        <el-table-column
+          prop="id"
+          align="left"
+          label="房源编号"
+          width="120px"
+        >
+          <template slot-scope="scope">
+            <a
+              @click="toDetail(scope.row.id, scope.row.houseUsesId, scope.row.houseId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.id}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsName"
+          align="left"
+          label="区域">
+          <template slot-scope="scope">
+            {{scope.row.regionName+'-'+scope.row.areaName}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="price"
+          align="left"
+          label="均价">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="custServicer"
+          align="left"
+          label="客服人员">
+        </el-table-column>
+
+      </el-table>
+      <div style="margin-top: 15%">
+          <el-form label-width="72px">
+            <el-form-item label="客户评价:" prop="content">
+              <el-input type="textarea" v-model="form.content"></el-input>
+            </el-form-item>
+          </el-form>
+      </div>
+      <div style="margin-top: 20px;margin-left: 45%">
+          <el-button @click="handleSubmit">提交</el-button>
+          <el-button @click="handleCancel">取消</el-button>
+      </div>
+    </div>
+    <template>
+    <!--二手房信息窗体-->
+    <el-dialog
+    title="二手房房源"
+    :visible.sync="secondHouseDlg"
+    width="50%"
+    :close-on-click-modal="false"
+    append-to-body
+    >
+         <second-house-data :data="currentRowData" v-if="hackReset"  @handleClick="closeWindows"></second-house-data>
+    </el-dialog>
+    </template>
+  </div>   
+</template>
+<style></style>
+<script>
+  import {querySecondHouseInfoByShhId,saveOrUpdateTakeLookRecord,queryNewHouseInfoById} from "@/request/customer/takeLookRecord";
+  import PageList from '@/mixins/pageList'
+  import SecondHouseData from './secondHouseData'
+  import * as RequeryLogURL from '@/request/log/customerLog'//客源日志统一接口
+
+  export default {
+      components:{PageList,SecondHouseData},
+      mixins: [PageList],
+      props:{
+          data:{
+            type:Object
+          }
+      },
+        data() {
+            return {
+                form: {
+                  id:'',
+                  content:'',
+                },
+              loadingView:false,
+              newHouseTableData:[],
+              tableData:[],
+              secondHouseDlg:false,
+              currentRowData:'',
+              hackReset:false,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              },
+            }
+        },
+        methods: {
+
+          toDetail (id, name, code) {
+            this.$router.push({ path: '/house/houseUsedDetail/' + id + '/' + code, query: { formName: name}})
+            window.localStorage.setItem('houseList', JSON.stringify(this.tableData))
+          },
+          //查询数据
+          querySecondHouseInfoByShhId(btn){
+              let params = Object.assign({},this.form,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+              })
+              params.shhId = this.data.sourceId
+              querySecondHouseInfoByShhId(params).then(res =>{
+                  this.tableData = res.data
+                  this.listQuery.total = res.count
+              })
+          },
+          //新房数据
+          _queryNewHouseInfoById(){
+            this.loadingView = true
+            let params = Object.assign({},{},{
+            })
+            params.newHouseId  = this.data.sourceId
+            queryNewHouseInfoById(params).then(res =>{
+                this.newHouseTableData = Array(res)
+                this.loadingView = false
+            })
+          },
+          _loadData(btn){
+            if(this.data.houseType === 1){
+              this._queryNewHouseInfoById();
+            }else{
+              this.querySecondHouseInfoByShhId(btn)
+            }
+          },
+          addSecondHouse(){
+              this.hackReset =false
+              this.$nextTick(() =>{
+                  this.hackReset =true
+                  this.secondHouseDlg = true
+              })
+          },
+          closeWindows(value){
+            this.secondHouseDlg = false
+            let arr = this.tableData
+            let pushFlag = true
+            //判断数据是否存在
+            for (let i = 0; i< arr.length; i++) {
+              if(arr[i].id === value.id){
+                pushFlag = false
+              }
+            }
+            if (pushFlag) {
+              this.tableData.push(value)
+            }else{
+              this.$message({type:'warning',message:'该房源已存在'})
+              return
+            }
+          },
+          handleSubmit(){
+            this.$confirm('确定要删除带看记录吗？',{
+              confirmBtnText:'确定',
+              cancelBtnText:'取消',
+              type:'warning'
+            }).then(() =>{
+                  let params = {...this.form}
+                  params.id = this.data.id
+                  saveOrUpdateTakeLookRecord({jsonData:JSON.stringify(params)}).then(res =>{
+                    if(res.success){
+                      this.$message({
+                        type:'success',
+                        message:res.msg
+                      })
+                      let message = {
+                        sourceId:  this.data.demandId,//资源编号：客源编号
+                        sourceCode:  this.data.demandId,//资源编号：客源编号
+                        businessTypeId: 2,//业务类型，2：代表客源
+                        sourceTypeId: this.data.transactionTypeId,//类型：求购
+                        operatTypeId: 231,//操作类型,修改带看记录
+                        logContent: '客户修改评价：'+this.data.visterEvaluate+'为:'+params.visterEvaluate//日志内容
+                      }
+                      console.log(message)
+                      RequeryLogURL.customerQueryLog({message:JSON.stringify(message)}).then(res =>{
+                        console.log(res)
+                      }).catch(error =>{
+                        console.log(error)
+                      })
+                      this.$emit('handleClick',1)
+                    }else{
+                      this.$message({
+                        type:'warning',
+                        message:res.msg
+                      })
+                    }
+                  })
+            }).catch(()=>{
+              this.$message({
+                type:'info',
+                message:'已取消'
+              })
+            })
+          },
+          handleCancel(){
+            this.$emit('handleClick',2)
+          },
+          setForm(data){
+              for(let i in this.form){
+                this.form[i] = data[i]
+              }
+            if(data['id'])this.form['id'] =  Number(this.form['id'])
+          },
+          rentPriceFormatter(row, column, cellValue){
+              if(cellValue) return  cellValue/100
+          }
+        },
+        mounted() {
+          this.setForm(this.data)
+        }
+
+    }
+
+</script>

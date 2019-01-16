@@ -1,0 +1,355 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item label="选择城市" prop="cityCode">
+            <city-select v-model="queryForm.cityCode" @initSelectData="initSelectData"></city-select>
+          </el-form-item>
+
+          <el-form-item label="决策类型" prop="type">
+            <el-select v-model="queryForm.type">
+              <el-option label="请选择" value=""></el-option>
+              <el-option value="0" label="房源"></el-option>
+              <el-option value="1" label="求购"></el-option>
+              <el-option value="2" label="求租"></el-option>
+              <el-option value="3" label="成交"></el-option>
+              <el-option value="99" label="其他"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="决策名称" prop="name">
+            <el-input v-model="queryForm.name"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handlerQuery(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click="resetForm('queryForm')">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="type"
+          show-overflow-tooltip
+          align="left"
+          width="80px"
+          label="决策类型">
+          <template slot-scope="scope">
+            {{showTypeName(scope.row)}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="name"
+          width="240px"
+          show-overflow-tooltip
+          align="left"
+          label="决策名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="descs"
+          align="left"
+          show-overflow-tooltip
+          label="决策说明">
+          <template slot-scope="scope">
+            <div v-html="splitTableRowData(scope.row)"></div>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <!--v-hasMultipleBtn="['setDecisionBtn',scope.row]" 因为后台屏蔽了权限控制-->
+            <el-button @click="handleEdit(scope.row,'editForm')" type="text" size="small">设置决策</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <!--编辑数据弹框-->
+    <b-dialog
+      title="决策配置设置"
+      :show.sync="editDialogVisible"
+      :close-on-click-modal="false"
+      top="30vh"
+      width="400px">
+
+      <el-form :model="editForm" :rules="rules" ref="editForm" size="small">
+        <el-form-item prop="decision_name">
+          <span v-model="editForm.decision_name">{{currentRowData.name}}</span>
+        </el-form-item>
+
+        <el-form-item prop="val">
+          <span>{{labelData[0]}}</span>
+          <el-input v-model="editForm.val" v-if="isInput" type="number" :min="0" :value="currentRowData.val" style="width: 80px;"></el-input>
+          <el-select v-else="!isInput" v-model="editForm.val">
+            <el-option
+              v-for="item in selectOpts"
+              :key="item.key"
+              :label="item.value"
+              :value="item.key"
+            ></el-option>
+          </el-select>
+          <span>{{labelData[1]}}</span>
+        </el-form-item>
+
+        <div class="btn-group">
+          <el-button type="primary" @click="handleSubmit" :loding="loadingBtn" size="small">提交</el-button>
+          <el-button @click="handleCancel" size="small">取消</el-button>
+        </div>
+      </el-form>
+    </b-dialog>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList'
+  import * as RequestURL from '@/request/manage/decisionConfigurate'
+  import CitySelect from '@/components/BaseCascader/city'
+  import {systemAddLog,systemQueryLog} from '@/request/log/systemPlatformLog'
+
+  export default {
+    name: 'decisionConfigurate',
+    mixins: [PageList],
+    components: { CitySelect },
+    data () {
+      return {
+        currentRowData: '',
+        labelData: [],
+        isInput: true,
+        selectOpts: [],
+        tableStr: '',
+        queryForm: {
+          cityCode: '',
+          type: '',
+          name: ''
+        },
+        editForm: {
+          id: '',
+          decisionId: '',
+          cityCode : '',
+          decision_name: '',
+          val: ''
+        },
+        loadingView: false,
+        editDialogVisible: false,
+        queryBtnLoading: false,
+        tableData: [],
+        loadingBtn: false,
+        rules: {
+          val: [
+            {required: true, message: '该项为必填', trigger: 'blur'},
+          ]
+        },
+        originalData:{}
+      }
+    },
+    methods: {
+      initSelectData(data) {
+        if (data !== null && data.length > 0){
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+          this.queryForm.cityCode = data[0].code
+          this._loadData(false)
+        }
+      },
+      showTypeName(row){
+        if(row.type ===0){
+          return '房源'
+        }else if(row.type === 1){
+          return '求购'
+        }
+        else if(row.type === 2){
+          return '求租'
+        }
+        else if(row.type === 3){
+          return '成交'
+        }
+        else if(row.type === 99){
+          return '其他'
+        }
+      },
+
+      splitTableRowData(row){
+        let rowArr = row.descs.split('?')
+        let val = row.val
+        let valueStr = ''
+        if(row.jsonSelect && row.jsonSelect.length > 0){
+          let json = JSON.parse(row.jsonSelect)
+          let value = this.$jsonUtils.jsonToArr(json,'key','value')
+          for(let i in value){
+            // console.log(`${value[i].key} == ${value[i].value}`)
+            if(value[i].key == val){
+              valueStr = value[i].value
+              break
+            }
+          }
+        }else{
+          valueStr = val
+        }
+        let tableStr = rowArr[0].concat("<span style='color:red;font-weight: 900;'>").concat(valueStr).concat('</span>')
+        if(rowArr.length > 1){
+          tableStr = tableStr.concat(rowArr[1])
+        }
+        return tableStr
+      },
+
+      // 编辑操作
+      handleEdit (row,formName) {
+        this.isInput = true
+        this.resetForm(formName)
+        this.$nextTick(() => {
+          this.labelData = row.descs.split('?')
+          this.currentRowData = row
+          if(row.jsonSelect){
+            this.isInput = false
+            let temp = JSON.parse(row.jsonSelect)
+            this.selectOpts = this.$jsonUtils.jsonToArr(temp,'key','value')
+          }
+
+          this.setForm(this.editForm,this.currentRowData)
+          this.editDialogVisible = true
+        })
+      },
+
+      //取消操作
+      handleCancel () {
+        this.editDialogVisible = false
+      },
+
+      //确认提交数据
+      handleSubmit () {
+        this.saveDecisisionConfigurate()
+      },
+
+      // 修改时设置界面数据
+      setForm: function (formName,data) {
+        this.resetForm(formName)
+        for (let i in this.editForm) {
+          this.editForm[i] = data[i]
+        }
+        this.originalData = Object.assign({},{...this.editForm})
+      },
+
+      //重置界面数据
+      resetForm (formName) {
+        this.$refs[formName] && this.$refs[formName].resetFields()
+      },
+
+      handlerQuery(btnQuery){
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(btnQuery)
+      },
+
+      // 查询页面列表数据
+      _loadData(btnQuery){
+        if(btnQuery){
+          if(!this.queryForm.cityCode){
+            this.$message({
+              type: 'warning',
+              message: '请选择城市'
+            })
+            return
+          }
+          this.queryBtnLoading = btnQuery
+        }
+        this.loadingView = true
+        let params = Object.assign({}, this.queryForm, {
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        RequestURL.queryDecisionConfiguratePageList(params).then((res) => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.queryBtnLoading = false
+          this.loadingView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+
+      // 保存或更新定时任务信息
+      saveDecisisionConfigurate: function(){
+        if(!this.queryForm.cityCode){
+          this.$message({
+            type: 'warning',
+            message: '请先选择城市'
+          })
+          return
+        }
+        this.$refs['editForm'].validate((valid) => {
+          if (valid) {
+            let params = {...this.editForm}
+            this.$confirm('确认保存数据吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingBtn = true
+              params.cityCode = this.queryForm.cityCode
+              RequestURL.saveDecisisionConfigurate({jsonData: JSON.stringify(params)}).then(res => {
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg,
+                  })
+                  this.editDialogVisible = false
+                  this.loadingBtn = false
+                  this._loadData(false)
+                } else {
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                  this.editDialogVisible = false
+                  this.loadingBtn = false
+                }
+                let message = {sourceCode:this.currentRowData.name,sourceTypeId:'17',operatTypeId:'5'
+                  ,logContent: `${this.labelData[0]}${this.originalData.val}${this.labelData[1]}-->${this.labelData[0]}${params.val}${this.labelData[1]}`}
+                systemAddLog({message: JSON.stringify(message)})
+              }).catch(() => {
+                this.editDialogVisible = false
+                this.loadingBtn = false
+              })
+            })
+            //   .catch(() => {
+            //   this.$message({
+            //     type: 'info',
+            //     message: '取消!'
+            //   })
+            // })
+          }
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+</style>

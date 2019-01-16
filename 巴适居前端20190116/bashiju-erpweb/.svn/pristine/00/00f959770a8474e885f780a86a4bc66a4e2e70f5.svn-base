@@ -1,0 +1,291 @@
+<!-- 修改业主信息 -->
+<template>
+  <div>
+    <el-form v-if="type === 1" v-loading="loadingView" :model="formBase" :rules="rulesBase" ref="formBase" label-width="50px">
+      <el-form-item label="业主" prop="owner">
+        <el-input type="text" v-model="formBase.owner" placeholder="业主姓名"></el-input>
+      </el-form-item>
+
+      <el-form-item label="性别" prop="nameType">
+        <el-select style="width: 100%" class="mr15" clearable v-model="formBase.nameType" placeholder="业主性别">
+          <el-option label="先生" :value="1"></el-option>
+          <el-option label="女士" :value="2"></el-option>
+          <el-option label="公司" :value="3"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleBaseSubmit">确认</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <el-form v-else v-loading="loadingView" :model="formPhone" :rules="rulesPhone" ref="formPhone" label-width="100px">
+      <el-form-item label="电话" prop="phone">
+        <el-input type="text" v-model="formPhone.phone" placeholder="业主电话"></el-input>
+      </el-form-item>
+
+      <el-form-item label="备注" prop="remark">
+
+        <el-select style="width: 100%" v-model="formPhone.remark" filterable allow-create default-first-option placeholder="电话备注">
+          <el-option v-for="item in relateTypeOpts" :key="item.value" :label="item.label" :value="item.label">
+          </el-option>
+        </el-select>
+
+      </el-form-item>
+
+      <p style="color: red; font-size: 12px; text-align: center; margin-bottom: 10px">*固话与区号间请用"-"分隔，例如:022-8888888</p>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handlePhoneSubmit">确认</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
+<script>
+  import {updateHouseOwner, updateOwnerPhone, saveOwnerPhone} from '@/request/house/houseUsed'
+  import {RELATE_TYPE_OPTS} from '../../consts'
+
+  import {checkPhone} from '@/common/js/validator'
+
+
+  export default {
+    name: 'EditOwnerInfo',
+
+    props: {
+      type: {
+        type: Number,
+        required: true
+      },
+      data: {
+        type: Object,
+        required: true
+      },
+      logMessage: {
+        type: Object,
+        required: true,
+        default () {
+          return {}
+        }
+      }
+    },
+
+    data () {
+      return {
+        relateTypeOpts: RELATE_TYPE_OPTS,
+        loadingSubmitBtn: false,
+        loadingView: false,
+        formBase: {
+          owner: '',
+          nameType: '',
+          nameTitle: ''
+        },
+        rulesBase: {
+          owner: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ],
+          nameType: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ]
+        },
+        formPhone: {
+          phone: '',
+          remark: '',
+        },
+        rulesPhone: {
+          phone: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+            {validator: checkPhone, trigger: 'blur' }
+          ],
+          remark: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ]
+        },
+
+        originalBaseFormData: {},
+        originalPhoneFormData: {},
+      }
+    },
+
+    methods: {
+      handleBaseSubmit () {
+        let cfg = {
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8;'
+          }
+        }
+        let nameType = this.formBase.nameType
+
+        if (nameType === 1) {
+          this.formBase.nameTitle = '先生'
+        } else if (nameType === 2) {
+          this.formBase.nameTitle = '女士'
+        } else {
+          this.formBase.nameTitle = '公司'
+        }
+
+        this.$refs['formBase'].validate((valid) => {
+          if (valid) {
+
+            this.$confirm('确定保存编辑的信息吗?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              updateHouseOwner({...this.formBase}, cfg).then(res => {
+                this.$message({
+                  type: 'success',
+                  message: res.msg
+                })
+
+                this.loadingSubmitBtn = false
+
+                this.$emit('handleBtnClick', 1, 1, {...this.formBase})
+
+                // 向后台传递日志数据
+                let message = Object.assign({}, this.logMessage, {
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.OWNER_CHANGE, // 操作类型
+                  labelData: this.$utils.getFormFields(this.$refs['formBase']),
+                  originalData: this.originalBaseFormData,
+                  newData: this.formBase
+                })
+                this.$updateLog.house.houseUpdateLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+
+          }
+        })
+
+      },
+
+      handlePhoneSubmit () {
+        let cfg = {
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8;'
+          }
+        }
+
+        // 业主电话编辑
+        if (this.type === 2) {
+          this.$refs['formPhone'].validate((valid) => {
+            if (valid) {
+
+              this.$confirm('确定保存编辑的信息吗?', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.loadingSubmitBtn = true
+                updateOwnerPhone({...this.formPhone}, cfg).then(res => {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg
+                  })
+                  this.loadingSubmitBtn = false
+
+                  this.$emit('handleBtnClick', 1, 2, {...this.formPhone}, false)
+
+                  // 向后台传递日志数据
+                  let message = Object.assign({}, this.logMessage, {
+                    operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.UPDATE_PHONE, // 操作类型
+                    labelData: this.$utils.getFormFields(this.$refs['formPhone']),
+                    originalData: this.originalPhoneFormData,
+                    newData: this.formPhone
+                  })
+                  this.$updateLog.house.houseUpdateLog({message: JSON.stringify(message)})
+
+                }).catch(() => {
+                  this.loadingSubmitBtn = false
+                })
+              })
+
+            }
+          })
+
+
+          // 业主电话新增
+        } else if (this.type === 3) {
+          this.$refs['formPhone'].validate((valid) => {
+              if (valid) {
+
+                this.$confirm('确定保存编辑的信息吗?', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  this.loadingSubmitBtn = true
+                  saveOwnerPhone({...this.formPhone}, cfg).then(res => {
+                    this.$message({
+                      type: 'success',
+                      message: res.msg
+                    })
+                    this.loadingSubmitBtn = false
+
+                    this.$emit('handleBtnClick', 1, 2, {...this.formPhone}, true)
+
+                    // 向后台传递日志数据
+                    let message = Object.assign({}, this.logMessage, {
+                      operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.ADD_PHONE // 操作类型
+                    })
+                    this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+                  }).catch(() => {
+                    this.loadingSubmitBtn = false
+                  })
+                })
+
+              }
+          })
+
+        }
+
+      },
+
+      handleCancel () {
+        this.$emit('handleBtnClick', 2)
+      },
+
+      _resetForm () {
+        this.$refs['formBase'] && this.$refs['formBase'].resetFields()
+        this.$refs['formPhone'] && this.$refs['formPhone'].resetFields()
+      },
+
+      _setForm () {
+        if (this.type === 1) {
+          this.formBase = this.data
+          this.originalBaseFormData = Object.assign({}, this.data)
+        } else if (this.type === 2) {
+          this.formPhone = this.data
+          this.originalPhoneFormData = Object.assign({}, this.data)
+        } else if (this.type === 3) {
+          this.formPhone.shhId = this.data.shhId
+        }
+      }
+    },
+
+    mounted () {
+      this._setForm()
+      console.log(this.formPhone)
+    },
+
+    watch: {
+      data: {
+        deep: true,
+        handler () {
+          this._setForm()
+        }
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

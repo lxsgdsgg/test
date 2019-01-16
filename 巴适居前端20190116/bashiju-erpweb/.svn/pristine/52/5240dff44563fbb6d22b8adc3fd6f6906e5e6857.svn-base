@@ -1,0 +1,410 @@
+<template>
+  <div height="580px">
+    <div>
+      <el-form :model="queryForm" ref="queryForm" :inline="true" size="mini">
+        <!--<el-form-item label="税费名称" prop="typeName">-->
+          <!--<el-input v-model="queryForm.typeName" placeholder="请输入税费配置名称"></el-input>-->
+        <!--</el-form-item>-->
+
+        <el-form-item class="pull-right">
+          <el-button type="primary" @click="_loadData(true)">查询</el-button>
+          <el-button type="primary" @click="handlerEdit">新增</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div>
+      <el-table :data="tableData" border size="mini" tooltip-effect="light" v-loading="loadingDataView" align="center">
+        <el-table-column prop="cityCode" label="所属城市" show-overflow-tooltip ></el-table-column>
+        <el-table-column prop="name" label="税费名称" show-overflow-tooltip ></el-table-column>
+        <el-table-column prop="addedValueTax" label="增值税" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.addedValueTax}}%
+          </template>
+        </el-table-column>
+        <el-table-column prop="deepTax" label="商业契税" show-overflow-tooltip >
+          <template slot-scope="scope">
+            {{scope.row.deepTax}}%
+          </template>
+        </el-table-column>
+        <el-table-column prop="landTtransferTax" label="土地出让税" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.landTtransferTax}}%
+          </template>
+        </el-table-column>
+        <el-table-column prop="incomeTax" label="个人所得税" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.incomeTax}}%
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160px">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click="handlerEdit(scope.row)">编辑</el-button>
+            <el-button type="primary" size="mini" @click="handlerDelete(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <el-dialog
+      :visible.sync="showAddDialog"
+      title="新增税费配置"
+      append-to-body
+      :modal-append-to-body="false"
+      width="900px"
+    >
+      <table class="layui-table" align="center">
+        <colgroup>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <tbody>
+
+        <tr>
+          <td style="text-align: left;" colspan="10" rowspan="1">
+            请输入名称：
+            <el-input v-model="editForm.name" placeholder="请输入名称" size="mini" style="width: 240px;"></el-input>
+            请选择类型：
+            <el-select size="mini" v-model="editForm.isHouse" placeholder="请选择类型" style="width: 240px;" @change="changeType">
+              <el-option label="住宅" value="0">住宅</el-option>
+              <el-option label="非住宅" value="1">非住宅</el-option>
+            </el-select>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;margin-top: 20px;" colspan="2" rowspan="3"><br v-if="editForm.isHouse !== '1'"><br v-if="editForm.isHouse !== '1'">房屋类型/收费标准</td>
+          <td style="text-align: left;" colspan="2" rowspan="3" v-if="editForm.isHouse === '1'">非住宅（商铺、写字楼、车位）</td>
+          <td style="text-align: center;" colspan="8" rowspan="1" v-else>住宅</td>
+        </tr>
+
+        <tr>
+          <td style="text-align: center;" colspan="4" rowspan="1" v-if="editForm.isHouse !== '1'">满两年</td>
+          <td style="text-align: center;" colspan="4" rowspan="1" v-if="editForm.isHouse !== '1'">不满两年</td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">90m²以下（含）</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">90m²以上</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">90m²以下（含）</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">90m²以上</td>
+        </tr>
+
+        <tr>
+          <td style="text-align: center;" colspan="1" rowspan="3"><br><br>契税</td>
+          <td style="text-align: left;" colspan="1" rowspan="1">买方首套房</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.one2Year" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.one2Year90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.one" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.one90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="3" v-if="editForm.isHouse === '1'">
+            <br><br>
+            <el-input v-model="editForm.deedTax" placeholder="请输入税率" size="mini" style="width: 240px;"></el-input>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="1" rowspan="1">买方二套房</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.two2Year" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.two2Year90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.two" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.two90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="1" rowspan="1">买方三套房及以上</td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.three2Year" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.three2Year90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.three" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.three90Area" placeholder="请输入税率" size="mini" style="width: 120px;"></el-input>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="2" rowspan="1">增值税</td>
+          <td style="text-align: left;" colspan="8" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.addedValueTax" placeholder="请输入增值税税率" size="mini" style="width: 240px;"></el-input></td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse === '1'">
+            <el-input v-model="editForm.addedValueTax" placeholder="请输入增值税税率" size="mini" style="width: 240px;"></el-input>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="2" rowspan="1">个人所得税</td>
+          <td style="text-align: left;" colspan="8" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.incomeTax" placeholder="请输入个人所得税税率（1%/20%）" size="mini" style="width: 240px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse === '1'">
+            <el-input v-model="editForm.incomeTax" placeholder="请输入个人所得税税率（1%）" size="mini" style="width: 240px;"></el-input>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="text-align: left;" colspan="2" rowspan="1">土地出让金</td>
+          <td style="text-align: left;" colspan="8" rowspan="1" v-if="editForm.isHouse !== '1'">
+            <el-input v-model="editForm.landTtransferTax" placeholder="请输入土地出让金比例（5%）" size="mini" style="width: 240px;"></el-input>
+          </td>
+          <td style="text-align: left;" colspan="2" rowspan="1" v-if="editForm.isHouse === '1'">
+            <el-input v-model="editForm.landTtransferTax" placeholder="请输入土地出让金比例（5%）" size="mini" style="width: 240px;"></el-input>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="btn-group">
+        <el-button type="primary" size="mini" @click="handlerSubmit">保存</el-button>
+        <el-button type="primary" size="mini" @click="showAddDialog = false">关闭</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+queryHousePropertyListByCity
+<script>
+  import PageList from '@/mixins/pageList'
+  import * as RequestURL from '@/request/manage/taxAllocationSet'
+  export default {
+    name: "TaxAllocationSet",
+    mixins: [PageList],
+    props:{
+      data: {
+        type: Object,
+        required: true,
+        default(){
+          return null
+        }
+      }
+    },
+    data(){
+      return {
+        isAdd: true,
+        dialogWidth: 900,
+        tableData: [],
+        hackReset: true,
+        showAddDialog: false,
+        loadingQueryBtn: false,
+        loadingDataView: false,
+        currentRowData: '',
+        queryForm:{
+          typeName: ''
+        },
+        editForm:{
+          cityCode: this.data.cityCode,
+          name: '',
+          isHouse: '0',
+          deedTax: 0,
+          addedValueTax: 0,
+          incomeTax: 0,
+          landTtransferTax: 0,
+          one2Year: 0,
+          one2Year90Area: 0,
+          one: 0,
+          one90Area: 0,
+          two2Year: 0,
+          two2Year90Area: 0,
+          two: 0,
+          two90Area: 0,
+          three2Year: 0,
+          three2Year90Area: 0,
+          three: 0,
+          three90Area: 0
+        }
+      }
+    },
+    methods:{
+      _loadData(btnQuery){
+        if(btnQuery){
+          this.loadingQueryBtn = true
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.loadingDataView = true
+        let params = Object.assign({},{...this.queryForm},{
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        params.cityCode = this.data.cityCode
+        RequestURL.queryHousePropertyListByCity(params).then(res=>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingDataView = false
+        }).catch(err=>{
+          this.loadingQueryBtn = false
+          this.loadingDataView = false
+          console.log(err)
+        })
+      },
+
+      changeType(isHouse){
+        if(isHouse === '0'){
+          this.dialogWidth = 900
+        }else{
+          this.dialogWidth = 600
+        }
+        this.setForm()
+      },
+
+      handlerEdit(row){
+        this.$nextTick(()=>{
+          this.currentRowData = ''
+          if(row && row.id){
+            this.isAdd = false
+            this.editForm.isHouse = String(row.isHouse)
+            this.currentRowData = row
+          }else{
+            this.isAdd = true
+            this.editForm.isHouse = "0"
+          }
+          this.setForm()
+          this.showAddDialog = true
+        })
+      },
+
+      checkSaveData(){
+        let param = {...this.editForm}
+        for(let i in this.editForm){
+          if(!param[i] || param[i] === 0 ){
+            param[i] = 0
+          }
+        }
+      },
+
+      handlerSubmit(){
+        if(!this.editForm.name){
+          this.$message({
+            type: 'warning',
+            message: '配置名称为空!'
+          })
+          return
+        }else{
+          this.checkSaveData()
+          this.$confirm('确定要提交数据吗？','提示',{
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(()=>{
+            if(this.isAdd){
+              this.handlerAdd()
+            }else{
+              this.handlerUpdate()
+            }
+          })
+        }
+      },
+
+      setForm(){
+        const isHouse = this.editForm.isHouse
+        for(let i in this.editForm){
+          this.editForm[i] = this.currentRowData[i]
+        }
+        this.editForm.cityCode = this.data.cityCode
+        this.editForm.isHouse = isHouse
+      },
+
+      /**
+       * 新增配置
+       * @param row
+       */
+      handlerAdd(){
+        let params = {...this.editForm}
+        RequestURL.addHouseProperty({jsonData: JSON.stringify(params)}).then(res=>{
+          this._msg(res)
+          this.showAddDialog = false
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      /**
+       * 修改配置
+       * @param row
+       */
+      handlerUpdate(){
+        this.editForm.id = this.currentRowData.id
+        let params = {...this.editForm}
+        RequestURL.updateHouseProperty({jsonData: JSON.stringify(params)}).then(res=>{
+          this._msg(res)
+          this.showAddDialog = false
+        }).catch(err=>{
+          console.log(err)
+        })
+      },
+
+      /**
+       * 删除配置
+       * @param row
+       */
+      handlerDelete(row){
+        this.$confirm('确定要删除此配置吗?','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.deleteHouseProperty({id: row.id}).then(res=>{
+            this._msg(res)
+          }).catch(err=>{
+            console.log(err)
+          })
+        })
+      },
+
+      _msg(res){
+        if(res.success){
+          this.$message({
+            type: 'success',
+            message: res.msg || '操作成功!'
+          })
+          this._loadData(false)
+        }else{
+          this.$message({
+            type: 'error',
+            message: res.msg || '操作失败!'
+          })
+        }
+      }
+    },
+    mounted(){
+      this.setForm()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  @import "./detail.scss";
+</style>

@@ -1,0 +1,421 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          
+          <el-form-item label="类型" prop="type">
+            <el-select v-model="queryForm.type" placeholder="请选择">
+              <el-option
+                v-for="item in selectType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="审核状态" prop="examineStatus">
+            <el-select v-model="queryForm.examineStatus" placeholder="请选择" >
+              <el-option
+                v-for="item in selectStatus"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="标题" prop="title">
+            <el-input v-model="queryForm.title" placeholder="请输入标题"></el-input>
+          </el-form-item>
+         
+          
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+        <el-table-column
+          prop="type"
+          align="center"
+          label="类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="title"
+          align="center"
+          label="标题">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="发布部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          align="center"
+          label="发布人">
+        </el-table-column>
+
+        <el-table-column
+          prop="browseCnt"
+          align="center"
+          label="浏览次数">
+        </el-table-column>
+
+        <el-table-column
+          prop="examineStatusName"
+          align="center"
+          label="审核状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="auditor"
+          align="center"
+          label="审核人">
+        </el-table-column>
+
+        <el-table-column
+          prop="rejectReason"
+          align="center"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button   @click="handleShow(scope.row)" type="text" size="small" v-loading="loadingShowBtn">查看</el-button>
+            <el-button  v-if="scope.row.examineStatus==0" @click="handleSure(scope.row)" type="text" size="small" v-loading="loadingSureBtn">确认</el-button>
+            <el-button  v-if="scope.row.examineStatus==0" @click="handleReject(scope.row)" type="text" size="small" v-loading="loadingRejectBtn">驳回</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogShowContent" title="文章内容" width="600px">
+        <el-form v-loading="loadingForm"  label-width="100px">
+          <!--<base-editor :content="editorVal" ref="editor"></base-editor>-->
+          <p class="p-title" v-if="newsShow">封面：</p>
+          <img :src="newsImg" style="width:200px;height:200px;" v-if="newsShow" @click="openShowImg(newsImg)">
+          <p class="p-title" v-if="newsShow">摘要：</p>
+          <div v-if="newsShow">{{articleAbstracts}}</div>
+          <p class="p-title" v-if="noticeShow">类型：<span>{{classesName}}</span></p>
+          <p v-if="noticeShow" class="p-title">浏览者：<span>{{browseName}}</span></p>
+          <p class="p-title">内容：</p>
+          <div v-html="articleContent">{{articleContent}}</div>
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogReject" title="驳回原因" width="400px" height="400px">
+        <el-form v-loading="loadingForm"  label-width="100px" :model="rejectForm" ref="rejectForm" :rules="rejectRules">
+          <el-form-item label="驳回原因"  prop="rejectReason">
+            <el-input v-model="rejectForm.rejectReason" placeholder="请输入名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+             <el-button type="primary" :loading="loadingRejectBtn" @click="rejectSave">确认</el-button>
+            <el-button  @click="dialogReject=false">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </b-dialog>
+      <!-- 预览大图 -->
+        <el-dialog
+          title="图片"
+          :visible.sync="dialogVisibleShowImg"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          append-to-body
+        >
+        <img :src="cPath" style="width:800px;">
+        </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/office/article' // 请求后端URL路径
+  import BaseEditor from '@/components/BaseEditor'
+  import {manageAddLog, manageUpdateLog, manageQueryLog,manageDelLog} from '@/request/log/mangePlatformLog'
+
+  export default {
+    name: 'contentexamine',
+    mixins: [PageList],
+    components: {BaseEditor},
+    data () {
+      return {
+        queryForm: {},
+        selectStatus: [],
+        selectType: [],
+        selectCity: [],
+        dialogShowContent: false,
+        dialogReject: false,
+        dialogVisibleShowImg: false,
+        loadingShowBtn: false,
+        loadingSureBtn: false,
+        loadingRejectBtn: false,
+        rejectArticleBtn: false,
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        editorVal: '',
+        rejectReason: '',
+        idForReject: '',
+        articleContent: '',
+        nowQueryForm: {},
+        newsShow: false,
+        noticeShow: false,
+        articleAbstracts: '',
+        classesName: '',
+        rejectForm: {}
+      }
+    },
+    methods: {
+      openShowImg(path){
+        this.dialogVisibleShowImg = true;
+        this.cPath = path;
+      },
+       //获取一些基础信息
+      getArticleType(){
+        const params = {};
+        RequestURL.getArticleType(params).then(res => {
+          this.articleClassInfo = res.data.articleClassInfo;
+          this.selectCity = res.data.cityInfo;
+          for(let key in res.data.examineStatus ){
+            let item = {
+              value: key,
+              label: res.data.examineStatus[key]
+            }
+            this.selectStatus.push(item);
+          }
+           for(let key in res.data.articleType ){
+            let item = {
+              value: key,
+              label: res.data.articleType[key]
+            }
+            this.selectType.push(item);
+          }
+          
+        }).catch((err) => {
+          console.log(err);
+          this.$message({
+            type: 'info',
+            message: err.msg
+          })
+        })
+      },
+      // 确认
+      handleSure (row) {
+        this.$confirm('真的通过吗？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+         // this.loadingSureBtn = true
+          const params = {
+            id: row.id
+          }
+          RequestURL.sureArticle(params).then(res => {
+            this.loadingSureBtn = false
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg || '操作成功'
+              })
+              //this._loadData(false);
+              this.tableData.find(item => item.id === row.id).examineStatusName = "已审核"
+              this.tableData.find(item => item.id === row.id).auditor = res.data
+              this.tableData.find(item => item.id === row.id).examineStatus = 1
+              //写日志
+              if(row.type==0){
+                let logContent = '快讯；'+"标题："+row.title+";审核通过"
+              }else{
+                let logContent = '公告；类型：'+row.classesName+";标题："+row.title+";审核通过"
+              }
+              
+              let message = {
+                  sourceCode: '文章审核',
+                  sourceTypeId: 20,
+                  operatTypeId: 5,
+                  logContent: logContent
+                }
+              manageQueryLog({message: JSON.stringify(message)}).then(res => {
+                  console.log(res)
+                })
+            }else{
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            console.log(err);
+            this.loadingSureBtn = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '操作失败'
+            })
+          })
+        })
+      },
+      //查看
+      handleShow(row){
+        this.dialogShowContent = true;
+        //alert(row.content)
+        //this.editorVal = row.content;
+        this.browseName = row.browseName
+        this.newsImg = row.cover
+        this.articleAbstracts = row.abstracts
+        this.articleContent = row.content;
+        this.classesName = row.classesName
+        if(row.type=== '公告'){
+          this.noticeShow = true;
+          this.newsShow = false
+        }else{
+          this.noticeShow = false;
+          this.newsShow = true
+        }
+      },
+      // 驳回
+      handleReject (row) {
+        this._resetForm('rejectForm')
+        this.dialogReject = true;
+        this.idForReject = row.id;
+      },
+      rejectSave(){
+        this.$refs['rejectForm'].validate((valid) => {
+            if (valid) {
+                 this.$confirm('要驳回吗？, 是否继续?', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  this.rejectArticleBtn = true;
+                  const params = {
+                    id: this.idForReject,
+                    reason: this.rejectForm.rejectReason
+                  }
+                  RequestURL.rejectArticle(params).then(res => {
+                    console.log(res)
+                    this.rejectArticleBtn = false
+                    this.dialogReject = false;
+                    if (res.success) {
+                      this.$message({
+                        type: 'success',
+                        message: res.msg || '操作成功'
+                      })
+                      
+                      //this._loadData(false);
+                      this.tableData.find(item => item.id === this.idForReject).examineStatusName = "已驳回"
+                      this.tableData.find(item => item.id === this.idForReject).auditor = res.data.auditor
+                      this.tableData.find(item => item.id === this.idForReject).rejectReason = res.data.rejectReason
+                      this.tableData.find(item => item.id === this.idForReject).examineStatus = 2
+                    }else{
+                      this.$message({
+                        type: 'warning',
+                        message: res.msg
+                      })
+                    }
+                  }).catch((err) => {
+                    console.log(err);
+                    this.rejectArticleBtn = false
+                    this.dialogReject = false;
+                    this.$message({
+                      type: 'info',
+                      message: err.msg || '操作失败'
+                    })
+                  })
+                })
+            }
+        })
+       
+      },
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getExamineList(params).then(res => {
+          this.tableData = res.data.map(item => {
+             if(item.examineStatus===0){
+               item.examineStatusName = '未审核'
+             }else if(item.examineStatus===1){
+               item.examineStatusName = '已审核'
+             }else{
+               item.examineStatusName = '已驳回'
+             }
+             if(item.type==='1'){
+               item.type = '公告'
+             }else{
+               item.type = '快讯'
+             }
+             return item
+          })
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+    },
+    mounted () {
+      this.getArticleType();
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .p-title{
+    margin-bottom: 16px;
+    margin-top: 12px;
+  }
+</style>

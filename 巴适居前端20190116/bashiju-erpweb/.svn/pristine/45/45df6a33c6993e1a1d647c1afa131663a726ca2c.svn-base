@@ -1,0 +1,531 @@
+<template>
+  <div>
+
+
+  <el-container >
+     <el-aside width="500px" style="background-color: rgb(238, 241, 246)">
+      <div class="page-content">
+        <div class="page-content-hd">
+          <div>
+            <el-form size="small" :inline="true" :model="form" ref="queryForm"  class="demo-form-inline">
+
+              <el-form-item  prop="taskName">
+                <!--<el-input v-model="form.taskName" placeholder="请选择部门/员工"></el-input>-->
+                <base-cascader
+                  :changeOnSelect="true"
+                  @change="handleChange"
+                  v-model="deptOrUser"
+                  :data="dataOpts" :props="selectProps" :dataProps="selectDataProps">
+                </base-cascader>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+                <el-button @click.native.prevent="_resetForm('queryForm')">清空</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+        <div class="page-content-bd" v-loading="loadingView">
+          <el-table
+            :data="tableData"
+            border
+            tooltip-effect="light"
+            align="center"
+            style="width: 100%"
+            size="small"
+            @row-click="handleRowClick"
+            @cell-mouse-enter="handleMouseEnter"
+          >
+
+            <el-table-column
+              prop="agentName"
+              align="left"
+              label="员工"
+              width="100px"
+            >
+            </el-table-column>
+
+
+            <el-table-column
+              prop="deptName"
+              align="left"
+              label="部门"
+              width="120px"
+            >
+            </el-table-column>
+
+
+
+            <el-table-column
+              align="center"
+              label="操作"
+            >
+              <template slot-scope="scope">
+                <el-button   @click="handleEditor(scope.row)" type="text" size="small"  icon="el-icon-edit" ></el-button>
+                <el-button   @click="handleDelete(scope.row)" type="text" size="small" icon="el-icon-delete"></el-button>
+              </template>
+            </el-table-column>
+
+          </el-table>
+          <!--分页控件-->
+          <b-pagination
+            :listQuery="listQuery"
+            @handleSizeChange="handleSizeChange"
+            @handleCurrentChange="handleCurrentChange">
+          </b-pagination>
+        </div>
+        <!--编辑窗体-->
+      </div>
+    </el-aside>
+     <el-main>
+        <div class="page-content-hd" style="margin-top: 51px" v-loading="loadingView">
+        </div>
+        <div class="page-content-bd" v-loading="deailloadingView">
+          <table cellspacing="0" cellpadding="0" border="0" class="table" >
+            <colgroup>
+              <col width="80">
+            </colgroup>
+            <thead>
+              <tr>
+                <td  width="180">任务名称</td>
+                <td width="100">任务量</td>
+                <td width="100">完成量</td>
+                <td width="100">战绩</td>
+              </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in formThead">
+              <th>{{item}}</th>
+              <template v-if="item === '买卖房源新增'">
+                <td  align="center">{{resultData.sellHouseAdd}}</td>
+                <td  align="center">{{resultData.sellHouseAdd1}}</td>
+                <td>{{resultData.sellHouseAdd1 - resultData.sellHouseAdd}}</td>
+              </template>
+
+              <template v-if="item === '租赁房源新增'">
+                <td  align="center">{{resultData.rentHouseAdd}}</td>
+                <td  align="center">{{resultData.rentHouseAdd1}}</td>
+                <td>{{resultData.rentHouseAdd1 - resultData.rentHouseAdd}}</td>
+              </template>
+              <template v-if="item === '买卖房源开盘'">
+                <td  align="center">{{resultData.sellOpenDisc}}</td>
+                <td  align="center">{{resultData.sellOpenDisc1}}</td>
+                <td>{{resultData.sellOpenDisc1 - resultData.sellOpenDisc}}</td>
+              </template>
+              <template v-if="item === '租赁房源开盘'">
+                <td  align="center">{{resultData.rentOpenDisc}}</td>
+                <td  align="center">{{resultData.rentOpenDisc1}}</td>
+                <td>{{resultData.rentOpenDisc1 - resultData.rentOpenDisc}}</td>
+              </template>
+              <template v-if="item === '买卖客源新增'">
+                <td  align="center">{{resultData.sellCustomerAdd}}</td>
+                <td  align="center">{{resultData.sellCustomerAdd1}}</td>
+                <td>{{resultData.sellCustomerAdd1 - resultData.sellCustomerAdd}}</td>
+              </template>
+              <template v-if="item === '租赁客源新增'">
+                <td  align="center">{{resultData.rentCustomerAdd}}</td>
+                <td  align="center">{{resultData.rentCustomerAdd1}}</td>
+                <td>{{resultData.rentCustomerAdd1 - resultData.rentCustomerAdd}}</td>
+              </template>
+              <template v-if="item === '买卖带看'">
+                <td  align="center">{{resultData.sellHouseShowed}}</td>
+                <td  align="center">{{resultData.sellHouseShowed1}}</td>
+                <td>{{resultData.sellHouseShowed1 - resultData.sellHouseShowed}}</td>
+              </template>
+              <template v-if="item === '租赁带看'">
+                <td  align="center">{{resultData.sellHouseShowed}}</td>
+                <td  align="center">{{resultData.sellHouseShowed1}}</td>
+                <td>{{resultData.sellHouseShowed1 - resultData.sellHouseShowed}}</td>
+              </template>
+              <template v-if="item === '买卖成交合同'">
+                <td  align="center">{{resultData.sellDeal}}</td>
+                <td  align="center">{{resultData.sellDeal1}}</td>
+                <td>{{resultData.sellDeal1 - resultData.sellDeal}}</td>
+              </template>
+              <template v-if="item === '租赁成交合同'">
+                <td  align="center">{{resultData.rentDeal}}</td>
+                <td  align="center">{{resultData.rentDeal1}}</td>
+                <td>{{resultData.rentDeal1 - resultData.rentDeal}}</td>
+              </template>
+              <template v-if="item === '买卖跟进'">
+                <td  align="center">{{resultData.sellHouseFollow}}</td>
+                <td  align="center">{{resultData.sellHouseFollow1}}</td>
+                <td>{{resultData.sellHouseFollow1 - resultData.sellHouseFollow}}</td>
+              </template>
+              <template v-if="item === '租赁跟进'">
+                <td  align="center">{{resultData.rentlHouseFollow}}</td>
+                <td  align="center">{{resultData.rentHouseFollow1}}</td>
+                <td>{{resultData.rentHouseFollow1 - resultData.rentlHouseFollow}}</td>
+              </template>
+              <template v-if="item === '求购跟进'">
+                <td  align="center">{{resultData.sellCustomerFollow}}</td>
+                <td  align="center">{{resultData.sellCustomerFollow1}}</td>
+                <td>{{resultData.sellCustomerFollow1 - resultData.sellCustomerFollow}}</td>
+              </template>
+              <template v-if="item === '求租跟进'">
+                <td  align="center">{{resultData.rentCustomerFollow}}</td>
+                <td  align="center">{{resultData.rentCustomerFollow1}}</td>
+                <td>{{resultData.rentCustomerFollow1 - resultData.rentCustomerFollow}}</td>
+              </template>
+              <template v-if="item === '买卖房源实勘'">
+                <td  align="center">{{resultData.sellHouseRealExploration}}</td>
+                <td  align="center">{{resultData.sellExclusivet1}}</td>
+                <td>{{resultData.sellExclusivet1 - resultData.sellHouseRealExploration}}</td>
+              </template>
+              <template v-if="item === '租赁房源实勘'">
+                <td  align="center">{{resultData.rentHouseRealExploration}}</td>
+                <td  align="center">{{resultData.rentHouseRealExploration1}}</td>
+                <td>{{resultData.rentHouseRealExploration1 - resultData.rentHouseRealExploration}}</td>
+              </template>
+              <template v-if="item === '买卖房源钥匙'">
+                <td  align="center">{{resultData.sellHouseKey}}</td>
+                <td  align="center">{{resultData.sellHouseKey1}}</td>
+                <td>{{resultData.sellHouseKey1 - resultData.sellHouseKey}}</td>
+              </template>
+              <template v-if="item === '租赁房源钥匙'">
+                <td align="center">{{resultData.rentHouseKey}}</td>
+                <td  align="center">{{resultData.rentHouseKey1}}</td>
+                <td>{{resultData.rentHouseKey1 - resultData.rentHouseKey}}</td>
+              </template>
+
+
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <!--编辑窗体-->
+
+    </el-main>
+  </el-container>
+  <el-dialog
+    append-to-body
+    title="修改"
+    :visible.sync="updateDialogVisible"
+    width="1000px">
+    <AgentTaskDetail @handleClick="closeUpdateDialog" v-if="hackReset" :data="currentRowData"></AgentTaskDetail>
+  </el-dialog>
+  </div>
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import {queryTaskDetail,queryAgentDistributedTaskDetail,queryAgentTaksCompletedNumber} from "@/request/office/taskManage";
+  import AgentTaskDetail from '../component/agentTaskDetail'
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryDepartmentUserList,delAgentTask} from "@/request/office/taskManage";
+  import {dateTypes} from "../../../house/houseUsed/consts";
+  import  *  as  RequestLogUrl from '@/request/log/oaLog'
+  const formThead = [
+    '买卖房源新增',
+    '租赁房源新增',
+    '买卖房源开盘',
+    '租赁房源开盘',
+    '买卖客源新增',
+    '租赁客源新增',
+    '买卖带看',
+    '租赁带看',
+    '买卖成交合同',
+    '租赁成交合同',
+    '买卖跟进',
+    '租赁跟进',
+    '求购跟进',
+    '求租跟进',
+    '买卖房源实勘',
+    '租赁房源实勘',
+    '买卖房源钥匙',
+    '租赁房源钥匙',
+  ]
+  export default {
+      props:{
+        data:{
+          type:Object
+        }
+      },
+        components:{AgentTaskDetail,BaseCascader},
+        mixins: [PageList],
+        data() {
+            return {
+                form: {
+                  agentId:'',
+                  deptId:'',
+                },
+                 deptOrUser:'',
+                 tempAgentId:'',
+                 tempDeptId:'',
+                 agentId:'',
+                 listQuery:{limit:10, page:1, total:0},
+                  updateDialogVisible :false,
+                  hackReset:false,
+                  currentRowData:null,
+                  tableData:[],
+                  detailData:[],
+                  loadingView:false,
+                  queryBtnLoading:false,
+                  taskList:'',
+                  formThead: '',
+                  currentIndex:'',
+                  taskComleteNumber:'',
+                  newData:'',
+                  resultData: [],
+                  deailloadingView :false,
+                  dataOpts:[],
+                  selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+                  selectProps: { // 级联下拉组件配置选项
+                    value: 'code', // 指定选项的值为选项对象的某个属性值
+                    children: 'children', // 指定选项的子选项为选项对象的某个属性值
+                    label: 'name' // 指定选项标签为选项对象的某个属性值
+                  },
+            }
+        },
+        methods: {
+          close(){
+            alert()
+          },
+          tdEnter (tIndex) {
+            this.currentIndex = tIndex
+          },
+          handleChange(value,name,data){
+            this.form.agentId = ''
+            this.form.deptId = ''
+                if(data.dataType == 'dept') {
+                  this.form.deptId = data.code
+                }else if(data.dataType == 'user'){
+                  this.form.agentId = data.code
+                }
+
+          },
+          _resetForm(form){
+            this.$refs[form].resetFields();
+            this.deptOrUser = ''
+          },
+          /**
+           * 获取部门和员工数据
+           * @private
+           */
+          _queryReferenceUserSelect(){
+            queryDepartmentUserList({}).then(res=>{
+              this.dataOpts = res
+            })
+          },
+
+          /**
+           * 修改
+           * @param row 行数据
+           */
+          handleEditor(row){
+              this.hackReset = false
+              this.$nextTick(()=>{
+                this.hackReset = true
+                this.currentRowData = row
+                this.updateDialogVisible = true
+              })
+          },
+          /**
+           * 修改窗体关闭事件
+           * */
+          closeUpdateDialog(){
+              this.updateDialogVisible = false
+              this._loadData(false)
+          },
+          handleRowClick(row, event, column){
+            this.deailloadingView = true
+            this.formThead = formThead
+            this.agentId = row.agentId
+            this._queryAgentDistributedTaskDetail(this.agentId).then(res => {
+            this.resultData = Object.assign({}, res)
+            })
+            // let data = this.taskList
+            // this.newData = data.concat(this.taskComleteNumber)
+            // console.log(this.newData)
+          },
+          //获取任务详细
+        _loadData(btn){
+          if(btn){
+            this.queryBtnLoading = btn
+            this.listQuery.page = 1
+            this.listQuery.currentPage = 1
+          }
+          let params = Object.assign({},this.form,{
+            limit:this.listQuery.limit,
+            page:this.listQuery.page
+          })
+          params.taskId = this.data.id
+          console.log(params)
+          queryTaskDetail(params).then(res =>{
+            this.tableData = res.data
+            this.listQuery.total = res.count
+            this.loadingView = false
+            this.queryBtnLoading = false
+          })
+        },
+          //查询经纪人任务量
+          _queryAgentDistributedTaskDetail(taskId){
+            this.deailloadingView = false
+            return new Promise(resolve => {
+              let params ={agentId:this.agentId,taskId:this.data.id}
+              queryAgentDistributedTaskDetail(params).then(res =>{
+                this.detailData = Array(res)
+                this.taskList =  res
+
+                let params = {agentId:taskId,
+                  beginTime:this.data.beginTime,endTime:this.data.endTime}
+                queryAgentTaksCompletedNumber(params).then(res =>{
+                  this.taskComleteNumber = res
+
+                  resolve(Object.assign({}, this.taskList, this.taskComleteNumber))
+                })
+              })
+            })
+          },
+          /**
+           * 根据任务时间查询经济人任务完成量
+           * */
+          _queryAgentTaksCompletedNumber(agentId){
+              let params = {agentId:agentId,
+                beginTime:this.data.beginTime,endTime:this.data.endTime}
+              queryAgentTaksCompletedNumber(params).then(res =>{
+                  this.taskComleteNumber = Array(res)
+              })
+          },
+          /**
+           * 删除
+           * @param row 行数据
+           */
+          handleDelete(row){
+            let params = {id:row.id}
+            delAgentTask(params).then(res =>{
+              if(res.success){
+                this.$message({message:res.msg,type:'success'})
+                let message = {
+                  sourceCode: row.agentName,
+                  businessTypeId: 6,//业务类型，
+                  sourceTypeId: 17,//任务
+                  operatTypeId: 619,//删除任务分配
+                  logContent: '删除'+row.agentName+'的任务分配'
+                }
+                RequestLogUrl.oaDelLog({message: JSON.stringify(message)}).then(res => {
+                  console.log(res)
+                })
+                this._loadData(false)
+              }else{
+                this.$message({message:res.msg,type:'warning'})
+              }
+            }).catch(error =>{
+               console.log(error)
+            })
+          },
+          /**
+           * table滑行时间
+           * @param row
+           * @param column
+           * @param cell
+           * @param event
+           */
+          handleMouseEnter(row, column, cell, event){
+              console.log(row)
+              console.log(column)
+              console.log(cell)
+              console.log(event)
+          }
+        },
+        filters:{
+        },
+        mounted() {
+            console.log(this.data)
+            this._queryReferenceUserSelect()
+        }
+
+    }
+
+</script>
+
+<style scoped lang="scss">
+  .wrapper {
+    position: relative;
+    padding-right: 80px;
+    overflow: hidden;
+
+  .icon {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    margin-top: -20px;
+    right: 10px;
+    transition: all .3s;
+    color: #6c82a3;
+
+  &:hover {
+     color: #324157;
+   }
+  }
+
+  .tip-text {
+    margin: 20px 0 10px 0;
+    text-align: right;
+    font-size: 12px;
+    color: red;
+  }
+  }
+  .table {
+    text-align: center;
+    margin-bottom: 15px;
+  /*border: 1px solid #ebeef5;*/
+
+  tr {
+    border-bottom: 1px solid #ebeef5;
+
+  td {
+    padding: 12px 10px;
+    min-width: 150px;
+    transition: background-color .25s ease;
+    /*border-bottom: 1px solid #ebeef5;*/
+  }
+
+  .td-code {
+    padding-right: 20px;
+    position: relative;
+
+  .close {
+    position: absolute;
+    right: 15px;
+    top: 11px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #6c82a3;
+    vertical-align: baseline;
+
+  &:hover {
+     color: #324157;
+   }
+  }
+  }
+  }
+
+  th {
+    /*border-bottom: 1px solid #ebeef5;*/
+    white-space: nowrap;
+    overflow: hidden;
+    user-select: none;
+    text-align: left;
+    padding: 12px 10px;
+    min-width: 0;
+    box-sizing: border-box;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    position: relative;
+
+  div {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  }
+
+
+
+  tr:hover {
+    background: #f2ffec;
+  }
+  }
+</style>

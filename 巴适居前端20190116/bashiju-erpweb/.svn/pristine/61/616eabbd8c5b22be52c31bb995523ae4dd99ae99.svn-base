@@ -1,0 +1,307 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <el-form :model="queryForm" ref="queryForm" :inline="true" size="small">
+        <el-form-item prop="dealTime" label="成交日期">
+          <el-date-picker
+            v-model="queryForm.dealTime"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="yyyy-MM-dd"
+            style="width: 240px"
+          >
+          </el-date-picker>
+        </el-form-item>
+
+        <el-form-item label="成交人" prop="traderId">
+          <base-cascader
+            v-model="queryForm.traderId"
+            :url="getReferenceUserSelectUrl"
+            :props="cascaderProps"
+            :dataProps="cascaderDataProps"
+            placeholder="成交人"
+            style="width: 100px;"
+            :changeOnSelect="false"
+            @change="jurgeInputUser"
+          >
+          </base-cascader>
+        </el-form-item>
+
+        <el-form-item label="权证人" prop="referenceId">
+          <base-cascader
+            v-model="queryForm.referenceId"
+            :url="getReferenceUserSelectUrl"
+            :props="cascaderProps"
+            :dataProps="cascaderDataProps"
+            placeholder="权证人"
+            style="width: 100px;"
+            :changeOnSelect="false"
+            @change="jurgeUser"
+          >
+          </base-cascader>
+        </el-form-item>
+
+        <el-form-item label="有无贷款" prop="isLoan">
+          <el-select v-model="queryForm.isLoan" style="width: 120px" clearable>
+            <el-option label="不限" value="0"></el-option>
+            <el-option label="有贷款" value="1"></el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="当前进度" prop="scheduleName">
+          <base-select v-model="queryForm.scheduleName"
+             :data="scheduleOpt" style="width: 120px" clearable></base-select>
+        </el-form-item>
+
+        <el-form-item prop="vagueData">
+          <base-vague-autocomplete
+            style="width: 270px"
+            :dataProps="vagueQueryInfo"
+            v-model="queryForm.vagueData"
+            @select="handleSelectInfo"
+            placeholder="成交编号,小区名称,门牌编号">
+          </base-vague-autocomplete>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" @click="_loadData(true)" :loading="loadingQueryBtn" size="small">查询</el-button>
+          <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+          <el-button type="success" size="small">导出全部</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div class="page-content-hd">
+      <el-table :data="tableData" border align="center" v-loading="loadingView" tooltip-effect="light"
+                size="mini" :header-cell-style="{background:'#385E96'}">
+        <el-table-column label="成交人" prop="traderName" align="center" fixed show-overflow-tooltip width="150px" style="background-color: #385E96;"></el-table-column>
+        <el-table-column label="权证人" prop="reference" align="center" fixed show-overflow-tooltip width="150px"></el-table-column>
+        <el-table-column label="成交编号" prop="id" align="center" fixed show-overflow-tooltip width="150px">
+          <template slot-scope="scope">
+            <a @click="toDetail(scope.row)" href="javascript:;" class="dealId" type="text">
+              {{scope.row.id}}
+            </a>
+          </template>
+        </el-table-column>
+        <el-table-column label="成交日期" prop="dealTime" :formatter="dateFormat" align="center" fixed show-overflow-tooltip width="100px"></el-table-column>
+        <el-table-column label="小区名称" prop="communityName" align="center" fixed show-overflow-tooltip width="150px"></el-table-column>
+        <el-table-column label="门牌号" prop="buildingHouseName" align="center" fixed show-overflow-tooltip></el-table-column>
+
+        <el-table-column v-for="item in scheduleOpt" :label="item.name" align="center">
+          <el-table-column label="成交状态" :prop="'status'+item.id" align="center" show-overflow-tooltip>
+            <!--<template slot-scope="scope">-->
+              <!--{{scope.row['status'+key] === '1' ? '已完成' : '未完成'}}-->
+            <!--</template>-->
+          </el-table-column>
+          <el-table-column label="计划时间" :prop="'estimateFinishTime'+item.id" align="center" show-overflow-tooltip width="120">
+            <template slot-scope="scope">
+              {{$utils.timeFormat(scope.row['estimateFinishTime'+item.id])}}
+            </template>
+          </el-table-column>
+          <el-table-column label="完成时间" :prop="'actualFinishTime'+item.id" align="center" show-overflow-tooltip width="120">
+            <template slot-scope="scope">
+              {{$utils.timeFormat(scope.row['actualFinishTime'+item.id])}}
+            </template>
+          </el-table-column>
+          <el-table-column label="周期" :prop="'cycle'+item.id" align="center" show-overflow-tooltip></el-table-column>
+        </el-table-column>
+      </el-table>
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+  // 模糊查询其他
+  const vagueQueryInfo = [
+    {label: '成交编号', type: 1},
+    {label: '小区名称', type: 2},
+    {label: '门牌编号', type: 3}
+  ]
+
+  import * as selectUrl from '@/request/manage/common' // 获取下拉框数据 url地址
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseSelect from '@/components/BaseSelect'
+  import {queryTransferProcName} from '@/request/manage/transferProcess'
+  import {queryDealScheduleDataPageList} from '@/request/deal/businessTransactionDeal'
+  import PageList from '@/mixins/pageList'
+  import BaseVagueAutocomplete from '@/components/BaseVagueAutocomplete'
+
+  export default {
+    name: "transitSchedule",
+    components:{BaseCascader,BaseVagueAutocomplete,BaseSelect},
+    mixins: [PageList],
+    data() {
+      return{
+        listTwoQuery:{ page: 0,limit: 10,total: 0 },
+        loadingQueryBtn: false,
+        loadingView: false,
+        loadingViewTwo: false,
+        queryForm:{
+          dealTime: '',
+          traderId: '',
+          referenceId: '',
+          isLoan: '',
+          scheduleName: '',
+          vagueData: ''
+        },
+        vagueQueryInfo: vagueQueryInfo,
+        getReferenceUserSelectUrl: selectUrl.getReferenceUserSelectUrl,
+        cascaderDataProps: {id: 'code', parent: 'parentCode'},
+        cascaderProps: {
+          value: 'code',
+          label: 'name'
+        },
+        scheduleUrl: 'manage/transferProcess/queryTransferProcName',
+        vagueData: {},
+        scheduleOpt: []
+      }
+    },
+    methods:{
+      // 进入成交详细
+      toDetail (row) {
+        if(row.dealType && row.dealType === '00'){
+          this.$router.push({ path: './dealDetail/' + row.id})
+        }else if(row.dealType && row.dealType === '01'){
+          this.$router.push({ path: './rentDealDetial/' + row.id})
+        }else if(row.dealType && row.dealType === '02') {
+          this.$router.push({ path: './oneHandDealDetail/' + row.id})
+        }
+      },
+      jurgeInputUser(value,name,data){
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+          setTimeout(() => {
+            this.queryForm.traderId = ''
+          }, 50)
+        }
+      },
+      jurgeUser(value,name,data){
+        if (data.dataType !== 'user') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+          setTimeout(() => {
+            this.queryForm.referenceId = ''
+          }, 50)
+        }
+      },
+      // 点击其他信息输入建议项赋值
+      handleSelectInfo (item) {
+        // 点击坐栋输入建议项赋值
+        this.vagueData = {
+          type: item.type,
+          value: item.value,
+        }
+      },
+
+      /**
+       * 查询页面数据信息
+       */
+      _loadData(btnQuery){
+        if(btnQuery){
+          this.loadingQueryBtn = true
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        let params = {...this.queryForm}
+        if(this.vagueData.type === 1){ //成交编号--模糊查询
+          params.id = this.vagueData.value
+        }else if(this.vagueData.type === 2){// 小区名称---模糊查询
+          params.communityName = this.vagueData.value
+        }else if(this.vagueData.type === 3){//房间编号--模糊查询
+          params.buildingHouseId = this.vagueData.value
+        }else{}
+
+        if(params.dealTime){
+          params.beginDate = params.dealTime[0]
+          params.endDate = params.dealTime[0]
+        }
+        this.loadingView = true
+        queryDealScheduleDataPageList({jsonData: JSON.stringify(params)
+          ,page: this.listQuery.page
+          ,limit:this.listQuery.limit}).then(res=>{
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        }).catch(err=>{
+          console.log(err)
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        })
+      },
+
+      /**
+       * 查询过户进度数据信息
+       */
+      queryTransitScheduleData(){
+        queryTransferProcName().then(res=>{
+          if(res){
+            this.scheduleOpt = this.$utils.jsonToArr(res,'id','name')
+          }
+        }).catch(err=>{
+          console.log(err)
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+        })
+      },
+
+      // 时间格式转化
+      dateFormat(row,column,cellValue){
+        return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+      },
+    },
+
+    mounted(){
+      this.queryTransitScheduleData()
+    },
+
+    watch:{
+      // 监听查询 如果当前输入的内容和之前绑定的输入建议不一致 则说明没有点击建议项 赋默认值
+      'queryForm.vagueData': function (newValue) {
+        // 如果为空重置模糊查询对象
+        if (!newValue) {
+          this.vagueData = {}
+          return
+        }
+
+        let defaultVal = {
+          type: vagueQueryInfo[0].type,
+          value: newValue,
+        }
+
+        if (this.vagueData) {
+          if (newValue !== this.queryParams.vagueData) {
+            this.vagueData = defaultVal
+          }
+        } else {
+          // 没有点击过输入建议项
+          this.vagueData = defaultVal
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .dealId {
+    color: #409eff;
+  &:hover {
+     text-decoration: underline;
+   }
+  }
+</style>

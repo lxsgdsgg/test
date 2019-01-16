@@ -1,0 +1,365 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item prop="status" label="处理状态">
+            <el-select v-model="queryForm.status" clearable>
+              <el-option label="未处理" value="0"></el-option>
+              <el-option label="已处理" value="1"></el-option>
+              <el-option label="已失效" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="regionId" label="选择片区">
+            <community-selector
+              placeholder="选择片区"
+              v-model="queryForm.regionId"
+              :url="regionUrl"
+              :changeOnSelect="false"
+              @change="getMangeName"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps">
+            </community-selector>
+          </el-form-item>
+
+          <el-form-item prop="communityId" label="选择小区">
+            <community-selector
+              placeholder="选择小区"
+              :changeOnSelect="false"
+              @change="jurgeSelect"
+              v-model="queryForm.communityId"
+              :url="communityUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps">
+            </community-selector>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+            <el-button @click="_resetForm('queryForm')" size="small">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="statusName"
+          show-overflow-tooltip
+          align="left"
+          label="处理状态">
+        </el-table-column>
+
+        <el-table-column
+          prop="userName"
+          show-overflow-tooltip
+          align="left"
+          label="经纪人名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="clienteleName"
+          show-overflow-tooltip
+          align="left"
+          label="业主称呼">
+        </el-table-column>
+
+        <el-table-column
+          prop="mobile"
+          show-overflow-tooltip
+          align="left"
+          label="业主电话">
+        </el-table-column>
+
+        <el-table-column
+          prop="areaName"
+          show-overflow-tooltip
+          align="left"
+          label="城市名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="regionName"
+          show-overflow-tooltip
+          align="left"
+          label="片区名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="communityName"
+          show-overflow-tooltip
+          align="left"
+          label="小区名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsName"
+          show-overflow-tooltip
+          align="left"
+          label="座栋名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="buildingsUnitName"
+          show-overflow-tooltip
+          align="left"
+          label="所在单元">
+        </el-table-column>
+
+        <el-table-column
+          prop="houseType"
+          show-overflow-tooltip
+          align="left"
+          label="户型">
+        </el-table-column>
+
+        <el-table-column
+          prop="sellingPriceName"
+          show-overflow-tooltip
+          align="left"
+          label="出售价格">
+        </el-table-column>
+
+        <el-table-column
+          prop="rentPriceName"
+          show-overflow-tooltip
+          align="left"
+          label="出租价格">
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          show-overflow-tooltip
+          align="left"
+          :formatter="_timeFormat"
+          label="受理时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="150px"
+        >
+          <template slot-scope="scope">
+            <el-button @click="handlerClick(scope.row)" type="button" size="small" style="color: #66b1ff">详情</el-button>
+            <el-button @click="refulseAcceptanceEntrust(scope.row)" type="button" size="small" v-if="scope.row.status ===0" style="color: #e0000f">拒绝</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <!--编辑数据弹框-->
+    <b-dialog
+      title="委托详细页面"
+      :show.sync="editDialogVisible"
+      :close-on-click-modal="false"
+      top="30vh"
+      width="60%">
+        <entrust-detail :data="currentRowData" @handlerClick="handlerCancle"></entrust-detail>
+    </b-dialog>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList'
+  import * as RequestURL from '@/request/house/agentAcceptanceDeal'
+  import { queryCommunitySelectWithRegion } from '@/request/app'
+  import CommunitySelector from '@/components/BaseCascader/'
+  import EntrustDetail from './components/EntrustDetailComponent'
+
+  export default {
+    name: 'agentAcceptanceEntrust',
+    mixins: [PageList],
+    components: {CommunitySelector, EntrustDetail},
+    data () {
+      return {
+        queryForm: {
+          status: '',
+          regionId: '',
+          communityId: ''
+        },
+        listDetailQuery:{
+          page: 1,limit: 10,total: 0
+        },
+        loadingView: false,
+        loadingDetailView: false,
+        queryBtnLoading: false,
+        loadingBtn: false,
+        editDialogVisible: false,
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        communityUrl: queryCommunitySelectWithRegion,
+        regionUrl: 'manage/commonselect/queryOpenCityCountyRegion',
+        currentRowData: null,
+        tableData: []
+      }
+    },
+    methods: {
+
+      getMangeName(value,name,data){
+        if (data.dataType !== 'region') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择片区!'
+          })
+          setTimeout(() => {
+            this.queryForm.regionId = ''
+          }, 50)
+        }
+      },
+      jurgeSelect(value,name,data){
+        if (data.dataType !== 'community') {
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择小区区!'
+          })
+          setTimeout(() => {
+            this.queryForm.community = ''
+          }, 50)
+        }
+      },
+
+      handlerCancle(action){
+        if(action === 1){
+          this._loadData()
+        }
+        this.editDialogVisible = false
+      },
+
+      // 查看详细
+      handlerClick(row){
+        this.editDialogVisible = false
+        this.$nextTick(()=>{
+          this.currentRowData = null
+          this.currentRowData = row
+          this.editDialogVisible = true
+        })
+      },
+
+      // 查询页面列表数据
+      _loadData(btnQuery) {
+        if (btnQuery) {
+          this.queryBtnLoading = btnQuery
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.loadingView = true
+        let query = {...this.queryForm}
+        let params = Object.assign({}, query, {
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        RequestURL.queryAgentAcceptanceList(params).then((res) => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.queryBtnLoading = false
+          this.loadingView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+
+      /**
+       * 拒绝客户委托
+       * @param row
+       */
+      refulseAcceptanceEntrust(row){
+        this.$confirm('确定要拒绝此委托吗?','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.refuseAgentAcceptanceEntrustById({jsonData: JSON.stringify(row)}).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this._loadData(false)
+          }).catch(err=>{
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '经纪人已取消'
+        //   })
+        // })
+      },
+      /**
+       * 拒绝客户委托
+       * @param row
+       */
+      savecceptanceEntrust(row){
+        this.$confirm('确定要保存数据吗?','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          RequestURL.saveAgentAcceptanceDealResult({jsonData: row}).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+          }).catch(err=>{
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+        //   .catch(()=>{
+        //   this.$message({
+        //     type: 'info',
+        //     message: '经纪人已取消'
+        //   })
+        // })
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+</style>

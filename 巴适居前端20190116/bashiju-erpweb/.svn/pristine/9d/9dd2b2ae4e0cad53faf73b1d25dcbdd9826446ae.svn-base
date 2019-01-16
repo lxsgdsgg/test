@@ -1,0 +1,14 @@
+/***************客源业务审批日志****************/
+import {onPost,onGet} from "../../main";
+//客源业务审批添加【日志操作】
+export const cBusinessExamTionAddLog = params =>{
+  return onPost('sso/main/customerAddLog',params);
+}
+// 客源业务审批修改【操作】
+export const cBusinessExamTionUpdateLog = params =>{
+  return onPost('sso/main/customerUpdateLog',params);
+}
+// 客源业务审批查询【操作】
+export const cBusinessExamTionQueryLog = params =>{
+  return onPost('sso/main/customerQueryLog',params);
+}

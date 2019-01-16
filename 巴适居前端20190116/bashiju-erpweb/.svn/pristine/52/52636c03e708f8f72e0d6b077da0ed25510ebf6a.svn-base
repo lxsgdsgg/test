@@ -1,0 +1,137 @@
+/*******************************************************************************************************/
+/** *************************************** 后台管理--小区管理 *****************************************/
+/*******************************************************************************************************/
+
+import {BASE_URL, onGet, onPost} from "../main";
+
+// 查询小区
+export const queryCommunityPageList = params=>{
+  return onPost('manage/community/searchCommunityList',params)
+}
+
+// 查询小区详细
+export const queryCommunityDetail = params=>{
+  return onPost('manage/community/queryCommunityDetail',params)
+}
+
+// 获取所有片区信息
+export const queryAllRegionList = params=>{
+    return onPost('manage/community/getRegionList',params)
+}
+
+// 添加小区
+export const addCommunity = params=>{
+  return onPost('manage/community/add',params)
+}
+
+// 更新小区
+export const updateCommunity = params=>{
+  return onPost('manage/community/update',params)
+}
+
+// 删除小区
+export const deleteCommunity = params=>{
+  return onPost('manage/community/deleteInfo',params)
+}
+
+// 更新小区详细
+export const updateCommunityDetail = params=>{
+  return onPost('manage/community/updateDetail',params)
+}
+
+// 上传小区图片
+export const uploadCommunityImage = params=>{
+  return onPost('manage/community/uploadImage',params)
+}
+
+// 删除小区图片
+export const deleteCommunityImage = params=>{
+  return onPost('manage/community/deleteImage',params)
+
+}
+// 获取小区图片列表
+export const queryCommunityImageList = params=>{
+  return onPost('manage/community/showImage',params)
+}
+
+// 获取小区图片类型列表
+export const queryCommunityPicTypes = params=>{
+  return onPost('manage/community/queryCommunityPicTypes',params)
+}
+
+// 设置小区封面图片(更新附件表）
+export const setCommunityCoverImage = (params,cfg)=>{
+  return onPost('manage/community/updateImage',params,cfg)
+}
+
+// 下载小区图片
+export const downloadCommunityImage = params=>{
+  return onPost('manage/community/downloadImage',params)
+}
+
+
+
+//=============================================以下时座栋信息==============================================================
+
+// 根据小区Id查询座栋信息
+export const queryBuildingsByCommunityId = params=>{
+  return onPost('manage/building/queryBuildingList',params)
+}
+
+// 根据座栋ID查询座栋信息
+export const queryBuildingsById = params=>{
+  return onPost('manage/building/queryBuilding',params)
+}
+
+// 根据座栋ID查询座栋单元（查看销控）
+export const queryBuildingUnitListByBuildingId = params=>{
+  return onPost('manage/building/queryBuildingUnitList',params)
+}
+
+// 添加座栋
+export const addBuilding = params=>{
+  return onPost('manage/building/addBuilding',params)
+}
+
+// 批量添加座栋
+export const batchAddBuilding = params=>{
+  return onPost('manage/building/batchAddBuilding',params)
+}
+
+// 更新座栋
+export const updateBuilding = params=>{
+  return onPost('manage/building/updateBuilding',params)
+}
+
+// 添加座栋单元
+export const addBuildingUnit = params=>{
+  return onPost('manage/building/addBuildingUnit',params)
+}
+
+// 更新座栋单元
+export const updateBuildingUnit = params=>{
+  return onPost('manage/building/updateBuildingUnit',params)
+}
+
+// 根据单元id查询单元信息
+export const queryBuildingUnitsById = params=>{
+  return onPost('manage/building/queryBuildingUnit',params)
+}
+
+// 根据座栋id查询单元信息（查看销控用）
+export const queryUnitsByBuildingId = params=>{
+  return onPost('manage/building/queryBuildingHouseByUnitId',params)
+}
+
+// 保存房号
+export const saveHouseSequence = params=>{
+  return onPost('manage/building/saveHouseName',params)
+}
+
+// 根据单元ID查询房号信息
+export const queryHouseByUnitId = params=>{
+  return onPost('manage/building/queryHouses',params)
+}
+
+// 图片下载地址
+export const downloadImagesUrl = BASE_URL + 'deal/deal/downloadImage'

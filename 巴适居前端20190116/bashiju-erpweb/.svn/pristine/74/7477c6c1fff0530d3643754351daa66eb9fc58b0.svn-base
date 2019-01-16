@@ -1,0 +1,384 @@
+<template>
+  <div v-loading="loadingView" style="padding-top: 20px;">
+    <!--<Calculator price="100" area="89"></Calculator>-->
+    <div >
+      <div class="page-content-hd">
+          <div class="query-form" >
+            <el-form size="small" :inline="true"  class="demo-form-inline" >
+              <el-form-item>
+                <el-input v-model="form.code" placeholder="合同编号"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-input v-model="form.houseId" placeholder="房源编号"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-input v-model="form.custId" placeholder="客源编号"></el-input>
+              </el-form-item>
+             <!-- <el-form-item>
+                <el-input v-model="minPrice" placeholder="最低价格"><i slot="suffix" >元</i></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-input v-model="maxPrice" placeholder="最高价格"><i slot="suffix" >元</i></el-input>
+              </el-form-item>-->
+              <el-form-item>
+                <el-select v-model="form.agreementType" placeholder="合同类型" clearable>
+                  <el-option label="买卖合同" value="01"></el-option>
+                  <el-option label="租赁合同" value="02"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-select v-model="form.status" placeholder="合同状态" clearable>
+                  <el-option label="待审核" value="00"></el-option>
+                  <el-option label="审核通过" value="01"></el-option>
+                  <el-option label="审核拒绝" value="02"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="search">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+      <div class="page-content-bd" >
+        <el-table :data="tableData" border style="width: 100%">
+          <el-table-column align="center" prop="code" label="合同编号"  >
+          </el-table-column>
+          <el-table-column align="center" prop="houseId" label="房源编号">
+          </el-table-column>
+          <el-table-column align="center" prop="custId" label="客源编号">
+          </el-table-column>
+          <el-table-column align="center" label="合同类型" width="80px">
+            <template slot-scope="scope">
+              <span v-if="scope.row.agreementType=='01'">买卖</span>
+              <span v-if="scope.row.agreementType=='02'">租赁</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="签订时间">
+            <template slot-scope="scope">
+              <span>{{$utils.timeFormat(scope.row.addTime)}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center"  label="合同状态" width="100px">
+            <template slot-scope="scope">
+              <span v-if="scope.row.status=='00'">待审核</span>
+              <span v-if="scope.row.status=='01'">审核通过</span>
+              <span v-if="scope.row.status=='02'">审核拒绝</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="审核时间">
+            <template slot-scope="scope">
+              <span>{{$utils.timeFormat(scope.row.approvalTime)}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" prop="price" label="合同价格">
+          </el-table-column>
+          <el-table-column align="center" label="操作">
+            <template slot-scope="scope">
+              <el-button v-hasMultipleBtn="['checkedBtn',scope.row]" v-if="scope.row.status=='00'" @click="showChecked(scope.row ,scope.$index)"  type="text" size="small">审核</el-button>
+              <el-button v-hasMultipleBtn="['detailedBtn',scope.row]" @click="showDetailed(scope.row)" type="text" size="small">详细</el-button>
+              <el-button v-hasMultipleBtn="['printBtn',scope.row]" @click="print(scope.row)" type="text" size="small">打印</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <!--分页控件-->
+        <b-pagination
+          :listQuery="listQuery"
+          @handleSizeChange="handleSizeChange"
+          @handleCurrentChange="handleCurrentChange">
+        </b-pagination>
+      </div>
+    </div>
+    <el-dialog title="合同审核" width="600px" :visible.sync="shenPiVisible">
+      <el-form  label-position="right" label-width="100px" :model="shenPiInfo" ref="shenPiInfo" >
+        <el-form-item label="合同编号">
+          <span>{{shenPiInfo.code}}</span>
+        </el-form-item>
+        <el-form-item label="审核结果" >
+          <el-select v-model="shenPiInfo.status" >
+            <el-option label="通过" value="01"></el-option>
+            <el-option label="拒绝" value="02"></el-option>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审核意见">
+          <el-input type="textarea" autosize  placeholder="请输入内容"  v-model="shenPiInfo.approvalResult">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary"  @click="updateStatus">确 定</el-button>
+        <el-button @click="shenPiVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="合同详情" width="800px" :visible.sync="detailedVisible">
+      <el-form  label-position="right" label-width="100px" :model="currRow" >
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="合同编号">
+          <span>{{currRow.code}}</span>
+        </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="合同类型">
+            <span v-if="currRow.agreementType=='01'">买卖合同</span>
+            <span v-if="currRow.agreementType=='02'">租赁合同</span>
+          </el-form-item>
+        </el-col>
+      </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="房源编号">
+              <span>{{currRow.houseId}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="客源编号">
+              <span>{{currRow.custId}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="合同价格">
+              <span>{{currRow.price}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="合同状态">
+              <span v-if="currRow.status=='00'">待审核</span>
+              <span v-if="currRow.status=='01'">审核通过</span>
+              <span v-if="currRow.status=='02'">审核拒绝</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="甲方姓名">
+              <span>{{currRow.partyA}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="乙方姓名">
+              <span>{{currRow.partyB}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="甲方身份证号">
+              <span>{{currRow.cardNoA}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="乙方身份证号">
+              <span>{{currRow.cardNoB}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="甲方电话">
+              <span>{{currRow.mobileA}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="乙方电话">
+              <span>{{currRow.mobileB}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+        <el-col :span="12">
+          <el-form-item label="甲方佣金">
+            <span>{{currRow.commissionA}}</span>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="乙方佣金">
+            <span>{{currRow.commissionB}}</span>
+          </el-form-item>
+        </el-col>
+      </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="产权证">
+              <span>{{currRow.propertyRrightNO}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="审核意见">
+              <span>{{currRow.approvalResult}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="currRow.agreementType=='02'">
+          <el-col :span="12">
+            <el-form-item label="租赁开始时间">
+              <span>{{formatDate(currRow.beginTime)}}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="租赁结束时间">
+              <span>{{formatDate(currRow.endTime)}}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary"  @click="detailedVisible = false">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+ import {
+   queryContractInfoList,
+   queryContractDetailed,
+   updateContractStatus
+ }   from '@/request/deal/contractInfoManage'
+ import {BASE_URL} from '@/request/main'
+ /*import Calculator  from '@/components/Calculator.vue'*/
+ export default{
+   data () {
+     return {
+       loadingView: false,
+       shenPiVisible:false,
+       detailedVisible:false,
+       code:'',
+       houseId:'',
+       custId:'',
+       minPrice:'',
+       maxPrice:'',
+       agreementType:'',
+       status:'',
+       form:{code:'',houseId:'',custId:'',minPrice:'',maxPrice:'',agreementType:'',status:''},
+       tableData: [],
+       listQuery: {
+         page: 1,
+         limit: 10,
+         total: 0
+       },
+       rowIndex:0,
+       currRow:{},
+       shenPiInfo: {'id':'','code':'','status':'01','approvalResult':''}
+     }
+   },
+   components: {
+     //Calculator
+   },
+   mounted () {
+     this.queryListData()
+   },
+   methods: {
+     formatDate(cellValue){
+       console.log(cellValue)
+       return this.$utils.timeFormat(cellValue)
+     },
+     queryListData: function () {
+       this.loadingView = true
+       let params = {
+         page: this.listQuery.page,
+         limit: this.listQuery.limit
+       }
+       let condition={}
+       if (this.code){
+         condition.code = this.code
+       }
+       if (this.houseId){
+         condition.houseId = this.houseId
+       }
+       if (this.custId){
+         condition.custId = this.custId
+       }
+       if (this.minPrice){
+         condition.minPrice = this.minPrice
+       }
+       if (this.maxPrice){
+         condition.maxPrice = this.maxPrice
+       }
+       if (this.agreementType){
+         condition.agreementType = this.agreementType
+       }
+       if (this.status){
+         condition.status = this.status
+       }
+       if (JSON.stringify(condition) != '{}'){
+          params.condition = JSON.stringify(condition)
+       }
+       queryContractInfoList(params).then((res) => {
+         this.tableData = res.data
+         this.listQuery.total = res.count
+         this.loadingView = false
+       }).catch(err => {
+         console.log(err)
+         this.loadingView = false
+       })
+     },
+     // 当前页改变
+     handleCurrentChange(val) {
+       this.listQuery.page = val
+       this.queryListData()
+     },
+     // 页面改变
+     handleSizeChange(val) {
+       this.listQuery.limit = val
+       this.queryListData(false)
+     },
+     search(){
+       this.code = this.form.code
+       this.houseId = this.form.houseId
+       this.custId = this.form.custId
+       this.minPrice = this.form.minPrice
+       this.maxPrice = this.form.maxPrice
+       this.agreementType = this.form.agreementType
+       this.status = this.form.status
+       this.queryListData(false)
+     },
+     print(row){
+       let url = BASE_URL.replace('api/','') + '#/printContract?code='+row.code
+       open(url)
+     },
+     showChecked(row,index){
+         console.log(index)
+       this.rowIndex = index
+       this.shenPiInfo.id = row.id
+       this.shenPiInfo.code = row.code
+       this.shenPiInfo.status = '01'
+       this.shenPiInfo.approvalResult = ''
+       this.shenPiInfo.shhId = row.shhId
+       this.shenPiInfo.agreementType = row.agreementType
+       this.shenPiVisible = true
+     },
+     updateStatus(){
+       this.loadingView = true
+        let param = {'id':this.shenPiInfo.id,'shhid':this.shenPiInfo.shhId,'agreementType':this.shenPiInfo.agreementType,'status':this.shenPiInfo.status,'approvalResult':this.shenPiInfo.approvalResult}
+       updateContractStatus(param).then(res => {
+         if (res.success) {
+           this.$message({
+             type: 'success',
+             message: res.msg
+           })
+           this.tableData[this.rowIndex].status = this.shenPiInfo.status
+           this.shenPiVisible = false
+         } else {
+           this.$message({
+             type: 'warning',
+             message: res.msg
+           })
+         }
+         this.loadingView = false
+       }).catch(() => {
+       })
+     },
+     showDetailed (row) {
+       this.currRow = row
+       this.detailedVisible = true
+     }
+   }
+ }
+</script>
+
+<style lang="scss" scoped>
+
+</style>

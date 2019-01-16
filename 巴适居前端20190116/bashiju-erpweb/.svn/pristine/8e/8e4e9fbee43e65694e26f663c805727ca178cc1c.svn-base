@@ -1,0 +1,446 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+         <el-form-item label="部门" prop="deptId">
+            <base-dept-cascader v-model="queryForm.deptId"></base-dept-cascader>
+          </el-form-item>
+          <el-form-item label="是否已计算提成" prop="isCalculate">
+            <el-select v-model="queryForm.isCalculate" placeholder="请选择" >
+              <el-option
+                v-for="item in selectStatus"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+        
+          <el-form-item label="月份" prop="months">
+            <el-date-picker
+              v-model="queryForm.months"
+              type="month"
+              placeholder="选择月份" value-format="yyyy-MM">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+          </el-form-item>
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'companyComAddBtn'" type="primary" @click="handleAddConfig">新增计提方案</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        highlight-current-row
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="计提部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="months"
+          align="center"
+          label="月份">
+        </el-table-column>
+
+        <el-table-column
+          prop="commissionPrice"
+          align="center"
+          label="提成金额">
+        </el-table-column>
+
+        <el-table-column
+          prop="commissionRate"
+          align="center"
+          label="提成比例">
+        </el-table-column>
+
+         <el-table-column
+          prop="isCalculateText"
+          align="center"
+          label="是否已提成计算">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['companyComUpdateBtn',scope.row]" v-if="scope.row.isCalculate==0" @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button v-hasMultipleBtn="['companyComDelBtn',scope.row]" v-if="scope.row.isCalculate==0" @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" :title="titleText" width="450px" height="600px">
+        <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="120px">
+          <el-form-item label="月份" prop="months" v-show="isShow">
+            <el-date-picker
+              v-model="addForm.months"
+              type="month"
+              placeholder="选择月份" value-format="yyyy-MM">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="部门" prop="showDeptName" v-show="isShowDept">
+            <el-input v-model="showDeptName" placeholder="请输入名称" style="width:220px;"></el-input>
+          </el-form-item>
+          <el-form-item label="" prop="">
+           <span style="color:red;"> 以下内容，只能选择一个输入,且值大于0</span>
+          </el-form-item>
+          <el-form-item label="提成金额（元）" prop="commissionPrice">
+            <el-input v-model="addForm.commissionPrice" placeholder="请输入" style="width:220px;" @blur="blur1" :disabled="isCommissionPrice"></el-input>
+          </el-form-item>
+          <el-form-item label="提成比例（%）" prop="commissionRate">
+            <el-input-number v-model="addForm.commissionRate" placeholder="请输入" :precision="2" :step="0.1" :min="0.00" :max="100" style="width:220px;" @blur="blur2" @change="blur2" :disabled="isCommissionRate"></el-input-number>
+          </el-form-item>
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+            <el-button @click="dialogAddVisible = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+
+
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/emolument' // 请求后端URL路径
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/finLog'
+
+  export default {
+    name: 'companyComConfig',
+    mixins: [PageList],
+    components: {BaseDeptCascader},
+    data () {
+      // 自定义金额验证
+      var money = (rule, value, callback) => {
+        let reg = /^[0-9]+/
+        if(!value){
+          return callback(new Error('金额不能为空'))
+        }
+        if(value<=0){
+           return callback(new Error('金额需大于0'))
+        }
+        if (reg.test(value)) {
+          callback();
+        }
+        return callback(new Error('只能输入数字或小数'));
+      };
+      return {
+        selectStatus: [{value:0,label:'否'},{value:1,label:'是'}],
+        queryForm: {months:''},
+        addForm: {
+          deptId: '',
+          months: '',
+          commissionPrice: '',
+          commissionRate: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          months: [
+            {required: true, message: '请选择月份', trigger: 'blur'}
+          ],
+          commissionPrice: [
+            {required: true, message: '请输入', trigger: 'blur'},
+            { validator: money, trigger: 'blur' }
+          ],
+          commissionRate: [
+            {required: true, message: '请输入', trigger: 'blur'}
+          ]
+        },
+        dialogAddVisible: false,
+        dialogBars: false,
+        loadingSubmitBtn: false,
+        loadingGrantBtn: false,
+        loadingForm: false,
+        currentRowData: null, // 当前操作的行数据
+        isAdd: false,
+        selectType: [],
+        isShow: false,
+        titleText: '新增计提',
+        isShowDept: false,
+        showDeptName: '',
+        nowQueryForm: {},
+        isCommissionPrice: false,
+        isCommissionRate: false,
+        originalData: []
+      }
+    },
+    methods: {
+      blur1(){
+        if(this.addForm.commissionPrice>0){
+            this.isCommissionRate = true
+            this.addForm.commissionRate=0
+        }else{
+          this.isCommissionRate = false
+        }
+      },
+       blur2(){
+        if(this.addForm.commissionRate>0){
+            this.isCommissionPrice = true
+            this.addForm.commissionPrice=0
+        }else{
+            this.isCommissionPrice = false
+            
+        }
+      },
+      //新增
+      handleAddConfig(row){
+        this._resetForm('addForm')
+        this.currentRowData = null ;// 置空当前操作的行数据
+        this.isAdd = true;
+        this.isShow = true;
+        this.titleText = '新增计提';
+        this.isShowDept = false;
+        this.dialogAddVisible = true;
+        delete this.addForm.id
+      },
+
+      //编辑
+      handleEdit(row){
+        this._resetForm('addForm')
+        this.currentRowData = row ;// 
+        this.isAdd = false;
+        this.isShow = false;
+        this.titleText = '编辑计提';
+        this.isShowDept = true;
+        this.showDeptName = row.deptName;
+        this.dialogAddVisible = true;
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            this.nowAddForm = Object.assign({}, this.addForm)
+            this.nowAddForm.commissionPrice = this.nowAddForm.commissionPrice * 100
+            const params = {
+              jsonData: JSON.stringify({...this.nowAddForm})
+            }
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveOrUpdateCompanyComConfig(params).then(res => {
+                console.log(res)
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                  //记日志
+                  if(this.isAddConfig){//新增
+                      let logContent = "新增总部计提"
+                      let message = {
+                      sourceId: '',
+                      sourceCode: "月份："+this.addForm.months,
+                      businessTypeId: 5,//业务类型，
+                      sourceTypeId: 11,
+                      operatTypeId: 534,
+                      logContent: logContent
+                    }
+                    dealAddLog({message: JSON.stringify(message)}).then(res => {
+                      console.log(res)
+                    })
+                  }else{//编辑
+                      let message = {
+                      sourceId: this.addForm.id,
+                      sourceCode: "月份："+this.addForm.months,
+                      businessTypeId: 5,//业务类型，
+                      sourceTypeId: 11,
+                      operatTypeId: 535,
+                      labelData: this.$utils.getFormFields(this.$refs['addForm']),
+                      originalData: this.originalData,
+                      newData: JSON.parse(params.jsonData)
+                    }
+
+                    dealUpdateLog({message: JSON.stringify(message)}).then(res => {
+                      console.log(res)
+                    })
+                }
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.data.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+
+       // 删除
+      handleDel (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delCompanyComConfig({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            //this._loadValueData(this.currentDynamicConfigureItem.widgetCode,this.currentDynamicConfigureItem.type);
+            for(let i=0;i<this.tableData.length;i++){
+              if(this.tableData[i].id==row.id){
+                this.tableData.splice(i,1);
+              }
+            }
+            //记日志
+            let logContent = "删除总部计提"
+            let message = {
+            sourceId: row.id,
+            sourceCode: "月份："+row.months,
+            businessTypeId: 5,//业务类型，
+            sourceTypeId: 11,
+            operatTypeId: 536,
+            logContent: logContent
+          }
+          dealDelLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+
+          })
+        })
+      },
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        if(!btnQuery){
+            let date = new Date();
+            let year = date.getFullYear();
+            let month = date.getMonth();
+            if(month<10){
+              month = "0"+ month
+            }
+            let months = year+"-"+month
+            this.nowQueryForm.months = months
+        }
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.companyComConfig(params).then(res => {
+          
+          //console.log(11111)
+          console.log(res);
+          this.tableData = res.data.map(item => {
+            item.commissionPrice = item.commissionPrice / 100
+            if(item.isCalculate==0){
+              item.isCalculateText = '否'
+            }else if(item.isCalculate==1){
+              item.isCalculateText = '是'
+            }
+            
+            return item;
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      // 表单回填
+      _setForm () {
+         // 拷贝为修改过的原始表单数据
+        this.originalData = Object.assign({}, this.addForm)
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+
+    },
+    mounted () {
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = date.getMonth();
+      if(month<10){
+        month = "0"+ month
+      }
+      let months = year+"-"+month
+      this.queryForm.months = months;
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

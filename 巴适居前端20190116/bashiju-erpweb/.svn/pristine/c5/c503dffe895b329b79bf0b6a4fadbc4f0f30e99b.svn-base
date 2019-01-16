@@ -1,0 +1,17 @@
+/************公司日志********/
+
+import {onPost,onGet} from "../../main";
+//添加操作日志
+export const  companyAddLog = params =>{
+  return onPost('sso/main/systemAddLog',params)
+}
+//修改操作日志
+export const  companyUpdateLog = params =>{
+  return onPost('sso/main/systemUpdateLog',params)
+}
+// 删除操作日志
+export const  companyDelLog = params =>{
+  return onPost('sso/main/systemDelLog',params)
+}
+
+

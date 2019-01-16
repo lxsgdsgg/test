@@ -1,0 +1,535 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="城市" prop="selectCode">
+            <open-city-selector
+              v-model="queryForm.selectCode"
+              :url="cityUrl"
+              :props="cascaderProps"
+              :dataProps="cascaderDataProps" @change="handleChangeCityQuery">
+            </open-city-selector>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('queryForm')">清空</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        
+      >
+
+        <el-table-column
+          prop="provinceName"
+          align="center"
+          label="省级名称">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="cityName"
+          align="center"
+          label="城市名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="url"
+          align="center"
+          label="映射地址">
+        </el-table-column>
+
+        <el-table-column
+          prop="address"
+          align="center"
+          label="联系地址">
+        </el-table-column>
+
+        <el-table-column
+          prop="telPhone"
+          align="center"
+          label="联系电话">
+        </el-table-column>
+
+        <el-table-column
+          prop="email"
+          align="center"
+          label="邮箱">
+        </el-table-column>
+
+        <el-table-column
+          prop="publicLoanCeiling"
+          align="center"
+          label="公积金贷款上限（万）">
+        </el-table-column>
+
+        <el-table-column
+          prop="LoanRatioCeiling"
+          align="center"
+          label="商业贷款最大比率（%）">
+        </el-table-column>
+
+        <el-table-column
+          prop="agencyFeeRatio"
+          align="center"
+          label="中介佣金比率（%）">
+        </el-table-column>
+
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+
+            <el-button  @click="handleGrant(scope.row)" type="text" size="small">授权导航</el-button>
+            <el-button  @click="handleUpdate(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button  @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" title="平台开通城市" width="650px" height="600px">
+        <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="120px">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="城市" prop="cityCode">
+                <open-city-selector
+                  v-model="addForm.cityCode"
+                  :url="cityUrl"
+                  :props="cascaderProps"
+                  :dataProps="cascaderDataProps" @change="handleChangeCity">
+                </open-city-selector>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="映射地址" prop="url">
+                <el-input v-model="addForm.url"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="联系地址" prop="address">
+                <el-input v-model="addForm.address"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="联系电话" prop="telPhone">
+                <el-input v-model="addForm.telPhone"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="邮箱" prop="email">
+                <el-input v-model="addForm.email"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="公积金贷款上限（万）" prop="publicLoanCeiling">
+                <el-input v-model="addForm.publicLoanCeiling"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="商业贷款最大比率（%）" prop="LoanRatioCeiling">
+                <el-input-number v-model="addForm.LoanRatioCeiling" :min="0" :max="100" ></el-input-number>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+               <el-form-item label="中介佣金比率（%）" prop="agencyFeeRatio">
+                <el-input-number v-model="addForm.agencyFeeRatio" :precision="2" :step="0.1" :min="0.0" :max="100"></el-input-number>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+            <el-button @click="dialogAddVisible=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogBars" title="授权导航" width="750px" height="600px">
+        <el-form v-loading="loadingForm"   label-width="100px">
+
+          <el-form-item label="授权导航" >
+            <el-tree
+              :data="barData"
+              show-checkbox
+              node-key="id"
+              ref="tree"
+              :default-expanded-keys="keys"
+              :default-checked-keys="keys"
+              :props="defaultProps">
+            </el-tree>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingGrantBtn" @click="grantNav">确认</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/manage/cityOpen' // 请求后端URL路径
+  import OpenCitySelector from '@/components/BaseCascader' // // 城市级联组件
+  import BarSelector from '@/components/BaseCascader' // 导航级联组件
+
+  export default {
+    name: 'platformOpenCity',
+    mixins: [PageList],
+    components: {OpenCitySelector,BarSelector},
+    data () {
+      return {
+        cityUrl: 'manage/commonselect/queryAllCity',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        /*barUrl: 'manage/cityOpen/getBars',
+        barDataProps: {id: 'id', parent: 'parentId'}, // 级联数据源配置选项
+        barProps: { // 级联下拉组件配置选项
+          value: 'id', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },*/
+        queryForm: {selectCode: ''},
+        companyOpts: [],
+        addForm: {
+          cityCode: '',
+          url: '',
+          address: '',
+          telPhone: '',
+          email: '',
+          publicLoanCeiling: 0,
+          LoanRatioCeiling: 0,
+          agencyFeeRatio: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          handleResult: [
+            {required: true, message: '请输入结果', trigger: 'blur'}
+          ]
+        },
+        dialogAddVisible: false,
+        dialogBars: false,
+        loadingSubmitBtn: false,
+        loadingGrantBtn: false,
+        loadingForm: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        bars: [],
+        idForBar: '',
+        barData: [],
+        levelInfo1: [],
+        levelInfo2: [],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        },
+        keys: [],
+        isAdd: false,
+        title: '开通',
+        nowQueryForm: {}
+      }
+    },
+    methods: {
+      //导航数据
+      getBars(id){
+        let params = {
+          cityOpenInfoId: id
+        };
+        RequestURL.getBars(params).then(res => {
+          console.log(res)
+          this.barData = [];
+          this.levelInfo1 = [];
+          this.levelInfo2 = [];
+          this.keys = [];
+         for(let i=0;i<res.data.length;i++){
+           if(res.data[0].hasGrantId ){
+             //res.data[0].hasGrantId.split(",");
+             this.keys = res.data[0].hasGrantId.split(",");
+           }
+           if(res.data[i].parentId==0){
+             this.levelInfo1.push(res.data[i]);
+           }else{
+             this.levelInfo2.push(res.data[i]);
+           }
+         }
+          if(this.levelInfo1.length>0) {
+            for (let a = 0; a < this.levelInfo1.length; a++) {
+              let item = {
+                id: this.levelInfo1[a].id,
+                label: this.levelInfo1[a].name
+              }
+              if(this.levelInfo2.length>0) {
+                let nextChildArr = [];
+                for (let b = 0; b < this.levelInfo2.length; b++) {
+                  if(this.levelInfo1[a].id == this.levelInfo2[b].parentId){
+                    let nextItem = {
+                      id: this.levelInfo2[b].id,
+                      label: this.levelInfo2[b].name
+                    }
+                    nextChildArr.push(nextItem);
+                  }
+                }
+                item.children = nextChildArr;
+              }
+              this.barData.push(item);
+            }
+
+          }
+        })
+      },
+      //授权导航
+      grantNav(){
+        let data = [];
+        for(let i = 0;i<this.$refs.tree.getCheckedKeys().length;i++){
+          let item = {
+            navigationBarId: this.$refs.tree.getCheckedKeys()[i]
+          }
+          data.push(item);
+        }
+        const params = {
+          jsonData: JSON.stringify(data),
+          cityOpenInfoId:  this.idForBar
+        }
+        this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadingGrantBtn = true
+          RequestURL.saveNavigationBarPermission(params).then(res => {
+            console.log(res);
+            this.loadingGrantBtn = false
+            this.dialogBars = false
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg || '操作成功'
+              })
+              this.getBars(this.idForBar);
+            }else{
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            console.log(err);
+            this.loadingGrantBtn = false
+            this.dialogBars = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '保存失败'
+            })
+          })
+        })
+      },
+      //新增
+      handleAdd(){
+        this._resetForm('addForm')
+        this.currentRowData = null ;// 置空当前操作的行数据
+        this.isAdd = true;
+        this.title = '开通';
+        this.dialogAddVisible = true;
+        delete this.addForm.id
+      },
+      //编辑
+      handleUpdate(row){
+        this._resetForm('addForm')
+        this.currentRowData = row ;// 
+        this.isAdd = false;
+        this.title = '编辑';
+        this.dialogAddVisible = true;
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+      // 删除
+      handleDel (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.cancelCityOpen({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            this._loadData(false);
+          })
+        })
+      },
+      handleGrant(row){
+        this.dialogBars = true;
+        this.idForBar = row.id;
+        this.getBars(row.id);
+      },
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            this.addForm.agencyFeeRatio = this.addForm.agencyFeeRatio * 100
+            const params = {
+              jsonData: JSON.stringify({...this.addForm})
+            }
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveCityOpen(params).then(res => {
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+
+      handleChangeCity (val, label, data) {
+        // alert(111);
+        console.log(val, label, data)
+       // alert(data.parent.name)
+        this.addForm.cityName = data.name;
+        this.addForm.provinceCode = data.parentCode;
+        this.addForm.provinceName = data.parent.name;
+      },
+
+      handleChangeCityQuery(val, label, data){
+        this.queryForm.provinceCode = ''
+        this.queryForm.cityCode = ''
+        if(data.parent==null){
+            this.queryForm.provinceCode = this.queryForm.selectCode
+            delete this.queryForm.selectCode
+        }else{
+            this.queryForm.cityCode = this.queryForm.selectCode
+            delete this.queryForm.selectCode
+        }
+      },
+
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getData(params).then(res => {
+          //console.log(11111)
+          //console.log(res);
+          this.tableData = res.data.map(item => {
+            if(!item.agencyFeeRatio){
+              item.agencyFeeRatio = 0
+            }
+            item.agencyFeeRatio = item.agencyFeeRatio/100
+            return item
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+      // 表单回填
+      _setForm () {
+        console.log(this.currentRowData)
+        //this.currentRowData.desertsDate = this.$utils.timestampToTime(this.currentRowData.desertsDate)
+       // this.currentRowData.type = String(this.currentRowData.type)
+       // this.currentRowData.userId = String(this.currentRowData.userId)
+
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+
+    },
+    mounted () {
+
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

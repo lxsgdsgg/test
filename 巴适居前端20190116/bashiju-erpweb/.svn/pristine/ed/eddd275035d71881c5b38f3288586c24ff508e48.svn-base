@@ -1,0 +1,105 @@
+<template>
+  <div class="lock-container pull-height">
+
+    <div class="lock-form">
+      <div class="animated">
+        <h3 class="text-name">{{userName}}</h3>
+        <el-input  placeholder="请输入登录密码" type="password" class="input-with-select animated" v-model="password" @keyup.enter.native="handleLogin">
+          <el-button :loading="loading" slot="append" @click="handleLogin" style="padding: 12px 15px"><icon width="15px" height="15px" scale="20" name="deblocking"></icon></el-button>
+        </el-input>
+      </div>
+    </div>
+
+  </div>
+</template>
+<script>
+  import md5 from 'md5'
+  import { mapGetters } from 'vuex'
+  export default {
+    name: 'lock',
+    data() {
+      return {
+        password: '',
+        loading: false
+      }
+    },
+    computed: {
+      ...mapGetters([
+        'userName',
+        'lockPasswd',
+        'userInfo'
+      ]),
+    },
+    props: [],
+    methods: {
+      handleLogin() {
+        this.loading = true
+        let params = {
+          userPhone: this.userInfo.mobile,
+          userPass: md5("B5K5$RM<d5+A~X|x" + this.password + "]f1v|l^7sm{Ll1Jt")
+          //userPass: this.password
+        }
+
+        this.$store.dispatch('unlock', params).then(() => {
+          this.loading = true
+          this.$router.go(-1)
+        }).catch(() => {
+          this.loading = false
+        })
+
+      }
+    },
+    // mounted () {
+    //   // 隐藏layIM聊天
+    //   const layers = document.querySelectorAll('.layui-layer')
+    //   layers.forEach(item => {
+    //     item.style.display = 'none'
+    //   })
+    // },
+    // destroyed () {
+    //   const layers = document.querySelectorAll('.layui-layer')
+    //   layers.forEach(item => {
+    //     item.style.display = 'block'
+    //   })
+    // }
+  }
+</script>
+
+<style lang="scss">
+  $color: #42b983;
+
+  .lock-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    width: 100%;
+    z-index: 999999998;
+  }
+  .lock-container::before {
+    z-index: -999;
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("./lockLogin.png");
+    background-size: cover;
+  }
+  .lock-form {
+    width: 300px;
+
+    .text-name {
+      margin-bottom: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      color: $color;
+    }
+  }
+
+  .el-message {
+    z-index: 999999999 !important;
+  }
+</style>

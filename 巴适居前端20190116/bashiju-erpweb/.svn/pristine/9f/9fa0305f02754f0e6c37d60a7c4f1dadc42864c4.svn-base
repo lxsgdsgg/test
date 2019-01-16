@@ -1,0 +1,1971 @@
+<template>
+  <div class="wrapper" v-loading="loadingView">
+    <div v-if="Object.keys(houseInfo).length" class="toolbar">
+      <div v-hasMultipleBtn="[PERMISSION_BTN.EDIT_HOUSE, houseInfoPermission]" @click="handleEditBaseInfo" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_updateInfo" width="35" height="35"></icon>
+        </div>
+        <p>修改信息</p>
+      </div>
+
+      <div class="toolbar-group-btn">
+        <p v-hasMultipleBtn="[PERMISSION_BTN.CHANGE_STATUS, houseInfoPermission]" @click="handleUpdateStatus">
+          <icon name="houseDetail_status" width="18" height="18"></icon>
+          <span>变更状态</span>
+        </p>
+
+        <p v-hasMultipleBtn="[PERMISSION_BTN.CHANGE_OWNER, houseInfoPermission]" @click="handleUpdateOwner">
+          <icon name="houseDetail_owner" width="18" height="18"></icon>
+          <span>变更业主</span>
+        </p>
+
+        <template>
+          <p v-hasMultipleBtn="[PERMISSION_BTN.TO_TAOBAO, houseInfoPermission]" v-if="houseInfo && houseInfo.taoBaoStatusId === 0" @click="toTaoBao">
+            <icon name="houseDetail_tao" width="18" height="18"></icon>
+            <span>进入淘宝</span>
+          </p>
+
+          <p v-hasMultipleBtn="[PERMISSION_BTN.FROM_TAOBAO, houseInfoPermission]" v-else @click="dialogVisibleUpdateTaoBao = true">
+            <icon name="houseDetail_tao" width="18" height="18"></icon>
+            <span>淘宝</span>
+          </p>
+        </template>
+
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.OPEN_DISC, houseInfoPermission]" v-if="houseInfo.statusId !== '1'" @click="handleHouseOpen" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_open" width="35" height="35"></icon>
+        </div>
+        <p>房源开盘</p>
+      </div>
+
+      <template v-if="houseInfo.discStatusId !== 1">
+        <div v-hasMultipleBtn="[PERMISSION_BTN.SET_PRIVATE_DISC, houseInfoPermission]" @click="setPrivateDisc" class="toolbar-item">
+
+          <div class="icon">
+            <icon name="houseDetail_changeStatus" width="35" height="35"></icon>
+          </div>
+          <p>收为私盘</p>
+
+        </div>
+      </template>
+
+      <template v-if="houseInfo.isGood === 1">
+        <div v-hasMultipleBtn="[PERMISSION_BTN.CANCEL_GOOD, houseInfoPermission]" @click="setHouseGood(0)" class="toolbar-item">
+
+          <div class="icon">
+            <icon name="houseDetail_cancelGood" width="35" height="35"></icon>
+          </div>
+          <p>取消靓房</p>
+
+        </div>
+      </template>
+
+      <template v-if="houseInfo.isGood === 0">
+        <div v-hasMultipleBtn="[PERMISSION_BTN.CANCEL_GOOD, houseInfoPermission]" @click="setHouseGood(1)" class="toolbar-item">
+          <div class="icon">
+            <icon name="houseDetail_cancelGood" width="35" height="35"></icon>
+          </div>
+          <p>设置靓房</p>
+        </div>
+      </template>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.DEL_VIDEO, houseInfoPermission]" @click="handleDelVideo" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_video" width="35" height="35"></icon>
+        </div>
+        <p>删除视频</p>
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.WRITE_FOLLOW, houseInfoPermission]" @click="handleAddFollow" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_writefollow" width="35" height="35"></icon>
+        </div>
+        <p>写跟进</p>
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.WRITE_REMIND, houseInfoPermission]" @click="handleUpdateRemind" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_writeTip" width="35" height="35"></icon>
+        </div>
+        <p>写提醒</p>
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.FEED_BACK, houseInfoPermission]" @click="addFeedback" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_feedback" width="35" height="35"></icon>
+        </div>
+        <p>写反馈</p>
+      </div>
+
+      <!-- 当前房源状态不为成交 -->
+      <template v-if="!dealStatus">
+
+        <!-- 签订合同 -->
+        <template v-if="houseInfo['contractStatus'] === 0">
+          <div v-hasMultipleBtn="[PERMISSION_BTN.SELL_CONTRACT, houseInfoPermission]" v-if="houseInfo.transactionTypeId === 1 || houseInfo.transactionTypeId === 3" @click="handleContract('01')" class="toolbar-item">
+            <div class="icon">
+              <icon name="houseDetail_contract" width="35" height="35"></icon>
+            </div>
+            <p>买卖合同</p>
+          </div>
+
+          <div v-hasMultipleBtn="[PERMISSION_BTN.RENT_CONTRACT, houseInfoPermission]" v-if="houseInfo.transactionTypeId === 2 || houseInfo.transactionTypeId === 3" @click="handleContract('02')" class="toolbar-item">
+            <div class="icon">
+              <icon name="houseDetail_contract" width="35" height="35"></icon>
+            </div>
+            <p>租赁合同</p>
+          </div>
+        </template>
+
+        <template v-else>
+
+          <div v-hasMultipleBtn="[PERMISSION_BTN.SELL_DEAL, houseInfoPermission]" v-if="houseInfo.transactionTypeId === 1 || houseInfo.transactionTypeId === 3" @click="handleDeal('00')" class="toolbar-item">
+
+            <div class="icon">
+              <icon name="houseDetail_deal" width="35" height="35"></icon>
+            </div>
+            <p>买卖成交</p>
+
+          </div>
+
+          <div v-hasMultipleBtn="[PERMISSION_BTN.RENT_DEAL, houseInfoPermission]" v-if="houseInfo.transactionTypeId === 2 || houseInfo.transactionTypeId === 3" @click="handleDeal('01')" class="toolbar-item">
+
+            <div class="icon">
+              <icon name="houseDetail_deal" width="35" height="35"></icon>
+            </div>
+            <p>租赁成交</p>
+
+          </div>
+
+        </template>
+
+      </template>
+
+      <template v-if="!houseInfo['closeDiscFlg']">
+        <div v-hasMultipleBtn="[PERMISSION_BTN.CLOSE_DISC, houseInfoPermission]" @click="handleHouseClose" class="toolbar-item">
+          <div class="icon">
+            <icon name="houseDetail_businessExamine" width="35" height="35"></icon>
+          </div>
+          <p>申请封盘</p>
+        </div>
+      </template>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.ACCUSATION, houseInfoPermission]" @click="handleTipOff" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_report" width="35" height="35"></icon>
+        </div>
+        <p>举报</p>
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.CHANGE_USAGE, houseInfoPermission]" @click="dialogVisibleUpdateUsage = true , formUpdateUsage.houseUsesId = houseInfo.houseUsesId" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_updateUsage" width="35" height="35"></icon>
+        </div>
+        <p>更改用途</p>
+      </div>
+
+      <div v-hasMultipleBtn="[PERMISSION_BTN.SEND_BIND_CODE, houseInfoPermission]" @click="sendBindCode" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_sendCode" width="35" height="35"></icon>
+        </div>
+        <p>发送绑定码</p>
+      </div>
+
+      <div @click="viewPrev" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_prev1" width="35" height="35"></icon>
+        </div>
+        <p>上一条</p>
+      </div>
+
+      <div @click="viewNext" class="toolbar-item">
+        <div class="icon">
+          <icon name="houseDetail_next1" width="35" height="35"></icon>
+        </div>
+        <p>下一条</p>
+      </div>
+
+    </div>
+
+    <el-tabs v-model="activeName" @tab-click="handleTabClick" type="card" style="max-width: 1280px;">
+
+      <el-tab-pane label="基本信息" name="houseInfo">
+        <base-info @loadDataFinish="_getHouseInfo" :logMessage="logMessage" :params="{formName: this.houseInfo.houseUsesId || formName, houseId: houseId}" @switchTab="switchTab" ref="baseInfo" :peopleSelectOpts="peopleSelectOpts"></base-info>
+      </el-tab-pane>
+
+      <el-tab-pane label="房屋照片" name="housePic">
+        <photo-comp01 :logMessage="logMessage" :houseInfoPermission="houseInfoPermission" :defaultParams="{shhId: houseId, houseId: houseInfo.houseCode, attachType: '01'}"></photo-comp01>
+      </el-tab-pane>
+
+      <el-tab-pane label="相关照片" name="relevantPic">
+        <photo-comp02 :logMessage="logMessage" :houseInfoPermission="houseInfoPermission" :defaultParams="{shhId: houseId, houseId: houseInfo.houseCode, attachType: '02'}"></photo-comp02>
+      </el-tab-pane>
+
+      <el-tab-pane label="房屋视频" name="houseVideo">
+        <video-comp :logMessage="logMessage" :defaultParams="{shhId: houseId, houseId: houseInfo.houseCode, attachType: '03'}" :video="video" ></video-comp>
+      </el-tab-pane>
+
+      <el-tab-pane label="匹配客户" name="matchCustomer">
+        <match-customer :transactionTypeId="houseInfo.transactionTypeId || ''" ref="matchCustomer"></match-customer>
+      </el-tab-pane>
+
+      <el-tab-pane label="房源跟进" name="followRecord">
+        <follow-record :logMessage="logMessage" :houseId="houseId" ref="followRecord"></follow-record>
+      </el-tab-pane>
+
+      <el-tab-pane label="带看记录" name="lookRecord">
+        <look-record :houseId="houseId" ref="lookRecord"></look-record>
+      </el-tab-pane>
+
+      <el-tab-pane label="日志" name="logs">
+        <house-log :houseCode="houseInfo.houseCode" ref="logs"></house-log>
+      </el-tab-pane>
+
+      <el-tab-pane label="房屋描述" name="houseDescription">
+        <house-description :logMessage="logMessage" :houseId="houseId" ref="houseDescription" ></house-description>
+      </el-tab-pane>
+
+      <el-tab-pane v-hasMultipleBtn="[PERMISSION_BTN.LOOK_PRICE_HISTORY, houseInfoPermission]" label="改价历史" name="changeHistory">
+        <change-history :houseId="houseId" ref="changeHistory"></change-history>
+      </el-tab-pane>
+
+      <el-tab-pane label="经纪人反馈" name="agentFeedback">
+        <agent-feedback :houseId="houseId" ref="agentFeedback"></agent-feedback>
+      </el-tab-pane>
+    </el-tabs>
+
+    <template>
+
+      <!-- 房源基本信息编辑 -->
+
+      <template>
+
+        <!-- 住宅 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditHouseInfo"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <house-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></house-form>
+        </el-dialog>
+
+        <!-- 别墅 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditVilla"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <villa-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></villa-form>
+        </el-dialog>
+
+        <!-- 商铺 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditShops"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <shops-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></shops-form>
+        </el-dialog>
+
+        <!-- 公寓 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditApartment"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <apartment-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></apartment-form>
+        </el-dialog>
+
+        <!-- 仓库 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditWare"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <ware-house-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></ware-house-form>
+        </el-dialog>
+
+        <!-- 厂房 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditFactory"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <factory-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></factory-form>
+        </el-dialog>
+
+        <!-- 车位 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditParking"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <parking-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></parking-form>
+        </el-dialog>
+
+        <!-- 土地 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditLand"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <land-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></land-form>
+        </el-dialog>
+
+        <!-- 写字楼 -->
+        <el-dialog
+          title="房源修改"
+          :visible.sync="dialogVisibleEditOffice"
+          width="1100px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+        >
+          <office-form v-if="hackResetEditBaseInfo" @handleClick="handleEditBaseInfoClick" :formInfo="editFormInfo" :isAdd="false" :type="this.houseInfo.houseUsesId"></office-form>
+        </el-dialog>
+
+      </template>
+
+      <!-- 房源开盘 -->
+      <el-dialog
+        title="房源开盘"
+        :visible.sync="dialogVisibleHouseOpen"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formHouseOpen" :model="formHouseOpen" :rules="rulesHouseOpen" size="medium" label-width="80px">
+
+          <el-form-item label="租售类型" prop="transactionTypeId">
+            <el-select v-model="formHouseOpen.transactionTypeId" placeholder="租售类型" style="width: 100%">
+              <el-option v-for="item in transactionOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="盘状态" prop="discStatusId">
+            <el-select clearable v-model="formHouseOpen.discStatusId" placeholder="盘状态" style="width: 100%">
+              <el-option v-for="item in discStatusOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item v-if="formHouseOpen.transactionTypeId === '1' || formHouseOpen.transactionTypeId === '3'" label="售价" prop="sellingPrice">
+            <el-input type="number" min="0" v-model.number="formHouseOpen.sellingPrice"><i slot="suffix" style="font-size: 12px;margin-right: 5px">万</i></el-input>
+          </el-form-item>
+
+          <el-form-item v-if="formHouseOpen.transactionTypeId === '2' || formHouseOpen.transactionTypeId === '3'" label="租价" required>
+
+            <el-col :span="11">
+              <el-form-item style="display: inline-block;" prop="rentPrice">
+                <el-input type="number" min="0" v-model.number="formHouseOpen.rentPrice">
+                  <i slot="suffix" style="font-size: 12px;margin-right: 5px">元</i>
+                </el-input>
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="2" class="text-center"> - </el-col>
+
+            <el-col :span="11">
+              <el-form-item style="display: inline-block;" prop="rentPriceTypeId">
+                <el-select clearable v-model="formHouseOpen.rentPriceTypeId" placeholder="租价类型" style="width: 100%">
+                  <el-option v-for="item in rentPriceOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button @click="submitFormHouseOpen" type="primary" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleHouseOpen = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 变更状态 -->
+      <el-dialog
+        title="变更状态"
+        :visible.sync="dialogVisibleUpdateStatus"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateStatus" :model="formUpdateStatus" :rules="rulesUpdateStatus" size="medium" label-width="80px">
+          <el-form-item label="原状态" prop="form1">
+            <el-input :disabled="true" :value="houseInfo.status"></el-input>
+          </el-form-item>
+
+          <el-form-item label="现状态" prop="statusId">
+            <el-select v-model="formUpdateStatus.statusId" placeholder="请选择状态" style="width: 100%;">
+              <el-option v-for="item in statusOpts" v-if="item.label !== '有效'" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="变更理由" prop="content">
+            <el-input type="textarea" v-model="formUpdateStatus.content"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateStatus" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleUpdateStatus = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 变更业主 -->
+      <el-dialog
+        title="变更业主"
+        :visible.sync="dialogVisibleUpdateOwner"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateOwner" :model="formUpdateOwner" :rules="rulesUpdateOwner" size="medium" label-width="80px">
+          <el-form-item label="业主姓名" prop="owner">
+            <el-input v-model="formUpdateOwner.owner"></el-input>
+          </el-form-item>
+
+          <el-form-item label="业主性别" prop="nameType">
+            <el-select v-model="formUpdateOwner.nameType" placeholder="请选择业主性别" style="width: 100%;">
+              <el-option v-for="item in genderOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="电话" prop="phone">
+            <el-input v-model="formUpdateOwner.phone"></el-input>
+          </el-form-item>
+
+          <el-form-item label="备注" prop="remark">
+            <el-input type="textarea" v-model="formUpdateOwner.remark"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateOwner">保存</el-button>
+            <el-button @click="dialogVisibleUpdateOwner = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 写提醒 -->
+      <el-dialog
+        title="写提醒"
+        :visible.sync="dialogVisibleUpdateRemind"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateRemind" :model="formUpdateRemind" :rules="rulesUpdateRemind" size="medium" label-width="80px">
+          <el-form-item label="提醒人" prop="receivePeopleId">
+            <base-cascader
+              :changeOnSelect="false"
+              @change="handleChangeRemind"
+              v-model="formUpdateRemind.receivePeopleId"
+              :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item label="提醒时间" prop="remindTime">
+            <el-date-picker
+              v-model="formUpdateRemind.remindTime"
+              type="date"
+              placeholder="选择日期"
+              format="yyyy 年 MM 月 dd 日"
+              value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="提醒内容" prop="remindContent">
+            <el-input type="textarea" v-model="formUpdateRemind.remindContent"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateRemind" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleUpdateRemind = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 写反馈 -->
+      <el-dialog
+        title="写反馈"
+        :visible.sync="dialogVisibleUpdateFeedback"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <feedback-form-comp ref="feedback" @handleBtnClick="handleFeedbackBtnClick" :params="feedbackParams" :isAdd="true"></feedback-form-comp>
+
+      </el-dialog>
+
+      <!-- 申请封盘 -->
+      <el-dialog
+        title="申请封盘"
+        :visible.sync="dialogVisibleUpdateHouseClose"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateHouseClose" :model="formUpdateHouseClose" :rules="rulesUpdateHouseClose" size="medium" label-width="80px">
+          <el-form-item label="封盘类型" prop="closeHouseTypeId">
+            <el-select v-model="formUpdateHouseClose.closeHouseTypeId" placeholder="请选择封盘类型" style="width: 100%;">
+              <el-option v-for="item in houseCloseOpts" :label="item.label" :value="item.value" :key="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="到期日期" prop="closeHouseEndTime">
+            <el-date-picker
+              v-model="formUpdateHouseClose.closeHouseEndTime"
+              type="date"
+              placeholder="选择日期"
+              format="yyyy 年 MM 月 dd 日"
+              value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="封盘原因" prop="content">
+            <el-input type="textarea" v-model="formUpdateHouseClose.content"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateHouseClose" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleUpdateHouseClose = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 举报 -->
+      <el-dialog
+        title="举报"
+        :visible.sync="dialogVisibleUpdateTipOff"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateTipOff" :model="formUpdateTipOff" :rules="rulesUpdateTipOff" size="medium" label-width="80px">
+          <el-form-item label="举报类型" prop="accusationTypeId">
+            <el-select v-model="formUpdateTipOff.accusationTypeId" placeholder="请选择举报类型" style="width: 100%;">
+              <el-option v-for="item in tipOffOpts" :label="item.label" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="举报原因" prop="content">
+            <el-input type="textarea" v-model="formUpdateTipOff.content"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateTipOff" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleUpdateTipOff = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 变更用途 -->
+      <el-dialog
+        title="变更用途"
+        :visible.sync="dialogVisibleUpdateUsage"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateUsage" :model="formUpdateUsage" :rules="rulesUpdateUsage" size="medium" label-width="80px">
+          <el-form-item label="房屋用途" prop="houseUsesId">
+            <el-select v-model="formUpdateUsage.houseUsesId" placeholder="请选择房屋用途" style="width: 100%;">
+              <el-option v-for="item in usageOpts" :label="item.fieldValue" :value="item.fieldCode"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormUpdateUsage" :loading="loadingSubmitBtn">保存</el-button>
+            <el-button @click="dialogVisibleUpdateUsage = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 淘宝 -->
+      <el-dialog
+        title="淘宝"
+        :visible.sync="dialogVisibleUpdateTaoBao"
+        width="350px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <el-form ref="formUpdateTaoBao" :model="formUpdateTaoBao" :rules="rulesUpdateTaoBao" size="medium" label-width="80px">
+
+          <el-form-item label="淘宝原因" prop="content">
+            <el-input type="textarea" v-model="formUpdateTaoBao.content"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" @click="submitFormTaoBao" :loading="loadingSubmitBtnTaoBao">保存</el-button>
+            <el-button @click="dialogVisibleUpdateTaoBao = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 房源跟进 -->
+      <el-dialog
+        title="写跟进"
+        :visible.sync="dialogVisibleAddFollow"
+        width="500px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <add-follow @submit="handleFollowSubmit" @handleCancel="dialogVisibleAddFollow = false" :houseId="houseId" :houseInfo="houseInfo" :peopleSelectOpts="peopleSelectOpts" ref="follow"></add-follow>
+
+      </el-dialog>
+
+      <!-- 租凭 买卖成交 -->
+      <el-dialog
+        :title="dialogDealTitle"
+        :visible.sync="dialogVisibleAddDeal"
+        width="850px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+      >
+
+        <!--<deal-form-comp :peopleSelectOpts="peopleSelectOpts"></deal-form-comp>-->
+        <HouseDeal @cancelDeal="cancelDeal" @saveDeal="saveDeal" :shhId="dealParams.shhId" :dealType="dealParams.dealType"></HouseDeal>
+
+      </el-dialog>
+
+      <!-- 租凭 买卖合同 -->
+      <el-dialog
+        :title="dialogContractTitle"
+        :visible.sync="dialogVisibleContract"
+        :width="dialogContractWidth"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :modal-append-to-body="false"
+        append-to-body
+        top="5vh"
+        @closed="dialogContractWidth = '500px'"
+      >
+
+        <div>
+          <ContractContent v-if="hackResetContract" @canelContract="cancelContract" @saveResult="contractSaveResult" @nextOperation="contractNextOperation"
+              :companyId="this.houseInfo.companyId"   :deptId="this.houseInfo.mainterDeptId" :deptName="this.houseInfo.mainterDept" :maintainId="this.houseInfo.maintainId" :maintainer="this.houseInfo.maintainer"            :houseCompanyName="this.houseInfo.companyName"
+              :houseId="contractParams.houseId" :houseCode="contractParams.houseCode" :templateType="contractParams.templateType"></ContractContent>
+        </div>
+
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import BaseInfo from './BaseInfo/index'
+  import FollowRecord from './FollowRecord' // 跟进记录
+  import ChangeHistory from './ChangeHistory' // 改价历史
+  import LookRecord from './LookRecord' // 带看记录
+  import AgentFeedback from './AgentFeedback' // 经纪人反馈
+  import HouseDescription from './HouseDescription' // 房屋描述
+  import MatchCustomer from './MatchCustomer' // 匹配客户
+  import ContractContent from '@/components/ContractContent.vue' // 合同
+  import HouseDeal from '@/components/HouseDeal.vue' // 成交
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import {changeSomeStatus, businessExamine, updateTag, changeHouseOwner, saveHouseFollowAndRemind, sendBindCode, delFile, getFile} from '@/request/house/houseUsed'
+  import AddFollow from './BaseInfo/AddFollow'
+  import DealFormComp from './DealFormComp'
+  import FeedbackFormComp from './FeedbackFormComp'
+  import PhotoComp02 from './photo/Photo02'
+  import PhotoComp01 from './photo/Photo01'
+  import VideoComp from './Video'
+  import HouseLog from './Log'
+  import * as consts from '../consts'
+
+  import {HouseForm, ShopsForm, ApartmentForm, WareHouseForm, FactoryForm, ParkingForm, LandForm, OfficeForm, VillaForm} from '../formComp/exports' // 修改基本信息
+
+  import {checkPhone} from '@/common/js/validator'
+
+  // 房源业务审批类型
+  const EXAMINE_TYPE = {
+    HOUSE_OPEN: 'houseopen',
+    CHANGE_STATUS: 'changestatus',
+    HOUSE_CLOSE: 'houseclose',
+    TIPOFF: 'tipoff',
+    FROM_TAOBAO: 'fromtaobao'
+  }
+
+  export default {
+    name: 'houseUsedDetail',
+
+    components: {
+      VideoComp, HouseLog,
+      ContractContent, HouseDeal,
+      HouseForm, ShopsForm, ApartmentForm, WareHouseForm, FactoryForm, ParkingForm, LandForm, OfficeForm, VillaForm,
+      BaseInfo, MatchCustomer, HouseDescription, LookRecord, FollowRecord, AgentFeedback, ChangeHistory, AddFollow, DealFormComp, BaseCascader, FeedbackFormComp, PhotoComp02, PhotoComp01
+    },
+
+    data () {
+      return {
+        loadingView: true,
+        PERMISSION_BTN: consts.PERMISSION_BTN,
+        houseInfoPermission: {},
+        dialogContractWidth: '500px',
+        dialogContractTitle: '',
+        dialogDealTitle: '',
+        hackResetContract: true,
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        activeName: 'houseInfo',
+        dialogVisibleEditHouseInfo: false, // 住宅信息编辑弹框
+        dialogVisibleEditShops: false, // 商铺信息编辑弹框
+        dialogVisibleEditApartment: false, // 公寓信息编辑弹框
+        dialogVisibleEditWare: false, // 仓库信息编辑弹框
+        dialogVisibleEditFactory: false, // 厂房信息编辑弹框
+        dialogVisibleEditParking: false, // 车位信息编辑弹框
+        dialogVisibleEditLand: false, // 土地信息编辑弹框
+        dialogVisibleEditOffice: false, // 写字楼信息编辑弹框
+        dialogVisibleEditVilla: false, // 别墅信息编辑弹框
+        dialogVisibleUpdateStatus: false,
+        dialogVisibleUpdateOwner: false,
+        dialogVisibleUpdateRemind: false,
+        dialogVisibleUpdateFeedback: false,
+        dialogVisibleUpdateHouseClose: false,
+        dialogVisibleUpdateTipOff: false,
+        dialogVisibleUpdateUsage: false,
+        dialogVisibleUpdateTaoBao: false,
+        dialogVisibleAddFollow: false,
+        dialogVisibleAddDeal: false,
+        dialogVisibleContract: false,
+        dialogVisibleHouseOpen: false,
+        loadingSubmitBtnTaoBao: false,
+        loadingSubmitBtn: false,
+        formUpdateTaoBao: {
+          content: ''
+        },
+        rulesUpdateTaoBao: {
+          content: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ]
+        },
+        formHouseOpen: {
+          transactionTypeId: '',
+          discStatusId: '',
+          sellingPrice: '',
+          rentPrice: '',
+          rentPriceTypeId: '1'
+        },
+        rulesHouseOpen: {
+          transactionTypeId: { required: true, message: '该项为必填项', trigger: 'change' },
+          discStatusId: { required: true, message: '该项为必填项', trigger: 'change' },
+          rentPriceTypeId: { required: true, message: '该项为必填项', trigger: 'change' },
+          sellingPrice: [
+            { required: true, message: '该项为必填项', trigger: 'blur' },
+            { type: 'number', message: '必须为数字值'}
+          ],
+          rentPrice: [
+            { required: true, message: '该项为必填项', trigger: 'blur' },
+            { type: 'number', message: '必须为数字值'}
+          ]
+        },
+        formUpdateStatus: {
+          content: '',
+          statusId: ''
+        },
+        rulesUpdateStatus: {},
+        formUpdateOwner: {
+          owner: '',
+          nameTitle: '',
+          phone: '',
+          remark: '',
+          nameType: ''
+        },
+        rulesUpdateOwner: {
+          owner: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          nameType: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ],
+          phone: [
+            { required: true, message: '该项为必填项', trigger: 'blur' },
+            {validator: checkPhone, trigger: 'blur' }
+          ]
+        },
+        formUpdateRemind: {
+          receivePeopleId: '',
+          remindContent: '',
+          remindTime: '',
+          receivePeopleName: ''
+        },
+        rulesUpdateRemind: {
+          receivePeopleId: [
+            { required: true, message: '信息填写有误', trigger: 'change' }
+          ],
+          remindContent: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          remindTime: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ]
+        },
+        formUpdateFeedback: {
+          content: ''
+        },
+        rulesUpdateFeedback: {
+          content: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ]
+        },
+        formUpdateHouseClose: {
+          closeHouseTypeId: '',
+          content: '',
+          closeHouseEndTime: ''
+        },
+        rulesUpdateHouseClose: {
+          closeHouseTypeId: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ],
+          content: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ],
+          closeHouseEndTime: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ]
+        },
+        formUpdateTipOff: {
+          accusationTypeId: '',
+          content: ''
+        },
+        rulesUpdateTipOff: {
+          accusationTypeId: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ],
+          content: [
+            { required: true, message: '该项为必填项', trigger: 'blur' }
+          ]
+        },
+        formUpdateUsage: {
+          houseUsesId: ''
+        },
+        rulesUpdateUsage: {
+          houseUsesId: [
+            { required: true, message: '该项为必填项', trigger: 'change' }
+          ]
+        },
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        houseResult: {},
+        houseInfo: {},
+        followInfo: [],
+        houseWhId: '', // 房源维护人ID
+        houseEntryId: '', // 房源录入人ID
+        houseOpenDiscId: '', // 房源开盘人ID
+        requestCfg: {
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8;'
+          }
+        },
+        statusOpts: consts.STATUS_OPTS,
+        genderOpts: consts.GENDER_OPTS,
+        tipOffOpts: consts.TIP_OFF_OPTS,
+        houseCloseOpts: consts.HOUSE_CLOSE_OPTS,
+        usageOpts: consts.useTypes,
+        transactionOpts: consts.TRANSACTION_TYPE,
+        discStatusOpts: consts.DISC_STATUS_TYPE,
+        rentPriceOpts: consts.rentPriceTypeId,
+        feedbackParams: null,
+        hackResetEditBaseInfo: true,
+        editFormInfo: null,
+        contractParams: {}, // 合同参数
+        dealParams: {}, // 成交参数
+        originalOwnerFormData: {},
+        // 日志基础参数对象
+        logMessage: {},
+        video: {}
+      }
+    },
+
+    methods: {
+      handleTabClick (tab) {
+        if (tab.name === 'followRecord'){
+          this.$refs['followRecord']._getTableData()
+        }
+
+        if (tab.name === 'changeHistory') {
+          this.$refs['changeHistory']._getTableData()
+        }
+
+        if (tab.name === 'lookRecord') {
+          this.$refs['lookRecord']._getTableData()
+        }
+
+        if (tab.name === 'agentFeedback') {
+          this.$refs['agentFeedback']._getTableData()
+        }
+
+        if (tab.name === 'houseDescription') {
+          this.$refs['houseDescription']._getTableData()
+        }
+
+        if (tab.name === 'matchCustomer') {
+          this.$refs['matchCustomer']._getTableData()
+        }
+
+        if (tab.name === 'logs') {
+          this.$refs['logs']._getTableData()
+        }
+
+      },
+
+      switchTab (name) {
+        if (name === 'followRecord') {
+          this.$refs['followRecord']._getTableData()
+        }
+
+        if (name === 'changeHistory') {
+          this.$refs['changeHistory']._getTableData()
+        }
+
+        this.activeName = name
+      },
+
+      // 修改房源基本信息
+      handleEditBaseInfo () {
+        this.hackResetEditBaseInfo = false
+        this.$nextTick(() => {
+          // 房源信息编辑会显数据
+          this.editFormInfo = {
+            baseInfo: Object.assign({}, this.houseResult.houseInfo) || {},
+            customInfo: this.houseResult.customInfo || {},
+            houseLabel: this.houseResult.houseLable || []
+          }
+
+          this.editFormInfo.baseInfo.transactionTypeId = String(this.editFormInfo.baseInfo.transactionTypeId )
+          this.hackResetEditBaseInfo = true
+
+          // 跟进房源用途 弹出对应表单
+          switch (this.houseInfo.houseUsesId) {
+            case 'house': // 住宅
+              this.dialogVisibleEditHouseInfo = true
+              break
+            case 'shops'://商铺
+              this.dialogVisibleEditShops = true
+              break
+            case 'apartment'://公寓
+              this.dialogVisibleEditApartment = true
+              break
+            case 'wareHouse'://仓库
+              this.dialogVisibleEditWare = true
+              break
+            case 'factory'://工厂
+              this.dialogVisibleEditFactory = true
+              break
+            case 'parking'://车位
+              this.dialogVisibleEditParking = true
+              break
+            case 'land'://土地
+              this.dialogVisibleEditLand = true
+              break
+            case 'officeBuiling'://写字楼
+              this.dialogVisibleEditOffice = true
+              break
+            case 'villa'://别墅
+              this.dialogVisibleEditVilla = true
+              break
+            default:
+              this.dialogVisibleEditHouseInfo = true
+          }
+
+        })
+      },
+
+      // 修改房源基本信息保存
+      handleEditBaseInfoClick (action) {
+
+        if (action === 1) {
+          this.$refs['baseInfo']._loadData()
+        }
+
+        // 保存关闭弹框
+        this.dialogVisibleEditHouseInfo = false
+        this.dialogVisibleEditShops = false
+        this.dialogVisibleEditApartment = false
+        this.dialogVisibleEditWare = false
+        this.dialogVisibleEditFactory = false
+        this.dialogVisibleEditParking = false
+        this.dialogVisibleEditLand = false
+        this.dialogVisibleEditOffice = false
+        this.dialogVisibleEditVilla = false
+
+      },
+
+      // 房源开盘
+      handleHouseOpen () {
+        this.$refs['formHouseOpen'] && this.$refs['formHouseOpen'].resetFields()
+        this.dialogVisibleHouseOpen = true
+      },
+
+      // 房源开盘保存
+      submitFormHouseOpen () {
+        this.$refs['formHouseOpen'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+
+              this.loadingSubmitBtn = true
+
+              let examineInfo = {
+                shhId: this.houseId,
+                remark: Object.assign({}, this.formHouseOpen, {
+                  transactionType: this.transactionOpts.find(item => item.value === this.formHouseOpen.transactionTypeId).label,
+                  rentPriceTypeName: this.rentPriceOpts.find(item => item.value === this.formHouseOpen.rentPriceTypeId).label,
+                  discStatus: this.discStatusOpts.find(item => item.value === this.formHouseOpen.discStatusId).label,
+                  mainterRecordid: this.houseWhId,
+                  entryRecordid: this.houseEntryId,
+                  opendiscRecordid: this.houseOpenDiscId
+                }),
+                content: '房源开盘'
+              }
+
+              let params = {
+                examineInfo: examineInfo,
+                type: EXAMINE_TYPE.HOUSE_OPEN
+              }
+
+              businessExamine(params, this.requestCfg).then(res => {
+                this._msg('success', '操作成功，审核完成即可生效')
+                this.loadingSubmitBtn = false
+                this.dialogVisibleHouseOpen = false
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+
+            })
+          }
+        })
+      },
+
+      // 房源变更状态
+      handleUpdateStatus () {
+        this.$refs['formUpdateStatus'] && this.$refs['formUpdateStatus'].resetFields()
+        this.dialogVisibleUpdateStatus = true
+      },
+
+      // 状态变更保存
+      submitFormUpdateStatus () {
+
+        this.$refs['formUpdateStatus'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let statusName =  this.statusOpts.find(item => item.value === this.formUpdateStatus.statusId).label
+
+              let contentText = `申请：由${this.houseInfo.status}变成${statusName}，理由：${this.formUpdateStatus.content}`
+              let params = {
+                examineInfo: {
+                  content: contentText,
+                  remark: {
+                    statusId: this.formUpdateStatus.statusId,
+                    statusName: statusName,
+                    mainterRecordid: this.houseWhId
+                  },
+                  shhId: this.houseId
+                },
+                type: EXAMINE_TYPE.CHANGE_STATUS
+              }
+
+              businessExamine(params, this.requestCfg).then(res => {
+                this._msg('success', '操作成功，审核完成即可生效')
+                this.loadingSubmitBtn = false
+                this.dialogVisibleUpdateStatus = false
+                // this.houseInfo.statusId = this.formUpdateStatus.statusId
+                // this.houseInfo.status = statusName
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 房源变更业主
+      handleUpdateOwner () {
+        this.$refs['formUpdateOwner'] && this.$refs['formUpdateOwner'].resetFields()
+        this.dialogVisibleUpdateOwner = true
+
+        let info = this.houseInfo
+        let formData = {
+          owner: info.owner,
+          nameTitle: info.nameTitle,
+          phone: '',
+          remark: info.remark,
+          nameType: String(info.nameType)
+        }
+        this.originalOwnerFormData = Object.assign({}, formData)
+        this.formUpdateOwner = formData
+      },
+
+      // 变更业主信息保存
+      submitFormUpdateOwner () {
+
+        this.$refs['formUpdateOwner'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let houseId = this.houseId
+              let nameTitle =  this.genderOpts.find(item => item.value === this.formUpdateOwner.nameType).label
+
+              let params = {
+                houseId: houseId,
+                owner: {
+                  id: houseId,
+                  nameTitle: nameTitle,
+                  nameType: this.formUpdateOwner.nameType,
+                  owner: this.formUpdateOwner.owner,
+                },
+                ownerphone: {
+                  phone: this.formUpdateOwner.phone,
+                  remark: this.formUpdateOwner.remark,
+                  shhId: houseId
+                }
+              }
+
+              changeHouseOwner(params, this.requestCfg).then(res => {
+                this._msg('success', res.msg)
+                this.loadingSubmitBtn = false
+                this.dialogVisibleUpdateOwner = false
+
+                this.houseInfo.nameTitle = nameTitle
+                this.houseInfo.nameType = this.formUpdateOwner.nameType
+                this.houseInfo.owner = this.formUpdateOwner.owner
+
+                // 向后台传递日志数据
+                let message = Object.assign({}, this.logMessage, {
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.OWNER_CHANGE, // 操作类型
+                  labelData: this.$utils.getFormFields(this.$refs['formUpdateOwner']),
+                  originalData: this.originalOwnerFormData,
+                  newData: this.formUpdateOwner
+                })
+                this.$updateLog.house.houseUpdateLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 获取提醒人名称
+      handleChangeRemind (val, name, data) {
+        this.formUpdateRemind.receivePeopleName = name
+        if (data.dataType !== 'user') {
+
+          this.$message({
+            showClose: true,
+            type: 'warning',
+            message: '只能选择用户!'
+          })
+
+          setTimeout(() => {
+            this.formUpdateRemind.receivePeopleName = ''
+            this.formUpdateRemind.receivePeopleId = ''
+          }, 50)
+
+        }
+      },
+
+      // 写提醒保存
+      submitFormUpdateRemind () {
+        this.$refs['formUpdateRemind'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let params = {
+                remindInfo: {
+                  receivePeopleId: this.formUpdateRemind.receivePeopleId,
+                  remindContent: this.formUpdateRemind.remindContent,
+                  remindTime: this.formUpdateRemind.remindTime,
+                  receivePeopleName: this.formUpdateRemind.receivePeopleName
+                }
+              }
+
+              saveHouseFollowAndRemind(params, this.requestCfg).then(res => {
+                this._msg('success', res.msg)
+                this.loadingSubmitBtn = false
+                this.dialogVisibleUpdateRemind = false
+
+                // 向后台传递日志数据
+                let content = `提醒人：${this.formUpdateRemind.receivePeopleName}，提醒时间：${this.formUpdateRemind.remindTime}，提醒内容：${this.formUpdateRemind.remindContent}`
+                let message = Object.assign({}, this.logMessage, {
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.HOUSE_REMIND, // 操作类型
+                  logContent: `新增提醒 -> '${content}'` // 日志内容
+                })
+                this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 新增跟进
+      handleAddFollow () {
+        this.dialogVisibleAddFollow = true
+        this.$refs['follow'] && this.$refs['follow']._resetForm()
+      },
+
+      // 写提醒
+      handleUpdateRemind () {
+        this.dialogVisibleUpdateRemind = true
+        this.$refs['formUpdateRemind'] && this.$refs['formUpdateRemind'].resetFields()
+      },
+
+      // 打开写反馈
+      addFeedback () {
+        this.$refs['feedback'] && this.$refs['feedback'].resetForm()
+        this.dialogVisibleUpdateFeedback = true
+        let lastTime = ''
+
+        if (this.houseInfo['lastShowedTime']) {
+          lastTime = this.houseInfo['lastShowedTime']
+        } else if (this.houseInfo['lastAllShowedTime']) {
+          lastTime = this.houseInfo['lastAllShowedTime']
+        } else {
+          // 测试
+          lastTime = new Date().getTime()
+        }
+
+        this.feedbackParams = {
+          shhId: this.houseId,
+          sourceId: this.houseInfo.shhId,
+          sourceCode: this.houseInfo.houseId,
+          sourceTypeId: this.houseInfo.transactionTypeId,
+          lastTime: this.$utils.timestampToTime(lastTime),
+          showedCnt: this.houseInfo.viewingCount
+        }
+      },
+
+      handleFeedbackBtnClick () {
+        this.dialogVisibleUpdateFeedback = false
+      },
+
+      //房源封盘
+      handleHouseClose () {
+        this.$refs['formUpdateHouseClose'] && this.$refs['formUpdateHouseClose'].resetFields()
+        this.dialogVisibleUpdateHouseClose = true
+      },
+
+      handleTipOff () {
+        this.$refs['formUpdateTipOff'] && this.$refs['formUpdateTipOff'].resetFields()
+        this.dialogVisibleUpdateTipOff = true
+      },
+
+      // 申请封盘保存
+      submitFormUpdateHouseClose () {
+
+        this.$refs['formUpdateHouseClose'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let closeHouseType =  this.houseCloseOpts.find(item => item.value === this.formUpdateHouseClose.closeHouseTypeId).label
+              let closeHouseEndTime = this.formUpdateHouseClose.closeHouseEndTime
+              let content = this.formUpdateHouseClose.content
+              let contentText = `申请：${closeHouseType}，到期时间：${closeHouseEndTime}，理由：${content}`
+
+              let params = {
+                examineInfo: {
+                  content: contentText,
+                  remark: {
+                    closeHouseEndTime: closeHouseEndTime,
+                    closeHouseType: closeHouseType,
+                    closeHouseTypeId: this.formUpdateHouseClose.closeHouseTypeId
+                  },
+                  shhId: this.houseId
+                },
+                type: EXAMINE_TYPE.HOUSE_CLOSE
+              }
+
+              businessExamine(params, this.requestCfg).then(res => {
+                this._msg('success', '操作成功，审核完成即可生效')
+                this.loadingSubmitBtn = false
+
+                this.dialogVisibleUpdateHouseClose = false
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 举报保存
+      submitFormUpdateTipOff () {
+
+        this.$refs['formUpdateTipOff'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let accusationType =  this.tipOffOpts.find(item => item.value === this.formUpdateTipOff.accusationTypeId).label
+
+              let contentText = `申请：举报-${accusationType}，理由：${this.formUpdateTipOff.content}`
+
+              let params = {
+                examineInfo: {
+                  content: contentText,
+                  remark: {
+                    accusationReason: this.formUpdateTipOff.content,
+                    accusationType: accusationType,
+                    accusationTypeId: this.formUpdateTipOff.accusationTypeId,
+                    mainterRecordid: this.houseWhId
+                  },
+                  shhId: this.houseId
+                },
+                type: EXAMINE_TYPE.TIPOFF
+              }
+
+              businessExamine(params, this.requestCfg).then(res => {
+                this._msg('success', '操作成功，审核完成即可生效')
+                this.loadingSubmitBtn = false
+
+                this.dialogVisibleUpdateTipOff = false
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+          }
+        })
+
+      },
+
+      // 变更用途保存
+      submitFormUpdateUsage () {
+
+        this.$refs['formUpdateUsage'].validate((valid) => {
+          if (valid) {
+            this.$confirm('确定保存编辑的信息吗？', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let houseUses =  this.usageOpts.find(item => item.fieldCode === this.formUpdateUsage.houseUsesId).fieldValue
+              let originalUses = this.houseInfo.houseUses // 原始用途
+
+              let params = {
+                statusInfo: {
+                  houseUses: houseUses,
+                  houseUsesId: this.formUpdateUsage.houseUsesId,
+                  id: this.houseId
+                },
+                type: 'changeUsage'
+              }
+              changeSomeStatus(params, this.requestCfg).then(res => {
+                this._msg('success', res.msg)
+                this.houseInfo.houseUses = houseUses
+                this.houseInfo.houseUsesId = this.formUpdateUsage.houseUsesId
+                this.$route.query.formName = this.formUpdateUsage.houseUsesId
+                this.loadingSubmitBtn = false
+                this.dialogVisibleUpdateUsage = false
+
+                // 向后台传递日志数据
+                let message = Object.assign({}, this.logMessage, {
+                  operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.HOUSE_UPDATE_USES, // 操作类型
+                  logContent: `变更用途 -> 由${originalUses}改为${houseUses}` // 日志内容
+                })
+                this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+              })
+            })
+          }
+        })
+
+      },
+
+      // 进淘宝
+      toTaoBao () {
+        this.$confirm('您确定要进入淘宝池么？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let params = {
+            statusInfo: {
+              id: this.houseId
+            },
+            type: 'toTaobao'
+          }
+          changeSomeStatus(params, this.requestCfg).then(res => {
+            this._msg('success', res.msg)
+            this.houseInfo.taoBaoStatusId = 1
+            this.houseInfo.taoBaoStatus = '淘宝池'
+
+            let message = {
+              sourceId: this.houseInfo.id, // 资源ID
+              sourceCode: this.houseInfo.houseCode, // 资源编号
+              sourceTypeId: this.houseInfo.transactionTypeId, // 资源类型
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.TAOBAO, // 操作类型
+              logContent: `进入淘宝` // 日志内容
+            }
+            this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+          })
+        })
+      },
+
+      // 非淘宝池
+      submitFormTaoBao () {
+        this.$refs['formUpdateTaoBao'].validate((valid) => {
+            if (valid) {
+              this.$confirm('确定保存编辑的信息吗？', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.loadingSubmitBtnTaoBao = true
+
+                let contentText = `申请：淘宝，淘宝原因：${this.formUpdateTaoBao.content}`
+
+                let params = {
+                  examineInfo: {
+                    content: contentText,
+                    remark: {
+                      mainterRecordid: this.houseWhId
+                    },
+                    shhId: this.houseId
+                  },
+                  type: EXAMINE_TYPE.FROM_TAOBAO
+                }
+
+                businessExamine(params, this.requestCfg).then(res => {
+                  this._msg('success', '操作成功，审核完成即可生效')
+                  this.loadingSubmitBtnTaoBao = false
+                  this.dialogVisibleUpdateTaoBao = false
+                  // this.houseInfo.taobaoStatusId = 0
+                  // this.houseInfo.taobaoStatus = '非淘宝池'
+                }).catch(() => {
+                  this.loadingSubmitBtnTaoBao = false
+                })
+              })
+            }
+        })
+      },
+
+      // 收为私盘
+      setPrivateDisc () {
+       //需要审核
+       this.$confirm('确定保存编辑的信息吗？', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            let params = {
+              examineInfo: {
+                content: '收为私盘',
+                remark: {
+                  mainterRecordid: this.houseWhId
+                },
+                shhId: this.houseId
+              },
+              type: 'setPrivatedisc'
+            }
+
+            businessExamine(params, this.requestCfg).then(res => {
+              this._msg('success', '操作成功，审核完成即可生效')
+            })
+          })
+      },
+
+      // 设置靓房 取消
+      setHouseGood (status) {
+        let title = ''
+        if (status === 1) {
+          title = '您确定要设置此房源为靓房么？'
+          action = '设置'
+          operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.SET_GOOD
+        } else {
+          let action = ''
+          let operate = ''
+          title = '您确定要取消此房源靓房么'
+          action = '取消'
+          operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.CANCEL_GOOD
+        }
+        this.$confirm(title, {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let params = {
+            shhId: this.houseId,
+            type: 'good',
+            status: status
+          }
+          updateTag(params).then(res => {
+            this._msg('success', res.msg)
+
+            this.houseInfo.isGood = status
+
+            // 向后台传递日志数据
+            let message = Object.assign({}, this.logMessage, {
+              operatTypeId: operate, // 操作类型
+              logContent: `${action}靓房` // 日志内容
+            })
+            this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+          })
+        })
+      },
+
+      // 获取房源视频
+      _getVideo () {
+        // 获取图片列表
+        let params = {
+          shhId: this.houseId,
+          attachType: '03'
+        }
+        getFile(params).then(res => {
+          this.video = res.data[0] || {}
+        })
+      },
+
+      // 删除视频
+      handleDelVideo () {
+        if (!Object.keys(this.video).length) {
+          this.$message({
+            message: '此房源下没有视频！',
+            type: 'warning',
+            duration: 2000,
+            showClose: true
+          })
+          return false
+        }
+
+        this.$confirm('确定要将此房源的视频删除么？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          let params = {
+            imgIds: this.video.id,
+            shhId: this.houseId
+          }
+          delFile(params).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功',
+              showClose: true
+            })
+
+            this._getVideo()
+
+            // 向后台传递日志数据
+            let message = Object.assign({}, this.logMessage, {
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.DEL_PICTURE, // 操作类型
+              logContent: `删除房源视频` // 日志内容
+            })
+            this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+          })
+        })
+
+      },
+
+      // 跟进组件提交完成
+      handleFollowSubmit (data) {
+        this.followInfo.unshift(data)
+        this.dialogVisibleAddFollow = false
+      },
+
+      // 取消合同弹框
+      cancelContract () {
+        this.$confirm('确定关闭正在编辑的窗口?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.dialogVisibleContract = false
+        })
+      },
+
+      // 打开合同弹框
+      handleContract (type) {
+        if (type === '01') {
+          this.dialogContractTitle = '买卖合同'
+        } else {
+          this.dialogContractTitle = '租赁合同'
+        }
+
+        this.hackResetContract = false
+        this.$nextTick(() => {
+          this.hackResetContract = true
+          this.contractParams = {
+            houseId: this.houseId,
+            houseCode: this.houseInfo.houseCode,
+            templateType: type
+          }
+          this.dialogVisibleContract = true
+        })
+      },
+
+      // 下一步到签合同界面
+      contractNextOperation () {
+        debugger
+        this.dialogContractWidth = '1100px'
+      },
+
+      // 合同填写保存
+      contractSaveResult (result) {
+        if (result) {
+          this.dialogVisibleContract = false
+          this.dialogContractWidth = '500px'
+        }
+      },
+
+      // 取消成交弹框
+      cancelDeal () {
+        this.$confirm('确定关闭正在编辑的窗口?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.dialogVisibleAddDeal = false
+        })
+      },
+
+      // 打开成交弹框
+      handleDeal (type) {
+        if (type === '00') {
+          this.dialogDealTitle = '买卖成交'
+        } else {
+          this.dialogDealTitle = '租赁成交'
+        }
+
+        this.dealParams = {
+          shhId: this.houseId,
+          dealType: type
+        }
+        this.dialogVisibleAddDeal = true
+      },
+
+      // 成交保存
+      saveDeal (result) {
+        if (result) {
+          this.dialogVisibleAddDeal = false
+        }
+      },
+
+      sendBindCode () {
+        this.$confirm('确定生成并发送房源绑定码吗？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let params = {
+            houseId: this.houseId
+          }
+
+          sendBindCode(params).then(res => {
+            this._msg('success', res.msg)
+
+            // 向后台传递日志数据
+            let message = Object.assign({}, this.logMessage, {
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.HOUSE_BINDCODE, // 操作类型
+              logContent: `发送绑定码` // 日志内容
+            })
+            this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+          })
+        })
+      },
+
+      viewPrev () {
+        this._goPage('prev')
+      },
+      viewNext () {
+        this._goPage('next')
+      },
+
+      _goPage (action) {
+        let houseList = JSON.parse(window.localStorage.getItem('houseList')) || []
+        let houseId = this.houseId
+        let goIndex = 0
+
+        houseList.forEach((item, index) => {
+
+          if (Number(houseId) === item.id) {
+            if (action === 'prev') {
+              goIndex = index - 1
+            }
+
+            if (action === 'next') {
+              goIndex = index + 1
+            }
+          }
+        })
+
+        if (goIndex < 0) {
+          goIndex = 0
+          this.$message({
+            type: 'info',
+            message: '已经是本页第一条了!'
+          })
+          return
+        }
+
+        if (goIndex > houseList.length - 1) {
+          goIndex = houseList.length - 1
+          this.$message({
+            type: 'info',
+            message: '已经是本页最后一条了!'
+          })
+          return
+        }
+
+        this.$router.push({ path: '/house/houseUsedDetail/' + houseList[goIndex].id + '/' + houseList[goIndex].houseId, query: { formName: houseList[goIndex].houseUsesId}})
+      },
+
+      _msg(type, msg) {
+        this.$message({
+          type: type || 'success',
+          message: msg || '操作成功',
+          showClose: true
+        })
+      },
+
+      _getHouseInfo (data) {
+        if (data) {
+          this.houseResult = data
+          this.houseInfo = data.houseInfo || {}
+          this.followInfo = data.followInfo || []
+          this.houseInfoPermission = data.houseInfoPermission || {}
+
+          this.logMessage = {
+            sourceId: this.houseInfo.id, // 资源ID
+            sourceCode: this.houseInfo.houseCode, // 资源编号
+            sourceTypeId: this.houseInfo.transactionTypeId, // 资源类型
+            businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.HOUSE, // 业务类型
+            remark: this.houseInfo.houseUsesId
+          }
+
+          // 给房源开盘表单赋默认值
+          this._setFormHouseOpenInfo(Object.assign({}, data.houseInfo))
+
+          if (data.relateagentInfo && data.relateagentInfo.length) {
+
+            // 录入人， 开盘人, 维护人
+             data.relateagentInfo.forEach(item => {
+              if (item.agentType === '1') {
+                this.houseEntryId = item.id
+              }
+            })
+            data.relateagentInfo.forEach(item => {
+              if (item.agentType === '2') {
+                this.houseOpenDiscId = item.id
+              }
+            })
+            data.relateagentInfo.forEach(item => {
+              if (item.agentType === '3') {
+                this.houseWhId = item.id
+              }
+            })
+
+          }
+          this.loadingView = false
+        }
+      },
+
+      _setFormHouseOpenInfo (formInfo) {
+        this.formHouseOpen.transactionTypeId = String(formInfo.transactionTypeId) || ''
+        this.formHouseOpen.discStatusId = String(formInfo.discStatusId) || ''
+        this.formHouseOpen.sellingPrice = formInfo.sellingPrice || ''
+        this.formHouseOpen.rentPrice = formInfo.rentPrice || ''
+        this.formHouseOpen.rentPriceTypeId = String(formInfo.rentPriceTypeId) || '1'
+      },
+
+      // 设置导航标签标题
+      setTagsViewTitle() {
+        let tempRoute = Object.assign({}, this.$route)
+        let code = tempRoute.params && tempRoute.params.code
+
+        const route = Object.assign({}, tempRoute, { title: code })
+        this.$store.dispatch('updateVisitedView', route)
+      }
+    },
+
+    mounted () {
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+
+      this.setTagsViewTitle()
+
+      this._getVideo()
+    },
+
+    computed: {
+      houseId () {
+        return this.$route.params.id
+      },
+
+      formName () {
+        return this.$route.query.formName
+      },
+
+      // 是否成交
+      dealStatus () {
+        let status = false
+        let statusId = this.houseInfo.statusId
+
+        status = statusId === '2' || statusId === '3' || statusId === '4' || statusId === '5'
+
+        return status
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  $color-red: #e41e2b;
+  $red-hover: #e0000f;
+  $color-blue: #26B2C9;
+  $blue-hover: #40C9C6;
+  $border-color: #dcdfe6;
+
+
+  .wrapper {
+    padding: 10px;
+    background-color: #fff;
+  }
+
+  .toolbar {
+    /*min-width: 1250px;*/
+    padding: 15px;
+    display: flex;
+    .toolbar-item {
+      padding: 15px;
+      -webkit-transition: all 0.38s ease-out;
+      transition: all 0.38s ease-out;
+      border-radius: 6px;
+      text-align: center;
+      color: #303133;
+      min-width: 86px;
+      min-height: 86px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $blue-hover;
+        color: #fff;
+      }
+
+      .icon {
+        margin-bottom: 5px;
+      }
+    }
+
+    .toolbar-group-btn {
+      min-width: 70px;
+      margin: 0 15px;
+      font-size: 12px;
+
+      p {
+        margin-top: 5px;
+        cursor: pointer;
+        &:hover {
+          color: $blue-hover;
+        }
+
+        span {
+          vertical-align: super;
+        }
+      }
+    }
+  }
+
+  .text-btn {
+    font-size: 12px;
+    color: $color-blue;
+    transition: all 0.3s;
+
+    &:hover {
+      color: $blue-hover;
+    }
+  }
+
+  .text-red {
+    color: $color-red;
+  }
+  .text-grey {
+    color: #9F9F9F;
+  }
+  .font-12 {
+    font-size: 12px;
+  }
+</style>

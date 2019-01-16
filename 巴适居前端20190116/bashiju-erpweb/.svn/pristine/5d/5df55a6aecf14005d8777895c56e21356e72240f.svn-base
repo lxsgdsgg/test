@@ -1,0 +1,182 @@
+<template>
+  <el-dialog :visible="show" @close="handleClose" :close-on-click-modal="false" title="数据权限条件组合" width="700px">
+    <el-button @click="handleAdd" size="small" type="primary" icon="el-icon-plus">新增</el-button>
+
+    <el-table
+      class="table"
+      :data="tableData"
+      style="width: 100%"
+      v-loading="loadingView"
+    >
+      <el-table-column
+        prop="name"
+        label="组合名称"
+        width="180">
+      </el-table-column>
+
+      <el-table-column
+        prop="remark"
+        label="备注">
+      </el-table-column>
+
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <!--<el-button-->
+          <!--size="mini"-->
+          <!--@click="handleEdit(scope.$index, scope.row)">编辑</el-button>-->
+          <!--<el-button-->
+          <!--size="mini"-->
+          <!--type="danger"-->
+          <!--@click="handleDelete(scope.$index, scope.row)">删除</el-button>-->
+
+          <el-button size="mini" plain @click="handleEdit(scope.row)" icon="el-icon-edit"></el-button>
+          <el-button size="mini" plain @click="handleDelete(scope.row)" icon="el-icon-delete"></el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-dialog
+      width="600px"
+      title="条件编辑"
+      :close-on-click-modal="false"
+      :visible.sync="innerVisible"
+      :append-to-body="true"
+      :before-close="handleDialogClose"
+    >
+      <edit v-if="hackReset" :isAdd="isAdd" :params="editParams" @handleClick="handleDialogClick"></edit>
+    </el-dialog>
+  </el-dialog>
+</template>
+
+<script>
+import Edit from './Edit'
+import {getCombinationPageBaseInfo, delCombination} from '@/request/manage'
+export default {
+  name: 'dataCombination',
+  components: {Edit},
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    },
+    menuId: {
+      type: [Number, String]
+    },
+
+    menuName: {
+      type: String
+    }
+  },
+  data () {
+    return {
+      tableData: [],
+      innerVisible: false,
+      isAdd: true,
+      hackReset: true,
+      editParams: null,
+      loadingView: false
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.hackReset = false
+
+      this.$nextTick(() => {
+        this.editParams = {
+          menuId: this.menuId,
+          menuName: this.menuName
+        }
+        this.hackReset = true
+        this.isAdd = true
+        this.innerVisible = true
+      })
+    },
+    handleEdit (row) {
+      this.hackReset = false
+
+      this.$nextTick(() => {
+        this.editParams = {
+          menuId: this.menuId,
+          combinationId: row.id,
+          menuName: this.menuName
+        }
+        this.hackReset = true
+        this.isAdd = false
+        this.innerVisible = true
+      })
+    },
+    handleDelete (row) {
+      this.$confirm('确定删除该条数据吗', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        delCombination({combinationId: row.id}).then(res => {
+          this.$message({
+            type: 'success',
+            message: res.msg || '操作成功'
+          })
+          this._queryTableData()
+
+          // 向后台传递日志数据
+          let message = {
+            sourceCode: this.menuName, // 资源标识
+            sourceTypeId: this.$DICT_CODE.LOG.SOURCE_TYPE.SYSTEM.MENU, // 资源类型
+            operatTypeId: this.$DICT_CODE.LOG.OPERATE_TYPE.DELETE, // 操作类型 删除
+            logContent: `${this.menuName}下删除菜单数据权限条件组合：${row.name}` // 日志内容
+          }
+          this.$updateLog.system.systemDelLog({message: JSON.stringify(message)})
+
+        })
+      })
+    },
+    handleClose () {
+      this.$emit('update:show', false)
+    },
+    handleDialogClick (action) {
+      if (action === 1) {
+        // 编辑保存
+        this._queryTableData()
+        this.innerVisible = false
+      } else {
+        // 编辑取消
+        this.innerVisible = false
+      }
+    },
+    // 点击关闭按钮
+    handleDialogClose (done) {
+      this.$confirm('确定退出当前编辑的窗口吗?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        done()
+      })
+    },
+    _queryTableData () {
+      if (this.menuId) {
+        this.loadingView = true
+        getCombinationPageBaseInfo({menuId: this.menuId}).then((res) => {
+          this.tableData = res
+          this.loadingView = false
+        }).catch(() => {
+          this.loadingView = false
+        })
+      }
+    }
+  },
+  mounted () {
+    this._queryTableData()
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+  .table {
+    margin-top: 20px;
+  }
+
+  .dialogClass {
+    z-index: 2003;
+  }
+</style>

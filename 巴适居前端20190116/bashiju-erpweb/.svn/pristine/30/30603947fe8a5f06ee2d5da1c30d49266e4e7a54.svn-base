@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!--<meta name="viewport" content="width=device-width,initial-scale=1.0">-->
+    <title>erp-front</title>
+    <link rel="stylesheet" href="https://s.bashiju.com/l/css/layui.css"media="all">
+
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--added by zuoyuntao 20180823 扩展百度地图-->
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=Tg1lQwb6XKbE8wgAflqsNimxI3myaCzD"></script>
+    <!-- built files will be auto injected -->
+
+
+   <script type="text/javascript" src="https://s.bashiju.com/l/layui.js"></script>
+    <script type="text/javascript" src="https://s.bashiju.com/j/im/util.js"></script>
+    <script type="text/javascript" src="https://s.bashiju.com/j/im/message.js"></script>
+    <script type="text/javascript" src="https://s.bashiju.com/j/im/messagebody.js"></script>
+    <script type="text/javascript" src="https://s.bashiju.com/j/im/websocketconfig.js"></script>
+    <script type="text/javascript" src="https://s.bashiju.com/j/im/chat.js"></script>
+  </body>
+</html>

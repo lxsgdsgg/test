@@ -1,0 +1,110 @@
+<template>
+    <div>
+      <el-form :model="form"  label-width="85px" :rules="rules" style="width: 100%"  ref="form" >
+        <el-form-item label="所属城市" prop="cityCode">
+          <base-city-cascader  @change="changeCity"   v-model="form.cityCode"></base-city-cascader>
+        </el-form-item>
+
+      <el-form-item label="线路名称" prop="name" size="medium">
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+
+
+      <el-form-item>
+        <div class="btn-group">
+          <el-button type="primary" :isLoading="loadingBtn" @click.native.prevent="handleSubmit">确认</el-button>
+          <el-button  @click="handleCancel">取消</el-button>
+        </div>
+      </el-form-item>
+      </el-form>
+    </div>
+</template>
+<style></style>
+<script>
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import {saveOrUpdateMetroLine} from "@/request/manage/metroLine";
+
+  export default {
+      props:{
+          data:{
+            type:Object
+          },
+          isAdd:{
+            type:Boolean
+          }
+        },
+        components:{BaseCityCascader},
+        data() {
+            return {
+              form:{
+                name:'',
+                cityCode:'',
+                id:''
+              },
+              loadingBtn:false,
+              rules:{
+                cityCode:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],
+                name:[
+                  {required:true,message:'必填项',trigger:'change'}
+                ],
+              }
+            }
+        },
+        methods: {
+          changeCity(value){
+              this.form.cityCode = value
+          },
+          handleCancel(){
+            this.$emit('handleClick',1)
+          },
+          handleSubmit(){
+            this.$refs['form'].validate((res) =>{
+              if(res){
+                this.loadingBtn = true
+                this.$confirm('确定要保存吗？',{
+                  confirmBtnText:'确定',
+                  cancelBtnText:'取消'
+                }).then(() =>{
+                    let params = {...this.form}
+                    saveOrUpdateMetroLine({jsonData:JSON.stringify(params)}).then(res =>{
+                      if(res.success){
+                        this.$message({
+                          type: 'success',
+                          message: res.msg
+                        })
+                        this.$emit('handleClick',1)
+                      }else{
+                        this.$message({
+                          type: 'warning',
+                          message: res.msg
+                        })
+                      }
+                    }).catch(error =>{
+                      console.log(error)
+                    })
+                }).catch(()=>{
+                  this.$message({
+                    type: 'info',
+                    message: '已取消'
+                  })
+                })
+              }
+            })
+          },
+          setForm(data){
+            for(let i in this.form){
+              this.form[i] = data[i]
+            }
+          }
+        },
+        mounted() {
+            if(!this.isAdd){
+              this.setForm(this.data)
+            }
+        }
+
+    }
+
+</script>

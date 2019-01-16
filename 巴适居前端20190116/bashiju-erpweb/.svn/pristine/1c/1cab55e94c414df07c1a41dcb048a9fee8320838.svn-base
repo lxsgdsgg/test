@@ -1,0 +1,38 @@
+<template>
+  <div>
+    <el-form :model="form"  label-width="85px" :rules="rules" style="width: 100%"  ref="form" >
+      <el-form-item label="所属城市" prop="cityCode">
+        <base-city-cascader  @change="changeCity"   v-model="form.cityCode"></base-city-cascader>
+      </el-form-item>
+
+      <el-form-item label="线路名称" prop="name" size="medium">
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+
+
+      <el-form-item>
+        <div class="btn-group">
+          <el-button type="primary" :isLoading="loadingBtn" @click.native.prevent="handleSubmit">确认</el-button>
+          <el-button  @click="handleCancel">取消</el-button>
+        </div>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+<style></style>
+<script>
+    export default {
+        data() {
+            return {
+                form: {}
+            }
+        },
+        methods: {},
+        mounted() {
+
+
+        }
+
+    }
+
+</script>

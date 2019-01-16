@@ -1,0 +1,498 @@
+<!-- 变更相关经纪人信息 -->
+<!-- type 经纪人类型 操作不同表单-->
+
+<template>
+  <div>
+    <!-- 维护人 -->
+    <el-form v-if="type === '3'"  v-loading="loadingView" :model="form1" :rules="rules1" ref="form" label-width="80px">
+      <el-form-item label="原维护人">
+        <base-cascader
+          :disabled="true"
+          :changeOnSelect="false"
+          v-model="form1.agentId"
+          :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item label="现维护人" prop="peopleid">
+        <base-cascader
+          :changeOnSelect="false"
+          @change="handleChangeSelect"
+          v-model="form1.peopleid"
+          :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleFormSubmit(1)">确认</el-button>
+        <el-button @click="handleFormCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <!-- 委托信息 -->
+    <el-form v-else-if="type === '7'"  v-loading="loadingView" :model="form2" :rules="rules2" ref="form" label-width="80px">
+      <el-form-item label="委托编号" prop="code">
+        <el-input v-model="form2.code"></el-input>
+      </el-form-item>
+
+      <el-form-item label="委托时间" prop="time">
+        <el-date-picker
+          style="width: 100%"
+          v-model="form2.time"
+          type="date"
+          placeholder="选择日期"
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd">
+        </el-date-picker>
+      </el-form-item>
+
+      <el-form-item label="委托人" prop="peopleid">
+        <base-cascader
+          :changeOnSelect="false"
+          @change="handleChangeSelect"
+          v-model="form2.peopleid"
+          :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleFormSubmit">确认</el-button>
+        <el-button @click="handleFormCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <!-- 图片 -->
+    <el-form v-else-if="type === '10'"  v-loading="loadingView" :model="form3" :rules="rules3" ref="form" label-width="80px">
+
+      <el-form-item label="图片人" prop="peopleid">
+        <base-cascader
+          :changeOnSelect="false"
+          @change="handleChangeSelect"
+          v-model="form3.peopleid"
+          :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleFormSubmit(3)">确认</el-button>
+        <el-button @click="handleFormCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <!-- 独家信息 -->
+    <el-form v-else-if="type === '9'"  v-loading="loadingView" :model="form4" :rules="rules4" ref="form" label-width="80px">
+      <el-form-item label="独家编号" prop="code">
+        <el-input v-model="form4.code"></el-input>
+      </el-form-item>
+
+      <el-form-item label="到期时间" prop="time">
+        <el-date-picker
+          style="width: 100%"
+          v-model="form4.time"
+          type="date"
+          placeholder="选择日期"
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd">
+        </el-date-picker>
+      </el-form-item>
+
+      <el-form-item label="独家总额" prop="djmoney">
+        <el-input v-model.number="form4.djmoney"></el-input>
+      </el-form-item>
+
+      <el-form-item label="独家人" prop="peopleid">
+        <base-cascader
+          :changeOnSelect="false"
+          @change="handleChangeSelect"
+          v-model="form4.peopleid"
+          :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleFormSubmit(4)">确认</el-button>
+        <el-button @click="handleFormCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+
+    <!-- 钥匙 -->
+    <el-form v-else-if="type === '8'"  v-loading="loadingView" :model="form5" :rules="rules5" ref="form" label-width="100px">
+      <el-form-item label="钥匙编号" prop="keyCode">
+        <el-input v-model="form5.keyCode"></el-input>
+      </el-form-item>
+
+      <el-form-item label="拿钥匙时间" prop="time">
+        <el-date-picker
+          style="width: 100%"
+          v-model="form5.time"
+          type="date"
+          placeholder="选择日期"
+          format="yyyy 年 MM 月 dd 日"
+          value-format="yyyy-MM-dd">
+        </el-date-picker>
+      </el-form-item>
+
+      <el-form-item label="钥匙收据" prop="receipt">
+        <el-input v-model="form5.receipt"></el-input>
+      </el-form-item>
+
+      <el-form-item label="得钥匙人" prop="peopleid">
+        <base-cascader
+          :changeOnSelect="false"
+          @change="handleChangeSelect"
+          v-model="form5.peopleid"
+          :data="peopleSelectOpts"
+          :props="selectProps" :dataProps="selectDataProps">
+        </base-cascader>
+      </el-form-item>
+
+      <el-form-item class="margin-b-none">
+        <el-button type="primary" :loading="loadingSubmitBtn" @click="handleFormSubmit(5)">确认</el-button>
+        <el-button @click="handleFormCancel">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+  </div>
+</template>
+
+<script>
+  import BaseCascader from '@/components/BaseCascader'
+  import {updateAgent} from '@/request/house/houseUsed'
+
+  export default {
+    props: {
+      type: {
+        type: [Number, String],
+        required: true
+      },
+      data: {
+        type: Object,
+        required: true
+      },
+      peopleSelectOpts: {
+        type: Array,
+        default () {
+          return []
+        }
+      }
+    },
+    components: {BaseCascader},
+    data () {
+      return {
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        loadingSubmitBtn: false,
+        loadingView: false,
+        form1: {
+          recordid: '',
+          agentId: '',
+          peopleid: '',
+          people: '',
+          type: '',
+          shhId: ''
+        },
+        rules1: {
+          peopleid: [
+            {required: true, message: '信息填写有误', trigger: 'change'}
+          ]
+        },
+        form2: {
+          recordid: '',
+          peopleid: '',
+          people: '',
+          code: '',
+          time: '',
+          type: '',
+          shhId: ''
+        },
+        rules2: {
+          code: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ],
+          time: [
+            {required: true, message: '该项为必填项', trigger: 'change'},
+          ],
+          peopleid: [
+            {required: true, message: '信息填写有误', trigger: 'change'},
+          ]
+        },
+        form3: {
+          recordid: '',
+          peopleid: '',
+          people: '',
+          type: '',
+          shhId: ''
+        },
+        rules3: {
+          peopleid: [
+            {required: true, message: '信息填写有误', trigger: 'change'}
+          ]
+        },
+        form4: {
+          recordid: '',
+          peopleid: '',
+          people: '',
+          type: '',
+          shhId: '',
+          code: '',
+          time: '',
+          djmoney: ''
+        },
+        rules4: {
+          peopleid: [
+            {required: true, message: '信息填写有误', trigger: 'change'}
+          ],
+          code: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ],
+          time: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ],
+          djmoney: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+            { type: 'number', message: '必须为数字值'}
+          ]
+        },
+        form5: {
+          recordid: '',
+          peopleid: '',
+          people: '',
+          type: '',
+          shhId: '',
+          time: '',
+          receipt: '',
+          keyCode: ''
+        },
+        rules5: {
+          peopleid: [
+            {required: true, message: '该项为必填项', trigger: 'change'}
+          ],
+          keyCode: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ],
+          code: [
+            {required: true, message: '该项为必填项', trigger: 'blur'}
+          ],
+          time: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ],
+          receipt: [
+            {required: true, message: '该项为必填项', trigger: 'blur'},
+          ]
+        },
+        currentSelData: null
+      }
+    },
+
+    methods: {
+      handleFormSubmit () {
+        this.$refs['form'].validate((valid) => {
+          if (valid) {
+
+            this.$confirm('确定保存编辑的信息吗?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+
+              let cfg = {
+                headers: {
+                  'Content-Type': 'application/json;charset=UTF-8;'
+                }
+              }
+              let params = {}
+              let operate = ''
+              let content = ''
+              let data = this.data
+
+              switch (this.type) {
+                case '3':
+                  params = this.form1
+                  operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.MAINER_CHANGE
+                  content = `维护人:${data.agentName}->${this.form1.people};`
+                  delete params.agentId
+                  break
+                case '7':
+                  params = this.form2
+                  operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.ENTRUST_CHANGE
+                  content = `设置委托->委托编号：${this.form2.code},委托时间：${this.form2.time},委托人：${this.form2.people};`
+                  break
+                case '10':
+                  params = this.form3
+                  operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.SET_PICTURE_PEOPLE
+                  content = `图片人:${data.agentName}->${this.form3.people};`
+                  break
+                case '9':
+                  params = this.form4
+                  operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.SET_UNIQUE
+                  content = `设置独家->独家编号：${this.form4.code},到期时间：${this.form4.time},独家金额：${this.form4.djmoney},独家人：${this.form4.people};`
+                  break
+                case '8':
+                  // Todo 钥匙人设置
+                  params = {
+                    shhId: this.form5.shhId,
+                    recordid: this.form5.recordid,
+                    peopleid: this.form5.peopleid,
+                    people: this.form5.people,
+                    ysrecordid: this.form5.ysrecordid,
+                    type: this.form5.type,
+                    ysInfo: {
+                      shhId: this.form5.shhId,
+                      keyCode: this.form5.keyCode,
+                      receipt: this.form5.receipt,
+                      reciverId: this.form5.peopleid,
+                      reciver: this.form5.people,
+                      reciveTime: this.form5.time
+                    }
+                  }
+                  operate = this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.ADD_KEY
+                  content = `钥匙人->${this.form5.people};`
+                  if(this.form5.ysrecordid !== ''){
+                    let ysHasChange = {
+                      keyCode: this.form5.keyCode,
+                      yspeopleid: this.form5.agentId
+                    }
+                    params.ysHasChange = ysHasChange
+                  }
+              }
+
+              delete params.agentName
+
+              updateAgent(params, cfg).then(res => {
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'success',
+                  message: res.msg
+                })
+
+                // 传递给父组件
+                let emitData = {
+                  agentType: this.type,
+                  departmentName: this.currentSelData.parent.name,
+                  agentName: this.currentSelData.name,
+                  mobile: this.currentSelData.mobile,
+                  updateTime: new Date().getTime(),
+                  agentId: this.currentSelData.code,
+                  id: params.recordid
+                }
+
+
+                this.$emit('handleBtnClick', 1, this.type, emitData)
+
+                // 向后台传递日志数据
+                let message = Object.assign({}, this.logMessage, {
+                  operatTypeId: operate, // 操作类型
+                  logContent: content // 日志内容
+                })
+                this.$updateLog.house.houseQueryLog({message: JSON.stringify(message)})
+
+              }).catch(() => {
+                this.loadingSubmitBtn = false
+              })
+            })
+
+          }
+        })
+      },
+
+      handleFormCancel () {
+        this.$emit('handleBtnClick', 2)
+      },
+
+      handleChangeSelect (val, name, data) {
+
+        switch (this.type) {
+          case '3':
+            this.form1.people = name
+            break
+          case '7':
+            this.form2.people = name
+            break
+          case '10':
+            this.form3.people = name
+            break
+          case '9':
+            this.form4.people = name
+            break
+          case '8':
+            this.form5.people = name
+        }
+
+        this.currentSelData = data
+
+        if (data.dataType !== 'user') {
+
+          this.$message({
+            type: 'warning',
+            message: '只能选择用户!',
+            showClose: true
+          })
+
+          setTimeout(() => {
+            for (let i = 1; i < 6; i++) {
+              this['form' + i].people = ''
+              this['form' + i].peopleid = ''
+            }
+
+            this.currentSelData = null
+          }, 50)
+
+        }
+      },
+
+      _setForm () {
+        this.loadingView = true
+        switch (this.type) {
+          case '3':
+            this.form1 = {...this.form1, ...this.data}
+            break
+          case '7':
+            this.form2 = {...this.form2, ...this.data}
+            break
+          case '10':
+            this.form3 = {...this.form3, ...this.data}
+            break
+          case '9':
+            this.form4 = {...this.form4, ...this.data}
+            break
+          case '8':
+            this.form5 = {...this.form5, ...this.data}
+        }
+        this.loadingView = false
+      },
+
+      _resetForm () {
+        if (this.$refs['form']) {
+          this.$refs['form'].resetFields && this.$refs['form'].resetFields()
+          this.$refs['form'].clearValidate && this.$refs['form'].clearValidate()
+        }
+      }
+    },
+
+    mounted () {
+      this._setForm()
+    },
+
+    watch: {
+      data: {
+        deep: true,
+        handler () {
+          this._setForm()
+        }
+      }
+    },
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

@@ -1,0 +1,539 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" :inline="true" :model="form" ref="form">
+
+          <el-form-item label="部门" prop="deptId">
+            <base-dept-cascader @change="handleChangeDept" v-model="form.deptId"></base-dept-cascader>
+          </el-form-item>
+
+          <el-form-item label="员工名称" prop="userName">
+            <el-input v-model="form.userName" placeholder="请输入员工名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="员工编号" prop="employeeNum">
+            <el-input v-model="form.employeeNum" placeholder="请输入员工编号"></el-input>
+          </el-form-item>
+
+          <el-form-item label="员工电话" prop="mobile">
+            <el-input v-model="form.mobile" placeholder="请输入员工电话"></el-input>
+          </el-form-item>
+
+          <el-form-item label="状态" prop="isLocked">
+            <el-select clearable style="width: 100%" v-model="form.isLocked" placeholder="请选择员工状态">
+              <el-option label="正常" value="01"></el-option>
+              <el-option label="锁定" value="0"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('form')">重置</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="PERMISSION_BTN.ADD" type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        size="small"
+        :data="tableData"
+        border
+        align="center"
+        height="580"
+        style="width: 100%"
+      >
+        <el-table-column
+          type="index"
+          width="50"
+          align="center"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="realName"
+          align="center"
+          label="员工名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="所在部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="sexName"
+          align="center"
+          label="性别"
+          width="80"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="birthDate"
+          align="center"
+          label="出生日期"
+          :formatter="_timeFormat"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="roleName"
+          align="center"
+          label="员工角色">
+        </el-table-column>
+
+        <el-table-column
+          prop="mobile"
+          align="center"
+          label="手机号码">
+        </el-table-column>
+
+        <el-table-column
+          prop="employee_num"
+          align="center"
+          label="员工编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="postName"
+          align="center"
+          label="职位">
+        </el-table-column>
+
+        <el-table-column
+          prop="statusName"
+          align="center"
+          label="状态">
+
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.statusName === '正常' ? 'success' : 'warning'"
+              disable-transitions>{{scope.row.statusName}}</el-tag>
+          </template>
+
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+
+          <template slot-scope="scope">
+            <el-dropdown trigger="click" @command="handleCommand" style="cursor: pointer;color: #409eff;">
+                  <span class="el-dropdown-link">
+                    选择操作<i class="el-icon-arrow-down el-icon--right"></i>
+                  </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item
+                  v-for="item in operations"
+                  :key="item.value"
+                  :command="{val: item.value, row: scope.row}"
+                  v-hasMultipleBtn="[item.permission, scope.row]"
+                >
+                  {{item.label}}
+                </el-dropdown-item>
+                <el-dropdown-item v-hasMultipleBtn="[PERMISSION_BTN.LOCKED, scope.row]" v-if="scope.row.status === '0'" :command="{val: 'UNLOCKED', row: scope.row}">解锁</el-dropdown-item>
+                <el-dropdown-item v-hasMultipleBtn="[PERMISSION_BTN.LOCKED, scope.row]" v-else :command="{val: 'LOCKED', row: scope.row}">锁定</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </template>
+
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+    <template>
+      <b-dialog title="用户编辑" width="650px" :show.sync="editRoleDialogVisible">
+        <user-edit v-if="hackReset" :data="currentRowData" :isAdd="isAdd" @handleClick="handleEditRoleDialog"></user-edit>
+      </b-dialog>
+
+      <el-dialog
+        title="用户权限设置"
+        :visible.sync="permissionDialogVisible"
+        :close-on-click-modal="false"
+        top="8vh"
+        width="1150px">
+        <user-permission v-if="hackPerReset" action="user" :params="permissionParams" @handleClick="handlePermissionDialog"></user-permission>
+      </el-dialog>
+
+      <el-dialog
+        title="用户信息转移"
+        :visible.sync="DataTransferDialogVisible"
+        width="600px">
+        <data-transfer @handleClick="handleDataTransferDialog"></data-transfer>
+      </el-dialog>
+
+      <el-dialog
+        title="数据更新"
+        :visible.sync="DataUpdateDialogVisible"
+        width="600px">
+        <data-update @handleClick="handleDataUpdateDialog"></data-update>
+      </el-dialog>
+
+      <el-dialog
+        title="重置密码"
+        :visible.sync="resetPwdDialogVisible"
+        :close-on-click-modal="false"
+        width="400px">
+
+        <reset-pwd v-if="hackPwdReset" @handleClick="resetPwdDialogVisible = false" :userInfo="resetPwdParams"></reset-pwd>
+
+      </el-dialog>
+
+      <el-dialog
+        title="头像上传"
+        :visible.sync="avatarUploadVisible"
+        :close-on-click-modal="false"
+        width="400px">
+
+        <avatar-upload v-if="hacAvatarReset" @onClose="avatarUploadVisible = false" @onSuccess="onSuccess" :id="currentRowData && currentRowData.id"></avatar-upload>
+
+      </el-dialog>
+
+    </template>
+
+  </div>
+</template>
+
+<script>
+import UserEdit from './components/UserEdit'
+import UserPermission from '../components/ThePermissionManage'
+import DataTransfer from './components/DataTransfer'
+import DataUpdate from './components/DataUpdate'
+import AvatarUpload from './components/AvatarUpload'
+import ResetPwd from './components/ResetPwd'
+import BaseDeptCascader from '@/components/BaseCascader/dept'
+import {getUserAllDataWithPage, lockedUserInfo, unLockedUserInfor} from '@/request/manage/user'
+import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+
+
+// 权限按钮
+const PERMISSION_BTN = {
+  ADD: 'userAdd',
+  EDIT: 'userEdit',
+  LOCKED: 'lockedUser',
+  PERMISSION: 'permissionSet',
+  DATA_TRANSFER: 'moveUserInfo',
+  DATA_UPDATE: 'dataUpdate',
+  RESET_PASSWORD: 'resetPsw',
+  AVATAR_UPLOAD: 'avatarUpload'
+}
+
+// 操作下拉列表
+const OPERATIONS = {
+  EDIT: 'EDIT',
+  PERMISSION: 'PERMISSION',
+  DATA_TRANSFER: 'DATA_TRANSFER',
+  DATA_UPDATE: 'DATA_UPDATE',
+  RESET_PASSWORD: 'RESET_PASSWORD',
+  LOCKED: 'LOCKED',
+  UNLOCKED: 'UNLOCKED',
+  AVATAR_UPLOAD: 'AVATAR_UPLOAD'
+}
+
+export default {
+  name: 'userManage',
+  mixins: [PageList],
+  components: {UserEdit, UserPermission, DataTransfer, DataUpdate, BaseDeptCascader, AvatarUpload, ResetPwd},
+  data () {
+
+    return {
+      PERMISSION_BTN: PERMISSION_BTN,
+      form: {
+        userName: '',
+        employeeNum: '',
+        mobile: '',
+        isLocked: '',
+        deptId: ''
+      },
+      tableData: [
+      ],
+      editRoleDialogVisible: false,
+      permissionDialogVisible: false,
+      resetPwdDialogVisible: false,
+      DataTransferDialogVisible: false,
+      DataUpdateDialogVisible: false,
+      avatarUploadVisible: false,
+      loadingQueryBtn: false,
+      loadingView: false,
+      resetPwdParams: {},
+      // 操作下拉列表
+      operations: [
+        {
+          value: 'EDIT',
+          label: '编辑',
+          permission: PERMISSION_BTN.EDIT
+        },
+        {
+          value: 'PERMISSION',
+          label: '权限设置',
+          permission: PERMISSION_BTN.PERMISSION
+        },
+        {
+          value: 'DATA_TRANSFER',
+          label: '信息转移',
+          permission: PERMISSION_BTN.DATA_TRANSFER
+        },
+        {
+          value: 'DATA_UPDATE',
+          label: '数据更新',
+          permission: PERMISSION_BTN.DATA_UPDATE
+        },
+        {
+          value: 'RESET_PASSWORD',
+          label: '重置密码',
+          permission: PERMISSION_BTN.RESET_PASSWORD
+        },
+        {
+          value: 'AVATAR_UPLOAD',
+          label: '头像上传',
+          permission: PERMISSION_BTN.AVATAR_UPLOAD
+        },
+      ],
+      currentRowData: null, // 当前操作的行数据,
+      hackReset: true,
+      hackPwdReset: true,
+      hackPerReset: true,
+      hacAvatarReset: true,
+      isAdd: true,
+      permissionParams: null
+    }
+  },
+  methods: {
+    handleQuery () {
+      this.listQueryParams = Object.assign({}, this.form)
+      this.listQuery.page = 1
+      this.listQuery.currentPage = 1
+      this._loadData(true)
+    },
+
+    handleAdd () {
+      this.hackReset = false
+      this.$nextTick(() => {
+        this.hackReset = true
+        this.currentRowData = null
+        this.isAdd = true
+        this.editRoleDialogVisible = true
+      })
+    },
+    handleEdit (row) {
+      this.hackReset = false
+      this.$nextTick(() => {
+        this.hackReset = true
+        this.currentRowData = row
+        this.isAdd = false
+        this.editRoleDialogVisible = true
+      })
+    },
+    // 锁定用户
+    handleLocked (id, name) {
+      this.$confirm('确定锁定该用户？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        lockedUserInfo({userId: id}).then(res => {
+          this._loadData(false)
+          this.$message({
+            type: 'success',
+            message: res.msg || '操作成功'
+          })
+
+          // 向后台传递日志数据
+          let message = {
+            sourceCode: name, // 资源标识
+            sourceTypeId: this.$DICT_CODE.LOG.SOURCE_TYPE.MANAGE.USER, // 资源类型
+            operatTypeId: this.$DICT_CODE.LOG.OPERATE_TYPE.LOCK_USER, // 操作类型
+            logContent: `用户：${name} -> 被锁定` // 日志内容
+          }
+          this.$updateLog.manage.manageQueryLog({message: JSON.stringify(message)})
+
+        })
+      })
+    },
+    // 解锁用户
+    handleUnlocked (id, name) {
+      this.$confirm('确定解锁该用户？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        unLockedUserInfor({userId: id}).then(res => {
+          this._loadData(false)
+          this.$message({
+            type: 'success',
+            message: res.msg || '操作成功'
+          })
+
+          // 向后台传递日志数据
+          let message = {
+            sourceCode: name, // 资源标识
+            sourceTypeId: this.$DICT_CODE.LOG.SOURCE_TYPE.MANAGE.USER, // 资源类型
+            operatTypeId: this.$DICT_CODE.LOG.OPERATE_TYPE.UNLOCK_USER, // 操作类型
+            logContent: `用户：${name} -> 被解除锁定` // 日志内容
+          }
+          this.$updateLog.manage.manageQueryLog({message: JSON.stringify(message)})
+        })
+      })
+    },
+    // 用户权限
+    handlePermission (data) {
+      this.hackPerReset = false
+
+      this.$nextTick(() => {
+        this.hackPerReset = true
+        this.currentRowData = data
+        this.permissionParams = {
+          roleId: data.roleId,
+          roleGroup: data.groups,
+          userId: data.id,
+          name: data.realName
+        }
+        this.permissionDialogVisible = true
+      })
+
+    },
+    handleEditRoleDialog (action) {
+      if (action && action === 1) {
+        this._loadData(false)
+        this.editRoleDialogVisible = false
+      } else if (action && action === 2) {
+        this.editRoleDialogVisible = false
+      }
+    },
+    handlePermissionDialog (action) {
+      if (action && action === 1) {
+        this.permissionDialogVisible = false
+      } else if (action && action === 2) {
+        this.permissionDialogVisible = false
+      }
+    },
+    // 打开重置密码弹框
+    handleResetPassword (id, name) {
+      this.hackPwdReset = false
+
+      this.$nextTick(() => {
+        this.hackPwdReset = true
+        this.resetPwdParams = {id, name}
+        this.resetPwdDialogVisible = true
+      })
+
+    },
+
+    // 头像上传
+    avatarUpload (data) {
+      this.hacAvatarReset = false
+      this.$nextTick(() => {
+        this.hacAvatarReset = true
+        this.currentRowData = data
+        this.avatarUploadVisible = true
+      })
+    },
+    onSuccess () {
+      this.avatarUploadVisible = false
+    },
+    handleDataTransfer () {
+      this.DataTransferDialogVisible = true
+    },
+    handleDataTransferDialog (action) {
+      if (action && action === 1) {
+        this.DataTransferDialogVisible = false
+      } else if (action && action === 2) {
+        this.DataTransferDialogVisible = false
+      }
+    },
+    handleDataUpdate () {
+      this.DataUpdateDialogVisible = true
+    },
+    handleDataUpdateDialog (action) {
+      if (action && action === 1) {
+        this.DataUpdateDialogVisible = false
+      } else if (action && action === 2) {
+        this.DataUpdateDialogVisible = false
+      }
+    },
+    /**
+     * 操作下拉选择事件
+     * @param command 选中项指令
+     */
+    handleCommand (command) {
+      const val = command.val
+      const row = command.row
+      switch (val) {
+        case OPERATIONS.EDIT: // 编辑
+          this.handleEdit(row)
+          break
+        case OPERATIONS.LOCKED: // 锁定
+          this.handleLocked(row.id, row.realName)
+          break
+        case OPERATIONS.UNLOCKED: // 解锁
+          this.handleUnlocked(row.id, row.realName)
+          break
+        case OPERATIONS.PERMISSION: // 权限
+          this.handlePermission(row, row.realName)
+          break
+        case OPERATIONS.DATA_TRANSFER: // 数据转移
+          this.handleDataTransfer(row.id, row.realName)
+          break
+        case OPERATIONS.DATA_UPDATE: // 数据更新
+          this.handleDataUpdate(row.id, row.realName)
+          break
+        case OPERATIONS.RESET_PASSWORD: // 重置密码
+          this.handleResetPassword(row.id, row.realName)
+          break
+        case OPERATIONS.AVATAR_UPLOAD: // 头像上传
+          this.avatarUpload(row)
+      }
+    },
+
+    handleChangeDept (val, name, data) {
+      if (data.dataType !== 'dept') {
+
+        setTimeout(() => {
+          this.form.deptId = ''
+        }, 10)
+      }
+    },
+
+    _loadData (btnQuery) {
+      if (btnQuery) {
+        this.loadingQueryBtn = true
+      }
+      this.loadingView = true
+      let params = Object.assign({}, this.listQueryParams, {
+        limit: this.listQuery.limit,
+        page: this.listQuery.page
+      })
+
+      getUserAllDataWithPage(params).then(res => {
+        this.tableData = res.data
+        this.listQuery.total = res.count
+        this.loadingQueryBtn = false
+        this.loadingView = false
+      })
+    },
+    _timeFormat (row, column, cellValue) {
+      return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+    },
+    _resetForm (formName) {
+      this.$refs[formName] && this.$refs[formName].resetFields()
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

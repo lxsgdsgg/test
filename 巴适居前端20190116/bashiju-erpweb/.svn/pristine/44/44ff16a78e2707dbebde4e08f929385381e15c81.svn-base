@@ -1,0 +1,165 @@
+<!-- 房源跟进记录 -->
+<template>
+  <div style="min-height: 550px;">
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loadingView"
+      size="mini"
+      style="margin-top: 10px"
+    >
+      <el-table-column
+        prop="followTime"
+        :formatter="_timeFormat"
+        label="跟进时间">
+      </el-table-column>
+      <el-table-column
+        prop="followType"
+        label="跟进方式">
+      </el-table-column>
+      <el-table-column
+        prop="followerName"
+        label="跟进人">
+      </el-table-column>
+      <el-table-column
+        prop="followerDeptName"
+        label="所在部门">
+      </el-table-column>
+      <el-table-column
+        prop="content"
+        label="跟进内容"
+        show-overflow-tooltip
+      >
+      </el-table-column>
+      <el-table-column
+        label="操作"
+        width="100"
+      >
+        <template slot-scope="scope">
+          <!--v-hasMultipleBtn="['delFollowBtn',scope.row]"-->
+          <el-button type="primary" @click="handleDelete(scope.row)" icon="el-icon-delete"
+             v-if="" class="mr10" size="mini">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <b-pagination
+      :listQuery="listQuery"
+      @handleSizeChange="handleSizeChange"
+      @handleCurrentChange="handleCurrentChange">
+    </b-pagination>
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/deal/businessTransactionDeal'
+  import DealBaseWriteLogMixins from './DealBaseWriteLogMixins'
+
+  export default {
+    props:{
+      dealId: {
+        type:String,
+        required: true,
+        default() {
+          return ''
+        }
+      },
+      dealType: {
+        type: String,
+        required: true
+      }
+    },
+    mixins: [DealBaseWriteLogMixins],
+    data () {
+      return {
+        tableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        loadingView: false
+      }
+    },
+
+    methods: {
+      handleDelete (row) {
+        this.$confirm('确定删除该条数据吗?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          RequestURL.delFollowRecord({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg
+            })
+            this._getTableData()
+            this.$emit('handleFollowDele',this.tableData)
+
+            let sourceTypeId
+            if(this.dealType === '00'){
+              sourceTypeId = '6'
+            }else if(this.dealType === '01'){
+              sourceTypeId = '7'
+            }else if(this.dealType === '02'){
+              sourceTypeId = '8'
+            }
+            this.dealDelLog(this.dealId, this.dealId,sourceTypeId , '425','删除跟进记录')
+          })
+        })
+      },
+
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+
+      _getTableData () {
+        if(this.dealId === undefined){
+          this.dealId = ''
+        }else{
+          this.loadingView = true
+          const params = {
+            dealId: this.dealId,
+            page: this.listQuery.page,
+            limit: this.listQuery.limit
+          }
+          RequestURL.queryFollowRecordByDealId(params).then(res => {
+            this.tableData = res.data
+            this.listQuery.total = res.count
+            this.loadingView = false
+          }).catch(() => {
+            this.loadingView = false
+          })
+        }
+      },
+
+      // 格式化日期
+      _timeFormat (row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue)
+      }
+    },
+
+    watch:{
+      dealId(){
+        this._getTableData()
+      }
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

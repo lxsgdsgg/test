@@ -1,0 +1,205 @@
+<template>
+  <div>
+    <el-form style="border: #007bff;height: auto">
+      <el-table
+        :data="tableData6"
+        :span-method="arraySpanMethod"
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="name"
+          label="成果"
+          align="center"
+          width="180">
+          <el-table-column
+            prop="amount1"
+            label="买卖成交"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="租赁成交"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="一手成交"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求购下定"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求租下定"
+          ></el-table-column>
+        </el-table-column>
+
+        <div></div>
+        <el-table-column
+          prop="name"
+          align="center"
+          label="资源">
+          <el-table-column
+            prop="amount2"
+            label="出售新增"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="出租新增"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求购新增"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求租新增"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="独家委托(售)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="独家委托(租)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="上传视频(售)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="上传视频(租)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="钥匙委托(售)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="钥匙委托(租)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="设置委托(售)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="设置委托(租)"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="出售开盘"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="出租开盘"
+          ></el-table-column>
+        </el-table-column>
+      </el-table>
+
+      <el-table
+        :data="tableData6"
+        :span-method="arraySpanMethod"
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="name"
+          label="带看"
+          align="center"
+          width="180">
+          <el-table-column
+            prop="amount1"
+            label="求租带看量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求购带盘量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求租带看量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求购带盘量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="一手带看量"
+          ></el-table-column>
+        </el-table-column>
+        <el-table-column
+          prop="name"
+          align="center"
+          label="跟进">
+          <el-table-column
+            prop="amount2"
+            label="求购跟进量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求租跟进量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="房源跟进量"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="房源实勘量"
+          ></el-table-column>
+        </el-table-column>
+        <el-table-column
+          prop="amount2"
+          align="center"
+          label="看电话">
+          <el-table-column
+            prop="amount2"
+            label="房源电话"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求购电话"
+          ></el-table-column>
+          <el-table-column
+            prop="amount2"
+            label="求租电话"
+          ></el-table-column>
+        </el-table-column>
+
+      </el-table>
+    </el-form>
+      <el-form  style="height: 100px" >
+          <el-form-item label="心得:" >
+            <el-input
+              type="textarea"
+              :rows="4"
+            ></el-input>
+          </el-form-item>
+
+          <div class="btn-group">
+            <el-button style="color: #007bff">提交</el-button>
+          </div>
+      </el-form>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        tableData6: [{
+          id: '12987122',
+          name: '王小虎',
+          amount1: '234',
+          amount2: '3.2',
+          amount3: 10
+        }]
+      };
+    },
+    methods: {
+
+
+      },
+  };
+</script>

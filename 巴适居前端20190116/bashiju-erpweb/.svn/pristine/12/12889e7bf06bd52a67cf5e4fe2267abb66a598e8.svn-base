@@ -1,0 +1,230 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="form">
+        <el-form size="small" :inline="true" :model="form" ref="form">
+
+          <el-form-item prop="cityCode">
+            <base-city-cascader  @change="handleCity" v-model="form.cityCode" placeholder="所属城市"></base-city-cascader>
+          </el-form-item>
+
+          <el-form-item prop="name">
+            <el-input v-model="form.name" placeholder="线路名称"></el-input>
+          </el-form-item>
+
+
+          <el-form-item>
+            <el-button type="primary" @click="queryMetroLine(true)" :loading="loadingBtn">查询</el-button>
+            <el-button @click.native.prevent="handleReset">清空</el-button>
+            <el-button v-hasOnlyBtn="'addBtn'"  @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table :data="tableData" border align="left" style="width: 100%">
+
+        <!--<el-table-column-->
+          <!--prop="id"-->
+          <!--align="left"-->
+          <!--label="ID">-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          prop="cityName"
+          align="left"
+          label="城市名称">
+        </el-table-column>
+
+
+        <el-table-column
+          prop="name"
+          align="left"
+          label="地铁线路名称">
+        </el-table-column>
+
+        <!--<el-table-column-->
+          <!--prop="operator"-->
+          <!--align="left"-->
+          <!--label="添加时间">-->
+        <!--</el-table-column>-->
+
+
+        <el-table-column
+          prop="updateTime"
+          align="left"
+          :formatter="timeFormat"
+          label="操作时间">
+        </el-table-column>
+
+
+
+        <el-table-column
+          prop="operator"
+          align="left"
+          label="操作人">
+        </el-table-column>
+
+        <el-table-column
+          align="left"
+          label="操作">
+          <template slot-scope="scope">
+            <el-button v-hasOnlyBtn="editBtn" type="text" size="small" @click="handleEditor(scope.row)">编辑</el-button>
+            <el-button v-hasOnlyBtn="delBtn" type="text" size="small" @click="handleDelete(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <template>
+      <el-dialog
+        title="编辑"
+        :visible.sync="editorDialog"
+        :close-on-click-modal="false"
+        width="25%"
+      >
+        <metro-line-editor @handleClick="optionOrClose" v-if="hackReset" :data="currentRowData" :isAdd="isAdd"></metro-line-editor>
+      </el-dialog>
+    </template>
+  </div>
+
+</template>
+<style></style>
+<script>
+  import BaseCityCascader from '@/components/BaseCascader/city'
+  import PageList from '@/mixins/pageList'
+  import {queryMetroLine,delMetroLineById} from "@/request/manage/metroLine";
+  import MetroLineEditor from './component/metroLineEditor'
+  import  *  as  RequestUrl from '@/request/log/systemPlatformLog'
+  export default {
+        components:{PageList,BaseCityCascader,MetroLineEditor},
+        mixins:[PageList],
+        name:'metroLine',
+        data() {
+            return {
+              form:{
+                name:'',
+                cityCode:''
+              },
+              tableData:[],
+              loadingView:false,
+              loadingBtn:false,
+              hackReset:false,
+              isAdd:false,
+              currentRowData:null,
+              editorDialog:false,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              }
+            }
+        },
+        methods: {
+          _loadData(){
+            this.queryMetroLine(false)
+          },
+          //时间戳格式化
+          timeFormat(row,column,cellValue){
+            return this.$utils.timeFormat(cellValue)
+          },
+          //城市
+          handleCity(){
+
+          },
+          handleAdd(){
+            this.hackReset = false
+            this.$nextTick(() =>{
+              this.hackReset = true
+              this.isAdd = true;
+              this.currentRowData = null
+              this.editorDialog = true
+            })
+          },
+          //编辑
+          handleEditor(row){
+              this.hackReset = false
+              this.$nextTick(() =>{
+                this.hackReset = true
+                this.isAdd = false;
+                this.currentRowData = row
+                this.editorDialog = true
+              })
+          },
+          //删除
+          handleDelete(row){
+              this.$confirm('确定要删除地铁线路吗？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消'
+              }).then(() =>{
+                let param = {id:row.id}
+                delMetroLineById(param).then(res =>{
+                  if(res.success){
+                    this.$message({type:'success',message:res.msg})
+                    let message = {
+                      // sourceId:  row.demandId,//资源编号：客源编号
+                      sourceCode:  row.name,//资源编号：客源编号
+                      sourceTypeId:11,//类型：求购
+                      operatTypeId: 3,//操作类型 删除,
+                      logContent: '删除'+row.name//日志内容
+                    }
+                    RequestUrl.systemDelLog({message:JSON.stringify(message)}).then(res=>{
+                       console.log(res)
+                    }).catch(error =>{
+                        console.log(error)
+                    })
+                    this.queryMetroLine(false)
+                  }else{
+                    this.$message({type:'warning',message:res.msg})
+                  }
+                }).catch(error =>{
+                  console.log(error)
+                })
+              })
+          },
+          //重置输入框
+          handleReset(){
+              this.$refs['form'].resetFields()
+          },
+          //窗体关闭和开起
+          optionOrClose(value){
+            if(value === 1){
+              this.editorDialog = false
+              this.queryMetroLine(false)
+            }else if(value == 2){
+              this.editorDialog = false
+            }
+          },
+          //查询数据
+          queryMetroLine(btn){
+            if(btn){
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            this.loadingView = btn
+            this.loadingBtn = true
+            let params = Object.assign({},this.form,{
+              limit:this.listQuery.limit,
+              page:this.listQuery.page
+            })
+            queryMetroLine(params).then(res =>{
+              this.tableData = res.data
+              console.log(res.data)
+              this.listQuery.total = res.count
+              this.loadingView = false
+              this.loadingBtn = false
+            })
+          }
+        },
+        mounted() {
+              this.queryMetroLine(false)
+        }
+
+    }
+
+</script>

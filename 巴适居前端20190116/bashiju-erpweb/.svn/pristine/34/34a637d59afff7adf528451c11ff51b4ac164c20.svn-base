@@ -1,0 +1,17 @@
+// 首页接口集合
+import {onGet, onPost} from './main'
+
+// 获取公告
+export const queryNoticeInfo = params => {
+  return onGet('oa/queryNoticeInfo', params)
+}
+
+// 获取快讯
+export const queryNewsInfo = params => {
+  return onGet('oa/queryNewsInfo', params)
+}
+
+// 获取首页最新房源
+export const queryHouseByTime = params => {
+  return onGet('house/queryHouseByTime', params)
+}

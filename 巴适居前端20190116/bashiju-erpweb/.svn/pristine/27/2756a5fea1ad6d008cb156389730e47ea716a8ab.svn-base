@@ -1,0 +1,53 @@
+import {logout, unlock} from '../../request/app'
+
+const app = {
+  state: {
+    isLock: false
+  },
+
+  mutations: {
+    SET_LOCK: (state) => {
+      state.isLock = true
+    },
+
+    CLEAR_LOCK: (state) => {
+      state.isLock = false
+    }
+  },
+
+  actions: {
+    setLock({ dispatch, commit, state}) {
+      return new Promise(resolve => {
+        commit('SET_LOCK')
+        dispatch('logout')
+        resolve(state.isLock)
+      })
+    },
+
+    clearLock ({ commit, state}) {
+      return new Promise(resolve => {
+        commit('CLEAR_LOCK')
+        resolve(state.isLock)
+      })
+    },
+
+    logout () {
+      return new Promise(resolve => {
+        logout().then(() => {
+          resolve()
+        })
+      })
+    },
+
+    unlock ({ dispatch, state}, params) {
+      return new Promise(resolve => {
+        unlock(params).then(() => {
+          dispatch('clearLock')
+          resolve()
+        })
+      })
+    }
+  }
+}
+
+export default app

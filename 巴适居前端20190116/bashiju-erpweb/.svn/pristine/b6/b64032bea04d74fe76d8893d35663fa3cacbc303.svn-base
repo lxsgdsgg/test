@@ -1,0 +1,465 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+         
+          <el-form-item label="" prop="businessType">
+            <el-select v-model="queryForm.businessType" placeholder="业务类型" >
+              <el-option
+                v-for="item in selectBusinessType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="" prop="selectId">
+            <base-cascader
+                @change="handleChangeRemind"
+                v-model="queryForm.selectId"
+                :data="peopleSelectOpts" :props="selectProps" :dataProps="selectDataProps" placeholder="部门、员工">
+            </base-cascader>
+          </el-form-item>
+         
+          <el-form-item label="" prop="months">
+            <el-date-picker
+              v-model="queryForm.startMonth"
+              type="month"
+              placeholder="选择日期" value-format="yyyy-MM">
+            </el-date-picker>
+            <el-date-picker
+              v-model="queryForm.endMonth"
+              type="month"
+              placeholder="选择日期" value-format="yyyy-MM">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetQueryForm">重置</el-button>
+          </el-form-item>
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'commissionsInfoMake'" type="primary" @click="handleAddWages">生成上月提成</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        @row-click="_showValue"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          prop="companyName"
+          align="center"
+          label="公司">
+        </el-table-column>
+
+        <el-table-column
+          prop="businessTypeName"
+          align="center"
+          label="业务类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="userName"
+          align="center"
+          label="员工">
+        </el-table-column>
+
+        <el-table-column
+          prop="months"
+          align="center"
+          label="月份">
+        </el-table-column>
+
+        <el-table-column
+          prop="estimateProfit"
+          align="center"
+          label="实应收提成金额">
+        </el-table-column>
+
+        <el-table-column
+          prop="amount"
+          align="center"
+          label="提成金额">
+        </el-table-column>
+
+         <!-- <el-table-column
+          prop="actualComRate"
+          align="center"
+          label="实收提成比例">
+        </el-table-column> -->
+
+         <!-- <el-table-column
+          prop="calculateFormula"
+          align="center"
+          label="提成计算方式">
+        </el-table-column> -->
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      
+      <b-dialog :show.sync="dialogMakeWages" title="生成员工提成" width="450px" height="600px">
+        <el-form size="small" ref="wageForm" :rules="wageFormRules" :model="wageForm" >
+            
+            <el-form-item label="选择公司" prop="companyId">
+              <el-select style="width: 100%" v-model="wageForm.companyId">
+                <el-option value="">--请选择--</el-option>
+                <el-option
+                  v-for="item in companyOpts"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+          </el-form-item>
+          <el-form-item label="月份" prop="months">
+            <el-date-picker
+              v-model="wageForm.months"
+              type="month"
+              placeholder="选择日期" value-format="yyyy-MM" style="width:100%">
+            </el-date-picker>
+          </el-form-item>
+          <!-- <el-form-item label="选择员工" prop="userId">
+              <base-cascader
+                v-model="wageForm.userId"
+                :changeOnSelect="false"
+                :url="getReferenceUserSelectUrl"
+                :props="cascaderProps"
+                :dataProps="cascaderDataProps" @change="onChange">
+              </base-cascader>
+            </el-form-item> -->
+
+            <el-form-item style="padding-left:60%">
+              <el-button type="primary" @click.native.prevent="makeWage" :loading="loadingmakeWage">生成</el-button>
+              <el-button @click.native.prevent="dialogMakeWages=false">取消</el-button>
+            </el-form-item>
+            
+          </el-form>
+        </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/emolument' // 请求后端URL路径
+  import BaseDeptCascader from '@/components/BaseCascader/dept'
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  import {dealAddLog, dealUpdateLog, dealDelLog,dealQueryLog} from '@/request/log/finLog'
+  export default {
+    name: 'employeeCommissions',
+    mixins: [PageList],
+    components: {BaseDeptCascader,BaseCascader},
+    data () {
+      return {
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        selectBusinessType: [],
+        queryForm: {
+          startMonth: '',
+          endMonth: ''
+        },
+        getReferenceUserSelectUrl: 'manage/usermanage/queryReferenInfoToCreateTree', // 选员工
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        addForm: {
+          deptId: '',
+          months: '',
+          commissionPrice: '',
+          commissionRate: ''
+        },
+        // 表单校验配置
+        wageFormRules: {
+          companyId: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+          months: [
+            {required: true, message: '请选择月份', trigger: 'blur'}
+          ]
+        },
+        dialogAddVisible: false,
+        dialogShowWelfarePay: false,
+        dialogShowSsfAmount: false,
+        dialogShowBonusDetail: false,
+        dialogShowFineDetail: false,
+        dialogMakeWages: false,
+        loadingSubmitBtn: false,
+        loadingSaveEditWelfarePay: false,
+        loadingmakeWage: false,
+        loadingForm: false,
+        currentRowData: null, // 当前操作的行数据
+        isAdd: false,
+        selectType: [],
+        welfarePayData: [],
+        ssfAmountData: [],
+        moneyArr: [],
+        bonusPayData: [],
+        finePayData: [],
+        tableDataId:'',
+        companyOpts: [],
+        wageForm:{},
+        nowQueryForm: {}
+      }
+    },
+    methods: {
+      _resetQueryForm(){
+        this._resetForm('queryForm')
+        this.queryForm.deptId = ''
+        this.queryForm.userId = ''
+        this.queryForm.selectId = ''
+        this.queryForm.startMonth = ''
+        this.queryForm.endMonth = ''
+      },
+      // 获取部门或人
+      handleChangeRemind (val, name, data) {
+        if (data.dataType == 'dept') {
+          this.queryForm.deptId = data.code
+          delete this.queryForm.userId
+          delete this.queryForm.selectId
+
+        }else if(data.dataType == 'user'){
+          this.queryForm.userId = data.code
+          delete this.queryForm.deptId
+          delete this.queryForm.selectId
+        }else{
+          setTimeout(() => {
+            this.queryForm.deptId = ''
+            this.queryForm.userId = ''
+            this.queryForm.selectId = ''
+          }, 50)
+        }
+      },
+      getSelectBusinessType(){
+        let params = {}
+        RequestURL.getSelectBusinessType(params).then(res => {
+          Object.keys(res.data.businessType).forEach(key => {
+            let item = {
+              value: key,
+              label: res.data.businessType[key]
+            }
+            this.selectBusinessType.push(item)
+          })
+        })
+        
+      },
+      //生成上月提成
+      handleAddWages(row){
+        /*
+        this.getCompanyDataSelect();
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth();
+        if(month<10){
+          month = "0"+ month
+        }
+        for(let i=0;i<this.tableData.length;i++){
+          if(this.tableData[i].months==year+"-"+month){
+            //this.$alert('已经生成过了！','提示')
+          }
+        }
+         this._resetForm('wageForm')
+        this.dialogMakeWages = true;
+        */
+       this.makeWage()
+        
+      },
+
+      makeWage(){
+          let date = new Date();
+          let year = date.getFullYear();
+          let month = date.getMonth();
+          if(month<10){
+            month = "0"+ month
+          }
+          let months = year + "-"+month
+          const params = {
+            months: '2018-12',
+            userIds: ''
+          }
+          this.loadingmakeWage = true
+          RequestURL.makeEmployeeCommissions(params).then(res => {
+          this.loadingmakeWage = false
+          this.dialogMakeWages = false
+          if (res.success) {
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功'
+            })
+          this._loadData(false)
+          //记日志
+              let logContent = "生成"+months+"月份提成"
+              let message = {
+              sourceId: '',
+              sourceCode: months+"月份提成",
+              businessTypeId: 5,//业务类型，
+              sourceTypeId: 10,
+              operatTypeId: 545,
+              logContent: logContent
+            }
+            dealAddLog({message: JSON.stringify(message)}).then(res => {
+              console.log(res)
+            })
+          }else{
+            this.$message({
+              type: 'warning',
+              message: res.msg
+            })
+          }
+        }).catch((err) => {
+          console.log(err);
+          this.loadingmakeWage = false
+          this.dialogMakeWages = false
+          this.$message({
+            type: 'info',
+            message: err.msg || '生成失败'
+          })
+        })
+      },
+
+ 
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+       
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        if(!btnQuery){
+          let date = new Date();
+          let year = date.getFullYear();
+          let month = date.getMonth();
+          if(month<10){
+            month = "0"+ month
+          }
+          let months = year+"-"+month
+          this.nowQueryForm.startMonth = months
+          this.nowQueryForm.endMonth = months
+        }
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getEmployeeCommissionsInfo(params).then(res => {
+          
+          //console.log(11111)
+          console.log(res);
+          this.tableData = res.data.map(item => {
+            item.edit = false
+           item.businessTypeName = this.selectBusinessType.find(typeItem => {
+              if (Number(typeItem.value) === item.businessType) {
+                return typeItem;
+              }
+            }).label
+            
+            return item
+          })
+          //console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+         
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      onChange(){
+
+      },
+      // 表单回填
+      _setForm () {
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+      _showValue(row, event, column){
+        this.moneyArr = []
+        //console.log(row.widgetCode)
+        
+
+      },
+
+      
+       getCompanyDataSelect: function () {
+        this.companyOpts = []
+        let params = Object.assign({},{}, {})
+        RequestURL.queryCompanySelectData(params).then((res) => {
+          this.companyOpts = res
+        }).catch(err => {
+          console.log(err)
+        })
+      },
+
+    },
+    mounted () {
+      //人员选择
+      queryReferenceUserSelect({}).then(res => {
+        this.peopleSelectOpts = res
+      })
+      this.getSelectBusinessType()
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = date.getMonth();
+      if(month<10){
+        month = "0"+ month
+      }
+      let months = year+"-"+month
+      this.queryForm.startMonth = months;
+      this.queryForm.endMonth = months;
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

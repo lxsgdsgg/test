@@ -1,0 +1,22 @@
+/*********************房源日志***************************/
+
+/*********************管理平台****/
+import {onPost,onGet} from "../main";
+//房源平台【添加操作】记录日志
+export const houseAddLog = params =>{
+  return onPost('sso/main/houseAddLog',params);
+}
+// 房源平台修改操作】记录日志
+export const houseUpdateLog = params =>{
+  return onPost('sso/main/houseUpdateLog',params);
+}
+// 房源平台【查询操作】记录日志
+export const houseQueryLog = params =>{
+  return onPost('sso/main/houseQueryLog',params);
+}
+// 房源平台【删除操作】记录日志
+export const houseDelLog = params =>{
+  return onPost('sso/main/houseDelLog',params);
+}
+
+

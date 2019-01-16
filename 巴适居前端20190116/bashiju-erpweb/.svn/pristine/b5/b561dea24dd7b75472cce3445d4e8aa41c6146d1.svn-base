@@ -1,0 +1,76 @@
+<template>
+  <section class="wrapper">
+    <nav>
+      <el-row>
+        <el-col class="item" :span="6">
+          <a class="logo" href="javascript:;"></a>
+        </el-col>
+
+        <el-col class="item" :span="6">昆明市呈贡区春融街置信银河广场B座1102</el-col>
+
+        <el-col class="item" :span="6">
+          <icon
+            class="icon"
+            name="phone"
+            width="20"
+            height="20"
+            scale="20">
+          </icon>
+          电话  400-353-9625
+        </el-col>
+
+        <el-col class="item" :span="6">
+          <icon
+            class="icon"
+            name="email"
+            width="20"
+            height="20"
+            scale="20">
+          </icon>
+          邮箱  m150@163.com
+        </el-col>
+      </el-row>
+    </nav>
+  </section>
+</template>
+
+<script type="text/ecmascript-6">
+export default {
+  name: 'v-footer'
+}
+</script>
+
+<style lang="scss" scoped>
+  $black: #222222;
+  .wrapper {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    background-color: $black;
+    color: #fff;
+
+    nav {
+      height: 60px;
+      line-height: 60px;
+    }
+
+    .item {
+      float: left;
+      text-align: center;
+
+      .icon {
+        margin-right: 10px;
+        vertical-align: sub;
+      }
+    }
+
+    .logo {
+      margin: 10px auto 0 auto;
+      display: block;
+      width: 135px;
+      height: 45px;
+      background-image: url('../../common/images/logo.png');
+      background-repeat: no-repeat;
+    }
+  }
+</style>

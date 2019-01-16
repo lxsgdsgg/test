@@ -1,0 +1,214 @@
+<template>
+  <!--@mouseover="hideMenuPanel1"-->
+  <section class="wrapper" @mouseover="hideMenuPanel1" @mouseout="hideMenuPanel2">
+    <v-header
+      :menuData="menuData"
+      :menuPanelShow="menuPanelShow"
+      :userInfo="userInfo"
+    >
+    </v-header>
+
+    <div class="aside" id="aside" :class="{ asideShow: asideShow }" width="auto">
+      <v-slideBar-panel :data="menuData" :asideShow="asideShow"></v-slideBar-panel>
+    </div>
+
+    <div class="layout-content">
+      <!--<router-view></router-view>-->
+      <app-main/>
+
+      <v-footer></v-footer>
+    </div>
+  </section>
+</template>
+
+<script>
+  import VHeader from './Header'
+  import VFooter from './Footer'
+  import VSlideBarPanel from './components/SidebarPanel'
+  import {addClass, removeClass, setCookie} from '../../common/js/utils'
+  import {BASE_URL} from  '../../request/main'
+  import AppMain from './components/AppMain'
+  // import TagsView from './components/TagsView'
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'layout',
+    components: {VHeader, VFooter, VSlideBarPanel, AppMain},
+    data () {
+
+      return {
+        menuPanelShow: true,
+        asideShow: false,
+        userInfo: {},
+        lastTime: null,
+        currentTime: null,
+        timer: null
+      }
+    },
+    methods: {
+      hideMenuPanel1 (e) {
+        const menuPanel = document.getElementById('menuPanel')
+        const bsjTopBar = document.getElementById('bsjTopBar')
+        const triangle = document.getElementById('triangle')
+        // 如果当前鼠标没在目标元素上
+        if (menuPanel && (!menuPanel.contains(e.target) && !bsjTopBar.contains(e.target))) {
+          this.menuPanelShow = false
+          triangle.style.display = 'none'
+        } else {
+          this.menuPanelShow = true
+          triangle.style.display = 'block'
+        }
+
+        this.handleSideBar1(e)
+      },
+      hideMenuPanel2 (e) {
+        const triangle = document.getElementById('triangle')
+        // 没有目标元素  鼠标离开当前窗口
+        if (!e.relatedTarget) {
+          this.menuPanelShow = false
+          triangle.style.display = 'none'
+        }
+      },
+      handleSideBar1 (e) {
+        const foldIcon = document.getElementById('foldIcon')
+        const aside = document.getElementById('aside')
+        const body = document.querySelectorAll('body')[0]
+
+        // 网页可见区域高
+        const clientHeight = document.body.clientHeight
+        // 网页正文全文高
+        const scrollHeight = document.body.scrollHeight
+
+        if (!foldIcon.contains(e.target) && !aside.contains(e.target)) {
+          this.asideShow = false
+          removeClass(body, 'no-scroll')
+        } else {
+          this.asideShow = true
+
+          // 如果鼠标当前在侧边栏菜单上禁止浏览器滚动
+          // 如果网页正文高度大于窗口高度 禁止浏览器滚动 但不消失滚动条
+          if (scrollHeight > clientHeight) {
+            addClass(body, 'no-scroll')
+          }
+        }
+      },
+
+      _setLoginCookie () {
+        if (this.$route.query.param) {
+          const params = JSON.parse(this.$route.query.param)
+          for (let item in params) {
+            setCookie(item, params[item])
+          }
+        }
+      },
+
+      testOperate () {
+        this.currentTime = new Date().getTime()
+        let timeOut = 1000 * 60 * this.delay
+        if ((this.currentTime - this.lastTime) > timeOut) {
+          window.clearInterval(this.timer)
+          this.timer = null
+          this.$store.dispatch('setLock').then(() => {
+            this.$router.push('/lock')
+          })
+        }
+      }
+    },
+    computed: {
+      ...mapGetters([
+        'cachedViews',
+        'isLock',
+        'errPageGoBack',
+        'menuData'
+      ]),
+
+      delay () {
+        return (this.$store.getters.userInfo && this.$store.getters.userInfo.delay) || 5
+      },
+    },
+    mounted () {
+
+      if ((this.isLock !== 'unlock') && !this.errPageGoBack) {
+        this._setLoginCookie()
+
+        this.$store.dispatch('getUserInfo').then(() => {
+          this.userInfo = this.$store.getters['userInfo']
+          initLayIm(this.$store.getters['userInfo']["uuid"], BASE_URL)
+
+          if (!this.menuData.length) {
+            this.$store.dispatch('getMenuData')
+          }
+
+        })
+      } else {
+        this.userInfo = this.$store.getters['userInfo']
+      }
+
+      this.lastTime = new Date().getTime()
+      this.timer = window.setInterval(() => {
+        this.testOperate()
+      }, 1000)
+
+      window.addEventListener('mouseover', () => {
+        this.lastTime = new Date().getTime()
+      })
+
+    }
+  }
+</script>
+
+<style lang="scss">
+  .layout-content {
+    position: relative;
+    min-height: calc(100vh - 105px);
+    height: calc(100vh - 105px);
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {/*滚动条整体样式*/
+      width: 10px;     /*高宽分别对应横竖滚动条的尺寸*/
+      height: 1px;
+    }
+    &::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+      border-radius: 10px;
+      -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+      background: #535353;
+      /*background: #F90 -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent);*/
+    }
+    &::-webkit-scrollbar-track {/*滚动条里面轨道*/
+      /*-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);*/
+      /*!*border-radius: 10px;*!*/
+      /*background: #EDEDED;*/
+      -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      background: #EDEDED;
+    }
+
+    /*.v-modal {*/
+    /*position: absolute;*/
+    /*height: 100%;*/
+    /*top: 0;*/
+    /*}*/
+    /*.el-dialog__wrapper {*/
+    /*position: absolute;*/
+    /*padding-top: 10vh;*/
+
+    /*.el-dialog {*/
+    /*margin-top: 0!important;*/
+    /*}*/
+    /*}*/
+  }
+
+  .aside {
+    position: fixed;
+    top: 60px;
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    height: 100%;
+    background: #303133;
+
+    &.asideShow {
+      transform: translateX(0);
+    }
+  }
+</style>

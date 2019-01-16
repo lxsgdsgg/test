@@ -1,0 +1,240 @@
+/*******************************************************************************************************/
+/** *************************************** 二手房源列表 ***************************************/
+/*******************************************************************************************************/
+import {onGet, onPost, BASE_URL} from '../main'
+
+// 获取二手房源列表
+export const searchHouseList = params => {
+  return onPost('house/searchHouseList', params)
+}
+
+// 新增时查询电话是否在黑名单中,否返回一个列表
+export const queryHouseByPhone = params => {
+  return onPost('house/queryHouseByPhone', params)
+}
+// 录入房源是否默认私盘
+export const queryHouseDiscStatus = params => {
+  return onPost('house/queryHouseDiscStatus', params)
+}
+
+// 保存table自定义列表
+export const setTableColHidden = params => {
+  return onPost('house/setTableColHidden', params)
+}
+
+// 保存table自定义列表
+export const getTableColHiddenList = params => {
+  return onGet('house/getTableColHiddenList', params)
+}
+
+// 房源删除
+export const deleteHousing = params => {
+  return onPost('house/deleteHousing', params)
+}
+
+// 与外网同步
+export const houseSynchron = params => {
+  return onPost('house/houseSynchron', params)
+}
+
+// 批量转移维护人
+export const houseTransfer = params => {
+  return onPost('house/houseTransfer', params)
+}
+
+
+/*******************************************************************************************************/
+/** *************************************** 房源详情 ***************************************/
+/*******************************************************************************************************/
+
+
+
+// 获取房源基本信息
+export const getDescriptionField = params => {
+  return onPost('house/getDescriptionField', params)
+}
+// 新增房源描述
+export const saveHouseDescription = (params,cfg) => {
+  return onPost('house/saveHouseDescription', params,cfg)
+}
+// 获取房源基本信息
+export const getDetailInfo = params => {
+  return onGet('house/getErHouseInfo', params)
+}
+
+// 获取房源门牌号 业主电话 底价等信息
+export const queryHousePrivateInfo = params => {
+  return onGet('house/queryHousePrivateInfo', params)
+}
+
+// 设置房源标签状态等
+export const updateTag = params => {
+  return onPost('house/updateTag', params)
+}
+
+// 保存房源跟进
+export const saveHouseFollowAndRemind = (params, cfg) => {
+  return onPost('house/saveHouseFollowAndRemind', params, cfg)
+}
+
+// 获取房源跟进记录
+export const getFollowRecord = params => {
+  return onGet('house/getFollowRecord', params)
+}
+
+// 删除房源跟进记录
+export const delHouseFollow = params => {
+  return onPost('house/delHouseFollow', params)
+}
+
+// 修改业主姓名
+export const updateHouseOwner = (params, cfg) => {
+  return onPost('house/UpdateHouseOwner', params, cfg)
+}
+
+// 修改业主电话
+export const updateOwnerPhone = (params, cfg) => {
+  return onPost('house/updateOwnerPhone', params, cfg)
+}
+
+// 新增业主电话
+export const saveOwnerPhone = (params, cfg) => {
+  return onPost('house/saveOwnerPhone', params, cfg)
+}
+
+// 删除业主电话
+export const delOwnerPhone = params => {
+  return onPost('house/delOwnerPhone', params)
+}
+
+// 获取改价历史记录
+export const getPricedetail = params => {
+  return onGet('house/getPricedetail', params)
+}
+
+// 获取带看记录
+export const getLookHouse = params => {
+  return onGet('house/getLookHouse', params)
+}
+
+// 获取经纪人反馈
+export const getAgentFeedback = (params) => {
+  return onGet('house/getAgentFeedback', params)
+}
+
+// 获取房屋描述
+export const getHouseDescription = params => {
+  return onGet('house/getHouseDescription', params)
+}
+
+// 获取匹配客户
+export const matchingCustomer = params => {
+  return onPost('house/matchingCustomer', params)
+}
+
+// 获取客户档案
+export const getArchives = params => {
+  return onGet('house/getArchives', params)
+}
+
+// 修改底价
+export const updatePrice = (params, cfg) => {
+  return onPost('house/updatePrice', params, cfg)
+}
+
+// 编辑相关经纪人信息
+export const updateAgent = (params, cfg) => {
+  return onPost('house/updateAgent', params, cfg)
+}
+
+// 房源编辑相关按钮
+export const changeSomeStatus = (params, cfg) => {
+  return onPost('house/changeSomeStatus', params, cfg)
+}
+
+// 房源编辑相关按钮
+export const businessExamine = (params, cfg) => {
+  return onPost('house/businessExamine', params, cfg)
+}
+
+// 变更业主信息
+export const changeHouseOwner = (params, cfg) => {
+  return onPost('house/changeHouseOwner', params, cfg)
+}
+
+// 写反馈
+export const saveAgentFeedback = (params, cfg) => {
+  return onPost('house/saveAgentFeedback', params, cfg)
+}
+
+// 获取房源信息下拉框值
+export const getBaseInfoSelectOpts = (params, cfg) => {
+  return onPost('house/getSelectValue/many', params, cfg)
+}
+
+// 获取房源标签数据
+export const getHouseLabel = (params, cfg) => {
+  return onPost('house/queryHouseLabel', params, cfg)
+}
+
+// 房源信息修改
+export const updateHousing = (params, cfg) => {
+  return onPost('house/updateHousing', params, cfg)
+}
+
+// 房源新增 查询该房源
+export const queryCountHousing = params => {
+  return onGet('house/queryCountHousing', params)
+}
+
+// 房源新增 查询坐栋信息
+export const queryBuildingInfo = params => {
+  return onGet('house/queryBuildingInfo', params)
+}
+
+// 房源新增 保存
+export const addHouse = params => {
+  return onPost('house/addHouse', params)
+}
+
+// 获取图片列表
+export const getFile = params => {
+  return onGet('house/getFile', params)
+}
+
+// 单个图片下载
+export const downloadFile = params => {
+  return onPost('house/downloadFile', params)
+}
+
+// 批量下载
+// export const downloadImages = params => {
+//   return onPost('house/downloadImages', params)
+// }
+
+export const downloadImagesUrl = BASE_URL + 'house/downloadImages'
+
+// 删除下载
+export const delFile = params => {
+  return onPost('house/delFile', params)
+}
+
+// 修改房源附件信息
+export const updateAttachment = (params, cfg) => {
+  return onPost('house/updateAttachment', params, cfg)
+}
+
+// 设置全景看房地址
+export const setOverallView = params => {
+  return onPost('house/setOverallview', params)
+}
+
+// 点击拨号服务接口 业主拨号
+export const tencentCloudPhone = params => {
+  return onPost('house/tencentCloudPhone', params)
+}
+
+// 生成并发送房源绑定码
+export const sendBindCode = params => {
+  return onPost('house/sendBindCode', params)
+}

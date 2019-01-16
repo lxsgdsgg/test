@@ -1,0 +1,315 @@
+<!-- 房源匹配 -->
+<template>
+  
+  <div style="min-height: 550px">
+    <div >
+      <el-form ref="queryForm" :inline="true" size="small">
+        <el-form-item label="" prop="selectId" ref="communityId" >
+              <community-selector
+                style="width: 150px"
+                v-model="queryForm.selectId"
+                :url="areasUrl"
+                :props="cascaderProps"
+                :dataProps="cascaderDataProps"
+                placeholder="区域"
+                @change="handleCommunityChange"
+              >
+              </community-selector>
+          </el-form-item>
+
+          <el-form-item label="" >
+           <base-section-select style="width: 150px" v-model="queryForm.buildSpace" :data="regionValue.space" placeholder="面积区间" description="平米"></base-section-select>
+         </el-form-item> 
+         <el-form-item label="">
+           <base-section-select style="width: 150px" v-model="queryForm.price" :data="regionPrice" placeholder="价格区间" :description="priceUnit"></base-section-select>
+         </el-form-item>
+
+         <el-form-item label="">
+           <base-section-select style="width: 150px" v-model="queryForm.room" :data="regionValue.roomType" placeholder="户型" description="室"></base-section-select>
+         </el-form-item>
+
+         <el-form-item label="">
+           <base-section-select style="width: 150px" v-model="queryForm.floorCount" :data="regionValue.roomFloor" placeholder="楼层" description="楼"></base-section-select>
+         </el-form-item>
+        <el-form-item label="">
+           <base-section-select style="width: 150px" v-model="queryForm.buildDates" :data="regionValue.roomBuildDate" placeholder="房屋年代" description="年"></base-section-select>
+         </el-form-item>
+         <el-form-item>
+             <el-button type="primary" @click.native.prevent="_getTableData(true)" :loading="loadingQueryBtn">查询</el-button>
+             
+         </el-form-item>
+       </el-form>      
+    </div>
+    <el-table
+      :data="tableData"
+      v-loading="loadingView"
+      highlight-current-row
+      
+    >
+
+      <el-table-column
+        prop="status"
+        label="状态">
+      </el-table-column>
+
+      <el-table-column
+        label="房源编号">
+         <template slot-scope="scope">
+           <a
+              @click="toDetail(scope.row.id, scope.row.houseUsesId, scope.row.houseId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.houseId}}
+            </a>
+         </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="communityName"
+        label="小区">
+      </el-table-column>
+
+      <el-table-column
+        prop="buildSpace"
+        label="面积">
+      </el-table-column>
+
+      <el-table-column
+        prop="room"
+        label="户型">
+      </el-table-column>
+
+      <el-table-column
+        prop="price"
+        label="价格">
+      </el-table-column>
+
+      <el-table-column
+        prop="orientation"
+        label="朝向">
+      </el-table-column>
+
+      <el-table-column
+        prop="floorCount"
+        label="楼层">
+      </el-table-column>
+
+      <el-table-column
+        prop="maintainer"
+        label="维护人">
+      </el-table-column>
+
+    </el-table>
+
+    <b-pagination
+      :listQuery="listQuery"
+      @handleSizeChange="handleSizeChange"
+      @handleCurrentChange="handleCurrentChange">
+    </b-pagination>
+  </div>
+</template>
+
+<script>
+  import CommunitySelector from '@/components/BaseCascader/index'
+  import {matchingHousing} from '@/request/customer/customerUsed'
+  import {queryCommunitySelectWithRegion} from '@/request/app'
+  import BaseSectionSelect from '@/components/BaseSectionSelect'
+  export default {
+    components:{CommunitySelector,BaseSectionSelect},
+    props: {
+      transactionTypeId: {
+        type: [Number, String],
+        required: true
+      },
+      regionValue: {
+        type: Object,
+        required: true,
+        default () {
+          return {}
+        }
+      }
+    },
+    data () {
+      return {
+        
+        queryForm:{
+          price: '',
+          selectId: ''
+        },
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        areasUrl: queryCommunitySelectWithRegion,
+        tableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+        loadingView: false,
+        loadingQueryBtn: false,
+        regionPrice: {},
+        priceUnit: '万元'
+      }
+    },
+
+    methods: {
+      /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+
+      _getTableData (btn) {
+        this.loadingView = true
+        this.loadingQueryBtn =  btn
+        let minSellingPrice = ''
+        let maxSellingPrice = ''
+        let minRentPrice = ''
+        let maxRentPrice = ''
+        if(this.transactionTypeId==4){
+          minSellingPrice = this.queryForm.price && this.queryForm.price.min || ''  //出售
+          maxSellingPrice = this.queryForm.price && this.queryForm.price.max || ''
+          delete this.queryForm.price
+        }else{
+          minRentPrice = this.queryForm.price && this.queryForm.price.min || '' //出租
+          maxRentPrice = this.queryForm.price && this.queryForm.price.max || ''
+          delete this.queryForm.price
+        }
+        let conditions = {
+          transactionTypeId: this.transactionTypeId || '',
+          minSellingPrice: minSellingPrice,
+          maxSellingPrice: maxSellingPrice,
+          minRentPrice: minRentPrice,
+          maxRentPrice: maxRentPrice,
+          minSpace: this.queryForm.buildSpace.min,
+          maxSpace: this.queryForm.buildSpace.max,
+          minRoom: this.queryForm.room.min,
+          maxRoom: this.queryForm.room.max,
+          minFloor: this.queryForm.floorCount.min,
+          maxFloor: this.queryForm.floorCount.max,
+          minBuildDate: this.queryForm.buildDates.min,
+          maxBuildDate: this.queryForm.buildDates.max,
+          areaCode: this.queryForm.areaCode,
+          regionId: this.queryForm.regionId,
+          communityId: this.queryForm.communityId,
+        }
+
+        const params = {
+          conditions: JSON.stringify(conditions),
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        }
+
+        console.log(params)
+        matchingHousing(params).then(res => {
+          this.tableData = res.data.map(item => {
+                 if(item.transactionTypeId==2){
+                    item.price = item.rentPrice+'元'
+                 }else{
+                   item.price = item.sellingPrice+'万元'
+                   
+                 }
+                 return item
+             })
+          this.listQuery.total = res.count
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        }).catch(() => {
+          this.loadingView = false
+          this.loadingQueryBtn = false
+        })
+      },
+      toDetail (id, name, code) {
+        console.log(id)
+        console.log(name)
+        console.log(code)
+        this.$router.push({ path: '/house/houseUsedDetail/' + id + '/' + code, query: { formName: name}})
+        let houseList = []
+        let item = {
+          id: id
+        }
+        houseList.push(item)
+        window.localStorage.setItem('houseList', JSON.stringify(houseList))
+      },
+
+      // 格式化日期
+      _timeFormat (row, column, cellValue) {
+        return this.$utils.timeFormat(cellValue)
+      },
+      //小区change事件
+      handleCommunityChange(val, name, data){
+          console.log(data)
+          if (data.dataType == 'area') {
+          this.queryForm.areaCode = data.code
+          this.queryForm.selectId = data.code
+          delete this.queryForm.regionId
+          delete this.queryForm.communityId
+
+        }else if(data.dataType == 'region'){
+          this.queryForm.regionId = data.code.substr(2)
+          this.queryForm.selectId = data.code
+          delete this.queryForm.areaCode
+          delete this.queryForm.communityId
+        }else if(data.dataType == 'community'){
+          this.queryForm.communityId = data.code
+          this.queryForm.selectId = data.code
+          delete this.queryForm.areaCode
+          delete this.queryForm.regionId
+        }else{
+          setTimeout(() => {
+            this.queryForm.areaCode = ''
+            this.queryForm.regionId = ''
+            this.queryForm.communityId = ''
+            this.queryForm.selectId = ''
+          }, 50)
+        }
+      },
+      getValue(){
+          //this.priceUnit = '万元'
+          //this.regionPrice = this.regionValue.sell
+         if(this.transactionTypeId==4){
+          this.priceUnit = '万元'
+          this.regionPrice = this.regionValue.sell
+          
+         }else{
+           this.priceUnit = '元'
+           this.regionPrice = this.regionValue.rent
+         }
+
+      },
+      _resetForm (formName, callback) {
+      this.$refs[formName] && this.$refs[formName].resetFields()
+      if (callback && typeof callback === 'function') {
+        callback()
+      }
+      // this.$refs[formName].resetFields()
+      console.log(this[formName])
+    },
+    },
+    mounted () {
+      
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

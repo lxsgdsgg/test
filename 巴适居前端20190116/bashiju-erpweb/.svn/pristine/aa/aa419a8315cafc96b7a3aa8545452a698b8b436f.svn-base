@@ -1,0 +1,338 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form">
+        <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+          <el-form-item label="类型" prop="typeId">
+            <el-select v-model="queryForm.typeId" placeholder="请选择" >
+              <el-option
+                v-for="item in bottomContentType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="标题" prop="title">
+            <el-input v-model="queryForm.title" placeholder="请输入编号"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+            <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+          </el-form-item>
+          <el-form-item class="pull-right">
+            <el-button v-hasOnlyBtn="'bottomContentAddBtn'" type="primary" @click="handleAdd">添加文章</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+        height="580"
+      >
+
+        <el-table-column
+          prop="title"
+          align="center"
+          label="标题">
+        </el-table-column>
+
+        <el-table-column
+          prop="typeName"
+          align="center"
+          label="类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="browseCnt"
+          align="center"
+          label="浏览次数">
+        </el-table-column>
+
+        <el-table-column
+          prop="updateTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="添加时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button v-hasMultipleBtn="['bottomContentShowBtn',scope.row]"  @click="handleShow(scope.row)" type="text" size="small">查看</el-button>
+            <el-button v-hasMultipleBtn="['bottomContentUpdateBtn',scope.row]"  @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button v-hasMultipleBtn="['bottomContentDelBtn',scope.row]" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" title="添加、编辑文章" width="750px" height="600px">
+
+        <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="100px">
+          <el-form-item label="文章标题" prop="title">
+            <el-input v-model="addForm.title"></el-input>
+          </el-form-item>
+          <el-form-item label="类型" prop="typeId">
+            <el-select v-model="addForm.typeId" placeholder="请选择" >
+              <el-option
+                v-for="item in bottomContentType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <base-editor :content="editorVal" ref="editor"></base-editor>
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+            <el-button @click="dialogAddVisible=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogShowContent" class="showContent-box" title="文章内容" width="750px">
+        <div v-html="showContent">{{showContent}}</div>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/manage/contentManage' // 请求后端URL路径
+  import BaseEditor from '@/components/BaseEditor'
+
+  export default {
+    name: 'bottomContent',
+    mixins: [PageList],
+    components: {BaseEditor},
+    data () {
+      return {
+        queryForm: {},
+
+        addForm: {
+          title: '',
+          typeId: '',
+        },
+        bottomContentType: [],
+        // 表单校验配置
+        addFormRules: {
+          title: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+          typeId: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+        },
+        dialogAddVisible: false,
+        dialogShowContent: false,
+        loadingSubmitBtn: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        editorVal: '',
+        showContent: '',
+        nowQueryForm: {}
+      }
+    },
+    methods: {
+      //获取一些基础信息
+      getBottomContentType(){
+        const params = {};
+        RequestURL.getBottomContentType(params).then(res => {
+          console.log("aaaaaaaaaaaaa"+res);
+          for(let key in res.bottomContentType ){
+            let item = {
+              value: key,
+              label: res.bottomContentType[key]
+            }
+            this.bottomContentType.push(item);
+          }
+        }).catch((err) => {
+          console.log(err);
+          this.$message({
+            type: 'info',
+            message: err.msg
+          })
+        })
+      },
+
+      // 新增
+      handleAdd (row) {
+        this._resetForm('addForm')
+        this.currentRowData = null // 置空当前操作的行数据
+        this.isAdd = true;
+        this.dialogAddVisible = true;
+        this.addForm.widgetCode=row.widgetCode;
+        this.currentDynamicConfigureItem=row;
+        this.editorVal = '';
+        delete this.addForm.id
+      },
+
+      handleShow(row){
+        this.dialogShowContent = true;
+        //alert(row.content)
+        this.showContent = row.content;
+      },
+      // 编辑
+      handleEdit (row) {
+        this._resetForm('addForm')
+        this.currentRowData = row
+        this.isAdd = false
+        this.dialogAddVisible = true
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            // alert(this.$refs['editor'].getContent());
+            this.addForm.content = this.$refs['editor'].getContent();
+            this.addForm.type = 'ourselves';
+            this.addForm.typeName = this.bottomContentType.find(item => item.value === this.addForm.typeId).label
+            const params = {
+              jsonData: JSON.stringify({...this.addForm})
+            }
+
+            if (this.isAdd) {
+              params.id = ''
+            }
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveArticle(params).then(res => {
+                console.log(res)
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+
+      // 删除
+      handleDelete (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delArticle({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            this._loadData(false);
+          })
+        })
+      },
+
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        this.nowQueryForm.type = 'ourselves';
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.getArticleList(params).then(res => {
+          this.tableData = res.data
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+
+      // 表单回填
+      _setForm () {
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['id'] = this.currentRowData['id']
+          this.editorVal = this.currentRowData['content']
+          this.currentRowData['typeId'] = String(this.currentRowData['typeId'])
+          //this.addForm['typeId'] = this.currentRowData['typeId']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+
+
+    },
+    mounted () {
+      this.getBottomContentType();
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .showContent-box{
+    overflow: auto;
+  }
+</style>

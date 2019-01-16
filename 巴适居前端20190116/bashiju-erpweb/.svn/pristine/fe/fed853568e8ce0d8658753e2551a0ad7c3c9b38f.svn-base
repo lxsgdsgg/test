@@ -1,0 +1,259 @@
+<template>
+    <div class="page-content">
+      <div class="page-content-hd">
+        <div class="query-form" ref="query-error">
+          <el-form size="small" :inline="true" :model="errorForm" ref="errorForm">
+            <el-form-item  prop="loginUser">
+              <el-input v-model="errorForm.loginUser" placeholder="登录人名称"></el-input>
+            </el-form-item>
+
+            <el-form-item >
+                <el-date-picker
+                  v-model="time"
+                  type="datetimerange"
+                  value-format="yyyy-MM-dd HH:mm:ss"
+                  :picker-options="pickerOptions2"
+                  range-separator="至"
+                  :default-value="ct_month"
+                  start-placeholder="错误产生时间开始"
+                  end-placeholder="错误产生时间结束"
+                  align="right">
+                </el-date-picker>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click.native.prevent="queryErrorLogTable(true)" :loading="queryBtnLoading">查询</el-button>
+              <el-button @click="resetForm">清空</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </div>
+
+
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+         border
+         align="center"
+         style="width: 100%">
+
+        <el-table-column
+          prop="loginUser"
+          align="center"
+          label="登录人名称"
+        >
+        </el-table-column>
+
+
+        <!--<el-table-column-->
+          <!--prop="deptId"-->
+          <!--align="center"-->
+          <!--label="部门编号"-->
+        <!--&gt;-->
+        <!--</el-table-column>-->
+
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="部门名称"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="loginIp"
+          align="center"
+          label="登陆IP"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          align="center"
+          :formatter="_timeFormat"
+          label="添加时间"
+        >
+        </el-table-column>
+
+
+        <!--<el-table-column-->
+          <!--prop="updateTime"-->
+          <!--align="center"-->
+          <!--:formatter="_timeFormat"-->
+          <!--label="修改时间"-->
+        <!--&gt;-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--prop="operator"-->
+          <!--align="center"-->
+          <!--label="操作人"-->
+        <!--&gt;-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+              <el-button  v-hasMultipleBtn="['errorLogDetail',scope.row]" type="text" size="small" @click="handleDetail(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+     </div>
+        <el-dialog
+          title="详情"
+          :visible.sync="detialDialogVisible"
+          :close-on-click-modal="false"
+          top="30vh"
+          width="600px"
+        >
+          <Error-log v-if="hackReset" @handleClick="handleErrorLogDetailDialog" :data="currentRowData"></Error-log>
+        </el-dialog>
+    </div>
+</template>
+
+<style></style>
+
+<script>
+  import ErrorLog from './component/ErrorLog'
+import {queryErrorLog} from '@/request/manage/errorLog'
+  import  pageList from '@/mixins/pageList'
+
+export default {
+    name:'errorLog',
+    mixins: [pageList],
+  components:{ErrorLog,pageList},
+    data() {
+        return {
+          errorForm:{
+            loginUser:'',
+            beginAddTime:'',
+            endAddTime:''
+          },
+          pickerOptions2: {
+            shortcuts: [{
+              text: '最近一周',
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                picker.$emit('pick', [start, end]);
+              }
+            }, {
+              text: '最近一个月',
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                picker.$emit('pick', [start, end]);
+              }
+            }, {
+              text: '最近三个月',
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                picker.$emit('pick', [start, end]);
+              }
+            }]
+          },
+          ct_month:null,
+         tableData: [],
+          time:'',
+          queryBtnLoading:false,
+          loadingView:false,
+          detialDialogVisible:false,
+          //数据加载的地方
+          isAdd:false,
+          hackReset:false,
+          //分页数据
+          listQuery:{
+            page:1,
+            limit:10,
+            total:0
+          },
+          currentRowData:''
+        }
+    },
+    methods:{
+      _loadData(btnQuery){
+          this.queryErrorLogTable(btnQuery)
+      },
+      _loadData(btnQuery){
+          this.queryErrorLogTable(btnQuery)
+      },
+      //时间格式化转换
+      _timeFormat(row,column,cellValue){
+          return this.$utils.timeFormat(cellValue, '{y}-{m}-{d} {h}:{s}:{ss}')
+      }
+      ,
+      timeDefaultShow(){//默认显示上个月
+        this.ct_month= new Date();
+        this.ct_month.setTime(this.ct_month.getTime() - 3600 * 1000 * 24 * 30);
+      },
+      //查询数据
+      queryErrorLogTable(isLoading){
+        if(isLoading){
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.queryBtnLoading = isLoading
+        this.loadingView = true
+        //拆分时间并绑定包queryForm
+        if(this.time!='' && this.time!=null){
+          this.errorForm.beginAddTime = this.time[0];//开始
+          this.errorForm.endAddTime = this.time[1];//结束
+        }
+        let params = Object.assign({},this.errorForm,{
+          page:this.listQuery.page,
+          limit:this.listQuery.limit
+        })
+        queryErrorLog(params).then(res =>{
+          this.tableData = res.data
+          this.queryBtnLoading = false
+          this.listQuery.total = res.count
+          this.loadingView = false
+        }).catch(error =>{
+          console.log(error)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+      resetForm(formName){
+            this.$refs['errorForm'].resetFields()
+            //清空查询输入框
+            this.time = ''
+      },
+      handleErrorLogDetailDialog(actionType){
+        if(actionType && actionType === 1){
+          this.detialDialogVisible = false
+          this.queryErrorLogTable(true)
+        }else{
+          this.detialDialogVisible = false
+        }
+      },
+      handleDetail(row){
+         this.hackReset = false
+          this.$nextTick(() =>{
+            this.hackReset = true
+            this.currentRowData = row
+            this.detialDialogVisible = true
+          })
+
+      }
+    },
+    mounted(){
+      this.queryErrorLogTable(false)
+      this.timeDefaultShow()
+    }
+}
+
+</script>

@@ -1,0 +1,514 @@
+<template>
+  <div class="page-content">
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <div class="grid-content">
+          <div class="page-content-hd">
+            <div class="query-form">
+              <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+                <el-form-item label="编号" prop="widgetCode">
+                  <el-input v-model="queryForm.widgetCode" placeholder="请输入编号"></el-input>
+                </el-form-item>
+
+                <el-form-item label="名称" prop="name">
+                  <el-input v-model="queryForm.name" placeholder="请输入名称"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+                  <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingView">
+            <el-table
+              :data="tableData"
+              border
+              highlight-current-row
+              @row-click="_showValue"
+              align="center"
+              style="width: 100%"
+              height="580"
+            >
+
+              <el-table-column
+                prop="widgetCode"
+                align="center"
+                label="编号">
+              </el-table-column>
+
+              <el-table-column
+                prop="typeName"
+                align="center"
+                label="类型">
+              </el-table-column>
+
+              <el-table-column
+                prop="name"
+                align="center"
+                label="名称">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  <el-button  v-if="!scope.row.sqlDescription" @click="handleAdd(scope.row)" type="text" size="small">新增</el-button>
+                  <el-button  v-if="scope.row.sqlDescription && scope.row.sqlDescription!=''" @click="editSql(scope.row)" type="text" size="small">编辑</el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+
+            <b-pagination
+              :listQuery="listQuery"
+              @handleSizeChange="handleSizeChange"
+              @handleCurrentChange="handleCurrentChange">
+            </b-pagination>
+          </div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="grid-content">
+          <div class="page-content-hd">
+            <div class="value-title">
+              配置项明细
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingItemView">
+            <el-table
+              :data="valueData"
+              border
+              align="center"
+              style="width: 100%"
+              height="580"
+            >
+
+              <el-table-column
+                prop="fieldCode"
+                align="center"
+                label="编号">
+               <!-- <template slot-scope="scope">
+                  <span class="cell-edit-input"><el-input v-model="scope.row.fieldCode" placeholder="请输入内容"></el-input></span>
+                </template>-->
+              </el-table-column>
+
+              <el-table-column
+                prop="fieldValue"
+                align="center"
+                label="值">
+              </el-table-column>
+
+              <el-table-column
+                prop="sorting"
+                align="center"
+                label="排序">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  <el-button v-if="!scope.row.sqlDescription" @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                  <el-button v-if="!scope.row.sqlDescription" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+
+          </div>
+
+
+
+        </div>
+      </el-col>
+    </el-row>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddVisible" :title="title" width="400px">
+        <el-form v-loading="loadingForm" :model="addForm" status-icon :rules="addFormRules" ref="addForm" label-width="100px">
+
+          <el-form-item label="编号" prop="fieldCode">
+            <el-input v-model="addForm.fieldCode"></el-input>
+          </el-form-item>
+
+          <el-form-item label="值" prop="fieldValue">
+            <el-input v-model="addForm.fieldValue"></el-input>
+          </el-form-item>
+          <el-form-item label="排序" prop="sorting">
+            <el-input v-model="addForm.sorting"></el-input>
+          </el-form-item>
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="handleSubmit">确认</el-button>
+            <el-button @click="dialogAddVisible=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogEditSql" title="编辑sql" width="400px">
+        <el-form v-loading="loadingForm" :model="editSqlForm" status-icon  ref="editSqlForm" label-width="100px">
+
+          <el-form-item label="sql语句" prop="sqlDescription">
+            <el-input v-model="editSqlForm.sqlDescription"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSubmitBtn" @click="saveSql">确认</el-button>
+            <el-button @click="dialogEditSql=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/manage/dynamicConfigure' // 请求后端URL路径
+  import BaseCityCascader from '@/components/BaseCascader/city' // 城市级联组件
+  import {systemAddLog, systemUpdateLog, systemQueryLog,systemDelLog} from '@/request/log/systemPlatformLog'
+
+  export default {
+    name: 'setDropdown',
+    mixins: [PageList],
+    components: {BaseCityCascader},
+    data () {
+      return {
+        queryForm: {
+          widgetCode: '',
+          name: ''
+        },
+        nowQueryForm:{
+
+        },
+        addForm: {
+          widgetCode: '',
+          fieldCode: '',
+          fieldValue: '',
+          sorting: '',
+        },
+        editSqlForm: {
+          sqlDescription: ''
+        },
+        // 表单校验配置
+        addFormRules: {
+          fieldValue: [
+            {required: true, message: '请输入值', trigger: 'blur'}
+          ],
+          sorting: [
+            {required: true, message: '请输入排序', trigger: 'blur'}
+          ]
+        },
+        dialogAddVisible: false,
+        dialogEditSql: false,
+        loadingSubmitBtn: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentDynamicConfigureItem:null,
+        valueData: [],
+        title: '新增明细',
+        isAdd: true,
+        originalData: []
+      }
+    },
+    methods: {
+      // 新增
+      handleAdd (row) {
+        /*const valueItem = {
+          fieldCode:'',
+          fieldValue:'',
+          sorting:''
+        }
+        this.valueData.push(valueItem);*/
+        this._resetForm('addForm')
+        this.currentRowData = null // 置空当前操作的行数据
+        this.isAdd = true;
+        this.title = '新增明细';
+        this.dialogAddVisible = true;
+        this.addForm.widgetCode=row.widgetCode;
+        this.currentDynamicConfigureItem=row;
+        delete this.addForm.id
+      },
+      handleSave(){
+
+      },
+      // 编辑
+      handleEdit (row) {
+        this._resetForm('addForm')
+        this.currentRowData = row
+        this.isAdd = false
+        this.title = '编辑明细';
+        this.dialogAddVisible = true
+        this.$nextTick(() => {
+          this._setForm()
+        })
+      },
+      editSql(row){
+        this._resetForm('editSqlForm')
+        this.currentDynamicConfigureItem = row
+        this.dialogEditSql = true
+        this.$nextTick(() => {
+          this._setEditSqlForm()
+        })
+      },
+      // 提交
+      handleSubmit () {
+
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+
+            const params = {
+              jsonData: JSON.stringify({...this.addForm})
+            }
+
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSubmitBtn = true
+              RequestURL.saveOrUpdateSelectItem(params).then(res => {
+                this.loadingSubmitBtn = false
+                this.dialogAddVisible = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadValueData(this.currentDynamicConfigureItem.widgetCode,this.currentDynamicConfigureItem.type);
+                  //记日志
+                  if(this.isAdd){//新增
+                      let logContent = this.currentDynamicConfigureItem.name+"下拉新增了一个明细项："+this.addForm.fieldValue
+                      let message = {
+                          sourceCode: '设置下拉值',
+                          sourceTypeId: 8,
+                          operatTypeId: 1,
+                          logContent: logContent
+                        }
+                      systemAddLog({message: JSON.stringify(message)}).then(res => {
+                          console.log(res)
+                        })
+                  }else{//编辑
+                      let message = {
+                      sourceCode: '设置下拉值',
+                      sourceTypeId: 8,
+                      operatTypeId: 2,
+                      labelData: this.$utils.getFormFields(this.$refs['addForm']),
+                      originalData: this.originalData,
+                      newData: JSON.parse(params.jsonData)
+                    }
+
+                    systemUpdateLog({message: JSON.stringify(message)}).then(res => {
+                      console.log(res)
+                    })
+                }
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSubmitBtn = false
+                this.$message({
+                  type: 'info',
+                  message: err.data.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+      saveSql(){
+        const params = {
+          jsonData: JSON.stringify({...this.editSqlForm})
+        }
+        RequestURL.saveSelectSql(params).then(res => {
+          this.loadingSubmitBtn = false
+          this.dialogEditSql = false
+          if (res.success) {
+            this.$message({
+              type: 'success',
+              message: res.data.msg || '操作成功'
+            })
+            _loadData(false);
+             //记日志
+              let logContent = this.currentDynamicConfigureItem.name+"下拉设置了一个SQL："+this.editSqlForm.sqlDescription
+              let message = {
+                  sourceCode: '设置下拉值',
+                  sourceTypeId: 8,
+                  operatTypeId: 5,
+                  logContent: logContent
+                }
+              systemQueryLog({message: JSON.stringify(message)}).then(res => {
+                  console.log(res)
+                })
+          }else{
+            this.$message({
+              type: 'warning',
+              message: res.data.msg
+            })
+          }
+        }).catch((err) => {
+          this.loadingSubmitBtn = false
+          this.$message({
+            type: 'info',
+            message: err.data.msg || '保存失败'
+          })
+        })
+      },
+      // 删除
+      handleDelete (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delDropdownValue({id: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            this._loadValueData(this.currentDynamicConfigureItem.widgetCode,this.currentDynamicConfigureItem.type);
+            //写日志
+            let logContent = this.currentDynamicConfigureItem+'下拉删除了一个明细项：'+row.fieldValue
+            let message = {
+                sourceCode: '设置下拉值',
+                sourceTypeId: 8,
+                operatTypeId: 3,
+                logContent: logContent
+              }
+            systemDelLog({message: JSON.stringify(message)}).then(res => {
+                console.log(res)
+              })
+          })
+        })
+      },
+
+      handleChangeCity (val, name) {
+        this.editForm['areaName'] = name
+      },
+
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        RequestURL.getSelectType(params).then(res => {
+          this.tableData = res.data
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+          if(this.tableData[0].sqlDescription && this.tableData[0].sqlDescription!=''){
+            this.valueData = [];
+            var itemv = {
+              sqlDescription: true,
+              fieldValue: this.tableData[0].sqlDescription
+            }
+            this.valueData.push(itemv);
+          }else{
+            this._loadValueData(this.tableData[0].widgetCode,this.tableData[0].type);
+          }
+
+
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      _loadValueData(widgetCode,type){
+        this.loadingItemView = true;
+        const params = {
+          widgetCode:widgetCode,
+          type:type
+        };
+        RequestURL.getSelectItem(params).then(res => {
+          console.log(res.data);
+          this.valueData = res.data
+          this.loadingItemView = false;
+        }).catch(() => {
+          this.loadingItemView = false;
+        })
+      },
+      // 表单回填
+      _setForm () {
+        this.$utils.setFormInfo(this.addForm, this.currentRowData, () => {
+          this.addForm['widgetCode'] = this.currentRowData['widgetCode']
+          this.addForm['fieldCode'] = this.currentRowData['fieldCode']
+          this.addForm['fieldValue'] = this.currentRowData['fieldValue']
+          this.addForm['sorting'] = this.currentRowData['sorting']
+          this.addForm['id'] = this.currentRowData['id']
+        })
+
+        // 拷贝为修改过的原始表单数据
+        this.originalData = Object.assign({}, this.addForm)
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addForm'].clearValidate()
+        }, 100)
+      },
+      _setEditSqlForm(){
+        this.$utils.setFormInfo(this.editSqlForm, this.currentDynamicConfigureItem, () => {
+          this.editSqlForm['sqlDescription'] = this.currentDynamicConfigureItem['sqlDescription']
+          this.editSqlForm['id'] = this.currentDynamicConfigureItem['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['editSqlForm'].clearValidate()
+        }, 100)
+      },
+      _showValue(row, event, column){
+        //console.log(row.widgetCode)
+        this.currentDynamicConfigureItem = row;
+        if(row.sqlDescription && row.sqlDescription!=''){
+          this.valueData = [];
+          var itemv = {
+            sqlDescription: true,
+            fieldValue: row.sqlDescription
+          }
+          this.valueData.push(itemv);
+        }else{
+          this._loadValueData(row.widgetCode,row.type);
+        }
+
+
+      }
+    },
+
+  }
+</script>
+
+<style scoped lang="scss">
+  .value-title{
+    height: 34px;
+    line-height: 34px;
+  }
+</style>

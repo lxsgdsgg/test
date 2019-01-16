@@ -1,0 +1,1379 @@
+<template>
+  <div
+    v-loading="loadingView"
+    element-loading-text="拼命加载中"
+    class="wrapper"
+  >
+    <el-row :gutter="15" v-if="resultData">
+
+      <el-col :span="16" class="houseInfo-left">
+        <el-card class="box-card info">
+
+          <div class="header-info clearfix">
+
+            <div class="left pull-left">
+              <h1>
+                <span class="text">{{resultData.customerInfo.demandId}} {{resultData.customerInfo.transactionType}} {{resultData.customerInfo.houseUses}} {{demandPrice}} {{demandSpace}}</span>
+
+                <!-- 标签 -->
+                <template v-for="(value, key, index) in tags1">
+                  <span
+                    v-if="resultData.customerInfo[key] && (resultData.customerInfo[key] === 1)"
+                    :key="index"
+                    :class="`tag-${key}`"
+                    class="tag mr5">{{value}}</span>
+                </template>
+
+              </h1>
+
+              <!-- 标签 -->
+              <div class="tags">
+                <template v-for="(item, index) in tags2">
+                  <span
+                    v-if="resultData.customerInfo[item]" :key="index"
+                    :class="item"
+                    class="house-tag">{{item === 'levelType' ? `${resultData.customerInfo[item]}类客源` : resultData.customerInfo[item]}}</span>
+                </template>
+
+                <!-- 收藏按钮 -->
+                <el-button
+                  @click="handleSetStore" :loading="loadingStore"
+                  :type="storeFlag ? 'primary' : ''"
+                  class="ml5" icon="el-icon-star-off" size="mini" circle></el-button>
+              </div>
+
+              <div class="detail">
+                <div class="item">需求区域：<span>{{demandArea}}</span></div>
+                <div class="item">需求价格：<span>{{demandPrice}}</span></div>
+                <div class="item">需求面积：<span>{{demandSpace}}</span> </div>
+                <div class="item">需求户型：<span>{{demandHouseType}}</span></div>
+              </div>
+            </div>
+
+            <div class="right pull-right">
+
+              <img src="./code.png" alt="二维码">
+
+            </div>
+          </div>
+
+          <div class="content clearfix">
+            <el-row>
+              <template v-for="(value, key, index) in DETAIL_MAP">
+                <template>
+                  <el-col class="content-item" v-if="index % 2 === 0" :span="12">
+                    <div class="label">{{value}}</div>
+                    <div class="text">{{resultData.customerInfo[key] | formatInfo(key, resultData)}}</div>
+                  </el-col>
+
+                  <el-col class="content-item" v-else :span="12">
+                    <div class="label">{{value}}</div>
+                    <div class="text">{{resultData.customerInfo[key] | formatInfo(key, resultData)}}</div>
+                  </el-col>
+                </template>
+              </template>
+            </el-row>
+            <el-row style="border-top: 1px dashed $border-color;border-bottom: 1px dashed $border-color;">
+              <template v-for="(value, key, index) in CUSTDETAIL_MAP">
+                <template>
+                  <el-col class="content-item" v-if="index % 2 === 0" :span="12">
+                    <div class="label">{{value}}</div>
+                    <div class="text">{{resultData.customerInfo[key] | formatInfo(key, resultData)}}</div>
+                  </el-col>
+
+                  <el-col class="content-item" v-else :span="12">
+                    <div class="label">{{value}}</div>
+                    <div class="text">{{resultData.customerInfo[key] | formatInfo(key, resultData)}}</div>
+                  </el-col>
+                </template>
+              </template>
+             </el-row>
+            <!-- 自定义字段集合 -->
+            <template v-if="resultData.customInfo && resultData.customInfo.customField">
+              <el-col v-for="(item, index) in resultData.customInfo.customField" :span="12" class="content-item">
+                <div class="label">{{item.title}}</div>
+                <div class="text">{{resultData.customInfo.customValue && resultData.customInfo.customValue[item.field]}}</div>
+              </el-col>
+            </template>
+
+          </div>
+
+        </el-card>
+
+        <!-- 更进信息 -->
+        <el-card class="box-card followRecord">
+          <div class="hd clearfix">
+            <div class="pull-left text-grey">跟进</div>
+            <div class="pull-right"><a @click="$emit('switchTab', 'followRecord')" href="javascript:;" class="text-btn">更多..</a></div>
+          </div>
+
+          <div class="followRecord-content">
+            <div v-for="(item, index) in followInfo" :key="index" class="item">
+              <div class="time">
+                <span>{{item.addTime | timeDifference}}</span>
+                <i class="el-icon-sort"></i>
+              </div>
+
+              <div class="info">
+                <div class="pull-left">
+                  <p class="mb10 text">{{item.content}}</p>
+                  <p class="text-grey">{{item.operator + ' ' + $utils.timeFormat(item.addTime)}}</p>
+                </div>
+
+                <div class="pull-right">{{item.followTypeName}}</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="javascript:;" @click="handleOpenDialogFollow" class="text-btn">+写跟进</a>
+
+        </el-card>
+      </el-col>
+
+      <el-col :span="8" class="houseInfo-right">
+        <el-card class="see-house">
+          <p style="font-size: 16px;">最近7天</p>
+          <p style="margin-top:10px;"><span >{{browseNum}}</span><span class="" style="margin-right:10px;">次浏览</span><span>{{lookNum}}</span><span class="">次带看</span></p>
+        </el-card>
+
+        <!-- 客户信息 -->
+        <el-card class="owner-info">
+
+          <div class="item clearfix">
+            <div class="left"><span class="text-grey mr5">客户：</span>
+              {{resultData.customerInfo.custName + (resultData.customerInfo.relateTypeName==undefined?'':resultData.customerInfo.relateTypeName)}}
+              <!-- <el-button @click="handleEditOwnerInfo" size="mini" type="text"><i class="el-icon-edit ml10"></i>修改信息</el-button> -->
+            </div>
+            <div class="right"><el-button  v-hasMultipleBtn="['custFile',resultData.custInfoPermission]"  @click="openDialogVisibleArchives" size="mini" type="text"><i class="el-icon-tickets ml5"></i>客户档案</el-button></div>
+
+          </div>
+
+          <div class="item">
+            <div class="left">
+              <span class="text-grey">电话：</span>
+
+              <div class="ml5 mr5" v-show="!showPhoneList">*****</div>
+              <div class="phoneList" v-show="showPhoneList">
+
+                <div class="phoneList-item" v-for="(item,index) in phoneList" :key="item.id">
+                  <span class="phone">{{item.phone}}</span>  <span class="remark">{{item.remark}}
+                  </span>
+                  <el-button @click="handleEditOwnerPhone(item)" size="mini" type="text">编辑</el-button>
+                  <el-button v-if="item.ismainFlag!=1" @click="handleDeleteOwnerPhone(index,item.id,item.phone)" type="text" size="mini">删除</el-button>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="right">
+              <el-button v-hasMultipleBtn="['lookHouseLocusBtn',resultData.custInfoPermission]"  @click="openDialogVisibleHousePath" size="mini" type="text"><i class="el-icon-tickets ml5"></i>看房轨迹</el-button>
+            </div>
+          </div>
+
+          <div style="margin-left: 35px" class="add-phone">
+              <el-button v-hasMultipleBtn="['addPhoneBtn',resultData.custInfoPermission]"  @click="handleEditOwnerPhone(null)" size="mini" type="text"><i class="el-icon-circle-plus ml5"></i>新增电话</el-button>
+              <el-button  v-hasMultipleBtn="['lookPhoneBtn',resultData.custInfoPermission]" v-show="!showPhoneList" @click="handleShowPhoneList" type="primary" size="small" icon="el-icon-mobile-phone" style="display: block">查看电话</el-button>
+          </div>
+
+        </el-card>
+
+
+        <!-- 相关经纪人 Todo-->
+        <el-card class="agent-info">
+          <div slot="header" class="clearfix">
+            <span>相关经纪人</span>
+          </div>
+
+          <template v-for="(value, key) in RELATEAGENT_FIELD">
+
+            <div class="agent-item" :key="key">
+              <div class="label">{{value}}</div>
+              <div class="content">
+                <template v-for="item in relateagentInfo" v-if="item.agentType === key">
+                  <p>{{item.departmentName}}-{{item.agentName}} </p>
+                  <p>电话: {{item.mobile}} </p>
+                  <p>
+                    <span class="pull-left" style="vertical-align: middle">{{$utils.timeFormat(item.updateTime)}}</span>
+                  </p>
+                </template>
+
+                <template>
+                  <el-button v-hasMultipleBtn="['changemManBtn',resultData.custInfoPermission]" @click="handleEditAgentInfo(key)" v-if="key === '5'" class="btn pull-right" type="primary" plain size="mini">变更维护人</el-button>
+                </template>
+
+              </div>
+            </div>
+
+          </template>
+
+        </el-card>
+
+
+      </el-col>
+    </el-row>
+
+    <template>
+      <!-- 新增跟进 -->
+      <el-dialog
+        title="房源写跟进"
+        :visible.sync="dialogVisibleFollow"
+        width="500px"
+        :close-on-click-modal="false"
+        :before-close="handleCloseDialogFollow"
+      >
+        <add-follow :demandId="demandId" @submit="handleFollowSubmit" :peopleSelectOpts="peopleSelectOpts" :transactionTypeId="transactionTypeId" ref="follow"></add-follow>
+      </el-dialog>
+
+      <!-- 业主信息编辑 -->
+      <el-dialog
+        :title="dialogOwnerTitle"
+        :visible.sync="dialogVisibleOwner"
+        width="400px"
+        :close-on-click-modal="false"
+      >
+        <edit-owner-info :data="ownerFormData" :type="dialogOwnerType" @handleBtnClick="handleOwnerSubmit" ref="owner"></edit-owner-info>
+      </el-dialog>
+
+      <!-- 客户档案 -->
+      <el-dialog
+        title="业主房客源"
+        :visible.sync="dialogVisibleArchives"
+        width="800px"
+        :close-on-click-modal="false"
+      >
+        <get-archives :demandId="demandId"></get-archives>
+      </el-dialog>
+
+      <!-- 看房轨迹 -->
+      <el-dialog
+        title="看房轨迹"
+        :visible.sync="dialogVisibleHousePath"
+        width="800px"
+        :close-on-click-modal="false"
+      >
+        <look-house-path :demandId="demandId"></look-house-path>
+      </el-dialog>
+
+
+      <!-- 修改底价 -->
+      <el-dialog
+        title="修改底价"
+        :visible.sync="dialogVisibleEditPrice"
+        width="400px"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="formEditPrice" ref="formEditPrice" label-width="110px">
+          <el-form-item label="出售低价 (万)" prop="minSellingPrice">
+            <el-input v-model="formEditPrice.minSellingPrice" placeholder="出售低价"></el-input>
+          </el-form-item>
+
+          <el-form-item label="出租低价 (元)" prop="minRentPrice">
+            <el-input v-model="formEditPrice.minRentPrice" placeholder="出租低价"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingEditPriceBtn" @click="handleEditPriceSubmit">确认</el-button>
+            <el-button @click="dialogVisibleEditPrice = false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+
+      </el-dialog>
+
+      <!-- 变更相关经纪人信息 -->
+      <el-dialog
+        :title="dialogAgentTitle"
+        :visible.sync="dialogVisibleEditAgent"
+        width="400px"
+        :close-on-click-modal="false"
+      >
+        <edit-agent-info v-if="hackResetAgent" :peopleSelectOpts="peopleSelectOpts" @handleBtnClick="handleAgentBtnClick" :type="dialogAgentType" :data="agentFormData" :transactionTypeId="transactionTypeId" ref="editAgent"></edit-agent-info>
+      </el-dialog>
+
+      <el-dialog
+        title="小区详细"
+        :visible.sync="communityDetailDlgVisible"
+        :close-on-click-modal="false"
+        top="5vh"
+        width="75%"
+      >
+        <detail-component :data="communityParams" @close="handleCommunityEdit"></detail-component>
+      </el-dialog>
+
+      <el-dialog
+        title="查看销控"
+        :visible.sync="showBuildingDlg"
+        :close-on-click-modal="false"
+        width="60%"
+        top="15vh"
+        append-to-body
+        :modal-append-to-body="false">
+        <!-- <building-unit-component :communityId="resultData.houseInfo.communityId"></building-unit-component> -->
+      </el-dialog>
+
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import * as RequestURL from '@/request/customer/customerUsed' // 请求后端URL路径
+  import * as consts from '../../consts'
+  import AddFollow from './AddFollow'
+  import LookHousePath from './LookHousePath'
+  import EditOwnerInfo from './EditOwnerInfo'
+  import GetArchives from './GetArchives'
+  import EditAgentInfo from './EditAgentInfo'
+  import DetailComponent from '@/views/manage/system/community/components/DetailComponent' // 小区详情
+  import BuildingUnitComponent from '@/views/manage/system/community/components/BuildingUnitComponent' // 坐栋
+  import {timeFormat} from '@/common/js/utils'
+  import {customerAddLog, customerUpdateLog, customerQueryLog,customerDelLog} from '@/request/log/customerLog'
+
+  export default {
+    name: 'houseUsedDetailInfo',
+    components: {EditAgentInfo, AddFollow, EditOwnerInfo, GetArchives, EditAgentInfo, DetailComponent, BuildingUnitComponent,LookHousePath},
+    props: {
+      peopleSelectOpts: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+
+      params: {
+        type: Object,
+        required: true,
+        default () {
+          return {}
+        }
+      }
+    },
+    data () {
+      return {
+        houseId: null,
+        DETAIL_MAP: consts.DETAIL_MAP,
+        CUSTDETAIL_MAP: consts.CUSTDETAIL_MAP,
+        RELATEAGENT_FIELD: consts.RELATEAGENT_FIELD,
+        resultData: {
+          customerInfo: {},
+          custInfoPermission: {}
+        },
+        followInfo: [],
+        relateagentInfo: [],
+        loadingView: false,
+        showPhoneList: false,
+        showPrice: false,
+        showBuildings: false,
+        phoneList: null, // 业主电话
+        buildings: null, // 门牌信息
+        minPrice: {}, // 出售出租底价
+        storeFlag: 0, // 收藏
+        topFlag: 0, // 置顶
+        loadingStore: false,
+        loadingTop: false,
+        tags1: consts.TAGS_1, // 标签数据一
+        tags2: consts.TAGS_2, // 标签数据一
+        dialogVisibleFollow: false,
+        dialogVisibleOwner: false,
+        dialogVisibleEditAgent: false,
+        dialogVisibleArchives: false,
+        dialogVisibleEditPrice: false,
+        loadingEditPriceBtn: false,
+        dialogOwnerTitle: '',
+        dialogAgentTitle: '',
+        dialogOwnerType: '',
+        dialogAgentType: '',
+        dialogVisibleHousePath: false,
+        ownerFormData: null,
+        agentFormData: null,
+        formEditPrice: {
+          minRentPrice: '',
+          minSellingPrice: ''
+        },
+        communityParams: null,
+        communityDetailDlgVisible: false,
+        showBuildingDlg: false,
+        buildingData: {
+          id: '',
+          name: '',
+          buildUnitAlias: ''
+        },
+        hackResetAgent: true,
+        priceUnit: '元',
+        demandPrice: '0',
+        demandSpace: '0',
+        demandHouseType: '',
+        houseFloor: 0,
+        houseAage: 0,
+        browseNum: 0,
+        lookNum: 0,
+        demandArea: '',
+        transactionTypeId: ''
+      }
+    },
+
+    methods: {
+      //客户档案
+      openDialogVisibleArchives(){
+         this.dialogVisibleArchives = true
+         //记日志
+        let logContent = '查看了客户档案'
+        let message = {
+            sourceId: this.demandId,
+            sourceCode: this.demandId,
+            businessTypeId: 2,//业务类型，2：代表客源
+            sourceTypeId: this.resultData.customerInfo.transactionTypeId,
+            operatTypeId: 226,
+            logContent: logContent,
+            remark: this.$route.query.formName
+          }
+        customerQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+
+      },
+      //看房轨迹
+      openDialogVisibleHousePath(){
+         this.dialogVisibleHousePath = true
+         //记日志
+        let logContent = '查看了看房轨迹'
+        let message = {
+            sourceId: this.demandId,
+            sourceCode: this.demandId,
+            businessTypeId: 2,//业务类型，2：代表客源
+            sourceTypeId: this.resultData.customerInfo.transactionTypeId,
+            operatTypeId: 227,
+            logContent: logContent,
+            remark: this.$route.query.formName
+          }
+        customerQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+
+      },
+
+      // 客源收藏
+      handleSetStore () {
+        this.loadingStore = true
+        let status
+        if (this.storeFlag === 1) {
+          status = 0
+        } else {
+          status = 1
+        }
+        let params = {
+          demandId: this.demandId,
+          status: status
+        }
+
+        RequestURL.updateStore(params).then(res => {
+          if (res.success) {
+            this.storeFlag = status
+            this.loadingStore = false
+            //写日志
+            let logContent = '客源置顶了'
+            let operatTypeId = 223
+            if(status===0){
+              logContent = '客源取消了置顶'
+              operatTypeId = 224
+            }
+            let message = {
+            sourceId: this.demandId,
+            sourceCode: this.demandId,
+            businessTypeId: 2,//业务类型，2：代表客源
+            sourceTypeId: this.resultData.customerInfo.transactionTypeId,
+            operatTypeId: operatTypeId,
+            logContent: logContent,
+            remark: this.$route.query.formName
+          }
+          customerQueryLog({message: JSON.stringify(message)}).then(res => {
+            console.log(res)
+          })
+          }
+        }).catch(() => {
+          this.loadingStore = false
+        })
+      },
+
+      // 房源置顶
+      handleSetTop () {
+        this.loadingTop = true
+        let status
+        if (this.topFlag === 1) {
+          status = 0
+          this.resultData.houseInfo.isSetTop = 0
+        } else {
+          status = 1
+          this.resultData.houseInfo.isSetTop = 1
+
+        }
+        let params = {
+          shhId: this.houseId,
+          type: 'top',
+          status: status
+        }
+
+        RequestURL.updateTag(params).then(res => {
+          if (res.success) {
+            this.topFlag = status
+            this.loadingTop = false
+          }
+        })
+      },
+
+      // 点击查看门牌
+      handleShowBuildings () {
+        if (this.buildings) return
+        this._queryHousePrivateInfo(1).then(() => {
+          this.showBuildings = true
+        })
+      },
+
+      // 点击查看客户电话
+      handleShowPhoneList () {
+
+        let params = {
+            demandId: this.demandId
+          }
+          RequestURL.getCustomerPhone(params).then(res => {
+            if(res.data[0].examineNum>0){
+                this.showPhoneList = false
+                this.$message({
+                  type: 'warning',
+                  message: '已封盘，不能查看'
+                })
+            }else{
+               this.showPhoneList = true
+               this.phoneList = res.data
+               console.log(this.resultData.customerInfo.transactionTypeId)
+                //记日志
+              let phones = ''
+              res.data.forEach(item=>{
+                phones = phones + ","+ item.phone
+
+              })
+              let logContent = "查看了电话"
+              console.log(logContent)
+              let message = {
+              sourceId: this.demandId,
+              sourceCode: this.demandId,
+              businessTypeId: 2,//业务类型，2：代表客源
+              sourceTypeId: this.resultData.customerInfo.transactionTypeId,
+              operatTypeId: 222,
+              logContent: logContent,
+              remark: this.$route.query.formName
+            }
+            customerQueryLog({message: JSON.stringify(message)}).then(res => {
+              console.log(res)
+            })
+            }
+
+          })
+      },
+
+      // 修改业主信息
+      handleEditOwnerInfo () {
+        this.$refs['owner'] && this.$refs['owner']._resetForm()
+        this.dialogOwnerType = 1
+        this.dialogVisibleOwner = true
+        this.ownerFormData = {
+          owner: this.resultData.houseInfo.owner,
+          nameTitle: this.resultData.houseInfo.nameTitle,
+          nameType: this.resultData.houseInfo.nameType,
+          id: this.houseId
+        }
+        this.dialogOwnerTitle = '修改客户信息'
+      },
+      // 修改业主电话
+      handleEditOwnerPhone (data) {
+        this.$refs['owner'] && this.$refs['owner']._resetForm()
+        if (data){
+          this.dialogOwnerType = 2
+          this.dialogOwnerTitle = '修改客户电话'
+          this.ownerFormData = {
+            phone: data.phone,
+            remark: data.remark,
+            id: data.id,
+            demandId: this.demandId,
+            transactionTypeId: this.resultData.customerInfo.transactionTypeId,
+          }
+
+        } else {
+          //this.showPhoneList = false
+          this.ownerFormData = {
+            demandId: this.demandId,
+            transactionTypeId: this.resultData.customerInfo.transactionTypeId
+          }
+
+          this.dialogOwnerType = 3
+          this.dialogOwnerTitle = '新增客户电话'
+        }
+
+        this.dialogVisibleOwner = true
+      },
+
+      // 业主信息编辑保存
+      // action 点击按钮 1 submit 2 cancel
+      // type 提交表单 电话编辑和基本信息编辑
+      // data 返回的回显数据
+      handleOwnerSubmit (action, type, data) {
+        if (action === 1 && type === 1) {
+          this.resultData.houseInfo.owner = data.owner
+          this.resultData.houseInfo.nameTitle = data.nameTitle
+          this.resultData.houseInfo.nameType = data.nameType
+        }
+
+        if (action === 1) {
+          // 重新加载电话列表
+          //this._queryHousePrivateInfo(2)
+          if(type === 2){
+            this.phoneList.forEach(item=>{
+              if(item.id===data.id){
+                item.phone = data.phone
+                item.remark = data.remark
+                return item
+              }
+            })
+          }else if(type === 3){
+            
+            let phoneObj = {
+              phone: data.phone,
+              remark: data.remark,
+            }
+           this.phoneList.push(phoneObj)
+           console.log(this.phoneList)
+           
+          }
+          
+        }
+
+        this.dialogVisibleOwner = false
+      },
+
+      // 删除业主电话
+      handleDeleteOwnerPhone (index,id,phone) {
+        this.$confirm('确定删除电话吗?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          RequestURL.delCustomerPhone({id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg
+            })
+            // 重新加载电话列表
+            //this.handleShowPhoneList()
+            this.phoneList.splice(index,1)
+            
+             //记日志
+            let logContent = "删除电话"
+              let message = {
+              sourceId: this.demandId,
+              sourceCode: this.demandId,
+              businessTypeId: 2,//业务类型，
+              sourceTypeId: this.resultData.customerInfo.transactionTypeId,
+              operatTypeId: 212,
+              logContent: logContent,
+              remark: this.$route.query.formName
+            }
+            customerDelLog({message: JSON.stringify(message)}).then(res => {
+              console.log(res)
+            })
+          })
+        })
+      },
+
+      // 点击查看低价
+      handleShowPrice () {
+        this.showPrice = true
+        this._queryHousePrivateInfo(3)
+      },
+
+      // 打开修改底价
+      handleOpenDialogEditPrice () {
+        // 获取底价信息
+        this._queryHousePrivateInfo(3).then(res => {
+          let minSellingPrice = res.minSellingPrice || ''
+          let minRentPrice = res.minRentPrice || ''
+          this.formEditPrice.minSellingPrice = minSellingPrice
+          this.formEditPrice.minRentPrice = minRentPrice
+        })
+
+
+
+        this.dialogVisibleEditPrice = true
+      },
+
+      // 保存修改底价
+      handleEditPriceSubmit () {
+        this.$confirm('确定保存编辑的信息吗?',
+          {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+          }
+        ).then(() => {
+          this.loadingEditPriceBtn = true
+          let params = Object.assign({}, this.formEditPrice, {
+            shhId: this.houseId
+          })
+          let cfg = {
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8;'
+            }
+          }
+          RequestURL.updatePrice(params, cfg).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg
+            })
+            this.showPrice = true
+            this._queryHousePrivateInfo(3)
+            this.loadingEditPriceBtn = false
+            this.dialogVisibleEditPrice = false
+          })
+        })
+      },
+
+      // 打开写跟进dialog
+      handleOpenDialogFollow () {
+        this.$refs['follow'] && this.$refs['follow']._resetForm()
+        this.dialogVisibleFollow = true
+      },
+
+      // 关闭写跟进dialog
+      handleCloseDialogFollow (done) {
+        this.$confirm('确认关闭正在编辑的窗口？')
+          .then(() => {
+            done()
+          })
+          .catch(_ => {})
+      },
+
+      // 跟进组件提交完成
+      handleFollowSubmit (data) {
+        this.followInfo.unshift(data)
+        this.dialogVisibleFollow = false
+      },
+
+      // 变更经纪人信息 type 经纪人类型
+      handleEditAgentInfo (type) {
+        this.hackResetAgent = false
+        this.$nextTick(() => {
+          this.hackResetAgent = true
+          let agentData = this.relateagentInfo.find(item => item.agentType === type)
+          this.dialogAgentType = type
+          if (type === '5') {
+            this.dialogAgentTitle = '变更维护人'
+          } else {
+            this.dialogAgentTitle = `设置${this.RELATEAGENT_FIELD[type]}`
+          }
+
+          this.agentFormData = {
+            recordid: (agentData && String(agentData.id || '')) || '',
+            demandId: this.demandId
+          }
+
+          switch (type) {
+            case '5':
+              this.agentFormData.type = 'wh'
+              this.agentFormData.agentId = String(agentData.agentId)
+              this.agentFormData.agentName = agentData.agentName
+              break
+            case '7':
+              this.agentFormData.type = 'wt'
+              break
+            case '10':
+              this.agentFormData.type = 'img'
+              break
+            case '9':
+              this.agentFormData.type = 'dj'
+              break
+            case '8':
+              this.agentFormData.type = 'ys'
+              this.agentFormData.keyCode = this.resultData.houseInfo.keyCode || ''
+              break
+          }
+
+          this.dialogVisibleEditAgent = true
+        })
+      },
+
+      // 监听相关经纪人表单按钮点击
+      // action 点击按钮 1 submit 2 cancel
+      // type 提交的表单 维护人，委托信息等
+      // data 返回的回显数据
+      handleAgentBtnClick (action, type, data) {
+        // 当前数据中是否存在相关信息
+        let existFlag = false
+        if (action === 1) {
+          this.relateagentInfo.forEach((item, index) => {
+            if (item.agentType === data.agentType) {
+              existFlag = true
+              this.$set(this.relateagentInfo, index, data)
+            }
+          })
+          !existFlag ? this.relateagentInfo.push(data) : ''
+        }
+
+        this.dialogVisibleEditAgent = false
+      },
+
+      // 查看小区详情
+      viewCommunityDetail () {
+        let params = {
+          id: this.resultData.houseInfo.communityId,
+          areaCode: this.resultData.houseInfo.areaCode,
+          areaName: this.resultData.houseInfo.areaName
+        }
+        this.communityParams = params
+        this.communityDetailDlgVisible = true
+      },
+
+      // 提交小区详细数据后的回调函数
+      handleCommunityEdit () {
+        this.communityDetailDlgVisible = false
+        this.currentRowData = null
+      },
+
+      // 查看坐栋
+      viewBuilding () {
+        this.showBuildingDlg = true
+        this.buildingData = {
+          id: this.resultData.houseInfo.buildingsId,
+          name: this.resultData.houseInfo.buildingsName,
+          buildUnitAlias: '',
+        }
+      },
+
+      _loadData () {
+        this.loadingView = true
+        //this.params.demandId = 'KY-180824003'
+        //this.params.formName = 'house_customer'
+        let params = this.params
+
+        RequestURL.getDetailInfo(params).then(res => {
+          console.log(res);
+          this.transactionTypeId = res.data.customerInfo.transactionTypeId
+
+          //价格单位
+          if(res.data.customerInfo.transactionTypeId==4){
+            this.priceUnit = "万元"
+          }else{
+            this.priceUnit = "元"
+          }
+           //价格区间
+          if(!res.data.customerInfo.minPrice){
+            res.data.customerInfo.minPrice = 0
+          }
+          if(!res.data.customerInfo.maxPrice){
+            res.data.customerInfo.maxPrice = 0
+          }
+
+          if(res.data.customerInfo.transactionTypeId==4){
+            res.data.customerInfo.maxPrice = res.data.customerInfo.maxPrice/1000000
+          }else{
+            res.data.customerInfo.maxPrice = res.data.customerInfo.maxPrice/100
+          }
+
+          if(res.data.customerInfo.transactionTypeId==4){
+            res.data.customerInfo.minPrice = res.data.customerInfo.minPrice/1000000
+          }else{
+            res.data.customerInfo.minPrice = res.data.customerInfo.minPrice/100
+          }
+
+          this.demandPrice = res.data.customerInfo.minPrice + "-" + res.data.customerInfo.maxPrice + this.priceUnit
+
+          if(res.data.customerInfo.minPrice<=0){
+
+            this.demandPrice = res.data.customerInfo.maxPrice + this.priceUnit + "以下";
+          }
+          if(res.data.customerInfo.maxPrice<=0){
+
+            this.demandPrice = res.data.customerInfo.minPrice + this.priceUnit + "以上";
+          }
+
+          //面积区间
+          if(!res.data.customerInfo.minSpace){
+            res.data.customerInfo.minSpace = 0
+          }
+          if(!res.data.customerInfo.maxSpace){
+            res.data.customerInfo.maxSpace = 0
+          }
+          this.demandSpace = res.data.customerInfo.minSpace + "-" + res.data.customerInfo.maxSpace + "平米"
+          if(res.data.customerInfo.minSpace<=0){
+            this.demandSpace = res.data.customerInfo.maxSpace + "平米以下";
+          }
+          if(res.data.customerInfo.maxSpace<=0){
+            this.demandSpace = res.data.customerInfo.minSpace + "平米以上";
+          }
+          //户型
+          if(!res.data.customerInfo.minRoom){
+            res.data.customerInfo.minRoom = 0;
+          }
+          if(!res.data.customerInfo.maxRoom){
+            res.data.customerInfo.maxRoom = 0;
+          }
+          this.demandHouseType = res.data.customerInfo.minRoom + "-" + res.data.customerInfo.maxRoom + "室"
+          if(res.data.customerInfo.minRoom<=0){
+            this.demandHouseType = res.data.customerInfo.maxRoom + "室以下";
+          }
+          if(res.data.customerInfo.maxRoom<=0){
+            this.demandHouseType = res.data.customerInfo.minRoom + "室以上";
+          }
+
+          //楼层
+          if(!res.data.customerInfo.minFloorCount){
+            res.data.customerInfo.minFloorCount = 0;
+          }
+          if(!res.data.customerInfo.maxFloorCount){
+            res.data.customerInfo.maxFloorCount = 0;
+          }
+          this.houseFloor = res.data.customerInfo.minFloorCount + "-" + res.data.customerInfo.maxFloorCount + "楼"
+          if(res.data.customerInfo.minFloorCount<=0){
+            this.houseFloor = res.data.customerInfo.maxFloorCount + "楼以下";
+          }
+          if(res.data.customerInfo.maxFloorCount<=0){
+            this.houseFloor = res.data.customerInfo.minFloorCount + "楼以上";
+          }
+          res.data.customerInfo.houseFloor = this.houseFloor
+          //房龄
+          /*
+          if(!res.data.customerInfo.minFloorCount){
+            res.data.customerInfo.minFloorCount = 0;
+          }
+          if(!res.data.customerInfo.maxFloorCount){
+            res.data.customerInfo.maxFloorCount = 0;
+          }
+          this.houseAage = "楼"
+          if(res.data.customerInfo.minFloorCount<=0){
+            this.houseAage = res.data.customerInfo.maxFloorCount + "楼以下";
+          }
+          if(res.data.customerInfo.maxFloorCount<=0){
+            this.houseAage = res.data.customerInfo.minFloorCount + "楼以上";
+          }
+          res.data.customerInfo.houseAage = this.houseAage
+          */
+          if(res.data.nums){
+            this.browseNum = res.data.nums.browseNum
+            this.lookNum = res.data.nums.showNum
+          }
+          this.demandArea = (res.data.customerInfo.areaNames==undefined?'': res.data.customerInfo.areaNames)+(res.data.customerInfo.regionNames==undefined?'':res.data.customerInfo.regionNames) + (res.data.customerInfo.communityNames==undefined?'':res.data.customerInfo.communityNames)
+          this.resultData = res.data
+          this.followInfo = res.data.followInfo ||[]
+          this.relateagentInfo = res.data.relateagentInfo ||[]
+          this.storeFlag = res.data.customerInfo.isStore || 0
+
+          this.resultData.custInfoPermission = res.data.custInfoPermission
+
+          this.loadingView = false
+
+          this.$emit('loadDataFinish', res.data)
+        }).catch(() => {
+          this.loadingView = false
+        })
+      },
+
+      /**
+       *  获取房源门牌号 业主电话 底价等信息
+       * @param type 查询类型 1:门牌  2: 业主电话  3: 底价
+       */
+      _queryHousePrivateInfo () {
+        return new Promise(resolve => {
+          let params = {
+            houseId: this.houseId
+          }
+          RequestURL.queryHousePrivateInfo(params).then(res => {
+            if (type === 1) {
+              this.buildings = res.data
+              resolve(res.data)
+            }
+            if (type === 2) {
+              this.phoneList = res.data
+              resolve(res.data)
+            }
+            if (type === 3) {
+              this.minPrice = res.data
+              resolve(res.data)
+            }
+          })
+        })
+      },
+
+      _getHouseInfo () {
+        return this.resultData
+      }
+    },
+
+    filters: {
+      formatInfo (value, key, resultData) {
+        if(key==='houseAage'){
+          if(resultData.customerInfo.minBuildDates==undefined){
+            resultData.customerInfo.minBuildDates=0
+          }
+          if(resultData.customerInfo.maxBuildDates==undefined){
+            resultData.customerInfo.maxBuildDates=0
+          }
+          if(resultData.customerInfo.minBuildDates===0){
+            return resultData.customerInfo.maxBuildDates + '年以下'
+          }
+          if(resultData.customerInfo.maxBuildDates===0){
+            return resultData.customerInfo.minBuildDates + '年以上'
+          }
+          return resultData.customerInfo.minBuildDates + '-' + resultData.customerInfo.maxBuildDates + '年'
+        }
+
+        return value
+      },
+
+      // 计算时间差
+      timeDifference (value) {
+        let nowDate = new Date().getTime()
+        return Math.floor((nowDate - value) / (24 * 3600 * 1000)) + '天前'
+      }
+    },
+
+    computed: {
+      // 房源详细位置
+      address () {
+        let resultData = this.resultData
+        //return `${resultData.houseInfo.areaName}-${resultData.houseInfo.regionName}- ${resultData.houseInfo.communityName}`
+      },
+
+      // 户型
+      roomSize () {
+        let resultData = this.resultData
+        let room = (resultData.houseInfo.room || '') + '室'
+        let hall = (resultData.houseInfo.hall || '') + '厅'
+        let kitchen = (resultData.houseInfo.kitchen || '') + '厨'
+        let toilet = (resultData.houseInfo.toilet || '') + '卫'
+        let balcony = (resultData.houseInfo.balcony || '') + '阳台'
+        return room + hall + kitchen + toilet + balcony
+      },
+
+      demandId () {
+        return this.params.demandId
+      }
+    },
+
+    mounted () {
+      this._loadData()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  $color-red: #e41e2b;
+  $red-hover: #e0000f;
+  $color-blue: #26B2C9;
+  $blue-hover: #40C9C6;
+  $border-color: #dcdfe6;
+
+  .wrapper {
+    min-height: 1000px;
+    padding: 10px;
+
+    .houseInfo-left {
+      .info {
+        .header-info {
+          &>.left {
+            h1 {
+              margin-bottom: 15px;
+              font-size: 18px;
+              font-weight: 600;
+
+              .text {
+                margin-right: 20px;
+                vertical-align: middle;
+              }
+
+              .tag {
+                padding: 5px;
+                font-size: 12px;
+                color: #fff;
+                background-color: #82848a;
+                font-weight: normal;
+
+                &.tag-taobaoStatusId {
+                  background-color: #FBAE39;
+                }
+                &.tag-isUnique {
+                  background-color: #B88752;
+                }
+                &.tag-isGood {
+                  background-color: #ED78E9;
+                }
+                &.tag-isSetTop {
+                  background-color: #40C9C6;
+                }
+                &.tag-isSchoolRoom {
+                  background-color: #216348;
+                }
+                &.tag-isKeys {
+                  background-color: #5BCD9C;
+                }
+                &.tag-viewingCount {
+                  background-color: #A2D13D;
+                }
+                &.tag-isPicture {
+                  background-color: #27CCE3;
+                }
+              }
+            }
+
+            .detail {
+              .item {
+                margin-top: 15px;
+              }
+            }
+          }
+
+          &>.right {
+            display: flex;
+            .tool {
+              padding-top: 30px;
+            }
+
+            .calculator {
+              margin-left: 8px;
+              cursor: pointer;
+              transition: all 0.3s;
+              &:hover {
+                transform: scale(1.2);
+              }
+            }
+            img {
+              width: 100px;
+              height: 100px;
+            }
+          }
+        }
+
+        .content {
+          border-top: 1px dashed $border-color;
+          padding-top: 15px;
+          margin-top: 15px;
+
+          .content-item {
+            font-size: 14px;
+            display: flex;
+            margin-bottom: 15px;
+
+            .label {
+              margin-right: 10px;
+              color: #9F9F9F;
+              min-width: 85px;
+              text-align: right;
+            }
+          }
+        }
+      }
+
+      .followRecord {
+        margin-top: 15px;
+
+        .followRecord-content {
+          margin: 20px 0 10px 0;
+          .item {
+            margin-top: 10px;
+            display: flex;
+            font-size: 12px;
+
+            .time {
+              i {
+                margin-top: 8px;
+                font-size: 16px;
+                color: #26b2c9;
+              }
+            }
+
+            .info {
+              flex: 1;
+              margin-left: 10px;
+              padding-bottom: 10px;
+              border-bottom: 1px dashed #606266;
+
+              .text {
+                max-width: 500px;
+                word-wrap: normal;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .houseInfo-right {
+      font-size: 12px;
+      .see-house {
+        .btn {
+          padding: 4px 8px;
+        }
+      }
+
+      .owner-info {
+        margin-top: 15px;
+        .item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 10px;
+
+          &:nth-child(2){
+            margin-bottom: 0;
+          }
+
+          .left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+          }
+
+          i {
+            margin-right: 5px;
+            font-size: 14px;
+          }
+        }
+
+        .phoneList {
+          .phoneList-item {
+            line-height: 1.8;
+
+            .phone {
+              margin-right: 5px;
+            }
+            .remark {
+              display: inline-block;
+              vertical-align: middle;
+              max-width: 100px;
+              word-wrap: normal; /* for IE */
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              overflow: hidden;
+            }
+          }
+        }
+        .add-phone{
+          .left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+          }
+        }
+      }
+
+      .price-info {
+        margin-top: 15px;
+        p {
+          margin-bottom: 20px;
+        }
+      }
+
+      .agent-info {
+        margin-top: 15px;
+
+        .agent-item {
+          display: flex;
+          align-items: center;
+          padding: 15px 0;
+          border-bottom: 1px dashed $border-color;
+
+          .label {
+            width: 80px;
+            text-align: center;
+          }
+
+          .content {
+            flex: 1;
+            p {
+              margin-bottom: 10px;
+
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+
+          }
+
+          .btn {
+            padding: 4px 8px;
+          }
+        }
+      }
+
+      .community-info {
+        margin-top: 15px;
+        p {
+          margin-bottom: 15px;
+        }
+
+        .btn {
+          padding: 4px 8px;
+        }
+      }
+    }
+  }
+
+  .text-btn {
+    font-size: 12px;
+    color: $color-blue;
+    transition: all 0.3s;
+
+    &:hover {
+      color: $blue-hover;
+    }
+  }
+
+  .text-red {
+    color: $color-red;
+  }
+  .text-grey {
+    color: #9F9F9F;
+  }
+  .font-12 {
+    font-size: 12px;
+  }
+
+  .house-tag {
+    display: inline-block;
+    height: 20px;
+    padding: 0 5px;
+    line-height: 19px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid rgba(228, 30, 43, 0.2);
+
+    &+.house-tag {
+      margin-left: 10px;
+    }
+
+    &.levelType {
+      background-color: rgba(#FBAE39,.1);
+      border-color: rgba(#FBAE39,.2);
+      color: #FBAE39;
+    }
+    &.discStatus {
+      background-color: rgba(#ED78E9,.1);
+      border-color: rgba(#FBAE39,.2);
+      color: #ED78E9;
+    }
+    &.transactionType {
+      background-color: rgba(#5BCD9C,.1);
+      border-color: rgba(#5BCD9C,.2);
+      color: #5BCD9C;
+    }
+    &.status {
+      background-color: rgba(#A2D13D,.1);
+      border-color: rgba(#A2D13D,.2);
+      color: #A2D13D;
+    }
+    &.houseUses {
+      background-color: rgba(#27CCE3,.1);
+      border-color: rgba(#27CCE3,.2);
+      color: #27CCE3;
+    }
+  }
+</style>

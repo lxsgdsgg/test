@@ -1,0 +1,51 @@
+<template>
+  <div style="min-height: calc(100vh - 165px); overflow: hidden;">
+
+    <transition name="fade-transform" mode="out-in">
+
+      <keep-alive v-show="!showIframe" :include="cachedViews">
+        <router-view :key="key"></router-view>
+      </keep-alive>
+
+    </transition>
+
+    <transition name="fade-transform" mode="out-in">
+      <div v-show="showIframe" style="height: calc(100vh - 165px); background-color: #fff; overflow: hidden;">
+        <iframe
+          v-for="(item) in iframeTabData"
+          :src="item.meta.src"
+          :key="item.meta.src"
+          v-show="currentSrc === item.meta.src"
+          style="width: 100%; height: 100%;"
+        >
+        </iframe>
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+  name: 'AppMain',
+  computed: {
+    ...mapGetters([
+      'cachedViews',
+      'showIframe',
+      'iframeTabData'
+    ]),
+
+    key () {
+      return this.$route.fullPath
+    },
+
+    currentSrc () {
+      return this.$route.meta.src || ''
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

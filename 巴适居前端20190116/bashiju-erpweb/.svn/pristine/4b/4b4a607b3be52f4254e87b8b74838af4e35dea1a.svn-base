@@ -1,0 +1,945 @@
+<template>
+  <div class="page-content">
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <div class="grid-content">
+          <div class="page-content-hd">
+            <div class="query-form">
+              <el-form size="small" ref="queryForm" :inline="true" :model="queryForm" class="demo-form-inline">
+
+                <el-form-item label="名称" prop="name">
+                  <el-input v-model="queryForm.name" placeholder="请输入名称"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button type="primary" @click.native.prevent="handleQuery" :loading="loadingQueryBtn">查询</el-button>
+                  <el-button @click.native.prevent="_resetForm('queryForm')">重置</el-button>
+                </el-form-item>
+                <el-form-item class="pull-right">
+                  <el-button v-hasOnlyBtn="'commissionsAddBtn'" type="primary" @click="handleAddConfig">新增提成方案</el-button>
+                </el-form-item>
+              </el-form>
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingView">
+            <el-table
+              :data="tableData"
+              border
+              ref="multipleTable"
+              highlight-current-row
+              @row-click="_showValue"
+              align="center"
+              style="width: 100%"
+              height="580"
+            >
+
+              <el-table-column
+                prop="companyName"
+                align="center"
+                label="公司">
+              </el-table-column>
+
+              <el-table-column
+                prop="name"
+                align="center"
+                label="名称">
+              </el-table-column>
+
+              <el-table-column
+                prop="descs"
+                align="center"
+                label="备注信息">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  <el-button v-hasMultipleBtn="['commissionsUpdateBtn',scope.row]" @click="handleEditConfig(scope.row)" type="text" size="small">编辑</el-button>
+                  <el-button v-hasMultipleBtn="['commissionsDelBtn',scope.row]" @click="delConfig(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+
+            <b-pagination
+              :listQuery="listQuery"
+              @handleSizeChange="handleSizeChange"
+              @handleCurrentChange="handleCurrentChange">
+            </b-pagination>
+          </div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="grid-content">
+          <div class="page-content-hd">
+            <div class="query-form">
+              <el-form size="small" :inline="true" class="demo-form-inline">
+
+                <el-form-item label="业务类型" prop="name">
+                </el-form-item>
+
+              </el-form>
+            </div>
+          </div>
+          <div class="page-content-bd" v-loading="loadingItemView">
+            <el-table
+              
+              :data="valueData"
+              border
+              align="center"
+              style="width: 100%"
+              height="580"
+            >
+
+              <el-table-column
+                prop="name"
+                align="center"
+                label="业务类型名称">
+              </el-table-column>
+
+              <el-table-column
+                prop="calculateFormulaName"
+                align="center"
+                label="提成计算方式">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  <el-button v-hasMultipleBtn="['commissionsUpdateBtn',scope.row]"  v-if="scope.row.calculateFormula==0" @click="handleSetUniversalRate(scope.row)" type="text" size="small">通提比例</el-button>
+                  <el-button v-hasMultipleBtn="['commissionsUpdateBtn',scope.row]"  v-if="scope.row.calculateFormula!=0" @click="handleSetRate(scope.row)" type="text" size="small">提成比例</el-button>
+                  <el-button v-hasMultipleBtn="['commissionsUpdateBtn',scope.row]"  @click="handleSetActualRate(scope.row)" type="text" size="small">实收比例</el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+
+          </div>
+
+
+
+        </div>
+      </el-col>
+    </el-row>
+
+
+
+    <template>
+      <b-dialog :show.sync="dialogAddConfig" :title="configTitle" width="500px">
+        <el-form v-loading="loadingForm" :model="addConfigForm" status-icon :rules="addConfigFormRules" ref="addConfigForm" label-width="100px">
+
+          <el-form-item label="方案名称" prop="name">
+            <el-input v-model="addConfigForm.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="备注信息" prop="descs">
+            <el-input v-model="addConfigForm.descs" suffix="%"></el-input>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSaveConfigBtn" @click="saveConfig">确认</el-button>
+            <el-button @click="dialogAddConfig=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+      <b-dialog :show.sync="dialogAddRate" title="设置提成比列" width="650px">
+         <el-button type="primary" style="margin-top:10px;margin-bottom:10px" @click="handleConfirmAddRate">新增</el-button>
+         <el-table
+            
+              :data="rateData"
+              border
+              highlight-current-row
+              align="center"
+              style="width: 100%"
+              height="380"
+            >
+
+              <el-table-column
+                prop="sign"
+                align="center"
+                label="">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="金额(元）">
+                <template slot-scope="scope">
+                  <template v-if="scope.row.edit">
+                    <el-input class="edit-input" :readonly="scope.row.isReadonly" size="mini" @blur="blurMaxPrice(scope.$index,scope.row)"  v-model="scope.row.minPrice"></el-input>
+                  </template>
+
+                  <span v-else>{{ scope.row.minPrice }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="比列(%)">
+                <template slot-scope="scope">
+                  <template v-if="scope.row.edit">
+                    <el-input class="edit-input" size="mini" v-model="scope.row.commissionsRate" @blur="blurRate(scope.row)"></el-input>
+                  </template>
+
+                  <span v-else>{{ scope.row.commissionsRate }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  
+                  <el-button  type="primary" @click='scope.row.edit = !scope.row.edit' size="mini" icon="el-icon-edit">编辑</el-button>
+
+                  <el-button size="mini" plain icon="el-icon-delete" @click="handleDeleteRate(scope.$index, scope.row)"></el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+            <el-button type="primary" :loading="loadingSaveRate" style="margin-top:20px;margin-left:45%" @click="handleConfirmEditRate">保存</el-button>
+            <el-button @click="dialogAddRate=false">取消</el-button>
+      </b-dialog>
+      <b-dialog :show.sync="dialogAddActualrate" title="设置实收比列" width="650px">
+        
+        <el-button type="primary" style="margin-top:10px;margin-bottom:10px" @click="handleConfirmAddActualRate">新增</el-button>
+         <el-table
+            
+              :data="actualrateData"
+              border
+              align="center"
+              style="width: 100%"
+              height="380"
+            >
+
+              <el-table-column
+                prop="sign"
+                align="center"
+                label="">
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="实收率(%)">
+                <template slot-scope="scope">
+                  <template v-if="scope.row.edit">
+                    <el-input class="edit-input" :readonly="scope.row.isReadonly" size="mini" @blur="blurMaxActualRate(scope.$index,scope.row)"  v-model="scope.row.minactualRate"></el-input>
+                  </template>
+
+                  <span v-else>{{ scope.row.minactualRate }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="比列(%)">
+                <template slot-scope="scope">
+                  <template v-if="scope.row.edit">
+                    <el-input class="edit-input" size="mini" v-model="scope.row.commissionsRate" @blur="blurActualRate(scope.row)"></el-input>
+                  </template>
+
+                  <span v-else>{{ scope.row.commissionsRate }}</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                align="center"
+                label="操作"
+              >
+                <template slot-scope="scope">
+                  
+                  <el-button  type="primary" @click='scope.row.edit = !scope.row.edit' size="mini" icon="el-icon-edit">编辑</el-button>
+
+                  <el-button size="mini" plain icon="el-icon-delete" @click="handleDeleteActualRate(scope.$index, scope.row)"></el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+            <el-button type="primary" :loading="loadingSaveActualRate" style="margin-top:20px;margin-left:45%" @click="handleConfirmEditActualRate">保存</el-button>
+            <el-button @click="dialogAddActualrate=false">取消</el-button>
+      </b-dialog>
+      <b-dialog :show.sync="dialogAddUniversalRate" :title="universalRateTitle" width="360px">
+        <el-form v-loading="loadingForm" :model="addUniversalRateForm"  ref="addUniversalRateForm" label-width="100px">
+
+          <el-form-item label="通提比例(%)" prop="universalRate">
+            <el-input-number v-model="addUniversalRateForm.universalRate" :min="0" :max="100" style="width:150px"></el-input-number>
+          </el-form-item>
+
+          <el-form-item class="margin-b-none">
+            <el-button type="primary" :loading="loadingSaveUniversalRateBtn" @click="saveUniversalRate">确认</el-button>
+            <el-button @click="dialogAddUniversalRate=false">取消</el-button>
+          </el-form-item>
+
+        </el-form>
+      </b-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/emolument' // 请求后端URL路径
+  import BaseCityCascader from '@/components/BaseCascader/city' // 城市级联组件
+
+  export default {
+    name: 'commissionsConfig',
+    mixins: [PageList],
+    components: {BaseCityCascader},
+    data () {
+      var checkAge = (rule, value, callback) => {
+        if (!value) {
+          return callback(new Error('值不能为空'));
+        }
+        setTimeout(() => {
+          if (!Number.isInteger(value)) {
+            callback(new Error('请输入数字值'));
+          } else {
+            if (value < 0) {
+              callback(new Error('必须输入大于0'));
+            }else if(value>100){
+              callback(new Error('必须输入小于100'));
+            } else {
+              callback();
+            }
+          }
+        }, 1000);
+      };
+      return {
+        selectCalculateFormula: [],
+        queryForm: {
+        },
+        addConfigForm: {
+          name: '',
+          universalRate: '',
+          descs: ''
+        },
+        addDetailForm: {
+          name: '',
+          price: ''
+        },
+        addUniversalRateForm: {
+          universalRate: ''
+        },
+        // 表单校验配置
+        addConfigFormRules: {
+          name: [
+            {required: true, message: '请输入名称', trigger: 'blur'}
+          ],
+        },
+        // 表单校验配置
+        addDetailFormRules: {
+          name: [
+            {required: true, message: '请输入名称', trigger: 'blur'}
+          ],
+          price: [
+            {required: true, message: '请输入金额', trigger: 'blur'}
+          ]
+        },
+        companyOpts: [],
+        dialogAddConfig: false,
+        dialogAddDetail: false,
+        dialogAddUniversalRate: false,
+        dialogAddRate: false,
+        dialogAddActualrate: false,
+        loadingSaveConfigBtn: false,
+        loadingSaveDetailBtn: false,
+        loadingSaveUniversalRateBtn: false,
+        loadingSaveRate: false,
+        loadingSaveActualRate: false,
+        loadingForm: false,
+        loadingItemView: false,
+        currentRowData: null, // 当前操作的行数据
+        currentConfigItem:null,
+        valueData: [],
+        isAddConfig: false,
+        isAddDetail: false,
+        universalRateTitle: '设置通提比例',
+        currentCalculateFormulaItem: null,
+        rateData: [],
+        actualrateData: [],
+        isReadonly: false,
+        businessType: '',
+        configTitle: '新增提成方案',
+        nowQueryForm: {}
+      }
+    },
+    methods: {
+
+      //获取业务配置类型
+      getConfigBusinessType(companyId,commissionsUpdateBtn){
+        this.valueData = [];
+        const  params = {name:null,companyId:companyId};
+        this.loadingItemView = true
+        RequestURL.getConfigBusinessType(params).then(res => {
+          console.log(res)
+          this.loadingItemView = false
+          for(let key in res.businessType){
+            let item = {
+              code: key,
+              name: res.businessType[key]
+            }
+            if(res.companyCommissionCalculateFormulate && res.companyCommissionCalculateFormulate.length>0){
+              for(let i=0;i<res.companyCommissionCalculateFormulate.length;i++){
+                if(key == res.companyCommissionCalculateFormulate[i].code){
+                  item.id = res.companyCommissionCalculateFormulate[i].id
+                  item.calculateFormula =res.companyCommissionCalculateFormulate[i].calculateFormula
+                  item.calculateFormulaName = res.commissionCalculateFormulate[item.calculateFormula]
+                  item.status = "已设置"
+                  break
+                }else{
+                  item.calculateFormula =0
+                  item.calculateFormulaName = res.commissionCalculateFormulate["0"]
+                  item.status = "未设置"
+                }
+              }
+
+            }else{
+              item.calculateFormula =0
+              item.calculateFormulaName = res.commissionCalculateFormulate["0"]
+              item.status = "未设置"
+            }
+            if(commissionsUpdateBtn){
+              item.commissionsUpdateBtn = commissionsUpdateBtn
+            }
+            this.valueData.push(item)
+          }
+          
+          
+        })
+      },
+      // 新增方案
+      handleAddConfig (row) {
+        this._resetForm('addConfigForm')
+        this.currentConfigItem = null // 置空当前操作的行数据
+        this.isAddConfig = true;
+        this.configTitle = '新增提成方案'
+        this.dialogAddConfig = true;
+        delete this.addConfigForm.id
+      },
+      
+      // 编辑方案
+      handleEditConfig (row) {
+        this._resetForm('addConfigForm')
+        this.currentConfigItem = row
+        this.isAddConfig = false
+        this.configTitle = '编辑提成方案'
+        this.dialogAddConfig = true
+        this.$nextTick(() => {
+          this._setConfigForm()
+        })
+      },
+      //设置通提比例
+      handleSetUniversalRate(row){
+        this.addUniversalRateForm.comConfigId = this.currentConfigItem.id
+        this.addUniversalRateForm.businessType = row.code
+         const  params = {commConfigId:this.currentConfigItem.id,BusiTypeId:row.code};
+         RequestURL.queryUniversalRate(params).then(res => {
+           console.log(res)
+           if(res.data){
+              this.addUniversalRateForm.universalRate = res.data.universalRate
+              this.addUniversalRateForm.id = res.data.id
+           }else{
+             this.addUniversalRateForm.universalRate = 0
+             delete this.addUniversalRateForm.id
+           }
+            
+         })
+        this.dialogAddUniversalRate = true
+
+      },
+      //设置提成比列
+      handleSetRate(row){
+        this.businessType = row.code
+        this.rateData = []
+        this.dialogAddRate = true;
+         const  params = {commConfigId:this.currentConfigItem.id,BusiTypeId:row.code};
+         RequestURL.queryCommConfigRate(params).then(res => {
+           
+            if(res.length==0){
+              
+            }
+            this.rateData = res.map(item => {
+                 item.minPrice = item.minPrice/100
+                 item.edit = false
+                 item.sign = ">="
+                 return item
+             })
+          //   for(let i=0;i<res.length;i++){
+          //     let item = {
+          //       minPrice: res[i].minPrice,
+          //       maxPrice: res[i].maxPrice,
+          //       commissionsRate: res[i].commissionsRate,
+          //       edit: false,
+          //       isReadonly: false
+          //     }
+          //     this.rateData.push(item)
+          // }
+         })
+        
+      },
+
+      // 设置实收比列
+      handleSetActualRate (row) {
+        this.businessType = row.code
+        this.actualrateData = []
+        this.dialogAddActualrate = true;
+         const  params = {commConfigId:this.currentConfigItem.id,BusiTypeId:row.code};
+         RequestURL.queryCommConfigActualRate(params).then(res => {
+           
+            this.actualrateData = res.map(item => {
+                 item.edit = false
+                 item.sign = ">="
+                 return item
+             })
+         })
+      },
+
+      //新增提成比例
+      handleConfirmAddRate(){
+          let item = {
+            sign: ">=",
+            minPrice: '',
+            commissionsRate: '',
+            edit: true
+          }
+          this.rateData.push(item)
+      },
+      //新增实收比例
+      handleConfirmAddActualRate(){
+          let item = {
+            sign: ">=",
+            minactualRate: '',
+            commissionsRate: '',
+            edit: true
+          }
+          this.actualrateData.push(item)
+      },
+      // 提交方案
+      saveConfig () {
+
+        this.$refs['addConfigForm'].validate((valid) => {
+          if (valid) {
+            const params = {
+              name: this.addConfigForm.name,
+              descs: this.addConfigForm.descs,
+            }
+            if(!this.isAddConfig){
+              params.id = this.addConfigForm.id
+            }
+            this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.loadingSaveConfigBtn = true
+              RequestURL.saveOrUpdateCommissionsConfig(params).then(res => {
+                console.log(res)
+                this.loadingSaveConfigBtn = false
+                this.dialogAddConfig = false
+                if (res.success) {
+                  this.$message({
+                    type: 'success',
+                    message: res.msg || '操作成功'
+                  })
+                  this._loadData(false);
+                }else{
+                  this.$message({
+                    type: 'warning',
+                    message: res.msg
+                  })
+                }
+              }).catch((err) => {
+                console.log(err);
+                this.loadingSaveConfigBtn = false
+                this.dialogAddConfig = false
+                this.$message({
+                  type: 'info',
+                  message: err.msg || '保存失败'
+                })
+              })
+            })
+
+          }
+        })
+      },
+      
+      // 删除
+      delConfig (row) {
+        this.$confirm('确定删除该条数据？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+          RequestURL.delCommissionsConfig({commConfigId: row.id}).then(res => {
+            this.$message({
+              type: 'success',
+              message: res.msg || '删除成功'
+            })
+            //this._loadValueData(this.currentDynamicConfigureItem.widgetCode,this.currentDynamicConfigureItem.type);
+            for(let i=0;i<this.tableData.length;i++){
+              if(this.tableData[i].id==row.id){
+                this.tableData.splice(i,1);
+              }
+            }
+          })
+        })
+      },
+
+      //删除提成比例
+      handleDeleteRate(index,row){
+          let delId = row.id
+          let cminPrice = row.minPrice
+          this.rateData.splice(index,1)
+          if(cminPrice!=''){
+            this.handleConfirmEditRate(delId);
+          }
+      },
+
+      //删除实收比例
+      handleDeleteActualRate(index,row){
+        let delId = row.id
+        let cminactualRate = row.minactualRate
+        this.actualrateData.splice(index,1)
+        if(cminactualRate!=''){
+          this.handleConfirmEditActualRate(delId);
+        }
+      },
+      
+      handleChangeCity (val, name) {
+        this.editForm['areaName'] = name
+      },
+      handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (btnQuery) {
+        if (btnQuery) {
+          this.loadingQueryBtn = true
+        }
+
+        this.loadingView = true
+        let params = Object.assign({}, this.nowQueryForm, {
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        })
+        //const params = this._getParams(this.queryForm)
+        RequestURL.commissionsConfig(params).then(res => {
+          console.log(res);
+          this.tableData = res.data
+          console.log(this.tableData);
+          this.listQuery.total = res.count
+          this.loadingQueryBtn = false
+          this.loadingView = false
+          this.currentConfigItem = res.data[0];
+          this.$refs.multipleTable.setCurrentRow(this.tableData[0]);
+          this.getConfigBusinessType(res.data[0].companyId,res.data[0].commissionsUpdateBtn);
+
+        }).catch(() => {
+          this.loadingQueryBtn = false
+          this.loadingView = false
+        })
+      },
+      _loadValueData(data){
+        this.valueData = [];
+        this.valueData = JSON.parse(data);
+      },
+      // 表单回填
+      _setConfigForm () {
+        this.$utils.setFormInfo(this.addConfigForm, this.currentConfigItem, () => {
+          this.addConfigForm['id'] = this.currentConfigItem['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addConfigForm'].clearValidate()
+        }, 100)
+      },
+      _setDetailForm(){
+        this.$utils.setFormInfo(this.addDetailForm, this.currentRowData, () => {
+          this.addDetailForm['id'] = this.currentRowData['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['editSqlForm'].clearValidate()
+        }, 100)
+      },
+      _setCalculateFormulaForm () {
+        this.$utils.setFormInfo(this.addCalculateFormulaForm, this.currentCalculateFormulaItem, () => {
+          this.addCalculateFormulaForm['id'] = this.currentCalculateFormulaItem['id']
+        })
+
+        // 移除表单回填时 element ui自动添加的校验效果
+        setTimeout(() => {
+          this.$refs['addCalculateFormulaForm'].clearValidate()
+        }, 100)
+      },
+      _showValue(row, event, column){
+        //console.log(row.widgetCode)
+        this.currentConfigItem = row;
+        this.getConfigBusinessType(row.companyId,row.commissionsUpdateBtn)
+
+      },
+     //保存通提比例
+      saveUniversalRate(){
+        const params = {
+          jsonData: JSON.stringify({...this.addUniversalRateForm})
+        }
+        this.$confirm('确定保存编辑的信息吗？, 是否继续?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadingSaveUniversalRateBtn = true
+          RequestURL.saveOrUpdateUniversalRate(params).then(res => {
+            this.loadingSaveUniversalRateBtn = false
+            this.dialogAddUniversalRate = false
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg || '操作成功'
+              })
+            
+            }else{
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            console.log(err);
+            this.loadingSaveUniversalRateBtn = false
+            this.dialogAddUniversalRate = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '保存失败'
+            })
+          })
+        })
+      },
+
+      //保存提成比例
+      handleConfirmEditRate(delId){
+        this.loadingSaveRate = true
+        let editDataRrr = [];
+        let addDataRrr = [];
+        let canSave = true
+       
+        for(let i=0;i<this.rateData.length;i++){
+          if(this.rateData[i].minPrice=='' || this.rateData[i].commissionsRate==''){
+            canSave = false
+          }else{
+            let dataItem = {
+                  minPrice: this.rateData[i].minPrice * 100,
+                  commissionsRate: this.rateData[i].commissionsRate
+                }
+            if(i==this.rateData.length-1){
+                dataItem.maxPrice = 0
+            }else{
+              dataItem.maxPrice = this.rateData[i+1].minPrice * 100
+            }
+            if(this.rateData[i].id){
+              dataItem.id = this.rateData[i].id
+              editDataRrr.push(dataItem);
+            }else{
+              dataItem.comConfigId=this.currentConfigItem.id
+              dataItem.businessType = this.businessType
+              let date = new Date()
+              let month = date.getMonth()+1
+              if(month<10){
+                month = '0'+month
+              }
+              dataItem.months = date.getFullYear()+"-"+ month
+              addDataRrr.push(dataItem)
+            }
+          }
+          
+        }
+          const params = {
+            editData: JSON.stringify(editDataRrr),
+            addData: JSON.stringify(addDataRrr)
+          }
+          if(delId){
+            params.delId = delId
+          }
+        if(canSave){
+          RequestURL.updateCommConfigRate(params).then(res => {
+            this.loadingSaveRate = false
+            this.dialogAddRate = false
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg || '操作成功'
+              })
+              
+            }else{
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            console.log(err);
+            this.loadingSaveRate = false
+            this.dialogAddRate = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '操作失败'
+            })
+          })
+        }else{
+          this.$alert('失败，业绩金额和比例不能为空', '提示')
+          this.loadingSaveRate = false
+        }
+      },
+      blurMaxPrice(index,row){
+        let reg = /^[0-9]+/
+        if(reg.test(row.minPrice)){
+          if(row.minPrice<=0){
+            row.minPrice=''
+          }
+        }else{
+          row.minPrice=''
+        }
+        if(index>0 && this.rateData[index-1].minPrice > row.minPrice){
+            this.$alert('不能小于前一个业绩金额', '提示')
+        }
+        
+      },
+      blurRate(row){
+        let reg = /^[0-9]+/
+        if(reg.test(row.commissionsRate)){
+          if(row.commissionsRate<0){
+            row.commissionsRate=''
+          }
+          if(row.commissionsRate>100){
+            row.commissionsRate=''
+          }
+        }else{
+          row.commissionsRate=''
+        }
+      },
+      //保存实收比例
+      handleConfirmEditActualRate(delId){
+        this.loadingSaveActualRate = true
+        let editDataRrr = [];
+        let addDataRrr = [];
+        let canSave = true
+        for(let i=0;i<this.actualrateData.length;i++){
+           if(this.actualrateData[i].minactualRate=='' || this.actualrateData[i].commissionsRate==''){
+            canSave = false
+           }else{
+            let dataItem = {
+              minactualRate: this.actualrateData[i].minactualRate,
+              commissionsRate: this.actualrateData[i].commissionsRate
+            }
+            
+            if(i==this.actualrateData.length-1){
+                dataItem.maxActualRate = 0
+            }else{
+              dataItem.maxActualRate = this.actualrateData[i+1].minactualRate
+            }
+            if(this.actualrateData[i].id){
+              dataItem.id = this.actualrateData[i].id
+              editDataRrr.push(dataItem);
+            }else{
+              dataItem.comConfigId=this.currentConfigItem.id
+              dataItem.businessType = this.businessType
+              addDataRrr.push(dataItem)
+            }
+           }
+        }
+          
+        
+        const params = {
+          editData: JSON.stringify(editDataRrr),
+          addData: JSON.stringify(addDataRrr)
+        }
+        if(delId){
+          params.delId = delId
+        }
+        if(canSave){
+          RequestURL.updateCommConfigActualRate(params).then(res => {
+            this.loadingSaveActualRate = false
+            this.dialogAddActualrate = false
+            if (res.success) {
+              this.$message({
+                type: 'success',
+                message: res.msg || '操作成功'
+              })
+              
+            }else{
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              })
+            }
+          }).catch((err) => {
+            console.log(err);
+            this.loadingSaveActualRate = false
+            this.dialogAddActualrate = false
+            this.$message({
+              type: 'info',
+              message: err.msg || '操作失败'
+            })
+          })
+        }else{
+          this.$alert('失败，实收率和比例不能为空', '提示')
+          this.loadingSaveActualRate = false
+        }
+        
+        
+      },
+      blurMaxActualRate(index,row){
+        let reg = /^[0-9]+/
+        if(reg.test(row.minactualRate)){
+          if(row.minactualRate<0){
+            row.minactualRate=''
+          }
+          if(row.minactualRate>100){
+            row.minactualRate=''
+          }
+        }else{
+          row.minactualRate=''
+        }
+       if(index>0 && this.actualrateData[index-1].minactualRate > row.minactualRate){
+            this.$alert('不能小于前一个实收率', '提示')
+        }
+      
+    },
+    blurActualRate(row){
+        let reg = /^[0-9]+/
+        if(reg.test(row.commissionsRate)){
+          if(row.commissionsRate<0){
+            row.commissionsRate=''
+          }
+          if(row.commissionsRate>100){
+            row.commissionsRate=''
+          }
+        }else{
+          row.commissionsRate=''
+        }
+      },
+    },
+    mounted () {
+
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .value-title{
+    height: 34px;
+    line-height: 34px;
+  }
+</style>

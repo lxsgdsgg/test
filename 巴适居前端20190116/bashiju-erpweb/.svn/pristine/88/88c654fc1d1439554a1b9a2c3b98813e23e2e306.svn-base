@@ -1,0 +1,388 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div>
+        <el-form size="small" :inline="true" :model="form" ref="form"  class="demo-form-inline">
+
+          <el-form-item label="预约时间" prop="reservationDate">
+            <el-date-picker
+                v-model="form.reservationDate"
+              type="date"
+              @change="time"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="form.status">
+              <el-option
+                v-for="item in statusOpt"
+                :label="item.fieldValue"
+                :value="item.id"
+                :key="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading">查询</el-button>
+            <el-button @click.native.prevent="resetForm">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="custId"
+          align="left"
+          label="客户编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="name"
+          align="left"
+          label="登记名称"
+          width="80"
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="remark"
+          align="left"
+          label="备注信息"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="shhId"
+          align="left"
+          label="预约房源编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="maintainId"
+          align="left"
+          label="房源维护人编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="reservationTime"
+          align="left"
+          label="预约时间段"
+          show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+              {{scope.row.reservationTime | reservationTimeFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="reservationDate"
+          align="left"
+          :formatter="dateFormat"
+          label="预约日期">
+        </el-table-column>
+
+        <el-table-column
+          prop="status"
+          align="left"
+          label="状态"
+          width="80"
+        >
+          <template slot-scope="scope">
+            {{scope.row.status | statusFilter}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="handelTime"
+          align="left"
+          :formatter="timeFormat"
+          label="处理时间"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="handelerId"
+          align="left"
+          label="处理人编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="handelResult"
+          align="left"
+          label="处理结果">
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          align="left"
+          :formatter="timeFormat"
+          label="添加时间"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          align="left"
+          label="操作人"
+          width="100"
+        >
+        </el-table-column>
+
+        <el-table-column
+          align="left"
+          label="操作"
+          width="150"
+        >
+          <template slot-scope="scope">
+                <el-button v-hasMultipleBtn="['updateDate',scope.row]" v-show="scope.row.status==0" size="small" type="text" @click="handleEditorReservationTime(scope.row)">修改时间段</el-button>
+                <el-button v-hasMultipleBtn="['acceptBtn',scope.row]" v-show="scope.row.status==0" size="small" type="text" @click="handleAcceptReservation(scope.row)">接受预约</el-button>
+                <el-button v-hasMultipleBtn="['cancelBtn',scope.row]"  v-show="scope.row.status==1" size="small" type="text" @click="handleCancelReservice(scope.row)"  >取消预约</el-button>
+                <!--<el-button v-hasMultipleBtn="['alreadCancelBtn',scope.row]" v-show="scope.row.status==2" size="small" type="text">已取消</el-button>-->
+          </template>
+        </el-table-column>
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <!--编辑窗体-->
+    <template>
+      <el-dialog
+        title="修改预约时间"
+        :visible.sync="editorDialog"
+        :close-on-click-modal="false"
+        top="30vh"
+        width="400px">
+        <update-time-and-date @handleClick="openOrCloseWindow" :data="currentRowData"   v-if="hackReset"></update-time-and-date>
+      </el-dialog>
+    </template>
+
+
+    <template>
+      <el-dialog
+        title="取消预约"
+        :visible.sync="cancelDialog"
+        :close-on-click-modal="false"
+        top="30vh"
+        width="400px">
+
+        <el-form :model="cancelForm"  label-width="85px"   :rules="rules" ref="cancelForm" class="demo-ruleForm" size="medium">
+          <el-form-item label="取消理由" prop="remark" size="medium">
+              <el-input v-model="cancelForm.remark"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <div class="btn-group">
+              <el-button type="primary"  @click="handleSubmit">确认</el-button>
+              <el-button  @click="handleCancel">取消</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </template>
+  </div>
+
+</template>
+<style></style>
+<script>
+  import PageList from '@/mixins/pageList'
+  import  *  as  RequestLogUrl from '@/request/log/mangePlatformLog'
+  import {queryReservationInfo,cancelReservation,acceptlReservation} from "@/request/manage/myReservation";
+  import  UpdateTimeAndDate from "./component/updateTimeAndDate"
+  export default {
+        name:'myReservation',
+        components:{PageList,UpdateTimeAndDate},
+        mixins:[PageList],
+        data() {
+            return {
+              form:{
+                reservationDate:'',
+                status:''
+              },
+              cancelForm:{
+                remark:'',
+                id:''
+              },
+              tableData:[],
+              statusOpt:[
+                {id:0,fieldValue:'未处理'},
+                {id:1,fieldValue:'已处理'},
+                {id:2,fieldValue:'已取消'}
+              ],
+              loadingView:false,
+              queryBtnLoading:false,
+              editorDialog:false,
+              cancelDialog:false,
+              hackReset:false,
+              cancelData:null,
+              listQuery:{
+                limit:10,
+                page:1,
+                total:0
+              },
+              rules:{
+                remark:[
+                  { required: true, message: '该项为必填', trigger: 'change' }
+                ]
+              }
+            }
+        },
+        methods: {
+          //查询数据
+          queryReservationInfo(queryBtn){
+            if(queryBtn){
+              this.queryBtnLoading = queryBtn
+              this.listQuery.page = 1
+              this.listQuery.currentPage = 1
+            }
+            let params = Object.assign({},this.form,{
+                limit:this.listQuery.limit,
+                page:this.listQuery.page
+            })
+            this.loadingView = true
+            queryReservationInfo(params).then(res =>{
+              this.tableData = res.data
+              this.listQuery.total = res.count
+              this.loadingView = false
+              this.queryBtnLoading = false
+            })
+          },
+          // 时间格式转化
+          dateFormat(row,column,cellValue){
+              return this.$utils.timeFormat(cellValue, '{y}-{m}-{d}')
+          },
+          time(row,column,cellValue){
+              let time =  this.$utils.timeFormat(row, '{y}-{m}-{d}')
+              this.form.reservationDate = time
+          },
+          timeFormat(row,column,cellValue){
+              return this.$utils.timeFormat(cellValue)
+          },
+          _loadData(){
+              this.queryReservationInfo(false)
+          },
+          //修改预约时间
+          handleEditorReservationTime(row){
+              this.hackReset = false
+              this.$nextTick(()=>{
+                  this.hackReset = true
+                  this.currentRowData = row
+                  this.editorDialog = true
+              })
+          },
+          //取消预约
+          handleCancelReservice(row){
+              this.cancelDialog = true
+              this.cancelForm.id = row .id
+          },
+          //接受预约
+          handleAcceptReservation(row){
+            this.$confirm('确定要接收预约吗？',{
+                confirmBtnText:'确定',
+                cancelBtnText:'取消'
+            }).then(()=>{
+              let param ={id:row.id}
+              acceptlReservation({jsonData:JSON.stringify(param)}).then(res =>{
+                if(res.success){
+                    this.$message({type:'success',message:res.msg})
+                    this.queryReservationInfo(false)
+                }else{
+                    this.$message({type:'warning',message:res.msg})
+                }
+              }).catch(error =>{
+                console.log(error)
+              })
+            })
+          },
+          handleSubmit(){
+            this.$refs['cancelForm'].validate((res) =>{
+                if(res){
+                    this.$confirm('确定要取消预约？',{
+                        confirmBtnText:'确定',
+                        cancelBtnText:'取消'
+                    }).then(()=>{
+                      let param = {...this.cancelForm}
+                      cancelReservation({jsonData:JSON.stringify(param)}).then(res =>{
+                        if(res.success){
+                            this.$message({type:'success',message:res.msg})
+                          let message = {
+                            sourceCode:  param.name,//资源编号：客源编号
+                            sourceTypeId:14,// 14：我的预约
+                            operatTypeId: 2,//操作类型2: 表示修改,
+                            logContent: '取消预约>理由为:'+param.remark//日志内容
+                           }
+                          RequestLogUrl.manageQueryLog({message:JSON.stringify(message)}).then(res=>{
+                            console.log(res)
+                          }).catch(error =>{
+                            console.log(error)
+                          })
+                            this.queryReservationInfo(false)
+                            this.cancelDialog =false
+                            this.$refs['cancelForm'].resetFields()
+                        }else{
+                            this.$message({type:'warning',message:res.msg})
+                        }
+                      }).catch(error =>{
+                           console.log(error)
+                      })
+                    }).catch(() =>{
+                        this.$message({type:'info',message:'已取消'})
+                    })
+                }
+            })
+          },
+          handleCancel(){
+                this.cancelDialog = false
+            this.$refs['cancelForm'].resetFields()
+          },
+          openOrCloseWindow(value){
+            if(value == 1){
+                this.editorDialog = false
+                this.queryReservationInfo(false)
+            }else if(value == 2){
+                this.queryReservationInfo(false)
+            }
+          },
+          resetForm(){
+              this.$refs['form'].resetFields()
+          }
+        },
+      //过滤器
+        filters:{
+          reservationTimeFilter(value){
+              if(value==0) return '全天可看'
+              if(value==1) return '上午(08:00-12:00)'
+              if(value==2) return '晚上(18:00-21:00)'
+          },
+          reservationDateFilter(value){
+              return value.formatDate
+          },
+          statusFilter(value){
+              if(value==0) return '未处理'
+              if(value==1) return '已处理'
+              if(value==2) return '已取消'
+          }
+        },
+        mounted() {
+          this.queryReservationInfo(false)
+        }
+
+    }
+
+</script>

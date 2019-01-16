@@ -1,0 +1,491 @@
+/*******************************************************************************************************/
+/** *************************************** 新增编辑-房源 基本信息 mixin***************************************/
+/*******************************************************************************************************/
+
+import {getBaseInfoSelectOpts, getHouseLabel, updateHousing} from '@/request/house/houseUsed'
+import {getCustomField} from '@/request/app'
+import BaseSelect from '@/components/BaseSelect'
+import OpenCitySelector from '@/components/BaseCascader' // // 城市级联组件
+
+const transactionTypeId = [
+  {
+    fieldValue: '出售',
+    fieldCode: '1'
+  },
+  {
+    fieldValue: '出租',
+    fieldCode: '2'
+  },
+  {
+    fieldValue: '租售',
+    fieldCode: '3'
+  }
+]
+
+const payTypeId = [
+  {
+    fieldValue: '押一年付',
+    fieldCode: '1'
+  },
+  {
+    fieldValue: '押一半年付',
+    fieldCode: '2'
+  }
+]
+
+const mortgageId = [
+  {
+    fieldValue: '无抵押',
+    fieldCode: '0'
+  },
+  {
+    fieldValue: '有抵押',
+    fieldCode: '1'
+  }
+]
+
+const isUploadCertificate = [
+  {
+    fieldValue: '未上传',
+    fieldCode: '0'
+  },
+  {
+    fieldValue: '已上传',
+    fieldCode: '1'
+  }
+]
+
+const heatingModeId = [
+  {
+    fieldValue: '集中供暖',
+    fieldCode: '1'
+  },
+  {
+    fieldValue: '无供暖',
+    fieldCode: '2'
+  }
+]
+
+const tradingRightsId = [
+  {
+    fieldValue: '非共有',
+    fieldCode: '0'
+  },
+  {
+    fieldValue: '共有',
+    fieldCode: '1'
+  }
+]
+
+const rentPriceTypeId = [
+  {
+    fieldValue: '元/月',
+    fieldCode: '1'
+  },
+  {
+    fieldValue: '元/季度',
+    fieldCode: '2'
+  },
+  {
+    fieldValue: '元/年',
+    fieldCode: '3'
+  },
+  {
+    fieldValue: '元/月',
+    fieldCode: '4'
+  },
+  {
+    fieldValue: '元/平/月',
+    fieldCode: '5'
+  }
+]
+
+export default {
+  props:{
+    formInfo:{
+      type: Object,
+      default () {
+        return null
+      }
+    },
+    isAdd: {
+      type: Boolean,
+      default () {
+        return true
+      }
+    },
+    type: {
+      type: String,
+      default: 'house' // 房源类型
+    }
+  },
+  components: {BaseSelect,OpenCitySelector},
+  data() {
+    return {
+      customForm: {},
+      selectOpts: null,
+      selectProps: {
+        label: 'fieldValue', // 指定选项的值绑定为下拉框的label属性
+        value: 'fieldCode' // 指定选项的值绑定为下拉框的Value属性
+      },
+      selectPropsLabel: {
+        label: 'fieldValue', // 指定选项的值绑定为下拉框的label属性
+        value: 'fieldValue' // 指定选项的值绑定为下拉框的Value属性
+      },
+      labels: [],
+      customFields: [], // 自定义动态字段
+      loadingView: false,
+      loadingSubmitBtn: false,
+      originalData: {}
+    }
+  },
+  methods: {
+    handleSubmit(){
+      this.$refs['detailEditForm'].validate(valid=>{
+        if (this.$refs['customForm']) {
+
+          this.$refs['customForm'].validate(customValid=>{
+            if(valid && customValid){
+              this.submit()
+            }
+          })
+
+        } else {
+
+          if (valid) {
+            this.submit()
+          }
+
+        }
+
+      })
+    },
+
+    submit () {
+      this.$confirm('确定保存数据吗？',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(()=>{
+        this.loadingSubmitBtn = true
+
+        if (this.isAdd) {
+          // 新增把参数传回给父组件保存
+          this.$emit('handleClick', 1, this._formatParams(this.detailEditForm))
+          this.loadingSubmitBtn = false
+
+        } else {
+          let params = {}
+          params.dataJson = JSON.stringify(this._formatParams(this.detailEditForm))
+          // 修改
+          params.formName = this.type
+          updateHousing(params).then(res => {
+            this.loadingSubmitBtn = false
+            this.$message({
+              type: 'success',
+              message: res.msg || '操作成功',
+              showClose: true
+            })
+            this.$emit('handleClick', 1)
+
+            // 向后台传递日志数据
+            let message = {
+              sourceId: this.formInfo.baseInfo.id, // 资源ID
+              sourceCode: this.formInfo.baseInfo.houseCode, // 资源编号
+              businessTypeId: this.$DICT_CODE.LOG.BUSINESS_TYPE.HOUSE, // 业务类型
+              operatTypeId: this.$DICT_CODE.LOG.BUSINESS_OPERATE_TYPE.UPDATE_HOUSE, // 操作类型
+              sourceTypeId: this.detailEditForm.transactionTypeId, // 资源类型
+              labelData: this.$utils.getFormFields(this.$refs['detailEditForm']),
+              originalData: this.originalData,
+              newData: JSON.parse(params.dataJson),
+              remark: this.originalData.houseUsesId
+            }
+            this.$updateLog.house.houseUpdateLog({message: JSON.stringify(message)})
+
+          }).catch(() => {
+            this.loadingSubmitBtn = false
+          })
+        }
+
+      }).catch(() =>{
+        this.loadingSubmitBtn = false
+      })
+    },
+
+    handleReset () {
+      this.$confirm('确定重置已经填写的数据吗？','提示',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(()=>{
+        this._resetForm()
+      })
+    },
+
+    // 取消操作
+    handleCancel(){
+      this.$emit('handleClick', 2)
+      // this.$confirm('确定关闭正在编辑的窗口？','提示',{
+      //   confirmButtonText: '确定',
+      //   cancelButtonText: '取消',
+      //   type: 'warning'
+      // }).then(()=>{
+      //   this.$emit('handleClick', 2)
+      // })
+    },
+
+    // 设置表单数据
+    _setForm(){
+      this._resetForm()
+
+      // 拷贝原始表单数据
+      this.originalData = Object.assign({}, this.formInfo.baseInfo)
+      this.originalData.certificateDate = this.$utils.timestampToTime(this.originalData.certificateDate)
+
+      let data = {...this.formInfo.baseInfo} || {}
+      let form = this.detailEditForm
+      if (this.isAdd) {
+        // 赋值楼层 梯户等信息
+        data.floorCount ? form.floorCount = data.floorCount || '' : ''
+        data.totalLayers ? form.totalLayers = data.totalLayers || '' : ''
+        data.elevatorCount ? form.elevatorCount = data.elevatorCount || '' : ''
+        data.householdCount ? form.householdCount = data.householdCount || '' : ''
+        data.transactionTypeId ? form.transactionTypeId  = String(data.transactionTypeId) || '' : ''
+        return false
+      }
+
+      let customInfo = {...this.formInfo.customInfo} || {}
+      let houseLabels = this.formInfo.houseLabel || []
+
+      Object.keys(form).forEach(key => {
+        if (data[key] !== undefined && data[key] !== null) {
+
+          // 转成字符 下拉匹配
+          if (typeof data[key] === 'number') {
+            data[key] = String(data[key])
+          }
+
+          if (key === 'isSynchron') {
+            data[key] === '0' ? data[key] = false : data[key] = true
+          }
+
+          // 匹配推荐标签值
+          if (key === 'labeld') {
+            data[key] = data[key].split(',')
+          }
+
+          // 匹配配套值
+          if (key === 'matchingIds') {
+            data[key] = data[key].split(',')
+          }
+
+          // 出租，出售底价
+          if (key === 'minSellingPrice') {
+            this.originalData[key] = data[key] / 100 / 10000
+            data[key] = data[key] / 100 / 10000
+          }
+          if (key === 'minRentPrice') {
+            this.originalData[key] = data[key] / 100
+            data[key] = data[key] / 100
+          }
+
+          // 匹配现状值
+          if (key === 'actualityId') {
+            data[key] = data[key].split(',')
+          }
+
+          if (data[key]) {
+            form[key] = data[key]
+          }
+        }
+      })
+
+      // 匹配自定义表单值
+      Object.keys(this.customForm).forEach(key => {
+        if (customInfo.customValue && customInfo.customValue[key] !== undefined && customInfo.customValue[key] !== null) {
+          this.customForm[key] = customInfo.customValue[key]
+        }
+      })
+
+
+      // 匹配标签复选框组
+      houseLabels.forEach(item => {
+        this.detailEditForm.houseLabelList.push(item['labelName'])
+      })
+    },
+
+    _resetForm () {
+      this.$refs['detailEditForm'] && this.$refs['detailEditForm'].resetFields()
+      this.$refs['customForm'] && this.$refs['customForm'].resetFields()
+    },
+
+    // 处理参数
+    _formatParams (params) {
+      let _params = {...params}
+
+      let actualityId = _params.actualityId || []
+      let matchingIds = _params.matchingIds || []
+
+      let actuality = []
+      let matching = []
+
+      actualityId.forEach(item => {
+        this.selectOpts.actualityId.find(labelItem => {
+          if (labelItem.fieldCode === item) {
+            actuality.push(labelItem.fieldValue)
+          }
+        })
+      })
+
+      matchingIds.forEach(item => {
+        this.selectOpts.matchingIds.find(labelItem => {
+          if (labelItem.fieldCode === item) {
+            matching.push(labelItem.fieldValue)
+          }
+        })
+      })
+      _params.labeld = _params.labeld.join(',') // 推荐标签
+      _params.actuality = actuality.join(',') // 现状name
+      _params.actualityId = actualityId.join(',') // 现状Ids
+      _params.matching = matching.join(',') // 配套name
+      _params.matchingIds = matchingIds.join(',') // 配套Ids
+
+      _params.transactionType = this._getOptName('transactionTypeId', _params.transactionTypeId)
+      _params.propRightsLen = this._getOptName('propRightsLenId', _params.propRightsLenId)
+      _params.rentPriceTypeName = this._getOptName('rentPriceTypeId', _params.rentPriceTypeId)
+      _params.orientation = this._getOptName('orientationId', _params.orientationId)
+      _params.decoration = this._getOptName('decorationId', _params.decorationId)
+      _params.houseType = this._getOptName('houseTypeId', _params.houseTypeId)
+      _params.propertyType = this._getOptName('propertyTypeId', _params.propertyTypeId)
+      _params.housingYears = this._getOptName('housingYearsId', _params.housingYearsId)//交易年限
+      _params.viewingType = this._getOptName('viewingTypeId', _params.viewingTypeId)
+      _params.resourceType = this._getOptName('resourceTypeId', _params.resourceTypeId)
+      _params.payType = this._getOptName('sellPayType', _params.payTypeId)
+      _params.structure = this._getOptName('structureId', _params.structureId)//房屋结构
+      _params.apartmentType = this._getOptName('apartmentTypeId', _params.apartmentTypeId)
+
+
+      let labelList =[]
+      _params.houseLabelList.forEach(item => {
+        this.labels.forEach(label => {
+          if (item === label.name) {
+            labelList.push({
+              code: label.code,
+              name: label.name,
+              color: label.color,
+            })
+          }
+        })
+      })
+
+      if (labelList.length) {
+        _params.houselabelList = labelList
+      }
+      // //
+      // _params.lastTradingTime ? _params.lastTradingTime ='' : _params.lastTradingTime = this.$utils.timestampToTime(_params.lastTradingTime)
+      if(_params.certificateDate!=''){
+        _params.certificateDate = this.$utils.timestampToTime(_params.certificateDate)
+      }
+
+      _params.isSynchron ? _params.isSynchron = '1' : _params.isSynchron = '0'
+
+      if (Object.keys(this.customForm).length) {
+        // 自定义表单字段
+        _params.customData = this.customForm
+      }
+
+      // 删除多余参数
+      delete _params.houseLabelList
+      // 如果不为新增 删除该参数
+      if (!this.isAdd) {
+        delete _params.floorCount
+        delete _params.totalLayers
+        delete _params.elevatorCount
+        delete _params.householdCount
+      }
+
+      Object.keys(_params).forEach(key => {
+        if (_params[key] === '') {
+          delete _params[key]
+        }
+      })
+
+      return _params
+    },
+
+    _getOptName (selectKey, value) {
+      let name = ''
+
+      if (value) {
+        this.selectOpts[selectKey].forEach(item => {
+          if (item.fieldCode === value){
+            name = item.fieldValue
+          }
+        })
+      }
+
+      return name
+    },
+
+    _getOptions () {
+      getBaseInfoSelectOpts({param: this.type}).then(res => {
+        this.selectOpts = res.data || []
+
+        // 前端固定写死的下拉数据
+        this.selectOpts.transactionTypeId = transactionTypeId // 交易类型
+        // this.selectOpts.payTypeId = payTypeId // 付款方式
+        this.selectOpts.mortgageId = mortgageId // 抵押信息
+        this.selectOpts.isUploadCertificate = isUploadCertificate // 房本备件
+        this.selectOpts.heatingModeId = heatingModeId // 供暖方式
+        this.selectOpts.tradingRightsId = tradingRightsId // 交易权属
+        this.selectOpts.rentPriceTypeId = rentPriceTypeId // 租价类型
+
+      })
+    },
+
+    async _fetchData () {
+      this.loadingView = true
+
+      // 获取下拉框数据
+      await this._getOptions()
+
+      // 获取标签数据
+      getHouseLabel().then(res => {
+        this.labels = res
+      })
+
+      // 获取自定义动态表单字段
+      await getCustomField({formName: this.type}).then(res => {
+        let _arr = res.data
+
+        _arr.forEach(item => {
+
+          // 绑定form model Name
+          this.$set(this.customForm, item.field, '')
+
+          // 处理自定义下拉
+          if (item.fieldType === '3') {
+            let values = []
+            item.value.split(',').forEach(val => {
+              values.push({
+                fieldCode: val,
+                fieldValue: val
+              })
+            })
+            item.value = values
+          }
+        })
+        this.customFields = _arr
+      })
+
+      this._setForm()
+
+      this.loadingView = false
+
+    }
+  },
+
+  mounted(){
+    this._fetchData()
+  }
+}

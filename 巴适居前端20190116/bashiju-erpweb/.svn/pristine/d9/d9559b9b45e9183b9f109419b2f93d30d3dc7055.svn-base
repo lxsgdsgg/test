@@ -1,0 +1,248 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-bd">
+        <el-table :data="tableData"   stripe style="height: 600px">
+          <el-table-column
+            prop="levelType"
+            align="left"
+            label="房源等级">
+            <template slot-scope="scope">
+              {{scope.row.levelType | validateLevelType}}
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="transactionType"
+            align="left"
+            label="类型">
+            <template slot-scope="scope">
+              {{scope.row.transactionType | validateTransactionType}}
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="privateAllBack"
+            align="left"
+            label="私盘回访周期">
+            <template slot-scope="scope">
+              全&emsp;员:<el-input v-model="scope.row.privateAllBack" style="width: 60px" size="mini"></el-input>天</br>
+              维护人:<el-input v-model="scope.row.privateAdminBack" style="width: 60px" size="mini"></el-input>天
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="cityId"
+            align="left"
+            label="公盘回访周期">
+            <template slot-scope="scope">
+              全&emsp;员:<el-input v-model="scope.row.pubicAllBack" style="width: 45px" size="mini"></el-input>天</br>
+              维护人:<el-input v-model="scope.row.publicAdminBack" style="width: 45px" size="mini"></el-input>天
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="cityName"
+            align="left"
+            label="私盘带看周期">
+            <template slot-scope="scope">
+              全&emsp;员:<el-input v-model="scope.row.privateAllLook" style="width: 60px" size="mini"></el-input>天</br>
+              维护人:<el-input v-model="scope.row.privateAdminLook" style="width: 60px" size="mini"></el-input>天
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="operator"
+            align="left"
+            label="公盘带看周期">
+            <template slot-scope="scope">
+              全&emsp;员:<el-input v-model="scope.row.publicAllLook" style="width: 45px" size="mini"></el-input>天</br>
+              维护人:<el-input v-model="scope.row.publicAdminLook" style="width: 45px" size="mini"></el-input>天
+            </template>
+          </el-table-column>
+
+
+        </el-table>
+        <div class="btn-group">
+          <el-button @click="handleSubmit" type="primary">确认</el-button>
+          <el-button @click="handleCancel">取消</el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+</template>
+<style></style>
+<script>
+  import {queryResHouseReturnCycleData,saveOrUpdateResHouseReturnCycle} from "@/request/manage/houseReturnCycle";
+  import  *  as  RequestLogUrl from '@/request/log/mangePlatformLog'
+  export default {
+    props:{
+        isAdd:{
+          type:Boolean
+        }
+    },
+    data() {
+      return {
+        form:{
+
+        }, tableData:[{
+          levelType:'A',
+          transactionType:'1',
+          privateAllBack:'0',
+          privateAdminBack:'0',
+          pubicAllBack:'0',
+          publicAdminBack:'0',
+          privateAllLook:'0',
+          privateAdminLook:'0',
+          publicAllLook:'0',
+          publicAdminLook:'0'
+        },
+          {
+            levelType:'A',
+            transactionType:'2',
+            privateAllBack:'0',
+            privateAdminBack:'0',
+            pubicAllBack:'0',
+            publicAdminBack:'0',
+            privateAllLook:'0',
+            privateAdminLook:'0',
+            publicAllLook:'0',
+            publicAdminLook:'0'
+          },
+          {
+            levelType:'B',
+            transactionType:'1',
+            privateAllBack:'0',
+            privateAdminBack:'0',
+            pubicAllBack:'0',
+            publicAdminBack:'0',
+            privateAllLook:'0',
+            privateAdminLook:'0',
+            publicAllLook:'0',
+            publicAdminLook:'0'
+          },
+          {
+            levelType:'B',
+            transactionType:'2',
+            privateAllBack:'0',
+            privateAdminBack:'0',
+            pubicAllBack:'0',
+            publicAdminBack:'0',
+            privateAllLook:'0',
+            privateAdminLook:'0',
+            publicAllLook:'0',
+            publicAdminLook:'0'
+          },
+          {
+            levelType:'C',
+            transactionType:'1',
+            privateAllBack:'0',
+            privateAdminBack:'0',
+            pubicAllBack:'0',
+            publicAdminBack:'0',
+            privateAllLook:'0',
+            privateAdminLook:'0',
+            publicAllLook:'0',
+            publicAdminLook:'0'
+          },
+          {
+            levelType:'C',
+            transactionType:'2',
+            privateAllBack:'0',
+            privateAdminBack:'0',
+            pubicAllBack:'0',
+            publicAdminBack:'0',
+            privateAllLook:'0',
+            privateAdminLook:'0',
+            publicAllLook:'0',
+            publicAdminLook:'0'
+          }
+        ]
+      }
+    },
+    methods: {
+      queryResHouseReturnCycleData(){
+        let params ={}
+        queryResHouseReturnCycleData(params).then(res =>{
+          if(res.length!==0){
+            this.tableData = res
+          }
+        })
+      },
+      handleSubmit(){
+        // //删除不要的数据
+        if(this.isAdd === false){
+          for(let i in this.tableData){
+            delete this.tableData[i].companyId
+            delete this.tableData[i].isValid
+            delete this.tableData[i].operator
+            delete this.tableData[i].operatorId
+            delete this.tableData[i].permissionArea
+            delete this.tableData[i].transactionType
+            delete this.tableData[i].updateTime
+            delete this.tableData[i].addTime
+            delete this.tableData[i].str
+          }
+        }
+        let params = this.tableData
+        saveOrUpdateResHouseReturnCycle({jsonData:JSON.stringify(params)}).then(res =>{
+          if(res.success){
+            this.$message({type:'success',message:res.msg})
+            if(params.id!==''){
+              let message = {
+                sourceCode:  '修改房源回访周期',//资源编号：客源编号
+                sourceTypeId:7,// 7：房源回访周期
+                operatTypeId: 2,//操作类型2: 表示修改,
+                logContent: `修改房源回访周期${JSON.stringify(this.tableData)}`//日志内容
+              }
+              console.log(message)
+              debugger;
+              RequestLogUrl.manageAddLog({message:JSON.stringify(message)}).then(res=>{
+                console.log(res)
+              }).catch(error =>{
+                console.log(error)
+              })
+            }else{
+              let message = {
+                sourceCode:  params.levelType,//资源编号：客源编号
+                sourceTypeId:7,// 7：房源回访周期
+                operatTypeId: 1,//操作类型1: 表示新增,
+                logContent: '新增房源回访周期：'+params.levelType//日志内容
+              }
+              RequestLogUrl.manageAddLog({message:JSON.stringify(message)}).then(res=>{
+                console.log(res)
+              }).catch(error =>{
+                console.log(error)
+              })
+            }
+            this.$emit('handleClick',1)
+          }else{
+            this.$message({type:'warning',message:res.msg})
+          }
+        }).catch(error =>{
+          console.log(error)
+        })
+      },
+      //取消
+      handleCancel(){
+        this.$emit('handleClick',2)
+      }
+    },
+    filters:{
+      validateLevelType:function(value){
+        if(value && value === 'A') return 'A类房源'
+        if(value && value === 'B') return 'B类房源'
+        if(value && value === 'C') return 'C类房源'
+        if(value && value === 'D') return 'D类房源'
+      },
+      validateTransactionType:function (value) {
+        if(value && value ==='1')return '出售'
+        if(value && value ==='2')return '出租'
+      }
+    },
+    mounted() {
+      this.queryResHouseReturnCycleData()
+    }
+
+  }
+
+</script>

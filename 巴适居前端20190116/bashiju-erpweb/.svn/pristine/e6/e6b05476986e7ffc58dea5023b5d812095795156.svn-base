@@ -1,0 +1,41 @@
+export default {
+  LOG: {
+    OPERATE_TYPE: {
+      ADD: 1, // 新增
+      UPDATE: 2, // 修改不
+      DELETE: 3, // 删除
+      AUTHORIZATION: 4, // 授权
+      SETTINGS: 5 // 设置
+    },
+
+    SOURCE_TYPE: {
+      MANAGE: {
+        USER: 1, // 用户
+        DEPARTMENT: 2, // 部门
+        ROLE: 3, // 角色
+      },
+
+      SYSTEM: {
+        MENU: 1, // 菜单
+      }
+    },
+
+    BUSINESS_TYPE: {
+      HOUSE: 1, // 二手房源
+      CUSTOMER: 2, // 客源
+      NEW_HOUSE: 3, // 新房
+      DEAL: 4, // 成交
+    },
+
+    BUSINESS_SOURCE_TYPE: {
+      SELL_HOUSE: 1, // 出售
+      RENT_HOUSE: 2, // 出租
+      SELL_ADN_RENT_HOUSE: 3, // 租售
+      SELL_CUSTOMER: 4, // 求购
+      RENT_CUSTOMER: 5, // 求租
+      SELL_DEAL: 6, // 买卖成交
+      RENT_DEAL: 7, // 租赁成交
+      NEW_DEAL: 8, // 一手成交
+    }
+  }
+}

@@ -1,0 +1,657 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="queryForm" ref="queryForm" class="demo-form-inline">
+
+          <el-form-item prop="status">
+            <el-select v-model="queryForm.status" clearable style="width: 120px;" placeholder="审核状态" @change="changeSelectData">
+              <el-option
+                v-for="item in statusOpt"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="operatorId">
+            <base-cascader placeholder="申请人" clearable v-model="queryForm.operatorId" :url="getReferenceUserSelectUrl"
+                           :props="cascaderProps" :dataProps="cascaderDataProps"  style="width: 120px;">
+            </base-cascader>
+          </el-form-item>
+
+          <el-form-item prop="applyTime">
+            <el-date-picker
+              v-model="queryForm.applyTime"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="yyyy-MM-dd HH:mm:ss"
+            >
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item prop="houseId">
+            <el-input v-model="queryForm.houseId" placeholder="房源编号"></el-input>
+          </el-form-item>
+
+          <el-form-item prop="rejectReason">
+            <el-input v-model="queryForm.rejectReason" placeholder="驳回原因"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="success" @click.native.prevent="_loadData(true)" :loading="queryBtnLoading" size="small">查询</el-button>
+            <el-button
+              style="background-color:#409EFF;color: white"
+              @click.native.prevent="examineApplication('1')"
+              size="small"
+              v-if="selectData.length !== 0"
+              :loading="batchActionBtn"
+            >批量审核</el-button>
+            <el-button
+              type="primary"
+              @click.native.prevent="rebackHandler('',true)"
+              size="small"
+              v-if="selectData.length !== 0"
+              :loading="batchActionBtn"
+            >批量驳回</el-button>
+            <el-button type="info" @click="_resetForm('queryForm')" size="small">清空</el-button>
+          </el-form-item>
+
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        tooltip-effect="light"
+        align="center"
+        style="width: 100%"
+        @select-all="getSelectTableDataAll"
+        @select="getSelectTableData"
+        ref="multipleTable"
+      >
+        <el-table-column
+          width="55"
+          type="selection"
+          :selectable='boxFunc'
+        >
+        </el-table-column>
+        <el-table-column
+          prop="examineStatus"
+          show-overflow-tooltip
+          align="left"
+          width="100px;"
+          label="审核状态">
+          <template slot-scope="scope">
+            {{returnCheckStatusName(scope.row)}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          show-overflow-tooltip
+          align="left"
+          width="100px;"
+          label="申请人">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          show-overflow-tooltip
+          align="left"
+          label="申请部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="houseId"
+          show-overflow-tooltip
+          align="left"
+          label="房源编号">
+          <template slot-scope="scope">
+            <a
+              @click="toDetail(scope.row.shhId, scope.row.houseUsesId, scope.row.houseId)"
+              href="javascript:;" class="houseId"  type="text"
+            >
+              {{scope.row.houseId}}
+            </a>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="auditorName"
+          show-overflow-tooltip
+          align="left"
+          width="100px;"
+          label="审核人">
+        </el-table-column>
+
+        <el-table-column
+          prop="reason"
+          show-overflow-tooltip
+          align="left"
+          label="驳回原因">
+        </el-table-column>
+
+        <el-table-column
+          prop="path"
+          show-overflow-tooltip
+          align="left"
+          label="申请图片（点击图片预览）" width="200px;"
+        >
+          <template slot-scope="scope">
+
+            <img :src="scope.row.path" @click="handlerPriviewPic(scope.row)"
+                 width="120px" height="50px;" slot="reference" v-if="showImage(scope.row)"/>
+
+            <span v-else>图片已删除</span>
+
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="addTime"
+          show-overflow-tooltip
+          align="left"
+          :formatter="_timeFormat"
+          label="申请时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="auditTime"
+          show-overflow-tooltip
+          align="left"
+          :formatter="_timeFormat"
+          label="审核时间">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+          width="100px"
+        >
+          <template slot-scope="scope">
+            <el-button @click="confirmHousePicCheckApplly(scope.row)" type="text" size="small" v-if="scope.row.examineStatus == 0">审核</el-button>
+            <el-button @click="rebackHandler(scope.row,false)" type="text" size="small" v-if="scope.row.examineStatus == 0">驳回</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <!--分页控件-->
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+    <template>
+      <el-dialog
+        title="驳回原因填写"
+        :visible.sync="rebackDlg"
+        width="650px"
+        top="25vh"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="editForm" ref="editForm" :rules="rules" :inline="true">
+          <el-form-item prop="rejectReason" label="驳回原因">
+            <el-input type="textarea" autosize placeholder="请输入驳回原因" v-model="editForm.rejectReason" style="width: 500px;" maxlength="100"></el-input>
+          </el-form-item>
+          <div class="btn-group">
+            <el-button type="primary" @click="handlerSubmitRebackRequest" size="small">保存</el-button>
+            <el-button type="primary" @click="handlerCancel" size="small">取消</el-button>
+          </div>
+        </el-form>
+      </el-dialog>
+
+      <el-dialog
+        title="房源详细图片"
+        :visible.sync="dialogVisibleViewPhoto"
+        width="70%"
+        :close-on-press-escape="false"
+      >
+        <el-carousel indicator-position="outside" height="500px">
+          <el-carousel-item>
+            <div class="carousel-item">
+              <img class="pos-center" :src="path">
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+
+      </el-dialog>
+    </template>
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList'
+  import * as RequestURL from '@/request/house/housePicCheck'
+  import BaseCascader from '@/components/BaseCascader'
+  import  *  as  RequestLogUrl from '@/request/log/housePlatformLog'
+
+  export default {
+    name: 'housePicCheck',
+    mixins: [PageList],
+    components: { BaseCascader },
+    data () {
+      return {
+        queryForm: {
+          status: '',
+          operatorId: '',
+          beginAddTime: '',
+          endAddTime: '',
+          houseId: '',
+          applyTime: '',
+          rejectReason: ''
+        },
+        listDetailQuery:{
+          page: 1,limit: 10,total: 0
+        },
+        batchActionBtn: false,
+        rebackDlg: false,
+        loadingView: false,
+        loadingDetailView: false,
+        queryBtnLoading: false,
+        loadingBtn: false,
+        isBatch: false,
+        editDialogVisible: false,
+        getReferenceUserSelectUrl: 'manage/commonselect/queryOpenCityCompanyDepartUser',
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        currentRowData: '',
+        selectData: [],
+        statusOpt: [],
+        tableData: [],
+        editForm:{
+          rejectReason: ''
+          ,profilePhoto:''
+          ,realName : ''
+        },
+        rules: {
+          rejectReason: [{required: true, message: '该项不可为空', trigger: 'blur'}]
+        },
+        dialogVisibleViewPhoto:false,
+        path: ''
+      }
+    },
+    methods: {
+      toDetail (id, name, code) {
+        this.$router.push({ path: './houseUsedDetail/' + id + '/' + code, query: { formName: name}})
+      },
+
+      boxFunc(row,index){
+        if(row.examineStatus == 0) return 1
+      },
+
+      handlerPriviewPic(row){
+        this.path = row.path
+        this.dialogVisibleViewPhoto = true
+      },
+
+      showImage(row){
+        if(row.path){
+          return true
+        }
+        return false
+      },
+
+      // 列表数据状态中文显示
+      returnCheckStatusName(row){
+        switch (row.examineStatus) {
+          case '0' :
+            return '未审核'
+          case '1' :
+            return '已审核'
+          case '2':
+            return '已驳回'
+          default:
+            return '其他'
+        }
+      },
+
+      // 状态改变的事件监听
+      changeSelectData(value){
+        this._loadData(true)
+      },
+      // 用户手动勾选列表复选框选择数据
+      getSelectTableData(selection, row){
+        this.selectData = []
+        this.selectData = selection
+      },
+
+      // 列表全选
+      getSelectTableDataAll(selection){
+        this.selectData = []
+        this.selectData = selection
+      },
+
+      // 驳回弹框
+      rebackHandler(row,isBatch){
+        this.editForm.rejectReason = ''
+        this.editForm.profilePhoto = ''
+        this.editForm.realName = ''
+        this.isBatch = isBatch
+        this.currentRowData = Object.assign({},{row})
+        if(this.isBatch){
+          if(this.selectData.length == 0){
+            this.$message({
+              type: 'warning',
+              message: '请先选择数据'
+            })
+            return
+          }
+        }
+        this.rebackDlg = false
+        this.$nextTick(()=>{
+          this.editForm.id = row.id
+          this.editForm.shhId = row.shhId
+          this.editForm.profilePhoto = row.profilePhoto
+          this.rebackDlg = true
+        })
+      },
+
+      handlerSubmitRebackRequest(){
+        if(this.isBatch){
+          this.examineApplication('2')
+        }else{
+          this.rebackHousePicCheckApplly()
+        }
+      },
+      // 取消按钮
+      handlerCancel(){
+        this.rebackDlg = false
+      },
+
+      // 查询页面列表数据
+      _loadData(btnQuery) {
+        if (btnQuery) {
+          this.queryBtnLoading = btnQuery
+          this.listQuery.page = 1
+          this.listQuery.currentPage = 1
+        }
+        this.loadingView = true
+        let query = {...this.queryForm}
+        let params = Object.assign({}, query, {
+          page: this.listQuery.page,
+          limit: this.listQuery.limit
+        })
+        if(params.applyTime.length > 0){
+          params.startTime = params.applyTime[0]
+          params.endTime = params.applyTime[1]
+        }
+        RequestURL.queryHousePictureExamineData(params).then((res) => {
+          this.tableData = res.data
+          this.listQuery.total = res.count
+          this.queryBtnLoading = false
+          this.loadingView = false
+        }).catch(err => {
+          console.log(err)
+          this.loadingView = false
+          this.queryBtnLoading = false
+        })
+      },
+
+      /**
+       * 查询房屋图片审核查询控件下拉数据信息
+       * @param row
+       */
+      queryHousePicCheckSelectOptionDatas(){
+        RequestURL.queryHousePicCheckSelectOptionDatas().then(res=>{
+          let temp = res.examineStatus
+          this.statusOpt = this.$jsonUtils.jsonToArr(temp,'id','name')
+        }).catch(err=>{
+          this.$message({
+            type: 'error',
+            message: err.data.msg
+          })
+        })
+      },
+
+      /**
+       * 房屋图片批量审核、驳回
+       * @param row
+       */
+      examineApplication(examineStatus){
+        if(this.selectData.length == 0){
+          this.$message({
+            type: 'warning',
+            message: '请先选择数据'
+          })
+          return
+        }
+        this.$confirm(`您选中了${this.selectData.length}条数据，确认批量操作数据吗？`,'提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          this.selectData.examineStatus = examineStatus
+
+          let paramsArr = []
+          let logContent = ''
+          this.selectData.forEach(item => {
+            let newObj = {
+              "id": item.id
+              ,"shhId": item.shhId
+              ,"attachType": '01'
+              ,"examineStatus": examineStatus
+              ,"profilePhoto":item.profilePhoto
+            }
+            paramsArr.push(newObj)
+          })
+
+          let params = {dataStr: JSON.stringify(paramsArr)}
+
+          this.batchActionBtn = true
+          RequestURL.examineApplication(params).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this.rebackDlg = false
+              this._loadData(false)
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+            this.batchActionBtn = false
+
+            this.selectData.forEach(item=>{
+              let logContent = ''
+              let msgContent = ''
+              if(examineStatus === '2'){
+                logContent = '批量驳回：'
+                msgContent = `批量驳回房源：${item.houseId}，图片：${item.path}，原因：${this.editForm.rejectReason}`
+              }else{
+                logContent = '批量审核：'
+                msgContent = `批量审核房源：${item.houseId}，图片：${item.path}，通过！`
+              }
+              let paramMsg = {reSessionId: item.applyerId
+                ,reSessionUuid: item.applyerUUID
+                ,reSessionName: item.applyer
+                ,msgContent: msgContent
+              }
+              this.sendSysMsg(paramMsg)
+
+              logContent = logContent + `${item.houseId}->${item.path};`
+              let message = {
+                sourceId:  item.shhId,//资编号：房源编号
+                sourceCode:  item.houseId,//资源编号：房源编号
+                businessTypeId: 1,//业务类型，1：房源
+                sourceTypeId: item.transactionTypeId,//类型：求购
+                operatTypeId: 43,//操作类型 ：钥匙退还,
+                logContent: logContent//日志内容
+              }
+              RequestLogUrl.houseAddLog({message:JSON.stringify(message)}).then(res =>{
+                console.log(res)
+              }).catch(error =>{
+                console.log(error)
+              })
+            })
+          }).catch(err=>{
+            console.log(err)
+            this.batchActionBtn = false
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+      /**
+       * 房屋图片审核
+       * @param row
+       */
+      confirmHousePicCheckApplly(row){
+        this.$confirm('要确认该数据吗？','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let params = {id: row.id
+            ,shhId: row.shhId
+            ,attachType: '01'
+            ,examineStatus: '1'
+            ,profilePhoto:row.profilePhoto
+          }
+          let dataStr = []
+          dataStr.push(params)
+          RequestURL.examineApplication({dataStr: JSON.stringify(dataStr)}).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this._loadData(false)
+              let paramMsg = {reSessionId: row.applyerId
+                ,reSessionUuid: row.applyerUUID
+                ,reSessionName: row.applyer
+                ,msgContent: `${row.houseId} 图片审核通过`
+              }
+              this.sendSysMsg(paramMsg)
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+
+            let message = {
+              sourceId:  row.shhId,//资编号：房源编号
+              sourceCode:  row.houseId,//资源编号：房源编号
+              businessTypeId: 1,//业务类型，1：房源
+              sourceTypeId: row.transactionTypeId,//类型：求购
+              operatTypeId: 43,//操作类型 ：钥匙退还,
+              logContent: `审核通过:${row.houseId}->${row.path}`
+            }
+
+            RequestLogUrl.houseAddLog({message:JSON.stringify(message)}).then(res =>{
+              console.log(res)
+            }).catch(error =>{
+              console.log(error)
+            })
+
+          }).catch(err=>{
+            console.log(err)
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+
+      /**
+       * 房屋图片--驳回（单条操作）
+       * @param row
+       */
+      rebackHousePicCheckApplly(){
+        this.$confirm('确认要驳回该数据吗？','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          let params = [{id: this.editForm.id
+            ,shhId: this.editForm.shhId
+            ,examineStatus: '2'
+            ,profilePhoto:this.editForm.profilePhoto
+          }]
+          RequestURL.examineApplication({dataStr: JSON.stringify(params)}).then(res=>{
+            if(res.success){
+              this.$message({
+                type: 'success',
+                message: res.msg
+              })
+              this.handlerCancel()
+              this._loadData(false)
+              let paramMsg = {reSessionId: this.currentRowData.row.applyerId
+                ,reSessionUuid: this.currentRowData.row.applyerUUID
+                ,reSessionName: this.editForm.applyer
+                ,msgContent: `房源:${this.currentRowData.row.houseId}图片：${this.currentRowData.row.path}-->被驳回，原因是：${this.editForm.rejectReason}`
+              }
+              this.sendSysMsg(paramMsg)
+            }else{
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+
+            let message = {
+              sourceId:  this.currentRowData.row.shhId,//资编号：房源编号
+              sourceCode:  this.currentRowData.row.houseId,//资源编号：房源编号
+              businessTypeId: 1,//业务类型，1：房源
+              sourceTypeId: this.currentRowData.row.transactionTypeId,//类型：求购
+              operatTypeId: 43,//操作类型 ：图片审核,
+              logContent: `驳回图片:${this.currentRowData.row.houseId}->${this.currentRowData.row.path}`
+            }
+
+            RequestLogUrl.houseAddLog({message:JSON.stringify(message)}).then(res =>{
+              console.log(res)
+            }).catch(error =>{
+              console.log(error)
+            })
+          }).catch(err=>{
+            console.log(err)
+            this.$message({
+              type: 'error',
+              message: err.data.msg
+            })
+          })
+        })
+      },
+
+      /**
+       * 处理图片后发送消息
+       * @param params
+       */
+      sendSysMsg(params){
+        RequestURL.sendSysMsg({message: JSON.stringify(params)}).then(res=>{
+          console.log(`消息发送成功！${JSON.stringify(params)}`)
+        })
+      }
+    },
+    mounted(){
+      this.queryHousePicCheckSelectOptionDatas()
+    }
+  }
+</script>
+
+<style scoped lang="scss">
+  .myCell .el-checkbox__input {
+    display: none;
+  }
+  .houseId {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

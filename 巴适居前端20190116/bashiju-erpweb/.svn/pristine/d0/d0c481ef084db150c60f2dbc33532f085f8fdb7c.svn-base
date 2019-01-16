@@ -1,0 +1,225 @@
+<template>
+  <div class="page-content">
+    
+    <div class="page-content-bd" v-loading="loadingView">
+      <el-table
+        :data="tableData"
+        border
+        highlight-current-row
+        align="center"
+        style="width: 100%"
+        
+      >
+
+        <el-table-column
+          prop="addTime"
+          align="center"
+          label="操作时间">
+           <template slot-scope="scope">
+            {{$utils.timeFormat(scope.row.addTime,'{y}-{m}-{d} {h}:{i}:{s}')}}
+          </template>
+        </el-table-column> 
+
+        <el-table-column
+          prop="sourceCode"
+          align="center"
+          label="成交编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="operator"
+          align="center"
+          label="操作人员">
+        </el-table-column>     
+
+        <el-table-column
+          prop="departmentName"
+          align="center"
+          label="部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="operatTypeName"
+          align="center"
+          label="操作类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="logContent"
+          align="center"
+          label="日志内容">
+        </el-table-column>
+
+
+      </el-table>
+
+      <b-pagination
+        :listQuery="listQuery"
+        @handleSizeChange="handleSizeChange"
+        @handleCurrentChange="handleCurrentChange">
+      </b-pagination>
+    </div>
+
+  </div>
+</template>
+
+<script>
+  import PageList from '@/mixins/pageList' // 列表页面查询 mixin
+  import * as RequestURL from '@/request/fin/income' // 请求后端URL路径
+  import OpenCitySelector from '@/components/BaseCascader' // // 城市级联组件
+  import BarSelector from '@/components/BaseCascader' // 导航级联组件
+  import BaseCascader from '@/components/BaseCascader'
+  import {queryReferenceUserSelect} from '@/request/manage/common'
+  
+
+  export default {
+    name: 'wagesLog',
+    components: {OpenCitySelector,BarSelector,BaseCascader},
+    data () {
+      
+      return {
+        peopleSelectOpts: [], // 相关用户员工级联选择数据
+        selectDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        selectProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          children: 'children', // 指定选项的子选项为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        selectType: [
+          {
+            value:'1',
+            label: '薪资'
+          },
+          {
+            value:'2',
+            label: '提成'
+          },
+          {
+            value:'3',
+            label: '奖罚'
+          }
+        ],
+        selectClasses: [],
+        queryForm: {months:''},
+        getReferenceUserSelectUrl: '/manage/usermanage/queryOpenCityCompanyDepartUser', // 选员工
+        cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+        cascaderProps: { // 级联下拉组件配置选项
+          value: 'code', // 指定选项的值为选项对象的某个属性值
+          label: 'name' // 指定选项标签为选项对象的某个属性值
+        },
+        addForm: {
+          type: '',
+          classesId: '',
+          classesName: '',
+          userId: '',
+          userName: '',
+          reason: '',
+          desertsDate: '',
+          amount: ''
+        },
+       
+        rejectRules:{
+            'rejectReason':[
+              { required: true, message: '请填写原因', trigger: 'blur' }
+            ],
+           
+            },
+        dialogAddVisible: false,
+        dialogBars: false,
+        dialogRejectReason:false,
+        loadingSubmitBtn: false,
+        loadingGrantBtn: false,
+        loadingForm: false,
+        loadingView: false,
+        loadingRejectBtn: false,
+        currentRowData: null, // 当前操作的行数据
+        isAdd: false,
+        idForBar: '',
+        barData: [],
+        levelInfo1: [],
+        levelInfo2: [],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        },
+        keys: [],
+        rejectReason: '',
+        title: '新增奖罚信息',
+        nowQueryForm: {},
+        rejectForm: {},
+        idForReject: '',
+        userId: '',
+        originalData:[],
+        tableData: [],
+        listQuery: {
+          page: 1,
+          limit: 10,
+          total: 0
+        },
+      }
+    },
+    methods: {
+     
+       /**
+       * 分页 pageSize 改变时会触发
+       */
+      handleSizeChange (val) {
+        this.listQuery.limit = val
+        this._getTableData()
+      },
+
+      /**
+       * 分页 currentPage  改变时会触发
+       */
+      handleCurrentChange (val) {
+        this.listQuery.page = val
+        this._getTableData()
+      },
+       handleQuery () {
+        this.nowQueryForm = Object.assign({}, this.queryForm)
+        this.listQuery.page = 1
+        this.listQuery.currentPage = 1
+        this._loadData(true)
+      },
+      // 加载数据
+      _loadData (type,dealId) {
+        
+            this.loadingView = true
+            this.nowQueryForm.type = type
+            this.nowQueryForm.dealId = dealId
+            let params = Object.assign({}, this.nowQueryForm, {
+              limit: this.listQuery.limit,
+              page: this.listQuery.page
+            })
+            //const params = this._getParams(this.queryForm)
+            RequestURL.getLogList(params).then(res => {
+              //console.log(11111)
+              //console.log(res);
+              this.tableData = res.data.map(item => {
+                
+                return item;
+              })
+              //console.log(this.tableData);
+              this.listQuery.total = res.count
+              this.loadingQueryBtn = false
+              this.loadingView = false
+
+            }).catch(() => {
+              this.loadingQueryBtn = false
+              this.loadingView = false
+            })
+        
+        
+      },
+    
+    },
+    mounted () {
+       
+    }
+
+  }
+</script>
+
+<style scoped lang="scss">
+
+</style>

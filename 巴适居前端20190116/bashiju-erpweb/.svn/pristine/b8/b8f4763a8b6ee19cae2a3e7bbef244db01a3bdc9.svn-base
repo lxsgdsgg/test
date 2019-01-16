@@ -1,0 +1,476 @@
+<template>
+    <div>
+            <el-form :model="form"  label-width="80px" :rules="rules"  ref="form" class="demo-ruleForm">
+              <el-row>
+                   <el-col :span="12">
+                     <el-form-item label="方案名称" prop="name">
+                       <el-input type="text" v-model="form.name"></el-input>
+                     </el-form-item>
+
+
+                      <el-form-item label="选择城市" prop="cityCode">
+                        <!--<city-selector  :url="getUrl" :dataProps="cascaderDataProps" :props="cascaderProps" @change="queryAllRegionListByAreaCode" v-model="form.cityCode"></city-selector>-->
+                        <base-cascader @change="queryAllRegionListByAreaCode1" :changeOnSelect="false" v-model="form.cityCode" :url="queryOpenCityCountyUrl" :props="cascaderProps" :dataProps="cascaderDataProps"></base-cascader>
+                      </el-form-item>
+
+
+
+                          <el-form-item label="条件" prop="conditions">
+                           <base-select @change="getConditionName" style="width: 100%" :multiple="true" :props="conditionsProp" :data="conditionsOptions"  v-model="form.conditions"></base-select>
+                        </el-form-item>
+
+
+
+                     <el-form-item label="等级" prop="levelType">
+                       <el-select v-model="form.levelType"  placeholder="请选择">
+                         <el-option
+                           v-for="item in levelTypeOption"
+                           :key="item.value"
+                           :label="item.label"
+                           :value="item.value"
+                         ></el-option>
+                       </el-select>
+                     </el-form-item>
+
+
+                      <el-form-item label="产权性质" prop="propertyType">
+                        <el-select v-model="form.propertyType"  placeholder="请选择 " @change="propertyTypeNames">
+                          <el-option
+                          v-for="item in propertyTypeOption"
+                          :key="item.value"
+                          :label="item.fieldValue"
+                          :value="item.id"
+                          ></el-option>
+                        </el-select>
+                      </el-form-item>
+
+
+                      <el-form-item label="价格区间" prop="price">
+                        <base-section-select  v-model="form.price" :data="regionValue.price" placeholder="价格" description="万元"></base-section-select>
+                      </el-form-item>
+                   </el-col>
+
+                    <el-col :span="12">
+
+
+
+
+                      <el-form-item label="房屋用途" prop="houseUses" >
+                        <el-select v-model="form.houseUses"  placeholder="请选择" @change="houseUsersNames">
+                          <el-option
+                            v-for="item in houseUsesOption"
+                            :key="item.id"
+                            :label="item.fieldValue"
+                            :value="item.id"
+                          ></el-option>
+                        </el-select>
+                      </el-form-item>
+
+                      <el-form-item label="需求区域" prop="areaCode">
+                        <el-select v-model="form.areaCode" @change="getAreaName">
+                          <el-option
+                            v-for="item in areaCodeOption"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                          </el-option>
+                        </el-select>
+                      </el-form-item>
+
+
+
+                      <el-form-item label="装修情况" prop="decoratingType">
+                        <el-select v-model="form.decoratingType"  placeholder="请选择" @change="decoratingTypeNames">
+                          <el-option
+                            v-for="item in decoratingTypeOption"
+                            :key="item.id"
+                            :label="item.fieldValue"
+                            :value="item.id"
+                          ></el-option>
+                        </el-select>
+                      </el-form-item>
+
+                      <el-form-item label="面积区间" prop="space">
+                        <base-section-select  v-model="form.space" :data="regionValue.space" placeholder="面积" description="m²"></base-section-select>
+                      </el-form-item>
+
+                      <el-form-item label="付款方式" prop="payTypeId" v-if="this.transactionType == 2" >
+                        <el-select v-model="form.payTypeId" placeholder="请选择" @change="changePayTypeSelect">
+                            <el-option
+                              v-for="item in payTypeOption "
+                              :key="item.id"
+                              :value="item.id"
+                              :label="item.fieldValue"
+                            ></el-option>
+                        </el-select>
+                      </el-form-item>
+
+
+                      <el-form-item label="付款方式" prop="payTypeId" v-if="this.transactionType == 1" >
+                        <el-select v-model="form.payTypeId" placeholder="请选择" @change="changeSalePayTypeSelect">
+                          <el-option
+                            v-for="item in salePayTypeOption "
+                            :key="item.id"
+                            :value="item.id"
+                            :label="item.fieldValue"
+                          ></el-option>
+                        </el-select>
+                      </el-form-item>
+
+
+
+                      <el-form-item label="配套" prop="payTypeId" v-if="this.transactionType == 2">
+                          <base-select @change="getMatchingName" style="width: 100%" :multiple="true" :props="matchingProp" :data="matchingOption"  v-model="form.matchingId"></base-select>
+                      </el-form-item>
+                    </el-col>
+              </el-row>
+              <el-form-item>
+                <div class="btn-group">
+                  <el-button type="primary"  @click="handleSubmit">确认</el-button>
+                  <el-button  @click="handleCancel">取消</el-button>
+                </div>
+              </el-form-item>
+            </el-form>
+
+    </div>
+</template>
+<style></style>
+<script>
+  import BaseSelect from '@/components/BaseSelect'
+  import CitySelector from '@/components/BaseCascader'
+  import {getDynamicValue,getDynamicValueConditions,getPriceAndSpaceOption,saveOrUpdateResHouseLevelCondition} from '@/request/manage/resHouseLevelCondition'
+  import * as selectUrl from '@/request/manage/common' // 获取下拉框数据 url地址
+  import BaseSectionSelect from '@/components/BaseSectionSelect'//区间控件
+  import {queryAllRegionList} from '@/request/manage/community'
+  import {getRegionValue} from '@/request/app'//请求去间数据
+  import BaseCascader from '@/components/BaseCascader'
+    export default {
+    name:'levelCondition',
+    components:{BaseSelect,CitySelector,BaseSectionSelect,BaseCascader},
+      props:{
+          data:{
+            type:Object
+          },
+        isAdd:{
+            type:Boolean
+        },
+        transactionType:{
+            type:Number
+        }
+      },
+      data() {
+        return {
+          form:{
+            id:'',
+            price:'',
+            maxPrice:'',
+            minPrice:'',
+            minSpace:'',
+            maxSpace:'',
+            areaCode:'',
+            area:'',
+            conditions:'',
+            name:'',
+            propertyType:'',
+            levelType:'',
+            houseUses:'',
+            decoratingType:'',
+            cityCode:'',
+            cityName:'',
+            payTypeId:'',
+            matchingId:'',
+            matching:'',
+            remark:''
+          },
+          regionValue: {
+            price:{},
+            space:{}
+          },
+          getUrl:'manage/commonselect/queryThirdLevelCitySelect',
+          queryOpenCityCountyUrl: selectUrl.queryOpenCityCountyUrl, // 区县
+          cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+          cascaderProps: { // 级联下拉组件配置选项
+            value: 'code', // 指定选项的值为选项对象的某个属性值
+            children: 'children', // 指定选项的子选项为选项对象的某个属性值
+            label: 'name' // 指定选项标签为选项对象的某个属性值
+          },
+          areaName:'',
+          matchingName:'',
+          decoratingTypeName:'',
+          conditionName:'',
+          houseUsersName:'',
+          payTypeName:'',
+          propertyTypeName:'',
+          areaCodeOption:[],
+          spaceOptions:[],
+          priceOptioins:[],
+          conditionsOptionsName:[],
+          propertyTypeOption:[],
+          priceOption:[],
+          decoratingTypeOption:[],
+          houseUsesOption:[],
+          matchingOption:[],
+          conditionsOptions: [],
+          //条件数据指明
+          conditionsProp:{
+            label: 'fieldValue',
+            value: 'id'
+          },
+          matchingProp:{
+            label: 'fieldValue',
+            value: 'id'
+          },
+          //出租的支付方式
+          payTypeOption:[
+            {id:1, fieldValue:'按一年付'},
+            {id:2, fieldValue:'按一半年付'},
+            {id:3, fieldValue:'按一半年付'},
+            {id:4, fieldValue:'按一年付'},
+          ],
+          //出售的支付方式
+          salePayTypeOption:[
+            {id:5,fieldValue:'只能一次性付款'},
+            {id:6,fieldValue:'可商业贷款'},
+            {id:7,fieldValue:'可公积金(租客)贷款'},
+            {id:8,fieldValue:'可分期付款'},
+            ],
+          levelTypeOption:[
+            {label:'A等级',value:'A'},
+            {label:'B等级',value:'B'},
+          ],
+          rules:{
+            cityCode:[
+              {required:true,message:'必填项',trigger:'change'}
+            ],
+            levelType:[
+              {required:true,message:'必填项',trigger:'change'}
+            ],
+            areaCode:[
+                {required:true,message:'必填项',trigger:'change'}
+            ],
+            name:[
+              {required:true,message:'必填项',trigger:'change'}
+            ]
+
+          }
+        }
+
+      },
+        methods: {
+          getLabel(value,name){
+           this.conditionName = name.join()
+          },
+          //配套名称
+          getMatchingName(value,name){
+            this.form.matching = name.join()
+          },
+          //出租支付方式的label
+          changePayTypeSelect(val){
+            let obj = {};
+            obj = this.payTypeOption.find((item)=>{
+              return item.id === val;
+            });
+              this.payTypeName = obj.fieldValue
+          },
+          getConditionName(value,name){
+            this.conditionName = name.join(',')
+          },
+          //出售支付方式
+          changeSalePayTypeSelect(val){
+            let obj = {};
+            obj = this.salePayTypeOption.find((item)=>{
+              return item.id === val;
+            });
+            this.payTypeName = obj.fieldValue
+          },
+          propertyTypeNames(val){
+            let obj = {};
+            obj = this.propertyTypeOption.find((item)=>{
+              return item.id === val;
+            });
+            this.propertyTypeName = obj.fieldValue
+          },
+          //房屋用途名称
+          houseUsersNames(val){
+            let obj = {};
+            obj = this.houseUsesOption.find((item)=>{
+              return item.id === val;
+            });
+            this.houseUsersName = obj.fieldValue
+          },
+          //装修类型
+          decoratingTypeNames(val){
+            let obj = {};
+            obj = this.decoratingTypeOption.find((item)=>{
+              return item.id === val;
+            });
+            this.decoratingTypeName = obj.fieldValue
+          },
+          //区域名称
+          getAreaName(val){
+            let obj = {};
+            obj = this.areaCodeOption.find((item)=>{
+              return item.id === val;
+            });
+            this.form.area = obj.name
+            // console.log(this.form)
+          },
+          //设置组件的值
+          setForm(data){
+            for(let i in  this.form){
+                if(data[i]){
+                  this.form[i] = data[i]
+                }
+              // if(data['areaCode'])this.form['areaCode'] =  (this.data.areaCode.split('-')[1])
+              //处理父组件传过的值
+              if(data['conditions'])this.form['conditions'] =  data['conditions'].split(',').map(Number)
+              if(data['matchingId'])this.form['matchingId'] =  data['matchingId'].split(',').map(Number)
+              if(data['areaCode'])this.form['areaCode'] = Number(data['areaCode'])
+
+              // if(data['maxPrice'] &&  data['maxPrice']!=0)this.form['maxPrice'] =  data['maxPrice']/1000000
+              // if(data['minPrice'] &&  data['minPrice']==0)this.form['minPrice'] =  data['minPrice']/1000000
+              // if(data['minSpace'] && data['minSpace'] != 0)this.form['minSpace'] =  data['minSpace']
+              // if(data['maxSpace'] && data['maxSpace']!=0)this.form['maxSpace'] =  data['maxSpace']
+
+            }
+
+            this.form.space = {
+              min: data.minSpace,
+              max: data.maxSpace
+            }
+            this.form.price = {
+              min: data.minPrice/1000000,
+              max: data.maxPrice/1000000
+            }
+
+          },
+
+          //取消编辑
+          handleCancel(){
+            this.$emit('handleClick',1)
+          },
+          handleSubmit(){
+              this.$refs['form'].validate(res =>{
+                  if(res){
+                    this.$confirm('确定要保存吗?',{
+                      confirmBtnText:'确定',
+                      cancelBtnTextL:'取消',
+                      type:'warning'
+                    }).then(()=>{
+                      let params = Object.assign({},this.form,{})
+                      //（价格、面积）设置默认值为
+                      if(!params.price) {
+                        params.minPrice=0
+                        params.maxPrice=0
+                      }else{
+                        //价格
+                        params.minPrice = params.price.min
+                        params.maxPrice = params.price.max
+                      }
+
+
+                      if(!params.space){
+                        params.minSpace=0
+                        params.maxSpace=0
+                      }else{
+                        //面积
+                        params.minSpace = params.space.min
+                        params.maxSpace = params.space.max
+                      }
+                      //条件
+                      const conditions = params.conditions
+                      if (typeof conditions === 'object') {
+                        params.conditions = conditions.join()
+                      }
+                      //配套
+                      const matchingId = params.matchingId
+                      if (typeof matchingId === 'object') {
+                        params.matchingId = matchingId.join()
+                      }
+
+                      //删除不需要提交的参数
+                      delete params.space
+                      delete params.price
+                      params.transactionType = this.transactionType //设置交易类型
+                      // params.areaCode = 'area-'+this.form.areaCode //拼接area-城市代码
+                      console.log(this.form)
+                      params.remark ='片区:-'+this.form.cityName+  '区域为-' + this.form.area+  ';条件为:'+this.conditionName+';';
+                      //判断是否为新增
+                      params.maxPrice = params.maxPrice *1000000
+                      params.minPrice = params.minPrice*1000000
+                      !this.isAdd  ? this.form.id = this.data.id:params.id = ''
+                      saveOrUpdateResHouseLevelCondition({jsonData:JSON.stringify(params)}).then(res =>{
+                        if(res.success){
+                            this.$message({type:'success',message:res.msg})
+                          this.$emit('handleClick',1)//关闭编辑窗体
+                        }else{
+                          this.$message({type:'warning',message:res.msg})
+                          this.$emit('handleClick',1)//关闭编辑窗体
+                        }
+                      }).catch(error =>{
+                        console.log(error)
+                      })
+                    })
+                  }
+              })
+          },
+          //城市
+          handleChangeCity(value,name){
+            this.form.cityId = value
+          },
+          //获取普通下拉
+          getDynamicValue(){
+            let params = {param:"res_house"}
+            getDynamicValue(params).then(res =>{
+              this.options = res.data.conditions
+              this.propertyTypeOption = res.data.propertyType
+              this.decoratingTypeOption = res.data.decoratingType
+              this.houseUsesOption = res.data.houseUses
+              this.matchingOption = res.data.matching
+              this.conditionsOptions = res.data.conditions
+            })
+          },
+          _getRegionValue() {
+            const sellPriceRange = {
+              widgetCode: 'sellPriceRange',
+              tag: 2
+            }
+            getRegionValue(sellPriceRange).then(res => {
+              this.regionValue.price = res.data || []
+            })
+            const spaceRange = {
+              widgetCode: 'spaceRange',
+              tag: 2
+            }
+            getRegionValue(spaceRange).then(res => {
+              this.regionValue.space = res.data || []
+            })
+          },
+          //获取选择城市的片区
+          queryAllRegionListByAreaCode(value,name){
+            queryAllRegionList({code:this.form.cityCode}).then(res =>{
+                this.areaCodeOption = res.data
+            })
+          },
+          queryAllRegionListByAreaCode1(value,name){
+            this.form.cityName = name
+            queryAllRegionList({code:this.form.cityCode}).then(res =>{
+              this.areaCodeOption = res.data
+            })
+          },
+        },
+        mounted() {
+         if(!this.isAdd){
+             this.setForm(this.data)
+             this.queryAllRegionListByAreaCode(this.data.areaCode)
+            }
+            this.getDynamicValue()
+            this._getRegionValue()
+            console.log(this.data)
+        }
+
+
+
+    }
+
+</script>

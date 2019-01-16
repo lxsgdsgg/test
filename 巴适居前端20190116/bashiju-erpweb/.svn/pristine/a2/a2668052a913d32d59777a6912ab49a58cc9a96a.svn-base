@@ -1,0 +1,899 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+import store from '../store'
+
+import {getBtnPermission} from '@/request/app'
+
+import Layout from '../views/layout/index'
+
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+NProgress.configure({ showSpinner: true, height: 10})
+
+Vue.use(Router)
+
+let router =  new Router({
+  routes: [
+    {
+      path: '',
+      component: Layout,
+      redirect: 'dashboard',
+      children: [
+        {
+          path: '/dashboard',
+          name: 'dashboard',
+          component: () => import('../views/dashboard/index'),
+          meta: {title: '首页'}
+        },
+
+      ]
+    },
+    {
+      path: '/report',
+      name: 'report',
+      component: Layout,
+      meta: { title: '报表'},
+      redirect: 'http://sso.bashiju.com/anal/followRecord/followRecord',
+      children:[
+        {
+          path: 'followRecord',
+          name: 'followRecord',
+          meta: { title: '跟进漏斗转化分析', showIframe: true, src: 'http://sso.bashiju.com/anal/followRecord/followRecord'}
+        },
+        {
+          path: 'statisticsSaleHouse',
+          name: 'statisticsSaleHouse',
+          meta: { title: '出售房源统计报表', showIframe: true, src: 'http://sso.bashiju.com/anal/ssh/statisticsSaleHouse'}
+        },
+        {
+          path: 'statisticsRentHouse',
+          name: 'statisticsRentHouse',
+          meta: { title: '出租房源统计报表：', showIframe: true, src: 'http://sso.bashiju.com/anal/srh/statisticsRentHouse'}
+        },
+        {
+          path: 'statisticsBuyDemand',
+          name: 'statisticsBuyDemand',
+          meta: { title: '求购统计报表：', showIframe: true, src: 'http://sso.bashiju.com/anal/sbd/statisticsBuyDemand'}
+        },
+        {
+          path: 'statisticsRentDemand',
+          name: 'statisticsRentDemand',
+          meta: { title: '求租统计报表：', showIframe: true, src: 'http://sso.bashiju.com/anal/srd/statisticsRentDemand'}
+        },
+
+      ]
+    },
+
+    {
+      path: '/cascader',
+      name: 'cascader',
+      component: () => import('../views/Cascader/index'),
+      meta: {title: '多选级联'}
+    },
+
+    {
+      path: '/redirect',
+      component: Layout,
+      children: [
+        {
+          path: '/redirect/:path*',
+          component: () => import('@/views/redirect/index')
+        }
+      ]
+    },
+
+    {
+      path: '/manage',
+      name: 'manage',
+      component: Layout,
+      meta: {title: '管理平台'},
+      redirect: '/manage/system/dept',
+      children: [
+        {
+          path: 'dept',
+          name: 'deptManage',
+          component: () => import('../views/manage/system/dept'),
+          meta: {title: '部门管理'}
+        },
+        {
+          path: 'menu',
+          name: 'menuManage',
+          component: () => import('../views/manage/system/menu'),
+          meta: {title: '菜单管理'}
+        },
+        {
+          path: 'role',
+          name: 'roleManage',
+          component: () => import('../views/manage/system/role'),
+          meta: {title: '角色管理'}
+        },
+        {
+          path: 'user',
+          name: 'userManage',
+          component: () => import('../views/manage/system/user'),
+          meta: {title: '用户管理'}
+        },
+        {
+          path: 'deptType',
+          name: 'deptType',
+          component: () => import('../views/manage/system/deptType'),
+          meta: {title: '部门类型'}
+        },
+        {
+          path: 'post',
+          name: 'post',
+          component: () => import('../views/manage/system/post'),
+          meta: {title: '职位管理'}
+        },
+        {
+          path: 'region',
+          name: 'region',
+          component: () => import('../views/manage/system/region'),
+          meta: {title: '片区管理'}
+        },
+        {
+          path: 'company',
+          name: 'company',
+          component: () => import('../views/manage/system/company'),
+          meta: {title: '公司管理'}
+        },
+        {
+          path: 'community',
+          name: 'community',
+          component: () => import('../views/manage/system/community'),
+          meta: {title: '小区管理'},
+        },
+        // {
+        //   path: 'communityDetail',
+        //   name: 'communityDetail',
+        //   component: () => import('../views/manage/system/community/components/DetailComponent'),
+        //   meta: {title: '小区详情'}
+        // },
+        {
+          path: 'addWidget',
+          name: 'addWidget',
+          component: () => import('../views/manage/system/dynamicConfigure/addWidget'),
+          meta: {title: '新增配置项'}
+        },
+        {
+          path: 'setDropdown',
+          name: 'setDropdown',
+          component: () => import('../views/manage/system/dynamicConfigure/setDropdown'),
+          meta: {title: '设置下拉项'}
+
+        },
+        {
+          path: 'setRange',
+          name: 'setRange',
+          component: () => import('../views/manage/system/dynamicConfigure/setRange'),
+          meta: {title: '设置区间项'}
+
+        },
+        {
+          path: 'setDynamicForm',
+          name: 'setDynamicForm',
+          component: () => import('../views/manage/system/dynamicConfigure/dynamicForm'),
+          meta: {title: '动态表单配置'}
+
+        },
+        {
+          path: 'setUserDynamicForm',
+          name: 'setUserDynamicForm',
+          component: () => import('../views/manage/system/dynamicConfigure/userDynamicForm'),
+          meta: {title: '用户表单配置'}
+
+        },
+        {
+          path: 'informationManage',
+          name: 'informationManage',
+          component: () => import('../views/manage/system/contentManage/information'),
+          meta: {title: '资讯'}
+
+        },
+        {
+          path: 'encyclopediasManage',
+          name: 'encyclopediasManage',
+          component: () => import('../views/manage/system/contentManage/encyclopedias'),
+          meta: {title: '百科'}
+
+        },
+        {
+          path: 'bottomContent',
+          name: 'bottomContent',
+          component: () => import('../views/manage/system/contentManage/ourselves'),
+          meta: {title: '网站底部内容'}
+
+        },
+        {
+          path: 'contentexamine',
+          name: 'contentexamine',
+          component: () => import('../views/manage/system/contentManage/contentexamine'),
+          meta: {title: '内容审核'}
+
+        },
+        {
+          path: 'custTipoff',
+          name: 'custTipoff',
+          component: () => import('../views/manage/system/contentManage/custTipoff'),
+          meta: {title: '网站客户举报房源'}
+
+        },
+        {
+          path: 'custFeedback',
+          name: 'custFeedback',
+          component: () => import('../views/manage/system/contentManage/custFeedback'),
+          meta: {title: '网站客户反馈'}
+
+        },
+        {
+          path: 'platformOpenCity',
+          name: 'platformOpenCity',
+          component: () => import('../views/manage/system/cityOpen/platformOpenCity'),
+          meta: {title: '平台开通城市'}
+
+        },
+        {
+          path: 'companyOpenCity',
+          name: 'companyOpenCity',
+          component: () => import('../views/manage/system/cityOpen/companyOpenCity'),
+          meta: {title: '公司开通城市'}
+
+        },
+        {
+          path: 'ImgManage',
+          name: 'ImgManage',
+          component: () => import('../views/manage/system/imgManage'),
+          meta: {title: '图片管理'}
+
+        },
+
+        {
+          path:'errorLog',
+          name:'errorLog',
+          component: () => import('../views/manage/system/errorLog'),
+          meta:{title:'错误日志'}
+        },
+        {
+          path:'userLog',
+          name:'userLog',
+          component: () => import('../views/manage/system/userLog'),
+          meta:{title:'用户日志'}
+        },
+        {
+          path:'loginLog',
+          name:'loginLog',
+          component: () => import('../views/manage/system/loginLog'),
+          meta:{title:'登录日志'}
+        },
+        {
+          path: 'resHouseLevelCondition',
+          name: 'resHouseLevelCondition',
+          component: () => import('../views/manage/system/resHouseLevelCondition'),
+          meta: {title: '房源等级条件'}
+        },
+        {
+          path: 'schoolDistrict',
+          name: 'schoolDistrict',
+          component: () => import('../views/manage/system/schoolDistrict'),
+          meta: {title: '学区管理'}
+        },
+        {
+          path: 'openingcity',
+          name: 'openingcity',
+          component: () => import('../views/manage/system/distributionManage'),
+          meta: {title: '城市管理分配设置'}
+        },
+        {
+          path: 'userRegisterCheck',
+          name: 'userRegisterCheck',
+          component: () => import('../views/manage/system/userRegisterCheck'),
+          meta: {title: '用户注册审核'}
+        },
+        {
+          path: 'housePrintSetting',
+          name: 'housePrintSetting',
+          component: () => import('../views/manage/system/housePrintSetting'),
+          meta: {title:'房源打印设置'}
+        },
+        {
+          path: 'IntermediaryBlacklist',
+          name: 'IntermediaryBlacklist',
+          component: () => import('../views/manage/system/IntermediaryBlacklist'),
+          meta: {title:'中介黑名单管理'}
+        },
+        {
+          path: 'metroStationMange',
+          name: 'metroStationMange',
+          component: () => import('../views/manage/system/metroStationMange'),
+          meta: {title:'地铁站点管理'}
+        },
+        {
+          path: 'resCustLevelCondition',
+          name: 'resCustLevelCondition',
+          component: () => import('../views/manage/system/resCustLevelCondition'),
+          meta: {title:'客源等级条件'}
+        },
+        {
+          path: 'houseReturnCycle',
+          name: 'houseReturnCycle',
+          component: () => import('../views/manage/system/houseReturnCycle'),
+          meta: {title:'房源源回访周期设置'}
+        },
+        {
+          path: 'resCustReturnCycle',
+          name: 'resCustReturnCycle',
+          component: () => import('../views/manage/system/resCustReturnCycle'),
+          meta: {title:'客源回访周期设置'}
+        },{
+          path: 'phoneBlacklist',
+          name: 'phoneBlacklist',
+          component: () => import('../views/manage/system/phoneBlacklist'),
+          meta: {title:'电话黑名单配置'}
+        },
+        {
+          path: 'collectionAddressConfig',
+          name: 'collectionAddressConfig',
+          component: () => import('../views/manage/system/collectionAddressConfig'),
+          meta: {title:'采集地址配置'}
+        },
+        {
+          path: 'analysisTemplet',
+          name: 'analysisTemplet',
+          component: () => import('../views/manage/system/analysisTemplet'),
+          meta: {title:'采集模板配置'}
+        },
+        {
+          path: 'jobManage',
+          name: 'jobManage',
+          component: () => import('../views/manage/system/jobManage'),
+          meta: {title:'任务管理配置'}
+        },
+        {
+          path: 'decisionConfigurate',
+          name: 'decisionConfigurate',
+          component: () => import('../views/manage/system/decisionConfigurate'),
+          meta: {title:'决策管理配置'}
+        },
+        {
+          path: 'houseArticleClassify',
+          name: 'houseArticleClassify',
+          component: () => import('../views/manage/system/houseArticleClassify'),
+          meta: {title:'房产文章分类'}
+        },
+        {
+          path: 'navigationBar',
+          name: 'navigationBar',
+          component: () => import('../views/manage/system/navigationBar'),
+          meta: {title:'导航栏管理'}
+        },
+        {
+          path: 'myReservation',
+          name: 'myReservation',
+          component: () => import('../views/manage/system/myReservation'),
+          meta: {title:'我的预约'}
+        },
+        {
+          path: 'agentAbilityidentify',
+          name: 'agentAbilityidentify',
+          component: () => import('../views/manage/system/agentAbilityidentify'),
+          meta: {title:'经纪人能力认定'}
+        },
+        {
+          path: 'customerMsgEva',
+          name: 'customerMsgEva',
+          component: () => import('../views/customer/customerMsgEva'),
+          // meta: {title: '客户留言评价'}
+          meta: {title: '经纪人评价'}
+        },
+        {
+          path: 'labelmanage',
+          name: 'labelmanage',
+          component: () => import('../views/manage/system/labelmanage'),
+          meta: {title:'标签管理'}
+        },
+        {
+          path: 'metroLine',
+          name: 'metroLine',
+          component: () => import('../views/manage/system/metroLine'),
+          meta: {title:'地铁线路管理'}
+        },
+        {
+          path: 'contractManage',
+          name: 'contractManage',
+          component: () => import('../views/manage/system/contractManage'),
+          meta: {title:'合同模板管理'}
+        },
+        {
+          path: 'phoneSecurityManage',
+          name: 'phoneSecurityManage',
+          component: () => import('../views/manage/system/phoneSecurityManage'),
+          meta: {title:'电话号码安全管理'}
+        },
+        {
+          path: 'report',
+          name: 'report',
+          component: () => import('../views/manage/system/report'),
+          meta: {title:'日报'}
+        }
+      ]
+    },
+
+    {
+      name: 'house',
+      path: '/house',
+      component: Layout,
+      meta: {title: '房源平台'},
+      redirect: '/house/houseUsed',
+      children: [
+        {
+          path: 'houseUsed',
+          name: 'houseUsed',
+          component: () => import('../views/house/houseUsed/index'),
+          meta: {title: '二手房源'}
+        },
+        {
+          path: 'houseNew',
+          name: 'houseNew',
+          component: () => import('../views/house/houseNew/index'),
+          meta: {title: '一手房源'}
+        },
+        {
+          path: 'houseUsedDetail/:id/:code',
+          name: 'houseUsedDetail',
+          component: () => import('../views/house/houseUsed/detail/index'),
+          meta: {title: '房源详情'}
+        },
+        {
+          path: 'houseNewDetail/:id/:name',
+          name: 'houseNewDetail',
+          component: () => import('../views/house/houseNew/detail/index'),
+          meta: {title: '楼盘详情'}
+        },
+        {
+          path: 'houseFollowUpRecord',
+          name: 'houseFollowUpRecord',
+          component: () => import('../views/house/houseFollowUpRecord'),
+          meta: {title: '房源跟进记录'}
+        },
+        {
+          path: 'houseBusinessExamination',
+          name: 'houseBusinessExamination',
+          component: () => import('../views/house/houseBusinessExamination'),
+          meta: {title: '房源业务审批'}
+        },
+        {
+          path: 'housePicCheck',
+          name: 'housePicCheck',
+          component: () => import('../views/house/housePicCheck'),
+          meta: {title: '房源图片审批'}
+        },
+        {
+          path: 'houseRelationPictureExamination',
+          name: 'houseRelationPictureExamination',
+          component: () => import('../views/house/houseRelationPictureExamination'),
+          meta: {title: '房源相关图片审批'}
+        },
+        {
+          path: 'keyManagement',
+          name: 'keyManagement',
+          component: () => import('../views/house/keyManagement'),
+          meta: {title: '钥匙管理'}
+        },
+        {
+          path: 'houseSeekByMap',
+          name: 'houseSeekByMap',
+          component: () => import('../views/house/houseSeekByMap'),
+          meta: {title: '地图找房'}
+        },
+        {
+          path: 'houseSeekByMetro',
+          name: 'houseSeekByMetro',
+          component: () => import('../views/house/houseSeekByMetro'),
+          meta: {title: '地铁找房'}
+        },
+        {
+          path: 'crawlerList',
+          name: 'crawlerList',
+          component: () => import('../views/house/crawlerList'),
+          meta: {title: '房源采集'}
+        },
+        {
+          path: 'agentAcceptanceEntrust',
+          name: 'agentAcceptanceEntrust',
+          component: () => import('../views/house/agentAcceptanceEntrust'),
+          meta: {title: '经纪人委托受理'}
+        }
+      ]
+    },
+
+    {
+      name:'customer',
+      path:'/customer',
+      component: Layout,
+      meta: {title: '客源平台'},
+      redirect: '/customer/customerUsed',
+      children:[
+        {
+          path: 'customerUsed/:type',
+          name: 'customerListPage',
+          component: () => import('../views/customer/customerUsed'),
+          meta: {title: '客源列表', noCache: true}
+        },
+        // {
+        //   path: 'customerUsed/:type',
+        //   name: 'leaseCustomerUsed',
+        //   component: () => import('../views/customer/customerUsed'),
+        //   meta: {title: '租赁客源'}
+        // },
+        {
+          path: 'followUpRecord',
+          name: 'followUpRecord',
+          component: () => import('../views/customer/followUpRecord'),
+          meta: {title: '客源跟进记录'}
+        },
+        {
+          path: 'tobaoCustomerUsed/:type',
+          name: 'tobaoCustomerUsedListPage',
+          component: () => import('../views/customer/tobaoCustomerUsed'),
+          meta: {title: '淘宝池列表', noCache: true}
+        },
+        // {
+        //   path: 'leaseTaobaoCustomerUsed',
+        //   name: 'leaseTaobaoCustomerUsed',
+        //   component: () => import('../views/customer/tobaoCustomerUsed'),
+        //   meta: {title: '租赁客源淘宝池'}
+        // },
+
+        {
+          path: 'takeLookRecord',
+          name: 'takeLookRecord',
+          component: () => import('../views/customer/takeLookRecord'),
+          meta: {title: '客源带看记录'}
+        },
+        {
+          path: 'depositManage',
+          name: 'depositManage',
+          component: () => import('../views/customer/depositManage'),
+          meta: {title: '定金管理'}
+        },
+        {
+          path: 'custBusinessExamination',
+          name: 'custBusinessExamination',
+          component: () => import('../views/customer/custBusinessExamination'),
+          meta: {title: '客源业务审批'}
+        },
+        {
+          path: 'customerDetail',
+          name: 'customerDetail',
+          component: () => import('../views/customer/customerUsed/detail/index'),
+          meta: {title: '客源详情'}
+        }
+        ,
+        {
+          path: 'taobaoCustomerDetail',
+          name: 'taobaoCustomerDetail',
+          component: () => import('../views/customer/tobaoCustomerUsed/detail/index'),
+          meta: {title: '淘宝客源详情'}
+        }
+        ,
+      ]
+    },
+
+    {
+      name: 'fin',
+      path: '/fin',
+      component: Layout,
+      meta: {title: '财务平台'},
+      redirect: '/fin/income',
+      children: [
+        {
+          path: 'finance',
+          name: 'finance',
+          component: () => import('../views/fin/income/finance'),
+          meta: {title: '金融业务'}
+        }
+        ,
+        {
+          path: 'commission',
+          name: 'commission',
+          component: () => import('../views/fin/income/commission'),
+          meta: {title: '佣金确认'}
+        }
+        ,
+        {
+          path: 'receiveRecord',
+          name: 'receiveRecord',
+          component: () => import('../views/fin/income/receiveRecord'),
+          meta: {title: '代收款管理'}
+        }
+        ,
+
+        {
+          path: 'payRecord',
+          name: 'payRecord',
+          component: () => import('../views/fin/income/payRecord'),
+          meta: {title: '代付款管理'}
+        }
+        ,
+        {
+          path: 'welfareConfig',
+          name: 'welfareConfig',
+          component: () => import('../views/fin/emolument/welfareConfig'),
+          meta: {title: '福利配置'}
+        }
+        ,
+        {
+          path: 'ssfConfigurate',
+          name: 'ssfConfigurate',
+          component: () => import('../views/fin/emolument/ssfConfigurate'),
+          meta: {title: '社保配置'}
+        }
+        ,
+        {
+          path: 'desertsInfo',
+          name: 'desertsInfo',
+          component: () => import('../views/fin/emolument/desertsInfo'),
+          meta: {title: '员工奖罚信息'}
+        }
+        ,
+        {
+          path: 'wagesConfig',
+          name: 'wagesConfig',
+          component: () => import('../views/fin/emolument/wagesConfig'),
+          meta: {title: '员工薪资配置'}
+        }
+        ,
+
+        {
+          path: 'businessType',
+          name: 'businessType',
+          component: () => import('../views/fin/emolument/businessType'),
+          meta: {title: '业务类型配置'}
+        }
+        ,
+        {
+          path: 'commissionsConfig',
+          name: 'commissionsConfig',
+          component: () => import('../views/fin/emolument/commissionsConfig'),
+          meta: {title: '提成方案配置'}
+        }
+        ,
+        {
+          path: 'companyComConfig',
+          name: 'companyComConfig',
+          component: () => import('../views/fin/emolument/companyComConfig'),
+          meta: {title: '总部计提配置'}
+        }
+        ,
+        {
+          path: 'employeeWages',
+          name: 'employeeWages',
+          component: () => import('../views/fin/emolument/employeeWages'),
+          meta: {title: '员工薪资信息'}
+        }
+        ,
+        {
+          path: 'employeeCommissions',
+          name: 'employeeCommissions',
+          component: () => import('../views/fin/emolument/employeeCommissions'),
+          meta: {title: '员工提成信息'}
+        }
+        ,
+        {
+          path: 'storeExpenditureAllocation',
+          name: 'storeExpenditureAllocation',
+          component: () => import('../views/manage/system/StoreExpenditureAllocation'),
+          meta: {title:'门店支出项配置'}
+        },
+        {
+          path: 'performance',
+          name: 'performance',
+          component: () => import('../views/manage/system/performance'),
+          meta: {title: '业绩类型配置'}
+        }
+      ]
+    },
+
+    {
+      name:'office',
+      path:'/office',
+      component: Layout,
+      meta:{title:'办公平台'},
+      redirect: '/office/recruitInfo',
+
+          children:[
+            {
+              path: 'recruitInfo',
+              name: 'recruitInfo',
+              component: () => import('../views/office/recruitInfo'),
+              meta: {title: '招聘信息管理'}
+            },
+            {
+              path: 'curriculumVitae',
+              name: 'curriculumVitae',
+              component: () => import('../views/office/curriculumVitae'),
+              meta: {title: '简历管理'}
+            },
+            {
+              path: 'news',
+              name: 'news',
+              component: () => import('../views/office/article/news'),
+              meta: {title: '快讯'}
+            },
+            {
+              path: 'notice',
+              name: 'notice',
+              component: () => import('../views/office/article/notice'),
+              meta: {title: '公告'}
+            },
+            {
+              path: 'contentexamine',
+              name: 'contentexamine',
+              component: () => import('../views/office/article/contentexamine'),
+              meta: {title: '文章内容审核'}
+            },
+            {
+              path: 'personnelInfo',
+              name: 'personnelInfo',
+              component: () => import('../views/office/personnel/personnelInfo'),
+              meta: {title: '人事档案'}
+            },
+            {
+              path: 'personnelExamine',
+              name: 'personnelExamine',
+              component: () => import('../views/office/personnel/personnelExamine'),
+              meta: {title: '变动审批'}
+            }
+          ]
+    },
+
+    {
+      name: 'deal',
+      path: '/deal',
+      component: Layout,
+      meta: {title: '成交平台'},
+      redirect: '/deal/bussinessDeal',
+      children: [
+        {
+          path: 'bussinessDeal',
+          name: 'bussinessDeal',
+          component: () => import('../views/deal/bussinessDeal'),
+          meta: {title: '买卖成交'}
+        },{
+          path: 'rentDeal',
+          name: 'rentDeal',
+          component: () => import('../views/deal/rentDeal'),
+          meta: {title: '租赁成交'}
+        },{
+          path: 'oneHandDeal',
+          name: 'oneHandDeal',
+          component: () => import('../views/deal/oneHandDeal'),
+          meta: {title: '一手成交'}
+        },{
+          path: 'divideintoDetail',
+          name: 'divideintoDetail',
+          component: () => import('../views/deal/divideintoDetail'),
+          meta: {title: '分成明细查询'}
+        },{
+          path: 'financeDivideinto',
+          name: 'financeDivideinto',
+          component: () => import('../views/deal/financeDivideinto'),
+          meta: {title: '金融分成查询'}
+        },{
+          path: 'transitSchedule',
+          name: 'transitSchedule',
+          component: () => import('../views/deal/transitSchedule'),
+          meta: {title: '过户进度查询'}
+        },{
+          path: 'commissionRecord',
+          name: 'commissionRecord',
+          component: () => import('../views/deal/commissionRecord'),
+          meta: {title: '佣金记录查询'}
+        },
+        {
+          path: 'dealDetail/:dealId',
+          name: 'dealDetail',
+          component: () => import('../views/deal/bussinessDeal/component'),
+          meta: {title: '买卖成交详情'}
+        },
+        {
+          path: 'oneHandDealDetail/:dealId',
+          name: 'oneHandDealDetail',
+          component: () => import('../views/deal/oneHandDeal/component'),
+          meta: {title: '一手成交详情'}
+        },
+        {
+          path: 'rentDealDetial/:dealId',
+          name: 'rentDealDetial',
+          component: () => import('../views/deal/rentDeal/component'),
+          meta: {title: '租赁成交详情'}
+        },
+        {
+          path: 'contractManage',
+          name: 'contractManage',
+          component: () => import('../views/deal/contractManage'),
+          meta: {title: '合同管理'}
+        },
+        {
+          path: 'transferProcess',
+          name: 'transferProcess',
+          component: () => import('../views/manage/system/transferProcess'),
+          meta: {title: '过户流程管理'}
+        },{
+          path: 'divideIntoConfig',
+          name: 'divideIntoConfig',
+          component: () => import('../views/manage/system/divideIntoConfig'),
+          meta: {title: '分成配置管理'}
+        }
+      ]
+    },
+
+    // 锁屏
+    {
+      path: '/lock',
+      name: 'lock',
+      component: () => import('../views/lock/index')
+    },
+
+    {
+      path: '/404',
+      name: 'errorPage',
+      component: () => import('../views/errorPage')
+    },
+
+    {
+      path: '/upload',
+      name: 'upload',
+      component: () => import('../components/BaseFileUpload'),
+      meta: {title: '上传'}
+    },
+
+    { path: '*', redirect: '/404', hidden: true },
+
+    {
+      path: '/printContract',
+      name: 'printContract',
+      component: () => import('@/components/ContractPrint'),
+      meta: {title: '合同打印'}
+    }
+  ],
+})
+
+router.beforeEach((to, from, next) => {
+  NProgress.start()
+
+  if (store.getters.isLock && to.path !== '/lock') {
+    next({
+      path: '/lock'
+    })
+    NProgress.done()
+  } else {
+    next()
+  }
+})
+
+router.afterEach((to, from) => {
+  let menuId = to.query['menu_id']
+  let fromMenuId = from.query['menu_id']
+
+  if (menuId === fromMenuId) {
+    NProgress.done()
+    return
+  }
+
+  store.dispatch('clearBtnPermission').then(() => {
+
+    if (to.query && to.query['menu_id'] && (to.path.indexOf('redirect') === -1)) {
+      // 获取该页面的权限按钮信息
+      let menuId = to.query['menu_id']
+      store.dispatch('getBtnPermission', menuId)
+    }
+
+  })
+
+  NProgress.done()
+})
+
+
+export default router
