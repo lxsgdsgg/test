@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+        <!--扫描service包下所有使用注解的类型-->
+       <context:component-scan base-package="com.service"/>
+
+        <!--加载properties属性文件-->
+        <context:property-placeholder location="classpath:jdbc.properties"/>
+
+        <!--数据库连接池-->
+        <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+                <property name="user" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+                <property name="jdbcUrl" value="${jdbc.url}"/>
+                <property name="driverClass" value="${jdbc.driver}"/>
+        </bean>
+
+        <!--配置sqlSesionnFactory-->
+
+        <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+                <!--注入数据源-->
+                <property name="dataSource" ref="dataSource"/>
+                <!--扫描实体类（model）,使用别名-->
+                <property name="typeAliasesPackage" value="com.model"/>
+                <!--扫描sql配置文件，也就是mapper :需要的 xxxxmapper.xml-->
+                <property name="mapperLocations" value="classpath:mapper/UserMapper.xml"/>
+        </bean>
+
+         <!--配置扫描dao包/service包，动态实现dao/service接口，注入到spring容器中-->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+                <!--引入工厂，-->
+                <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+                <!--给出需要扫描的service/dao包-->
+                <property name="basePackage" value="com.mapper"/>
+        </bean>
+        <!--配置事务管理器-->
+        <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+                <!--注入连接池-->
+                <property name="dataSource" ref="dataSource"/>
+        </bean>
+
+        <!--配置基于注解的声明式事务-->
+            <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
