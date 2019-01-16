@@ -1,0 +1,111 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  BusinessTypeController.java   
+ * @Package com.bashiju.fin.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年9月11日 下午3:23:33   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.fin.controller;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.BusinessTypeEnum;
+import com.bashiju.enums.CommissionCalculateFormulateEnum;
+import com.bashiju.fin.service.BusinessTypeService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  BusinessTypeController   
+ * @Description:业务类型管理   
+ * @author: yangz
+ * @date:   2018年9月11日 下午3:23:33   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="businessType")
+public class BusinessTypeController extends BaseController {
+
+	@Autowired
+	private BusinessTypeService businessTypeService;
+	
+	/**
+	 * 获取业务类型信息
+	 * @Description: 获取业务类型信息   
+	 * @param request
+	 * @param response
+	 * @return: Object
+	 */
+	@RequestMapping(value="businessType")
+	@ResponseBody
+	public Object businessType(HttpServletRequest request,HttpServletResponse response) {
+		String name = request.getParameter("name");
+		int pageNum = 1;
+		int pageSize = 20;
+		String num = request.getParameter("page");
+		String size = request.getParameter("limit");
+		if(!StringUtils.isEmpty(num))
+			pageNum = Integer.parseInt(num);
+		if(!StringUtils.isEmpty(size))
+			pageSize = Integer.parseInt(size);
+		Page<Map<String,Object>> page = businessTypeService.queryBusinessTypes(name,null, pageNum, pageSize);
+		Map<String,Object> map = getPageResult(page);
+		Map<String,Object> res = new HashMap<>();
+		res.put("businessType", BusinessTypeEnum.enumMap);
+		res.put("companyCommissionCalculateFormulate", map);
+		res.put("commissionCalculateFormulate", CommissionCalculateFormulateEnum.enumMap);
+		
+		return res;
+	}
+	
+	/**
+	 * 更新业务类型信息
+	 * @Description: 更新业务类型信息  
+	 * @param request
+	 * @param response
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="updateBusinessType")
+	@ResponseBody
+	public BashijuResult updateBusinessType(HttpServletRequest request,HttpServletResponse response) {
+		String jsonData = request.getParameter("jsonData");
+//		String jsonData = "{\"name\":\"业务类型一\",\"calculateFormula\":\"0\",\"id\":\"1\"}";
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要保存的数据");
+		Map<String,Object> map = (Map<String,Object>) JSONObject.parse(jsonData);
+		if(!map.containsKey("id") || StringUtils.isEmpty(map.get("id").toString())) {
+			Map<String,Object> user = UserThreadLocal.get();
+			map.put("permissionArea", user.get("deptId"));
+			map.put("operatorId", user.get("id"));
+			map.put("addTime", new Date());
+			map.put("updateTime",null);
+			map.put("operator",user.get("realName"));
+		}
+		boolean result = businessTypeService.updateBusinessType(map);
+		if(result)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+}

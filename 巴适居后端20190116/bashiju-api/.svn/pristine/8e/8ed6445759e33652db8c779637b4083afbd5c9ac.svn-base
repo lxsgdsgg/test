@@ -1,0 +1,65 @@
+package com.bashiju.enums;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+/**   
+ * @ClassName:  DealType   
+ * @Description:成交类型   
+ * @author: yangz
+ * @date:   2018年6月15日 上午10:20:00   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum DealType {
+
+	/**
+	 * 买卖成交
+	 */
+	BUSINESSDEAL("00","买卖成交"),
+	/**
+	 * 租赁成交
+	 */
+	LEASEDEAL("01","租赁成交"),
+	/**
+	 * 一手房成交
+	 */
+	NEWHOUSEDEAL("02","一手房成交");
+	
+	private String value;
+    private String displayName;
+    
+    public String getValue() {
+        return this.value;
+    }
+    
+    public String getDisplayName() {
+        return this.displayName;
+    }
+    
+    
+    DealType(String value, String displayName){
+        this.value = value ;
+        this.displayName = displayName ;
+    }
+    
+    public static Map<String, String> map = new TreeMap<String, String>();
+
+    static {
+        for (DealType _enum : DealType.values()) {
+        	map.put(_enum.value, _enum.displayName);
+        }
+    }
+    
+    /**
+     * 枚举转换
+     */
+    public static DealType parseOf(String value){
+        for(DealType item : values())
+            if(item.getValue().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+}

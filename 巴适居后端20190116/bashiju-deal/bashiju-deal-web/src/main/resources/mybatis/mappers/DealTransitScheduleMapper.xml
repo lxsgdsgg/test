@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.deal.mapper.DealTransitScheduleMapper">
+<!--   	<resultMap type="com.bashiju.customer.pojo.deal.DealTransitScheduleQueryEntity" id="dealScheduleMap" > -->
+  	<resultMap type="map" id="dealScheduleMap" >
+   		 <result property="id" column="id"/>
+         <result property="dealTime" column="dealTime"/>
+         <result property="reference" column="reference"/>
+         <result property="traderName" column="traderName"/>
+         <result property="communityName" column="communityName"/>
+         <result property="buildingHouseName" column="buildingHouseName"/>
+   		 <!-- 一对多查询    -->
+         <collection property="scheduleList" column="id" select="queryScheduleStaticsInfo"></collection> 
+   	</resultMap>
+	<select id="queryDealScheduleDataPageList" resultMap="dealScheduleMap">
+		select u.realName as traderName,a.reference,a.id,a.dealType,a.dealTime,a.communityName,a.buildingHouseName
+		,a.operator,a.operatorId,a.permissionArea from deal_transactioninfo a left join sys_user u on a.traderId = u.id 
+		where a.isValid = 1 
+		<if test="id != null and id != '' "> and a.id like concat('\'%',#{id},'\'%') </if> 
+		<if test="communityName != null and communityName != '' "> and a.communityName like concat('\'%',#{communityName},'\'%') </if> 
+		<if test="buildingHouseId != null and buildingHouseId != '' "> and a.buildingHouseId like concat('\'%',#{buildingHouseId},'\'%') </if> 
+		<if test="dealTime != null and dealTime != '' "> and a.dealTime like concat(#{dealTime},'\'%') </if> 
+		<if test="traderId != null and traderId != '' "> and a.traderId = #{traderId} </if> 
+		<if test="referenceId != null and referenceId != '' "> and a.referenceId = #{referenceId} </if> 
+		<if test="isLoan != null and isLoan != '' and isLoan != 0 "> and a.isLoan = #{isLoan} </if> 
+		
+		and exists(select 1 from deal_transferschedule aa where aa.isValid = 1 and a.id = aa.dealId 
+		<if test="scheduleName != null and scheduleName != '' ">
+			and aa.scheduleName = #{scheduleName} 
+		</if> 
+		)
+		<if test="beginDate != null and beginDate != '' and endDate != null and endDate != '' "> 
+			and a.dealTime &gt;= #{beginDate} and a.dealTime &lt;= #{endDate} 
+		</if>
+		order by id desc
+	</select>
+		
+	<select id="queryScheduleStaticsInfo" resultType="map">
+		select b.id,if(b.`status`=1,'已完成','未完成') status,b.dealId,b.detailCode
+		,(case when IFNULL(b.actualFinishTime,0) = 0 then '--' 
+		else timestampdiff(day,b.actualFinishTime,b.curr_date) end) as cycle,b.estimateFinishTime
+		,b.curr_date as actualFinishTime from (select a.`status`,bb.detailCode,a.id,a.dealId,a.estimateFinishTime
+		,a.actualFinishTime as curr_date,@a.actualFinishTime as actualFinishTime
+		,@a.actualFinishTime:= a.actualFinishTime from deal_transferschedule a
+		inner join house_exchange_detail bb on a.scheduleId = bb.id and bb.confType = 3,(select @a.actualFinishTime:=null) s 
+		where a.isValid=1 order by dealId, a.actualFinishTime) b where b.dealId = #{id} order by estimateFinishTime
+	</select>
+</mapper>

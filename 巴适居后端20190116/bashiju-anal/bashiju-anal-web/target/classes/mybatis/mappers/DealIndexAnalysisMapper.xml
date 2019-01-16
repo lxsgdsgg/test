@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DealIndexAnalysisMapper">
+	
+	<select id="queryIndexAnalysisPageDataList" resultType="map">
+		select a.areaCode,a.name as areaName
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			,b.name deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;= 5 ">
+			,b.realName deptName
+		</if>
+		,count(distinct case when c.isValid=1 then c.id end) as allDealSingleCnt,
+		truncate(sum(distinct case when c.isValid=1 then c.price/100 end),2) as allContractValue,
+		truncate(sum(distinct case when d.isValid=1 then d.actualProfit/100 end),2) as allDealCnt,
+		sum(distinct case when e.isValid=1 then timestampdiff(day,e.openPlateDate,c.dealTime) end) as allHouseDealCycle,
+		sum(distinct case when c.isValid=1 then timestampdiff(day,f.addTime,c.dealTime) end) as allDemandDealCycle,
+
+		count(distinct case when c.isValid=1 and c.dealType='00' then c.id end) as businessDealSingleCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='00' then c.price/100 end),2) as businessContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='00' then d.actualProfit/100 end),2) as businessDealCnt,
+		sum(distinct case when e.isValid=1 and c.dealType='00' then timestampdiff(day,e.openPlateDate,c.dealTime) end) as businessHouseDealCycle,
+		sum(distinct case when c.isValid=1 and c.dealType='00' then timestampdiff(day,f.addTime,c.dealTime) end) as businessDemandDealCycle,
+
+		count(distinct case when c.isValid=1 and c.dealType='01' then c.id end) as rentDealSingleCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='01' then c.price/100 end),2) as rentContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='01' then d.actualProfit/100 end),2) as rentDealCnt,
+		sum(distinct case when c.isValid=1 and c.dealType='01' then timestampdiff(day,e.openPlateDate,c.dealTime) end) as rentHouseDealCycle,
+		sum(distinct case when c.isValid=1 and c.dealType='01' then timestampdiff(day,f.addTime,c.dealTime) end) as rentDemandDealCycle,
+
+		count(distinct case when c.isValid=1 and c.dealType='02' then c.id end) as oneHandDealSingleCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='02' then c.price/100 end),2) as oneHandContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='02' then d.actualProfit/100 end),2) as oneHandDealCnt,
+		sum(distinct case when c.isValid=1 and c.dealType='02' then timestampdiff(day,f.addTime,c.dealTime) end) as oneHandDemandDealCycle
+		from sys_dept a 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			right join sys_dept b on a.id = b.parentId and b.isvalid=1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			right join sys_user b on a.id = b.deptId and b.isvalid=1
+		</if>
+		inner join deal_transactioninfo c on 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			c.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			b.id = c.traderId
+		</if>
+		left join deal_divideninfo d on c.id = d.dealId
+		left join hs_secondhandhouse e on c.shhId = e.id
+		left join demand_customerbusinessinfo f on f.id=c.demandId
+		where a.isvalid=1 and c.isValid = 1
+		and c.dealTime &gt;= #{beginDate} and c.dealTime &lt;=#{endDate} 
+		and a.companyId = #{companyId} 
+		and a.deptTypeId= #{deptTypeId}
+		
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		group by b.id order by b.id
+	</select>
+	
+</mapper>

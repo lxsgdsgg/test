@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.OperationAnalysisMapper">
+	
+	<select id="queryComprehensiveReport" resultType="map">
+		SELECT d.`name` as areaName,dc.id,
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			dc.name deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId == 5 ">
+			dc.realName deptName,
+		</if>
+		COUNT(CASE WHEN a.operatTypeId=1 THEN a.id END ) AS selldeal,
+		COUNT(CASE WHEN a.operatTypeId=2 THEN a.id END ) AS rentdeal,COUNT(CASE WHEN a.operatTypeId=3 THEN a.id END ) AS newdeal,
+		COUNT(CASE WHEN a.operatTypeId=4 THEN a.id END ) AS sellhouseadd,COUNT(CASE WHEN a.operatTypeId=5 THEN a.id END ) AS sellhouseopen,
+		COUNT(CASE WHEN a.operatTypeId=6 THEN a.id END ) AS sellhousekey,COUNT(CASE WHEN a.operatTypeId=7 THEN a.id END ) AS sellhouseexclusive,
+		COUNT(CASE WHEN a.operatTypeId=8 THEN a.id END ) AS sellhouseprice,COUNT(CASE WHEN a.operatTypeId=9 THEN a.id END ) AS sellhousespace,
+		COUNT(CASE WHEN a.operatTypeId=10 THEN a.id END ) AS sellhousecancelorder,COUNT(CASE WHEN a.operatTypeId=11 THEN a.id END ) AS sellhouseothersell,
+		COUNT(CASE WHEN a.operatTypeId=12 THEN a.id END ) AS sellhouseotherrent,COUNT(CASE WHEN a.operatTypeId=13 THEN a.id END ) AS sellhousedelay,
+		COUNT(CASE WHEN a.operatTypeId=14 THEN a.id END ) AS sellhousetaobao,COUNT(CASE WHEN a.operatTypeId=15 THEN a.id END ) AS sellhousepicture,
+		COUNT(CASE WHEN a.operatTypeId=16 THEN a.id END ) AS sellhousevideo,COUNT(CASE WHEN a.operatTypeId=17 THEN a.id END ) AS sellhouseentrust,
+		COUNT(CASE WHEN a.operatTypeId=18 THEN a.id END ) AS renthouseadd,COUNT(CASE WHEN a.operatTypeId=19 THEN a.id END ) AS renthouseopen,
+		COUNT(CASE WHEN a.operatTypeId=20 THEN a.id END ) AS renthousekey,COUNT(CASE WHEN a.operatTypeId=21 THEN a.id END ) AS renthouseexclusive,
+		COUNT(CASE WHEN a.operatTypeId=22 THEN a.id END ) AS renthouseprice,COUNT(CASE WHEN a.operatTypeId=23 THEN a.id END ) AS renthousespace,
+		COUNT(CASE WHEN a.operatTypeId=24 THEN a.id END ) AS renthousecancelorder,COUNT(CASE WHEN a.operatTypeId=25 THEN a.id END ) AS renthouseothersell,
+		COUNT(CASE WHEN a.operatTypeId=26 THEN a.id END ) AS renthouseotherrent,COUNT(CASE WHEN a.operatTypeId=27 THEN a.id END ) AS renthousedelay,
+		COUNT(CASE WHEN a.operatTypeId=28 THEN a.id END ) AS renthousetaobao,COUNT(CASE WHEN a.operatTypeId=29 THEN a.id END ) AS renthousepicture,
+		COUNT(CASE WHEN a.operatTypeId=30 THEN a.id END ) AS renthousevideo,COUNT(CASE WHEN a.operatTypeId=31 THEN a.id END ) AS renthouseentrust,
+		COUNT(CASE WHEN a.operatTypeId=32 THEN a.id END ) AS sellcustomeradd,COUNT(CASE WHEN a.operatTypeId=33 THEN a.id END ) AS sellcustomerinvalid,
+		COUNT(CASE WHEN a.operatTypeId=34 THEN a.id END ) AS sellcustomerdeposit,COUNT(CASE WHEN a.operatTypeId=35 THEN a.id END ) AS sellcustomerothersell,
+		COUNT(CASE WHEN a.operatTypeId=36 THEN a.id END ) AS sellcustomerotherrent,COUNT(CASE WHEN a.operatTypeId=37 THEN a.id END ) AS sellcustomerdelay,
+		COUNT(CASE WHEN a.operatTypeId=38 THEN a.id END ) AS sellcustomertaobao,COUNT(CASE WHEN a.operatTypeId=39 THEN a.id END ) AS rentcustomeradd,
+		COUNT(CASE WHEN a.operatTypeId=40 THEN a.id END ) AS rentcustomerinvalid,COUNT(CASE WHEN a.operatTypeId=41 THEN a.id END ) AS rentcustomerdeposit,
+		COUNT(CASE WHEN a.operatTypeId=42 THEN a.id END ) AS rentcustomerothersell,COUNT(CASE WHEN a.operatTypeId=43 THEN a.id END ) AS rentcustomerotherrent,
+		COUNT(CASE WHEN a.operatTypeId=44 THEN a.id END ) AS rentcustomerdelay,COUNT(CASE WHEN a.operatTypeId=45 THEN a.id END ) AS rentcustomertaobao,
+		COUNT(CASE WHEN a.operatTypeId=46 THEN a.id END ) AS housefollowup,COUNT(CASE WHEN a.operatTypeId=47 THEN a.id END ) AS houserealexploration,
+		COUNT(CASE WHEN a.operatTypeId=48 THEN a.id END ) AS sellcustomerfollowup,COUNT(CASE WHEN a.operatTypeId=49 THEN a.id END ) AS rentcustomerfollowup,
+		COUNT(CASE WHEN a.operatTypeId=50 THEN a.id END ) AS sellcustomershowed,COUNT(CASE WHEN a.operatTypeId=51 THEN a.id END ) AS sellhouseshowed,
+		COUNT(CASE WHEN a.operatTypeId=52 THEN a.id END ) AS rentcustomershowed,COUNT(CASE WHEN a.operatTypeId=53 THEN a.id END ) AS renthouseshowed,
+		COUNT(CASE WHEN a.operatTypeId=54 THEN a.id END ) AS newhouseshowed,COUNT(CASE WHEN a.operatTypeId=55 THEN a.id END ) AS newhouseshoweddisc,
+		COUNT(CASE WHEN a.operatTypeId=56 THEN a.id END ) AS houselookphone,COUNT(CASE WHEN a.operatTypeId=57 THEN a.id END ) AS sellcustomerlookphone,
+		COUNT(CASE WHEN a.operatTypeId=58 THEN a.id END ) AS rentcustomerlookphone
+		 FROM  sys_dept AS d
+		 <if test="deptTypeId !=null and deptTypeId &lt; 5 "> 
+		RIGHT JOIN sys_dept AS dc ON d.id=dc.parentId AND dc.isvalid=1 AND d.deptTypeId=#{deptTypeId} AND d.companyId=#{companyId} 
+		LEFT JOIN  report_operation_analysis AS a ON a.departmentId LIKE CONCAT(dc.id,'%') AND a.addTime between #{beginDate} AND #{endDate}
+		</if>
+		<if test="deptTypeId!=null and deptTypeId == 5 ">
+		RIGHT JOIN sys_user AS dc ON d.id=dc.deptId AND dc.isvalid=1 AND d.deptTypeId=5 
+		LEFT JOIN  report_operation_analysis AS a ON a.operatorId =dc.id AND a.addTime between #{beginDate} AND #{endDate}
+		</if>	
+		WHERE d.id IS NOT  NULL
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if>
+		GROUP BY dc.id order by dc.id
+	</select>
+	
+	<select id="queryWidgetList" resultType="map">
+		SELECT id,fieldValue,fieldCode FROM dynamicform_field_value WHERE isValid=1 AND widgetCode= #{widgetCode}
+	</select>
+	
+</mapper>

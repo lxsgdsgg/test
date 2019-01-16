@@ -1,0 +1,183 @@
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.CustomerTransactionEnum;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.enums.ResCustLevelConditionEnum;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.ResCustLevelConditionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  ResCustLevelConditionControllr   
+ * @Description:客源等级条件管理控制层
+ * @author: wangpeng
+ * @date:   2018年5月18日 下午5:56:04   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="resCustLevelCondition")
+public class ResCustLevelConditionControllr extends BaseController{
+	@Autowired
+	private ResCustLevelConditionService resCustLevelConditionService;
+	@Autowired
+	private FormService formService;
+	
+	@Autowired	
+	private ICommunityService communityService; 
+	/**
+	 * 
+	 * @Title: enterResCustLevelCondition   
+	 * @Description: 进入客源等级条件页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResCustLevelConditionPage")
+	public ModelAndView enterResCustLevelCondition(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv=getModelAndView(request, response, "resCustLevelCondition/resCustLevelCondition");
+			//区域数据
+			List<Map<String, Object>> list = communityService.queryAreaSelect();
+			if(list!=null&&list.size()>0) {
+				mv.addObject("areaListJson", JSON.toJSONString(list));
+			}
+			mv.addObject("transactionTypes",CustomerTransactionEnum.enumList);
+			//查询结果转化时
+			mv.addObject("transactionType",JSON.toJSONString(CustomerTransactionEnum.enumMap));
+			mv.addObject("levelType",JSON.toJSONString(HouseLevelEnum.enumMap));
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: getResCustLevelConditionData   
+	 * @Description: 查询客源等级条件信息(分页)
+	 * @param request
+	 * @param response
+	 * @param transactionType
+	 * @param levelType
+	 * @param cityCode
+	 * @param page
+	 * @param limit
+	 * @return      
+	 * @return: Object
+	 */
+	@RequestMapping(value="getResCustLevelConditionData")
+	@ResponseBody
+	public Object getResCustLevelConditionData(HttpServletRequest request,HttpServletResponse response,
+			String companyId,String transactionType,String levelType,String cityCode,int page,int limit) {
+		Map<String,Object> paramMap =new HashMap<String,Object>();
+		paramMap.put("transactionType", transactionType);
+		paramMap.put("levelType", levelType);
+		paramMap.put("cityCode", cityCode);
+		paramMap.put("companyId", companyId);
+		Page<Map<String,Object>> pages=resCustLevelConditionService.queryResCustLevelCondition(paramMap,page, limit);	
+		Map<String,Object> map=getPageResult(pages);
+		return JSONArray.toJSON(map);
+	}
+	/**
+	 * 
+	 * @Title: enterResCustLevelConditionDetail   
+	 * @Description:进入客源等级条件编辑页面
+	 * @param request
+	 * @param response
+	 * @param id
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResCustLevelConditionDetail")
+	public ModelAndView enterResCustLevelConditionDetail(HttpServletRequest request,HttpServletResponse response,String id) {
+			ModelAndView mv=getModelAndView(request, response, "resCustLevelCondition/resCustLevelConditionDetail");
+			Map<String,Object> resCustHouses=resCustLevelConditionService.queryResCustLevelConditionById(id);
+			if(resCustHouses!=null&&resCustHouses.size()>0) {
+				mv.addObject("resCustHouses", JSON.toJSON(resCustHouses));
+			
+			}
+			mv.addObject("levelType",HouseLevelEnum.enumList);
+			mv.addObject("transactionType", CustomerTransactionEnum.enumList);
+			
+			
+			//条件
+			mv.addObject("conditions",JSON.toJSONString(ResCustLevelConditionEnum.enumList));
+			//区域代码
+			List<Map<String, Object>> list = communityService.queryAreaSelect();
+			if(list!=null&&list.size()>0) {
+				mv.addObject("areaListJson", JSON.toJSONString(list));
+			}
+			return mv;
+	}
+	/**
+	 * 
+	 * @Title: saveOrUpdateResCustLevelCcondition   
+	 * @Description: 客源等级条件设置
+	 * @param request
+	 * @param response
+	 * @param jsonData
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateResCustLevelCondition")
+	@ResponseBody
+	public BashijuResult saveOrUpdateResCustLevelCcondition(HttpServletRequest request,HttpServletResponse response,String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要操作的数据");
+		//强制转换为map
+		Map<String,Object>map=(Map<String,Object>) JSONObject.parse(jsonData);	
+		map.put("companyId",UserThreadLocal.get().get("companyId"));
+		map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		map.put("operatorId", UserThreadLocal.get().get("id"));
+		map.put("minPrice", (map.get("minPrice")==null?"":map.get("minPrice")));
+		map.put("maxPrice", (map.get("maxPrice")==null?"":map.get("maxPrice")));
+		map.put("minSpace", (map.get("minSpace")==null?"":map.get("minSpace")));
+		map.put("maxSpace", (map.get("maxSpace")==null?"":map.get("maxSpace")));
+		boolean result=	resCustLevelConditionService.saveOrUpdateResCustLevelCcondition(map);
+		if(result)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 
+	 * @Title: delResCustLevelCondition   
+	 * @Description: 逻辑删除客源等级条件   
+	 * @param response
+	 * @param request
+	 * @param id
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delResCustLevelCondition")
+	@ResponseBody
+	public BashijuResult delResCustLevelCondition(HttpServletResponse response,HttpServletRequest request,String id) {
+		boolean result=resCustLevelConditionService.delResCustLevelCondition(id);
+		if(result)
+			return BashijuResult.ok();
+		throw  new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+}

@@ -1,0 +1,309 @@
+package com.bashiju.www.service.newhouse.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.HouseTransactionEnum;
+import com.bashiju.enums.pc.ConditionTypeEnum;
+import com.bashiju.webservice.mapper.ArticleMapper;
+import com.bashiju.webservice.mapper.CommMapper;
+import com.bashiju.webservice.mapper.HouseMapper;
+import com.bashiju.webservice.mapper.NewHouseMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.exception.ErrorCodeEnum;
+import com.bashiju.wutils.log.ExecutionResult;
+import com.bashiju.wutils.log.SystemServiceLog;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.input.house.RentHouseParam;
+import com.bashiju.www.pojo.service.input.house.SellHouseParam;
+import com.bashiju.www.pojo.service.input.newhouse.NewHouseQueryParam;
+import com.bashiju.www.pojo.service.out.article.RentSkillLinkResult;
+import com.bashiju.www.pojo.service.out.comm.ThemeResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.comm.MetroStationResult;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseDescriptionResult;
+import com.bashiju.www.pojo.service.out.house.HouseFeedbackResult;
+import com.bashiju.www.pojo.service.out.house.HouseImageResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.pojo.service.out.house.HouseSameLinkResult;
+import com.bashiju.www.pojo.service.out.house.RentHouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.pojo.service.out.newhouse.GoodNewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.HotNewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseDetailResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseDynamicResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseImgList;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHousePriceDetailResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList;
+import com.bashiju.www.pojo.service.out.newhouse.OpenDateResult;
+import com.bashiju.www.pojo.service.out.newhouse.PresalePermitResult;
+import com.bashiju.www.pojo.service.out.newhouse.RoomTimeResult;
+
+import com.bashiju.www.pojo.service.out.newhouse.SameNewHouseList;
+
+import com.bashiju.www.service.comm.WebPageUtils;
+import com.bashiju.www.service.house.IHouseService;
+import com.bashiju.www.service.newhouse.INewHouseService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 
+ *  新房楼盘服务类
+ * @ClassName:  NewHouseServiceImpl   
+ * @Description:   新房楼盘服务类
+ * @author: liwen
+ * @date:   2018年8月18日 下午3:53:21       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="新房楼盘查询服务") 
+@Service
+public class NewHouseServiceImpl implements INewHouseService {
+	
+	@Autowired
+	NewHouseMapper newHouseMapper;
+	@Autowired
+	ArticleMapper articleMapper;
+	@Autowired
+	ICacheService cacheService;
+	@Autowired
+	CommMapper commMapper;
+	
+	
+	final static ObjectMapper MAPPER=new ObjectMapper();
+	@SystemServiceLog(operationType="查看新房楼盘详细")
+	@Override
+	public NewHouseDetailResult selectNewHouseDetailInfo(int newHouseId){
+		String key = WebGlobal.NEWHOUSE_ALLDETAILED_REDIS_PREFIX+newHouseId;
+		String newHouseDetailStr =  cacheService.getCache(key);
+		NewHouseDetailResult newHouseDetail = null;
+		if(StringUtils.isNoneEmpty(newHouseDetailStr)) {
+			newHouseDetail = JSON.parseObject(newHouseDetailStr, NewHouseDetailResult.class);
+		}else {
+			newHouseDetail = newHouseMapper.selectNewHouseDetailInfo(newHouseId);
+			newHouseDetail.setImgList(selectNewHouseImgs(newHouseId));//楼盘图片
+			newHouseDetail.setPriceList(queryNewHousePriceDetailByProjectId(newHouseId+""));//价格详情
+			newHouseDetail.setPreSellNoList(queryPresalePermitByProjectId(newHouseId+""));//许可证号
+			newHouseDetail.setOpenDateList(queryOpenDateByProjectId(newHouseId+""));//开盘时间
+			newHouseDetail.setDeliverDateList(queryRoomTimeByPorjectId(newHouseId+""));//交互时间
+			newHouseDetail.setRoomTypeList(selectNewHouseType(newHouseId));//查询户型图
+			cacheService.saveCache(key,newHouseDetail,WebGlobal.OTHER_EXPTIME);
+		}
+		//修改浏览次数
+		newHouseMapper.updateBrowseCnt("sys_community_project", newHouseId);
+		newHouseMapper.updateBrowseCnt("sys_client_communityprojectqueryinfos", newHouseId);
+		return newHouseDetail;
+	}
+	
+	
+	@SystemServiceLog(operationType="查询新房楼盘户型")
+	@Override
+	public List<NewHouseTypeList> selectNewHouseType(int newHouseId) {
+		String key = WebGlobal.NEWHOUSETYPE_REDIS_PREFIX+newHouseId;
+		String newHousetypeStr =  cacheService.getCache(key);
+		List<NewHouseTypeList> newHouseTypeList = new ArrayList<>();
+		if(StringUtils.isNoneEmpty(newHousetypeStr)) {
+			newHouseTypeList = JSON.parseArray(newHousetypeStr, NewHouseTypeList.class);
+		}else {
+			newHouseTypeList = newHouseMapper.selectNewHouseType(newHouseId);
+			cacheService.saveCache(key,newHouseTypeList,WebGlobal.OTHER_EXPTIME);
+		}
+		
+		return newHouseTypeList;
+	}
+	
+	
+	@SystemServiceLog(operationType="查看新房楼盘相册")
+	@Override
+	public List<NewHouseImgList> selectNewHouseImgs(int newHouseId) {
+		List<NewHouseImgList> newHouseImgList = newHouseMapper.selectNewHouseImgs(newHouseId);
+		return newHouseImgList;
+	}
+	
+	
+	@SystemServiceLog(operationType="查看新房详细相似楼盘")
+	@Override
+	public List<SameNewHouseList> querySameNewHouseList(int avgPrice,int limit) {
+		String key = WebGlobal.NEWHOUSE_DETAILED_SAME_REDIS_PREFIX+avgPrice;
+		String newHouseStr =  cacheService.getCache(key);
+		List<SameNewHouseList> newHouseList = new ArrayList<>();
+		if(StringUtils.isNoneEmpty(newHouseStr)) {
+			newHouseList = JSON.parseArray(newHouseStr, SameNewHouseList.class);
+		}else {
+			newHouseList = newHouseMapper.querySameNewHouseList(avgPrice,limit);
+			cacheService.saveCache(key,newHouseList,WebGlobal.OTHER_EXPTIME);
+		}
+		return newHouseList;
+	}
+	
+
+
+	/**
+	 * 
+	 * 条件查询楼盘动态
+	 * @Description: 条件查询楼盘动态
+	 * @param  projectId 新房楼盘id
+	 * @return List<NewHouseDynamicResult>
+	 */
+	
+	@Override
+	public List<NewHouseDynamicResult> queryNewHouseDynamicByProjectId(String projectId) {
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		List<NewHouseDynamicResult> map = newHouseMapper.queryNewHouseDynamicByProjectId(projectId);
+		return map;
+	}
+	/**
+	 *  条件查询预售证信息
+	 * @Title: queryPresalePermitByProjectId   
+	 * @Description: 条件查询预售证信息
+	 * @param projectId 新房楼盘id
+	 * @return: List<PresalePermitResult>
+	 */
+	@Override
+	public List<PresalePermitResult> queryPresalePermitByProjectId(String projectId) {
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		List<PresalePermitResult> result = newHouseMapper.queryPresalePermitByProjectId(projectId);
+		return result;
+	}
+
+	/**
+	 *  条件查询交房时间信息
+	 * @Title: queryRoomTimeByPorjectId   
+	 * @Description: 条件查询交房时间信息
+	 * @param projectId 新房楼盘id
+	 * @return:List<RoomTimeResult>
+	 */
+	
+	@Override
+	public List<RoomTimeResult> queryRoomTimeByPorjectId(String projectId) {
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		List<RoomTimeResult> roomTime = newHouseMapper.queryRoomTimeByProjectId(projectId);
+		return roomTime;
+	}
+
+
+	/**
+	 *  条件查询开盘时间信息
+	 * @Title: queryOpenDateByProjectId   
+	 * @Description: 条件查询开盘时间信息
+	 * @param projectId 新房楼盘id
+	 * @return: List<OpenDateResult>
+	 */
+	@Override
+	public List<OpenDateResult> queryOpenDateByProjectId(String projectId) {
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		List<OpenDateResult> openDate = newHouseMapper.queryOpenDateByProjectId(projectId);
+		return openDate;
+	}
+
+	/**
+	 *  条件查询楼盘价格详情
+	 * @Title: queryNewHousePriceDetailByProjectId 
+	 * @Description: 条件查询楼盘价格详情
+	 * @param projectId 新房楼盘id
+	 * @return:List<NewHousePriceDetailResult>
+	 */
+	@Override
+	public List<NewHousePriceDetailResult> queryNewHousePriceDetailByProjectId(String projectId) {
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		List<NewHousePriceDetailResult> priceDetail = newHouseMapper.queryNewHousePriceDetailByProjectId(projectId);
+		return priceDetail;
+	}
+
+
+	
+
+	@Override
+	public List<GoodNewHouseListResult> queryGoodProjects(String cityCode, int limit) {
+		String key="queryGoodProjects"+cityCode+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			List<GoodNewHouseListResult> results=newHouseMapper.queryGoodProjects(cityCode, limit);
+			cacheService.saveCache(key, results, WebGlobal.LIST_EXPTIME);
+			return results;
+		}
+		List<GoodNewHouseListResult> results=JSON.parseArray(json, GoodNewHouseListResult.class);
+		return results;
+	}
+
+	@Override
+	public List<HotNewHouseListResult> queryHotProjects(String cityCode, int limit) {
+		String key="queryHotProjects"+cityCode+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			List<HotNewHouseListResult> results=newHouseMapper.queryHotProjects(cityCode, limit);
+			cacheService.saveCache(key, results, WebGlobal.LIST_EXPTIME);
+			return results;
+		}
+		List<HotNewHouseListResult> results=JSON.parseArray(json, HotNewHouseListResult.class);
+		return results;
+	}
+
+	@Override
+	public WebPage<NewHouseListResult> queryNewHouseList(NewHouseQueryParam param, int page, int limit) {
+		if (param==null||StringUtils.isEmpty(param.getCityCode()) ) {
+			return null;
+		}
+		String key="queryNewHouseList"+param.toString()+page+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			PageHelper.startPage(page, limit);
+			Page<NewHouseListResult> pageInfo=newHouseMapper.queryNewHouseList(param);
+			WebPage<NewHouseListResult> result=new WebPage<>(pageInfo);
+			cacheService.saveCache(key, result, WebGlobal.LIST_EXPTIME);
+			return result;
+		}
+		WebPage<NewHouseListResult> result=WebPageUtils.parseWebPage(json, NewHouseListResult.class);
+		return result;
+	}
+
+	@Override
+	public WebPage<NewHouseListResult> queryNewHouseListByName(String cityCode, String name, int page, int limit) {
+		if (StringUtils.isEmpty(cityCode) ) {
+			return null;
+		}
+		if (name==null) {
+			name="%%";
+		}else {
+			name="%"+name+"%";
+		}
+		PageHelper.startPage(page, limit);
+		Page<NewHouseListResult> pageInfo=newHouseMapper.queryNewHouseListByName(cityCode,name);
+		WebPage<NewHouseListResult> result=new WebPage<>(pageInfo);
+		return result;
+	}
+
+
+}

@@ -1,0 +1,251 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  MetroStationManageServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:地铁线路管理服务层  
+ * @author: zuoyuntao     
+ * @date:   2018年6月13日 下午5:23:20   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.IMetroStationManageMapper;
+import com.bashiju.manage.service.IMetroStationManageService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 地铁线路管理服务层
+ * @ClassName:MetroStationManageServiceImpl
+ * @Description:地铁线路管理服务层
+ * @author:zuoyuntao
+ * @date:2018年6月13日 下午5:23:20
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+@SystemServiceLog(sourceType="地铁管理")
+public class MetroStationManageServiceImpl extends CommonSqlServie implements IMetroStationManageService {
+	/**
+	 * 权限管理映射接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	/**
+	 * 地铁线路管理映射接口
+	 */
+	@Autowired
+	private IMetroStationManageMapper mIMetroStationManageMapper;
+	/**   
+	 * <p>Title: queryAllMetroStationInfo</p>   
+	 * <p>Description: </p>   
+	 * @param paraMap
+	 * @param page
+	 * @param limit
+	 * @return   
+	 * @see com.bashiju.manage.service.IMetroStationManageService#queryAllMetroStationInfo(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryAllMetroStationInfo(Map<String, Object> paraMap, int page, int limit) {
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_44.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		return mIMetroStationManageMapper.queryAllMetroStationInfo(paraMap);
+	}
+
+	/**   
+	 * <p>Title: saveMetroStationInfo</p>   
+	 * <p>Description: </p>   
+	 * @param saveList   
+	 * @see com.bashiju.manage.service.IMetroStationManageService#saveMetroStationInfo(java.util.List)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存地铁线路信息")
+	public void saveMetroStationInfo(List<Map<String, Object>> saveList) {
+		if(saveList.size() == 0) {
+			return;
+		}
+		String rgCode = (String) saveList.get(0).get("rgCode");
+		String metroName = (String) saveList.get(0).get("metroName");
+		//先删除再插入
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("rgCode", rgCode);
+		paraMap.put("metroName", metroName);
+//		List<Map<String,Object>> metroList = mIMetroStationManageMapper
+//				.queryMetroDataByCondition(" metroName = '" + metroName + "' and rgCode = '" + rgCode + "'");
+//		if(metroList.size() > 0) {
+//			batchCommonOperationDatabase(saveList
+//					, ManageGlobal.T_METRO_STATION_MANAGE, "ukId", false);
+//			ExecutionResult.descFormat("", "更新地铁站信息");
+//		}else {
+//			batchCommonOperationDatabase(saveList,ManageGlobal.T_METRO_STATION_MANAGE, false);
+//			ExecutionResult.descFormat("", "保存地铁站信息");
+//		}
+		mIMetroStationManageMapper.creatTempTable();
+		batchCommonOperationDatabase(saveList,"sys_metro_station_temp",false);
+		ExecutionResult.descFormat("", "更新地铁站信息");
+		mIMetroStationManageMapper.updateMetroStationDataFromTempTable();
+		mIMetroStationManageMapper.saveMetroStationDataFromTempTable();
+		mIMetroStationManageMapper.dropTempTable();
+	}
+	
+	/**
+	 * 判断数据是否存在
+	 * @Title: isDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap 参数对象
+	 * @param tableName 表名称
+	 * @return      
+	 * boolean true/false    
+	 */
+	public boolean isDataExists(Map<String,Object> paraMap,String tableName) {
+		String condition = buildQuerySql(paraMap);
+		List<Map<String,Object>> retList = querySingleTable("*", tableName, condition, 0, 0);
+		if(retList.size() > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	/**   
+	 * <p>Title: deleteAllMetroStationInfo</p>   
+	 * <p>Description: </p>   
+	 * @param paraMap   
+	 * @see com.bashiju.manage.service.IMetroStationManageService#deleteAllMetroStationInfo(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除地铁站")
+	public void deleteAllMetroStationInfo(Map<String, Object> paraMap) {
+		clearData(ManageGlobal.T_METRO_STATION_MANAGE, buildQuerySql(paraMap));
+		ExecutionResult.descFormat((String) paraMap.get("rgCode"), "删除地铁站信息");
+	}
+	/**
+	 * <p>Title: queryMetroDataByCondition</p>   
+	 * <p>Description: 根据条件查询地铁数据信息</p>   
+	 * @param paraMap
+	 * @return   
+	 * @see com.bashiju.manage.service.IMetroStationManageService#queryMetroDataByCondition(java.util.Map)
+	 */
+	@Override
+	public List<Map<String, Object>> queryMetroDataByCondition(Map<String, Object> paraMap) {
+		String condition = buildQuerySql(paraMap);
+		return mIMetroStationManageMapper.queryMetroDataByCondition(condition);
+	}
+	
+	/**
+	 * 组装查询语句
+	 * @Title: buildQuerySql
+	 * @author: zuoyuntao  
+	 * @Description:组装查询语句
+	 * @param paraMap 参数对象
+	 * @return      
+	 * String JSON 格式为：{}     
+	 */
+	private String buildQuerySql(Map<String,Object> paraMap) {
+		StringBuilder conditionSql = new StringBuilder();
+		Iterator<String> it = paraMap.keySet().iterator();
+		int count = 0;
+		while(it.hasNext()) {
+			if(count > 0) {
+				 conditionSql.append(" and ");
+			}
+			String key = it.next();
+			String value = String.valueOf(paraMap.get(key));
+			if(StringUtil.isEmpty(value)) {
+				continue;
+			}
+			conditionSql.append(key)
+						.append(" = '")
+						.append(paraMap.get(key))
+						.append("'");
+			count++;
+		}
+		return conditionSql.toString();
+	}
+	
+	/**
+	 * 添加或保存数据信息 
+	 * @Title: saveOrUpdateSchoolInfo   
+	 * @Description: 添加或保存数据信息  
+	 * @param: paraMap 保存数据对象   
+	 * @param: tableName 保存数据的物理表名称
+	 * @return: void      
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存地铁小区")
+	public void saveStationCommunityInfo(Map<Object,Object> paraMap, String tableName) {
+		if(paraMap.containsKey(ManageGlobal.PRI_FIELD)) {
+			commonOperationDatabase(paraMap, tableName,ManageGlobal.PRI_FIELD, false);
+			ExecutionResult.descFormat(String.valueOf(paraMap.get(ManageGlobal.PRI_FIELD)), "修改地铁小区信息");
+		}else {
+			Map<Object,Object> updateMap = new HashMap<Object,Object>();
+			String communityId = String.valueOf(paraMap.get("communityId"));
+			updateMap.put("communityId",communityId);
+			updateMap.put("isSubwayRoom","1");
+			commonOperationDatabase(updateMap,"hs_housebaseinfo","communityId",false);
+			ExecutionResult.descFormat(communityId, "标记房源为地铁小区");
+			long id = commonOperationDatabase(paraMap, tableName, false);
+			ExecutionResult.descFormat(String.valueOf(id), "保存地铁小区");
+		}
+	}
+	/**
+	 * 
+	 * <p>Title: queryStationCommunityPageObj</p>   
+	 * <p>Description: 查询地铁站点周边小区信息 </p>   
+	 * @param paraMap
+	 * @param curPage
+	 * @param limit
+	 * @return   
+	 * @see com.bashiju.manage.service.IMetroStationManageService#getCommunityPageObj(java.util.Map, int, int)
+	 */
+	public Page<Map<String, Object>> queryStationCommunityPageObj(Map<String
+			, Object> paraMap, int curPage, int limit) {
+		PageHelper.startPage(curPage,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_43.getCode()
+				, String.valueOf(UserThreadLocal.get().get("id")));
+		return mIMetroStationManageMapper.getStationCommunityPageObj(paraMap);
+	}
+	/**
+	 * 删除地铁周边小区 
+	 * @Title: delMetroCommunityData
+	 * @author: zuoyuntao  
+	 * @Description:删除地铁周边小区   
+	 * @param paraMap 参数对象
+	 * @param tableName 删除表名称 
+	 * void   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除地铁小区")
+	public void delMetroCommunityData(Map<String,Object> paraMap, String tableName) {
+		mDataAuthHelper.auth(MenuEnum.MENU_43.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		Map<Object,Object> updateMap = new HashMap<Object,Object>();
+		String communityId = String.valueOf(paraMap.get("communityId"));
+		updateMap.put("communityId",communityId);
+		updateMap.put("isSubwayRoom","0");
+		commonOperationDatabase(updateMap,"hs_housebaseinfo","communityId",false);
+		ExecutionResult.descFormat(communityId, "删除房源地铁小区标记");
+		
+		delData(tableName,ManageGlobal.PRI_FIELD,communityId, false);
+		ExecutionResult.descFormat(communityId, "删除地铁周边小区信息");
+	}
+}

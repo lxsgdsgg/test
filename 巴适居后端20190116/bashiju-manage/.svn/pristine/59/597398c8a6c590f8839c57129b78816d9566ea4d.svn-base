@@ -1,0 +1,46 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.manage.mapper.NavigationBarMapper;
+import com.bashiju.manage.service.NavigationBarService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  NavigationBarServiceImpl   
+ * @Description:导航栏管理服务 
+ * @author: wangpeng
+ * @date:   2018年7月24日 上午9:36:40   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="导航栏管理服务 ")
+public class NavigationBarServiceImpl implements NavigationBarService {
+	@Autowired
+	private NavigationBarMapper  navigationBarMapper;
+	
+	
+	@Override
+	@SystemServiceLog(operationType="查詢導航欄數據")
+	public Page<Map<String, Object>> queryNavigationBarData(int page,int limit) {
+		PageHelper.startPage(page, limit);
+		//TODO:权限
+		Page<Map<String, Object>>  map = navigationBarMapper.queryNavigationBarData();
+		return map;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="通过id查询导航栏")
+	public Map<String, Object> queryNavigationBarById(String navigationBarId) {
+		Map<String,Object> map = navigationBarMapper.queryNavigationBarById(navigationBarId);
+		return map;
+	}
+
+}

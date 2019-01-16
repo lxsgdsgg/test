@@ -1,0 +1,62 @@
+package com.bashiju.quartz.api;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.TaskManageApi;
+import com.bashiju.quartz.util.QuartzCronDateUtils;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**   
+ * @ClassName  TaskManageApiImpl   
+ * @DescriptionTODO(这里用一句话描述这个类的作用)   
+ * @author zhaobin
+ * @date   2018年5月16日 下午4:56:41   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class TaskManageApiImpl extends CommonSqlServie implements TaskManageApi {
+
+	/**   
+	 * <p>Title addTask</p>   
+	 * <p>Description </p>   
+	 * @param day
+	 * @param taskContext
+	 * @param routingKey
+	 * @param targetParam
+	 * @return   
+	 * @see com.bashiju.api.TaskManageApi#addTask(int, java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	
+	@Override
+	public long addTask(int day, String taskContext, String routingKey, String targetParam) {
+		Map<String,Object> map= new HashMap<>();
+		map.put("cronExpression", QuartzCronDateUtils.getCron(new Date(), day));
+		map.put("isValid", "1");
+		map.put("JobDescription", taskContext);
+		map.put("jobGroup", "BSJ");
+		map.put("routingKey", routingKey);
+		map.put("targetParam", targetParam);		
+		return this.commonOperationDatabase(map, "job", false);
+	}
+
+	/**   
+	 * <p>Title delTask</p>   
+	 * <p>Description </p>   
+	 * @param id
+	 * @return   
+	 * @see com.bashiju.api.TaskManageApi#delTask(long)   
+	 */
+	
+	@Override
+	public boolean delTask(long id) {
+		// TODO Auto-generated method stub
+		return this.delData("job", "id", id+"", false);
+	}
+
+}

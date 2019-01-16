@@ -1,0 +1,470 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  LoginDialog.java   
+ * @Package com.bashiju.sso.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年7月9日 下午4:33:34   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.sso.controller;
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.utils.util.HttpClientUtil;
+
+
+/**
+ * Java 窗体程序写登陆
+ * @ClassName:LoginDialog
+ * @Description:Java 窗体程序写登陆
+ * @author:zuoyuntao
+ * @date:2018年7月9日 下午4:33:34
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class LoginDialog extends JDialog{
+	/**   
+	 * @Fields serialVersionUID : 串行版本标识ID  
+	 */ 
+	private static final long serialVersionUID = -1741999636279740519L;
+	/**
+	 * 正则表达式
+	 */
+	private static final char[] DIGITS_HEX = { '0', '1', '2', '3', '4', '5', '6'
+			, '7', '8', '9', 'A', 'B', 'C', 'D','E', 'F' };
+	/**
+	 * 登陆按钮
+	 */
+	private JButton loginBtn = null;
+	/**
+	 * 退出按钮
+	 */
+	private JButton quitBtn = null;
+	/**
+	 * 用户名称
+	 */
+	private JTextField userName = null;
+	/**
+	 * 密码输入框
+	 */
+	private JPasswordField password = null;
+	/**
+	 * 当前区划信息
+	 */
+	private JSONObject areaObj = null;
+	/**
+	 * 显示口号信息
+	 */
+	private JLabel infoLabel = null;
+	/**
+	 * 显示错误信息
+	 */
+	private JLabel errorLabel = null;
+	/**
+	 * 显示外网IP
+	 */
+	private JLabel ipLabel = null;
+	/**
+	 * 背景图片
+	 */
+	private ImageIcon icon = null;
+	/**
+	 * 公司称呼
+	 */
+	private JLabel info = null;
+//	/**
+//	 * 窗体logo
+//	 */
+//	private ImageIcon logoIcon = null;
+//	/**
+//	 * Logo
+//	 */
+//	private JLabel logoLabel = null;
+	
+	private JPanel mainPanel = null;
+	
+	public LoginDialog() {
+		super();
+	}
+
+	/**  
+	 * 类入口
+	 * @Title: main
+	 * @author: zuoyuntao  
+	 * @Description:类入口
+	 * @param args      
+	 * void 
+	 */
+	public static void main(String[] args) {
+		LoginDialog login = new LoginDialog();
+		login.initView();
+	}
+	
+	@SuppressWarnings("serial")
+	public void initView() {
+		getContentPane().setLayout(new BorderLayout());
+		setSize(new Dimension(450,530));
+
+		// 打包时放开
+		icon = new ImageIcon(getClass().getResource("/src/main/webapp/WEB-INF/image/login.png"));
+//		logoIcon = new ImageIcon(getClass().getResource("/src/main/webapp/WEB-INF/image/2.png"));
+		
+		// 调试代码用
+//		icon = new ImageIcon("src/main/webapp/WEB-INF/image/login.png");
+		
+//		logoIcon = new ImageIcon("src/main/webapp/WEB-INF/image/2.png");
+//		logoIcon.setImage(logoIcon.getImage().getScaledInstance(200, 60,Image.SCALE_DEFAULT ));
+//		logoLabel = new JLabel();
+//		logoLabel.setIcon(logoIcon);
+		this.setFocusable(true);
+        mainPanel = new JPanel() {
+			public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(icon.getImage(), 0, 0
+                		, getWidth()
+                		, getHeight(), icon.getImageObserver());
+//                g.drawImage(icon.getImage(), 0, 0, icon.getImageObserver());
+            }
+        };
+        
+        mainPanel.setOpaque(false);//设置透明
+        mainPanel.setLayout(null);
+		
+		//打包到EXE时用
+//		image = new ImageIcon(getClass().getResource(
+//				"/src/main/webapp/WEB-INF/image/logo-dark.png"));
+//		image.setImage(image.getImage().getScaledInstance(200, 60,Image.SCALE_DEFAULT ));
+        
+        info = new JLabel("巴适居ERP");
+        info.setFont(new Font("宋体",Font.BOLD,25));
+		
+		userName = new JTextField();
+		userName.setText("");
+		userName.setFont(new Font("",0,18));
+		userName.setBounds(80, 100, 300, 30);//30 50表示位置坐标, 按钮大小：宽300 高40
+		userName.setLocation(90, 195);//设置位置(宽、高)
+		userName.setOpaque(false);
+		userName.setBackground(Color.WHITE);
+		userName.setBorder(null);
+		
+		password = new JPasswordField();
+		password.setEchoChar('*');
+		password.setFont(new Font("",0,28));
+		password.setText("");
+		password.setBounds(80, 100, 300, 30);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		password.setLocation(90, 270);//设置位置(宽、高)
+		password.setOpaque(false);
+		password.setBackground(Color.WHITE);
+		password.setBorder(null);
+		
+		quitBtn = new JButton();
+		quitBtn.setBounds(100, 30, 20, 20);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		quitBtn.setBackground(Color.WHITE);
+		quitBtn.setLocation(400, 40);//设置位置(宽、高)
+		quitBtn.setOpaque(false);
+		quitBtn.setBorder(null);
+		
+		loginBtn = new JButton();
+		loginBtn.setText("登录");
+		loginBtn.setFont(new Font("宋体",Font.BOLD,24));
+		loginBtn.setBounds(80, 100, 300, 40);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		loginBtn.setLocation(70, 380);//设置位置(宽、高)
+		loginBtn.setBackground(Color.WHITE);
+		loginBtn.setForeground(Color.WHITE);
+		loginBtn.setOpaque(false);
+		loginBtn.setBorder(null);
+		
+		// 调用太平洋的接口获取当前位置信息，显示定位
+		String jsonStr =  new HttpClientUtil().postParamMap("http://whois.pconline.com.cn/ipJson.jsp?json=true",null);
+		areaObj = JSON.parseObject(jsonStr);
+		
+		ipLabel = new JLabel("您的IP:" + areaObj.getString("ip") + "  巴适居ERP");
+		ipLabel.setFont(new Font("宋体",0,12));
+		
+		errorLabel = new JLabel();
+		errorLabel.setFont(new Font("宋体",0,12));
+		
+		infoLabel = new JLabel("为更巴适的房产交易服务努力");
+		infoLabel.setFont(new Font("宋体",0,12));
+		
+//		logoLabel.setBounds(80, 80, 130, 60);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+//		logoLabel.setLocation(130, 60);//设置位置(宽、高)
+		
+		info.setBounds(110, 80, 200, 60);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		info.setLocation(160, 90);//设置位置(宽、高)
+		
+		errorLabel.setBounds(80, 100, 300, 40);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		errorLabel.setLocation(50, 315);//设置位置(宽、高)
+		
+		ipLabel.setBounds(80, 100, 300, 40);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		ipLabel.setLocation(110, 430);//设置位置(宽、高)
+		
+		infoLabel.setBounds(80, 100, 300, 40);//80:水平坐标，  100表示垂直坐标, 按钮大小：宽300 高40
+		infoLabel.setLocation(110, 450);//设置位置(宽、高)
+		
+		
+//		mainPanel.add(logoLabel);
+		mainPanel.add(info);
+		mainPanel.add(userName);
+		mainPanel.add(password);
+		mainPanel.add(loginBtn);
+		mainPanel.add(quitBtn);
+		
+		mainPanel.add(errorLabel);
+		mainPanel.add(ipLabel);
+		mainPanel.add(infoLabel);
+		
+		getContentPane().add(mainPanel);
+		
+		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation((size.width - getWidth()) / 2, (size.height - getHeight()) / 2);
+		addListeners();
+		setResizable(false);
+		setModal(true);
+		setUndecorated(true);
+//		setBackground(new Color(0,0,0,0));
+		this.getContentPane().setBackground(new Color(244,242,242));
+		this.setOpacity(0.9f);
+		setVisible(true);
+	}
+	
+	/**
+	 * 添加监听事件
+	 * @Title: addListeners
+	 * @author: zuoyuntao  
+	 * @Description:添加监听事件   
+	 * void
+	 */
+	private void addListeners() {
+		
+		// 密码输入框监听
+		password.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {}
+			@Override
+			public void keyPressed(KeyEvent e) {}
+			@Override
+			public void keyReleased(KeyEvent e) {
+				System.out.println(e.getKeyCode());
+				if(e.getKeyCode() == 10) {
+					doLogin();
+				}
+			}
+		});
+		
+		// 账号输入框监听
+		userName.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {}
+			@Override
+			public void keyPressed(KeyEvent e) {}
+			@Override
+			public void keyReleased(KeyEvent e) {
+				System.out.println(e.getKeyCode());
+				if(e.getKeyCode() == 10) {
+					doLogin();
+				}
+			}
+		});
+		
+		loginBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				doLogin();
+			}
+		});
+		
+		quitBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				LoginDialog.this.dispose();
+			}
+		});
+		
+		//添加窗体关闭事件
+		addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) {}
+			@Override
+			public void windowClosing(WindowEvent e) {
+				System.out.println("用户点击关闭按钮");
+				LoginDialog.this.dispose();
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {}
+			@Override
+			public void windowIconified(WindowEvent e) {}
+			@Override
+			public void windowDeiconified(WindowEvent e) {}
+			@Override
+			public void windowActivated(WindowEvent e) {}
+			@Override
+			public void windowDeactivated(WindowEvent e) {}
+		});
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void doLogin() {
+		//发送 POST 请求
+		String phoneNo = userName.getText();
+		String passwordValue = password.getText();
+		if(StringUtils.isEmpty(phoneNo)) {
+			errorLabel.setText("手机号码为空!");
+			errorLabel.setForeground(Color.RED);
+			return;
+		}
+		if(StringUtils.isEmpty(passwordValue)) {
+			errorLabel.setText("密码为空!");
+			errorLabel.setForeground(Color.RED);
+			return;
+		}
+		try {
+			// 根据网卡取本机配置的IP
+//			String ipAddress = InetAddress.getLocalHost().getHostAddress(); 
+			String hardware = getSerialNumber("C");
+			Map<String,String> content = new HashMap<String,String>();
+			content.put("userPhone", phoneNo);
+			content.put("userPass", passwordValue);
+			content.put("userIp", areaObj.getString("ip"));
+			content.put("areaCode", areaObj.getString("cityCode"));
+			content.put("areaName", areaObj.getString("pro") + areaObj.getString("city"));
+			content.put("hardware", hardware);
+//			String hardware = getSerialNumber("C");
+			//测试
+			String result = new HttpClientUtil().postParamMap("http://sso.bashiju.com/sso/userLogin", content);
+			//正式
+//			String result = new HttpClientUtil().postParamMap("https://erp.bashiju.com/sso/userLogin", content);
+			JSONObject json = (JSONObject) JSON.parse(result);
+			String param = "";
+			if(json.get("data") != null) {
+				param = String.valueOf(json.get("data"));
+			}
+			if(json.getBooleanValue("success")) {
+				LoginDialog.this.dispose();
+				JBrowserFrame dialog = new JBrowserFrame(param);
+				// 正式
+//				dialog.postConstruct("https://erp.bashiju.com/#/dashboard",param);
+				// 测试
+				dialog.postConstruct("http://localhost:8079/#/dashboard",param);
+				errorLabel.setText("");
+			}else {
+				errorLabel.setText(json.getString("msg"));
+				errorLabel.setForeground(Color.RED);
+			}
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			System.out.println(e1.getMessage());
+			errorLabel.setText(e1.getMessage());
+			errorLabel.setForeground(Color.RED);
+		}
+	}
+	
+	/**
+	 * 字符串转换为十六进制 
+	 * @Title: encodeHex
+	 * @author: zuoyuntao  
+	 * @Description:字符串转换为十六进制
+	 * @param data
+	 * @return      
+	 * char[]
+	 */
+	private char[] encodeHex(byte[] data) {
+		int l = data.length;
+		char[] out = new char[l << 1];
+		for (int i = 0, j = 0; i < l; i++) {
+			out[j++] = DIGITS_HEX[(0xF0 & data[i]) >>> 4];
+			out[j++] = DIGITS_HEX[0x0F & data[i]];
+		}
+		return out;
+	}
+	// 获取硬盘序列号
+	// wmic diskdrive get SerialNumber
+	private String getSerialNumber(String drive) {
+		String result = "";
+		try {
+			File file = File.createTempFile("realhowto", ".vbs");
+			file.deleteOnExit();
+			FileWriter fw = new java.io.FileWriter(file);
+			String vbs = "Set objFSO = CreateObject(\"Scripting.FileSystemObject\")\n"
+					+ "Set colDrives = objFSO.Drives\n" + "Set objDrive = colDrives.item(\"" + drive + "\")\n"
+					+ "Wscript.Echo objDrive.SerialNumber"; // see note
+			fw.write(vbs);
+			fw.close();
+			Process p = Runtime.getRuntime().exec("cscript //NoLogo " + file.getPath());
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line;
+			while ((line = input.readLine()) != null) {
+				result += line;
+			}
+			input.close();
+			result = new String(encodeHex(result.getBytes()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("硬盘序列号:" + result.trim());
+		return result.trim();
+	}
+	
+	public static class JTextFieldDefine extends JTextField {
+        private static final long serialVersionUID = 1L;
+        private BufferedImage buffer = null;
+ 
+        @Override public void paintComponent(Graphics g) {
+            Component window = this.getTopLevelAncestor();
+            if (window instanceof Window && !((Window)window).isOpaque()) {
+                int w = this.getWidth();
+                int h = this.getHeight();
+                if (buffer == null || buffer.getWidth() != w || buffer.getHeight() != h) {
+                    GraphicsConfiguration gc = this.getGraphicsConfiguration();
+                    buffer = gc.createCompatibleImage(w, h, BufferedImage.TRANSLUCENT);
+                }
+                Graphics bufferGraphics = buffer.createGraphics();
+                try {
+                    super.paintComponent(bufferGraphics);
+                } finally {
+                    bufferGraphics.dispose();
+                }
+                g.drawImage(buffer, 0, 0, w, h, 0, 0, w, h, null);
+            } else {
+                super.paintComponent(g);
+            }        
+        }
+    }
+}

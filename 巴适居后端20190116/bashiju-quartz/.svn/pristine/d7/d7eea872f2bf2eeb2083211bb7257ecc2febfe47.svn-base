@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HouseAndCustomerLevelTaskMapper">
+	
+		<select id="queryCustomerLevlConfig" resultType="Map">
+		select 
+				id,
+				cityCode,
+				companyId,
+				transactionType,
+				levelType,
+				conditions,
+				minPrice,
+				maxPrice,
+				minSpace,
+				maxSpace,
+				lookCount
+		from 	res_cust_level_condition		
+		where 	companyId=#{companyId}
+				 and cityCode=#{cityCode}
+				 and isValid=1 
+				 and res_cust_level_condition.updateTime >= DATE_SUB(now(),interval 1 DAY) 
+		order by updateTime asc
+	
+	</select>
+		<!-- 查询满足房源客源等级条件设定的房源客源id -->
+	<select id="queryCustomerABLevelId" resultType="String">
+		select Id from demand_customerbusinessinfo
+		where isValid=1  
+		AND transactionTypeId=#{transactionTypeId}
+		AND statusId=#{statusId}
+		AND companyId=#{companyId}
+		AND operatorCityCode=#{cityCode}
+			<if test="isRepeat">
+				AND isRepeat=1
+			</if>
+			<if test="isBond">
+				AND isBond=1
+			</if>
+			<if test="isUrgent">
+				AND isUrgent=1
+			</if>
+			<if test="isCloseDisc">
+				AND isCloseDisc=1
+			</if>
+			<if test="taobaoStatus">
+				AND taobaoStatusId = 1
+			</if>
+			<if test="viewingCount!='null' and viewingCount!=''">
+				AND viewingCount &gt;= #{viewingCount}
+			</if>
+			<if test="minPrice!='null' and minPrice!=''">
+				AND (minPrice &gt;=#{minPrice}
+			</if>
+			<if test="maxPrice!='null' and maxPrice!='' and maxPrice != '0'.toString()">
+				OR maxPrice &lt;=#{maxPrice}
+			</if>)
+			<if test="minSpace!='null' and minSpace!=''">
+				AND (minSpace &gt;=#{minSpace}
+			</if>
+			<if test="maxSpace!='null' and maxSpace!=''  and maxSpace != '0'.toString()">
+				OR maxSpace &lt;=#{maxSpace}
+			</if>)
+	</select>
+	
+	<select id="queryCustomerCLevelId" resultType="String">
+		select id from demand_customerbusinessinfo 		
+		where isValid=1  
+		AND statusId=#{statusId}
+		AND companyId=#{companyId}
+		AND operatorCityCode=#{cityCode}
+		<if test="idString!='' and idString!=null ">
+			AND id  NOT IN  (${idString})
+		</if>
+	</select>
+	
+	<select id="queryCustomerDLevelId" resultType="String">
+		select id from demand_customerbusinessinfo where 			
+		 operatorCityCode=#{cityCode} AND statusId!=#{statusId} AND isValid=1 AND companyId=#{companyId}	
+	</select>
+	
+	
+	
+		
+	<select id="queryHouseLevlConfig" resultType="Map">
+		select 
+				id,
+				cityCode,
+				companyId,
+				transactionType,
+				levelType,areaCode,
+				conditions,
+				propertyType,
+				decoratingType,
+				payTypeId,
+				minPrice,
+				maxPrice,
+				minSpace,
+				maxSpace,
+				houseUses,
+				matchingId
+		from 	res_house_level_condition		
+		where 	companyId=#{companyId}
+				 and cityCode=#{cityCode}
+				 and isValid=1 
+				 and res_house_level_condition.updateTime >= DATE_SUB(now(),interval 1 DAY) 
+		order by updateTime asc
+	
+	</select>
+	
+	<select id="queryHouseABLevelId" resultType="String">
+		SELECT a.houseId
+		FROM hs_secondhandhouse AS a
+		INNER JOIN hs_housebaseinfo AS b ON b.id = a.houseId 		
+		where a.isValid=1  
+		AND a.transactionTypeId=${transactionTypeId}
+		AND a.statusId=${statusId}
+		AND a.companyId=#{companyId}
+		AND b.cityCode=${cityCode}
+			<if test="sbdemand!=null" >
+			   AND (${sbdemand})
+			</if>
+
+			<if test="taobaoStatus">
+				AND a.taobaoStatusId=1 
+			</if>		
+			<if test="isPicture">
+				AND a.isPicture=1
+			</if>
+			<if test="isKeys">
+				AND a.isKeys=1
+			</if>
+			<if test="isUnique">
+				AND a.isUnique=1 
+			</if>
+			<if test="closeDiscFlg">
+				AND a.closeDiscFlg !=0
+			</if>
+			<if test="isUrgent">
+				AND a.isUrgent=1 
+			</if>
+			<if test="isSatisfyTwoYear">
+				AND a.isSatisfyTwoYear=1  
+			</if>
+			<if test="isOnly">
+				AND a.isOnly=1 
+			</if>
+			   
+			<if test="propertyTypeId !='null' and propertyTypeId !=''">
+				AND a.propertyTypeId=${propertyTypeId}
+			</if>
+			<if test="decorationId !='null' and decorationId !=''">
+				AND a.decorationId=${decorationId}
+			</if>
+			<if test="houseUsesId !='null' and houseUsesId !=''">
+				AND a.houseUsesId=${houseUsesId}
+			</if>
+			<if test="payTypeId !='null' and payTypeId !=''">
+				AND a.payTypeId=${payTypeId}
+			</if>
+
+			
+			<if test="sellingMinPrice !='null' and sellingMinPrice !=''">
+				AND (a.sellingPrice &gt;=${sellingMinPrice}
+			</if>
+			<if test="sellingMaxPrice !='null' and sellingMaxPrice !='' and sellingMaxPrice !='0'.toString()">
+				OR a.sellingPrice &lt;=${sellingMaxPrice}
+			</if>)
+			<if test="buildMinSpace !='null' and buildMinSpace !=''">
+				and (a.sellingPrice &gt;=${buildMinSpace}
+			</if>
+			<if test="buildMaxSpace !='null' and buildMaxSpace !='' and buildMaxSpace!='0'.toString()">
+				OR a.buildSpace &lt;=${buildMaxSpace}
+			</if>)
+
+			<if test="sbsmatching!='null' and sbsmatching!=''" >
+			   AND ${sbsmatching}				
+			</if>
+	</select>
+	
+	<select id="queryHouseCLevelId" resultType="String">
+			select houseId from hs_secondhandhouse 		
+			where isValid=1  
+			AND statusId=#{statusId}
+			AND companyId=#{companyId}
+			<if test="idString!='' and idString!=null ">
+				AND id  NOT IN  (${idString})
+			</if>
+	</select>
+	
+	<select id="queryHouseDLevelId" resultType="String">
+		select houseId from hs_secondhandhouse where 		
+		statusId!=#{statusId} AND isValid=1 AND companyId=#{companyId}	
+	</select>
+</mapper>

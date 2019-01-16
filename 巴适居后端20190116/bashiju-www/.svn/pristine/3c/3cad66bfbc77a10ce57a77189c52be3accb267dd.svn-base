@@ -1,0 +1,66 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralMapper.java   
+ * @Package com.bashiju.www.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:41:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.mapper;
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 客户个人中心映射接口
+ * @ClassName:CustomerPersonalCentralMapper
+ * @Description:客户个人中心映射接口
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:41:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerOwnerHouseMapper {
+	/**
+	 * 获取我的房子信息
+	 * @Title: queryMyOwnerHouseDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取我的房子信息
+	 * @param custId 客户ID
+	 * @param sourceType 绑定类型（0：房源 1：客源）
+	 * @return      
+	 * Page<CustomerOwnerHouseEntity>
+	 */
+	public Page<CustomerOwnerHouseEntity> queryMyOwnerHouseDataList(String custId
+			,String sourceType);
+	/**
+	 * 绑定用户和房源关系信息
+	 * @Title: saveBindingHouseResult
+	 * @author: zuoyuntao  
+	 * @Description:绑定用户和房源关系信息
+	 * @param paraMap 必须包含{custId,shhId,addTime,isValid}
+	 * @return      
+	 * long
+	 */
+	public long saveBindingHouseResult(@Param("paraMap")Map<String,Object> paraMap);
+	/**
+	 * 根据条件查询房源绑定情况
+	 * @Title: countAlreadyBindHouse
+	 * @author: zuoyuntao  
+	 * @Description:根据条件查询房源绑定情况   
+	 * @param custId 客户ID
+	 * @param sourcesId 资源ID 
+	 * @param transactionType 交易类型（0 出售 1出租）
+	 * @return      
+	 * long 
+	 */
+	public long countAlreadyBindHouse(@Param("custId") String custId,@Param("sourcesId") String sourcesId
+			,@Param("transactionType") String transactionType);
+}

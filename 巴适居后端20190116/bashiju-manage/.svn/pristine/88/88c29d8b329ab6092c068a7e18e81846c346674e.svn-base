@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CommMapper">
+	<select id="queryAllCity" resultType="map">
+		<![CDATA[SELECT code,name,parentCode,level from sys_area WHERE isValid=1 and level<3]]>	
+	</select>
+	<select id="queryOpenCity" resultType="map">
+		SELECT code,name,parentCode,`level` FROM sys_area WHERE level=1
+		UNION
+		SELECT cityCode AS code,cityName AS name,provinceCode AS parentCode, 2 AS level FROM sys_cityOpenInfo WHERE isValid=1	
+	</select>
+	<select id="queryOpenCityCounty" resultType="map">
+		SELECT code,name,parentCode,`level` FROM sys_area WHERE level=1
+		UNION
+		SELECT cityCode AS code,cityName AS name,provinceCode AS parentCode, 2 AS level FROM sys_cityOpenInfo WHERE isValid=1
+		UNION
+		SELECT a.code,a.name,a.parentCode,a.`level` FROM sys_area AS a INNER JOIN sys_cityOpenInfo AS c ON c.cityCode=a.parentCode AND c.isValid=1	
+	</select>
+	<!-- 查询平台开通省、城市 -->
+	<select id="queryAllOpenProvinceCity" resultType="map">
+		SELECT DISTINCT `code`,`name`,parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'province' END AS dataType,CASE WHEN `level`=2 THEN 1 ELSE 0 END AS leaf FROM sys_cityopeninfo AS c INNER JOIN sys_area AS a ON (cityCode=`code` OR c.provinceCode=`code`)AND c.isValid=1 AND a.isValid=1
+	</select>
+	<!-- 查询城市管理员授权省、城市 -->
+	<select id="queryManagerOpenProvinceCity" resultType="map">
+		SELECT a.`code`,a.`name`,a.parentCode,'city' AS dataType,1 as leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+		SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+		UNION	SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+		) AS t LIMIT 1) AS c ON a.`code` IN(c.cityCode) AND a.isValid=1
+		UNION
+		SELECT DISTINCT p.`code`,p.`name`,p.parentCode,'province' AS dataType,0 as leaf FROM sys_area AS a INNER JOIN (
+				SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION	SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1) AS c ON a.`code` IN(c.cityCode) AND a.isValid=1
+		INNER JOIN sys_area AS p ON p.`code`=a.parentCode AND p.isValid=1
+	</select>
+	<!-- 查询平台所有开通城市 -->
+	<select id="queryAllOpenCity" resultType="map">
+		SELECT `code`,`name`,'0' AS parentCode,'city' AS dataType,1 as leaf FROM sys_cityopeninfo AS c INNER JOIN sys_area ON cityCode=`code` AND c.isValid=1 ORDER BY pinyin
+	</select>
+	<!-- 查询城市管理员授权城市 -->
+	<select id="queryManagerOpenCity" resultType="map">
+		SELECT `code`,`name`,'0' AS parentCode,'city' AS dataType,1 as leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+		SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+		UNION	SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+		) AS t LIMIT 1) AS c ON a.`code` IN(c.cityCode) AND a.isValid=1 ORDER BY a.pinyin
+	</select>
+	<!-- 查询经纪公司开通城市 -->
+	<select id="queryCompanyOpenCity" resultType="map">
+		SELECT `code`,`name`,'0' AS parentCode,'city' AS dataType,1 as leaf FROM sys_companyCityOpenInfo AS c INNER JOIN sys_area AS a ON c.cityCode=a.`code` AND c.isValid=1 
+		AND NOW() BETWEEN beginTime AND endTime AND companyId = #{companyId} ORDER BY a.pinyin
+	</select>
+	<!-- 查询平台开通城市区县 -->
+	<select id="queryAllOpenCityCounty" resultType="map">
+		SELECT `code`,`name`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END AS dataType,CASE WHEN `level`=2 THEN 0 ELSE 1 END AS leaf FROM sys_cityopeninfo AS c INNER JOIN sys_area AS a ON (c.cityCode=a.`code` OR c.cityCode=a.parentCode)  AND c.isValid=1 AND a.isValid=1
+	</select>
+	<!-- 查询城市管理员授权城市区县 -->
+	<select id="queryManagerOpenCityCounty" resultType="map">
+		SELECT `code`,`name`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END AS dataType,CASE WHEN `level`=2 THEN 0 ELSE 1 END AS leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+		SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+		UNION
+		SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+		) AS t LIMIT 1) AS c ON (a.`code` IN(c.cityCode) OR a.parentCode IN (c.cityCode)) AND a.isValid=1
+	</select>
+	<!-- 查询经纪公司开通城市区县 -->
+	<select id="queryCompanyOpenCityCounty" resultType="map">
+		SELECT `code`,`name`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END AS dataType,CASE WHEN `level`=2 THEN 0 ELSE 1 END AS leaf  FROM sys_companyCityOpenInfo AS c INNER JOIN sys_area AS a 
+		ON (c.cityCode=a.`code` OR c.cityCode=a.parentCode) AND c.isValid=1 AND a.isValid=1 AND NOW() BETWEEN beginTime AND endTime AND companyId = #{companyId}
+	</select>
+	
+	<!-- 查询平台开通城市区县片区 -->
+	<select id="queryAllOpenCityRegion" resultType="map">
+		SELECT `code`,`name`,a.`level`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END AS dataType,0 as leaf FROM sys_cityopeninfo AS c INNER JOIN sys_area AS a ON (c.cityCode=a.`code` OR c.cityCode=a.parentCode)  AND c.isValid=1 AND a.isValid=1 
+		UNION
+		SELECT r.id AS code,r.`name`,4 as `level`,areaCode AS parentCode,'region' as dataType,1 as leaf FROM sys_region AS r INNER JOIN sys_area AS a ON r.areaCode=a.`code` AND r.isValid=1 AND a.isValid=1 INNER JOIN sys_cityopeninfo AS c ON c.cityCode=a.parentCode AND c.isValid=1 AND a.isValid=1
+	</select>
+	<!-- 查询城市管理员授权城市区县片区 -->
+	<select id="queryManagerOpenCityRegion" resultType="map">
+		SELECT `code`,`name`,`level`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END AS dataType,0 as leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+		SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+		UNION
+		SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+		) AS t LIMIT 1) AS c ON (a.`code` IN(c.cityCode) OR a.parentCode IN (c.cityCode)) AND a.isValid=1 
+		UNION
+		SELECT r.id AS code,r.`name`,4 as `level`,areaCode AS parentCode,'region' as dataType,1 as leaf FROM sys_region AS r INNER JOIN sys_area AS a ON r.areaCode=a.`code` AND r.isValid=1 AND a.isValid=1 INNER JOIN (
+		SELECT * FROM (
+		SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+		UNION
+		SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+		) AS t LIMIT 1) AS c ON a.parentCode IN (c.cityCode) AND a.isValid=1
+	</select>
+	<!-- 查询经纪公司开通城市区县片区 -->
+	<select id="queryCompanyOpenCityRegion" resultType="map">
+		SELECT `code`,`name`,a.`level`,CASE WHEN `level`=2 THEN '0' ELSE parentCode END AS parentCode,CASE WHEN `level`=2 THEN 'city' ELSE 'area' END as dataType,0 as leaf  FROM sys_companyCityOpenInfo AS c INNER JOIN sys_area AS a ON (c.cityCode=a.`code` OR c.cityCode=a.parentCode) 
+		AND c.isValid=1 AND a.isValid=1 AND NOW() BETWEEN beginTime AND endTime AND companyId = #{companyId}
+		UNION
+		SELECT r.id AS code,r.`name`,4 as `level`,areaCode AS parentCode,'region' as dataType,1 as leaf FROM sys_region AS r INNER JOIN sys_area AS a ON r.areaCode=a.`code` AND r.isValid=1 AND a.isValid=1 
+		INNER JOIN sys_companyCityOpenInfo AS c ON a.parentCode=c.cityCode AND c.isValid=1 AND a.isValid=1   AND NOW() BETWEEN beginTime AND endTime AND companyId = #{companyId}
+	</select>
+	<!-- 查询小区列表根据片区id -->
+	<select id="queryCommunityByRegionIds" resultType="map">
+		SELECT c.id AS code,`name`,5 as `level`,concat('r-',regionId) AS parentCode,'community' as dataType,1 as leaf 
+		FROM sys_community AS c INNER JOIN sys_community_second AS s ON s.communityId=c.id AND s.isUse=1 AND c.isvalid=1 AND regionId IN 
+		<foreach collection="regionIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+	</select>
+	<!-- 查询小区(包含新房)列表根据片区id -->
+	<select id="queryAllCommunityByRegionIds" resultType="map">
+		SELECT c.id AS code,`name`,5 as `level`,concat('r-',regionId) AS parentCode,'community' as dataType,1 as leaf 
+		FROM sys_community AS c INNER JOIN sys_community_second AS s ON s.communityId=c.id AND c.isvalid=1 AND regionId IN 
+		<foreach collection="regionIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+	</select>
+	<!-- 查询平台管理员市、公司 -->
+	<select id="queryAllOpenCityCompany" resultType="map">
+		SELECT cityCode AS code,cityName AS name,'0' AS parentCode,'city' as dataType,0 as leaf FROM sys_cityopeninfo WHERE isValid=1
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,1 as leaf FROM sys_company AS p WHERE p.isValid=1 
+	</select>
+	<!-- 查询城市管理员市、公司 -->
+	<select id="queryManagerOpenCityCompany" resultType="map">
+		SELECT `code`,`name`, '0'  AS parentCode,'city' as dataType,0 as leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId} 
+				) AS t LIMIT 1)AS c ON a.`code` IN(c.cityCode) AND a.isValid=1 
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,1 as leaf FROM sys_company AS p INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1 
+		
+	</select>
+	<!-- 查询平台管理员市、公司、部门 -->
+	<select id="queryAllOpenCityCompanyDepart" resultType="map">
+		SELECT cityCode AS code,cityName AS name,'0' AS parentCode,'city' as dataType,0 as leaf FROM sys_cityopeninfo WHERE isValid=1
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,0 as leaf FROM sys_company AS p WHERE p.isValid=1 
+		UNION
+		select id as code,name,CASE WHEN parentId='' THEN companyId ELSE parentId END as parentCode,'dept' as dataType,1 as leaf
+						 from sys_dept WHERE isvalid=1
+	</select>
+	<!-- 查询平台管理员市、公司、部门、用户 -->
+	<select id="queryAllOpenCityCompanyDepartUser" resultType="map">
+		SELECT cityCode AS code,cityName AS name,'0' AS parentCode,'city' as dataType,0 as leaf,'' as mobile,'' as companyId FROM sys_cityopeninfo WHERE isValid=1
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,0 as leaf,'' as mobile,id as companyId FROM sys_company AS p WHERE p.isValid=1 
+		UNION
+		select id as code,name,CASE WHEN parentId='' THEN companyId ELSE parentId END as parentCode,'dept' as dataType,0 as leaf,'' as mobile,companyId
+						 from sys_dept WHERE isvalid=1
+		UNION
+		SELECT id AS code,realName AS name,deptId AS parentCode,'user' as dataType,1 as leaf,mobile,companyId FROM sys_user WHERE isValid=1
+	</select>
+	<!-- 查询城市管理员市、公司、部门 -->
+	<select id="queryManagerOpenCityCompanyDepart" resultType="map">
+		SELECT `code`,`name`, '0'  AS parentCode,'city' as dataType,0 as leaf FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId} 
+				) AS t LIMIT 1)AS c ON a.`code` IN(c.cityCode) AND a.isValid=1 
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,0 as leaf FROM sys_company AS p INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1 
+		UNION
+		SELECT d.id as code,d.name,CASE WHEN d.parentId='' THEN d.companyId ELSE d.parentId END as parentCode,'dept' as dataType,1 as leaf FROM sys_dept AS d
+		INNER JOIN sys_company AS p ON p.id=d.companyId AND d.isvalid=1 AND p.isValid=1 INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1 
+	</select>
+	<!-- 查询城市管理员市、公司、部门、用户 -->
+	<select id="queryManagerOpenCityCompanyDepartUser" resultType="map">
+		SELECT `code`,`name`, '0'  AS parentCode,'city' as dataType,0 as leaf,'' as mobile,'' as companyId FROM sys_area AS a INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId} 
+				) AS t LIMIT 1)AS c ON a.`code` IN(c.cityCode) AND a.isValid=1 
+		UNION
+		SELECT p.id AS code,p.`name`,p.regaddrcity AS parentCode,'company' as dataType,0 as leaf,'' as mobile,p.id as companyId FROM sys_company AS p INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1 
+		UNION
+		SELECT d.id as code,d.name,CASE WHEN d.parentId='' THEN d.companyId ELSE d.parentId END as parentCode,'dept' as dataType,0 as leaf,'' as mobile,companyId FROM sys_dept AS d
+		INNER JOIN sys_company AS p ON p.id=d.companyId AND d.isvalid=1 AND p.isValid=1 INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1 
+		UNION 
+		SELECT u.id AS code,u.realName AS name,deptId AS parentCode,'user' as dataType,1 as leaf,u.mobile,u.companyId FROM sys_user AS u 
+		INNER JOIN sys_company AS p ON p.id=u.companyId AND u.isvalid=1 AND p.isValid=1 INNER JOIN (
+		SELECT * FROM (
+				SELECT cityCode FROM sys_city_responsibility WHERE userId=#{userId} 
+				UNION
+				SELECT cityCode FROM sys_city_responsibility WHERE roleId=#{roleId}
+				) AS t LIMIT 1)AS c ON p.regaddrcity IN(c.cityCode) AND p.isValid=1		
+	</select>
+	<!-- 查询经纪公司部门 -->
+	<select id="queryCompanyDepartment" resultType="map">
+		select id as code,name,CASE WHEN parentId='' THEN companyId ELSE parentId END as parentCode,'dept' as dataType,1 as leaf from sys_dept WHERE isvalid=1 AND companyId=#{companyId}
+	</select>
+	<!-- 查询经纪公司部门、用户 -->
+	<select id="queryCompanyDepartmentUser" resultType="map">
+		select id as code,name,CASE WHEN parentId='' THEN companyId ELSE parentId END as parentCode,'dept' as dataType,0 as leaf,'' as mobile,companyId from sys_dept WHERE isvalid=1 AND companyId=#{companyId}
+		UNION
+		SELECT id AS code,realName AS name,deptId AS parentCode,'user' as dataType,1 as leaf,mobile,companyId FROM sys_user WHERE isValid=1 AND companyId=#{companyId}
+	</select>
+	
+	<select id="queryAreaAndRegionByDeptIdAndArea" resultType="map">
+		select aa.id,aa.code,aa.name,aa.parentCode,aa.longitude,aa.latitude
+		,'area' as dataType from sys_area aa where aa.parentCode=#{cityCode} and aa.isValid=1
+		and exists (select 1 from sys_dept_responsibility_community c where aa.code = c.areaCode and c.deptId = #{deptId} and c.isValid=1)
+		union all 
+		select id,concat(id,'') as code ,name,areaCode as parentCode,longitude,latitude
+		,'region' as dataType from sys_region a where a.isValid = 1
+		and exists (select 1 from sys_area b where b.parentCode=#{cityCode}
+		and b.isValid = 1 and b.code = a.areaCode and exists (select 1 from sys_dept_responsibility_community c 
+		where b.code = c.areaCode and c.deptId = #{deptId} and c.isValid=1))
+		and exists (select 1 from sys_dept_responsibility_community c where a.id = c.regionId 
+		and c.deptId = #{deptId} and c.isValid=1)
+	</select>
+	
+	<select id="queryAreaAndRegion" resultType="map">
+		select aa.id,aa.code,aa.name,aa.parentCode,aa.longitude,aa.latitude
+		,'area' as dataType from sys_area aa where aa.parentCode=#{cityCode} and aa.isValid=1
+		union all 
+		select id,concat(id,'') as code ,name,areaCode as parentCode,longitude,latitude
+		,'region' as dataType from sys_region a where a.isValid = 1
+		and exists (select 1 from sys_area b where b.parentCode=#{cityCode}
+		and b.isValid = 1 and b.code = a.areaCode)
+	</select>
+	
+	<select id="queryCommunityByRegionId" resultType="map">
+		SELECT a.id,a.`name`,a.recordName,a.longitude,a.latitude,a.regionId as parentCode 
+		FROM sys_community AS a where a.isvalid=1 and not exists(
+		select 1 from sys_community_project b where a.id = b.communityId) and a.regionId = ${regionId}
+	</select>
+</mapper>

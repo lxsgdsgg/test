@@ -1,0 +1,17 @@
+com\bashiju\anal\controller\StatisticsBuyDemandController.class
+com\bashiju\anal\controller\DeptIncomeController.class
+com\bashiju\anal\controller\IncomeTrendController.class
+com\bashiju\anal\controller\DealConversionRateAnalysisController.class
+com\bashiju\anal\controller\PageController.class
+com\bashiju\anal\controller\StatisticsRentHouseController.class
+com\bashiju\anal\controller\DeptIncomeSortController.class
+com\bashiju\anal\controller\StatisticsRentDemandController.class
+com\bashiju\anal\controller\UserIncomeController.class
+com\bashiju\anal\controller\TotalPerformanceAnalysisController.class
+com\bashiju\anal\controller\FollowRecordController.class
+com\bashiju\anal\controller\UserAchievementController.class
+com\bashiju\anal\controller\DealComprehensiveAnalysisController.class
+com\bashiju\anal\controller\DeptAchievementController.class
+com\bashiju\anal\controller\DealIndexAnalysisController.class
+com\bashiju\anal\controller\StatisticsSaleHouseController.class
+com\bashiju\anal\controller\OperationAnalysisController.class

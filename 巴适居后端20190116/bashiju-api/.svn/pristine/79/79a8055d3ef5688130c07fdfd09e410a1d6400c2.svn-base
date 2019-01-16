@@ -1,0 +1,79 @@
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public enum ResCustLevelConditionEnum {
+	/**
+	 * 复看
+	 */
+	LOOKBACK("001","复看"),
+	/**
+	 * 
+	 */
+	DETERMINE("002","下定"),
+	/**
+	 * 急切的
+	 */
+	EAGER("003","急切"),
+	/**
+	 * 封盘
+	 */
+	SEALING("004","封盘"),
+	/**
+	 * 淘宝池
+	 */
+	TAOBAOPOOL("005","淘宝池");
+	
+	private String value;
+	private String displayName;
+	
+	
+	
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
+	}
+	public String getDisplayName() {
+		return displayName;
+	}
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+	
+	
+	 ResCustLevelConditionEnum(String value, String displayName) {
+		this.value = value;
+		this.displayName = displayName;
+	}
+	//map
+	public static Map<String,String>resCustLevelConditionMap=new TreeMap<String,String>();
+	//list
+	public static List<Map<String,String>>resCustLevelConditionList=new ArrayList<>();
+
+	static {
+		for(ResCustLevelConditionEnum _enum:ResCustLevelConditionEnum.values()) {
+			resCustLevelConditionMap.put(_enum.value, _enum.displayName);
+			Map<String,String>map=new HashMap<>();
+			map.put("name", _enum.displayName);
+			map.put("value",_enum.value);
+			resCustLevelConditionList.add(map);
+		}
+	}
+	
+	/**
+	 * 枚举转换
+	 */
+	
+	public static ResCustLevelConditionEnum parseOf(String value) {
+		for(ResCustLevelConditionEnum item :values())
+			if(item.getValue().equals(value))
+				return item;
+		throw new IllegalArgumentException("异常错误代码["+value+"]不匹配！");
+	}
+}

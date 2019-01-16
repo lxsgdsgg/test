@@ -1,0 +1,93 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.StoreConfigurationMapper;
+import com.bashiju.manage.service.StoreConfigurationService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  StoreConfigurationServiceImpl   
+ * @Description:门店支出配置服务
+ * @author: wangpeng
+ * @date:   2018年6月27日 下午4:03:27   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="门店支出配置")
+public class StoreConfigurationServiceImpl extends CommonSqlServie implements StoreConfigurationService {
+	
+	@Autowired
+	private StoreConfigurationMapper storeConfigurationMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="查询费用类型")
+	public Page<Map<String, Object>> queryFinanceCostType(int page, int limit) {
+		
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_258.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> type = storeConfigurationMapper.queryFinanceCostType();
+		return type;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="条件查询费用项目")
+	public Page<Map<String, Object>> queryFinanceCostProjByFinanceCostTypeId(String financeCostTypeId,int page, int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_258.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> project = storeConfigurationMapper.queryFinanceCostProjByFinanceCostTypeId(financeCostTypeId);
+		return project;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="新增费用类型")
+	public boolean saveFinanceCostType(Map<Object,Object> map) {
+		long result=this.commonOperationDatabase(map, "sys_financecosttype", false);
+		if(result>0) {
+			return true;
+		}
+		return false;		
+	}
+
+	@Override
+	@SystemServiceLog(operationType="新增费用项目")
+	public boolean saveFinanceCostProj(Map<Object, Object> map) {
+		long result=this.commonOperationDatabase(map, "sys_financecostproj", false);
+		if(result>0) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	@Override
+	@SystemServiceLog(operationType="逻辑删除费用项目")
+	public boolean delFinanceCostProjById(String financeCostProjId) {
+		 boolean result=this.delData("sys_financecostproj", financeCostProjId, "id", false);
+		if(result)
+			return true;
+		 return false;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="条件查询费用类型名称")
+	public Map<String, Object> queryFinanceCostTypeNameById(String financeCostTypeId) {
+		Map<String, Object> map = storeConfigurationMapper.queryFinanceCostTypeNameById(financeCostTypeId);
+		return map;
+	}
+	
+	
+}

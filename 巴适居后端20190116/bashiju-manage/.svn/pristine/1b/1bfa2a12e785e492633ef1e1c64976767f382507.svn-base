@@ -1,0 +1,305 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.DeptMapper;
+import com.bashiju.manage.service.DeptService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 
+ * @ClassName:  DeptServiceImpl   
+ * @Description:部门管理服务   
+ * @author: wangpeng
+ * @date:   2018年4月26日 下午4:38:58   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="部门管理")
+public class DeptServiceImpl extends CommonSqlServie implements DeptService{
+	
+	@Autowired
+	private DeptMapper deptMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryDept</p>   
+	 * <p>Description: </p>   
+	 * @param deptName 部门名称
+	 * @param pageNum 当前页
+	 * @param pageSize 每一页条数
+	 * @return   
+	 * @see com.bashiju.manage.service.DeptService#queryDept(java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询部门信息")
+	public Page<Map<String, Object>> queryDept(String deptName,String companyId,String deptTypeId,int pageNum,int pageSize) {
+		PageHelper.startPage(pageNum,pageSize);
+		Page<Map<String, Object>> page=(Page<Map<String, Object>>) this.queryDepts(deptName, companyId, deptTypeId, null, null, null);
+		return page;
+		
+	}
+	
+	/**
+	 * 
+	 * @Description: 条件查询部门信息   
+	 * @param deptName 部门名称(模糊查询)
+	 * @param companyId 公司id
+	 * @param deptTypeId 部门类型
+	 * @param parentId 上级部门id
+	 * @param areaCode 区域代码
+	 * @Param leader 所属领导
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	@Override
+	public List<Map<String, Object>> queryDepts(String deptName, String companyId, String deptTypeId, String parentId,
+			String areaCode, String leader) {
+		dataAuthHelper.auth(MenuEnum.MENU_64.getCode(),UserThreadLocal.get().get("id").toString());
+		return deptMapper.queryDepts(deptName, companyId, deptTypeId, parentId, areaCode, leader);
+	}
+	
+	/**
+	 * 
+	 * @Description: 根据id查询部门信息   
+	 * @param deptId 部门id
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@Override
+	@SystemServiceLog(operationType="根据id查询部门信息")
+	public Map<String, Object> getDept(String deptId) {
+		if(StringUtils.isEmpty(deptId))
+			return null;
+		else
+			return deptMapper.getDept(deptId);
+	}
+	/**
+	 * 
+	 * @Description: 是否存在关联数据  
+	 * @param deptId 部门id
+	 * @return: boolean
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询是否存在关联数据")
+	public boolean isRelation(String deptId) {
+		if(StringUtils.isEmpty(deptId))
+			return false;
+		long result = deptMapper.isRelation(deptId);
+		if(result>0)
+			return true;
+		else
+			return false;
+	}
+	/**
+	 * 
+	 * @Description: 保存部门信息   
+	 * @param map 需要保存的部门信息
+	 * @return      
+	 * @return: boolean
+	 */
+	@SystemServiceLog(operationType="保存部门")
+	@Override
+	public boolean saveOrUpdateDept(Map<Object,Object> map) {
+		long ids = 0;
+		if(!map.containsKey("id")||map.get("id") ==null || StringUtils.isEmpty(map.get("id").toString())) {
+			//新增
+			map.put("isvalid", 1);//新增数据默认有效
+			map.put("addTime", new Date());
+			map.put("updateTime",null);
+			map.put("operatorId", UserThreadLocal.get()!=null?UserThreadLocal.get().get("id").toString():"-1");
+			map.put("permissionArea",UserThreadLocal.get()!=null?UserThreadLocal.get().get("deptId").toString():"-1");
+			map.put("operator",UserThreadLocal.get()!=null?UserThreadLocal.get().get("realName").toString():"非法人员操作");
+			ids = this.deptMapper.saveDept(map);
+			if(ids>0)
+				ExecutionResult.descFormat(Long.toString(ids), "新增部门");
+			else
+				return false;
+		}else {
+			ids = this.commonOperationDatabase(map, "sys_dept", "id", false);
+			if(ids>0)
+				ExecutionResult.descFormat(map.get("id").toString(), "编辑部门");
+			else
+				return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @Description: 根据部门id删除部门信息
+	 * @param deptId
+	 * @return      
+	 * @return: boolean
+	 */
+	@SystemServiceLog(operationType="删除部门")
+	@Override
+	public boolean delDept(String deptId) {
+		if(StringUtils.isEmpty(deptId))
+			throw new BusinessException("请选择要删除的部门信息");
+		if(this.isRelation(deptId))
+			throw new BusinessException("存在关联数据，不允许删除");
+//		Map<Object,Object> fields = new HashMap<Object,Object>();
+		boolean tt=this.delData("sys_dept", "id", "'"+deptId+"'", false);
+		if(tt) {
+			ExecutionResult.descFormat(deptId, "删除部门");
+			return true;
+		}else
+			return false;
+	}
+	/**
+	 * 
+	 * <p>Title: queryAreaCode</p>   
+	 * <p>Description: 查询区域代码</p>   
+	 * @return   
+	 * @see com.bashiju.manage.service.DeptService#queryAreaCode()
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询区域代码")
+	public List<Map<String, Object>> queryAreaCode() {
+		List<Map<String, Object>>queryAreaCode=deptMapper.queryAreaCode();
+		if(queryAreaCode!=null&&queryAreaCode.size()>0) 
+			return queryAreaCode;
+		return null;
+	}
+	/**
+	 * 
+	 * <p>Title: queryUser</p>   
+	 * <p>Description:查询所有用户信息 </p>   
+	 * @return   
+	 * @see com.bashiju.manage.service.DeptService#queryUser()
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询用户信息")
+	public List<Map<String, Object>> queryUser() {
+		List<Map<String,Object>>users=deptMapper.queryUser();
+		if(users.size()>0&&users!=null){
+			return users;
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @Description: 查询部门树列表   
+	 * @param roleGroup 当前用户所属的角色组
+	 * @param userId 当前用户id
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.manage.service.DeptService#queryDeptTrees()   
+	 */
+	@Override
+	public List<Map<String, Object>> queryDeptTrees(String roleGroup,String userId) {
+		dataAuthHelper.auth(MenuEnum.MENU_64.getCode(),userId);
+		return deptMapper.queryDeptTrees(roleGroup);
+	}
+
+	@Override
+	public boolean saveAcrossStorePermission(String deptId,List<Map<String, Object>> list) {
+		if(StringUtils.isEmpty(deptId))
+			throw new BusinessException("待跨店编号不允许为空");
+		if(list==null ||list.size()<=0)
+			throw new BusinessException("没有要保存的数据");
+		this.deptMapper.deleteAcrossStorePermission(deptId);
+		boolean result = this.batchCommonOperationDatabase(list, "sys_dept_overdept", false);
+		if(result) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public List<Map<String, Object>> queryAcrossStorePermission(String deptId) {
+			return deptMapper.queryAcrossStorePermission(deptId);
+	}
+
+	/**   
+	 * <p>Title: queryDeptIdAndDeptName</p>   
+	 * <p>Description: 查询部门编号和部门名称</p>   
+	 * @see com.bashiju.manage.service.DeptService#queryDeptIdAndDeptName()   
+	 */
+	
+	@Override
+	public List<Map<String, Object>> queryDeptIdAndDeptName() {
+		return deptMapper.queryDeptIdAndDeptName();
+	}
+	
+	/**
+	 * 
+	 * <p>Title: saveResponsbilityDisc</p>   
+	 * <p>Description:批量新增或修改责任盘 </p>   
+	 * @see com.bashiju.manage.service.DeptService#saveResponsbilityDisc(java.util.List)
+	 */
+	@Override
+	public boolean saveResponsbilityDisc(List<Map<String, Object>> list) {
+		if(list == null ||list.size()<0)
+			throw new BusinessException("没要保存的数据");
+		List<Map<String,Object>> addArr = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> updateArr = new ArrayList<Map<String,Object>>();
+		for(Map<String,Object> map :list) {
+			if(!map.containsKey("id") || StringUtils.isEmpty(map.get("id").toString()) ||map.get("id") ==null || "".equals(map.get("id").toString())) {
+				map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+				map.put("operatorId", UserThreadLocal.get().get("id"));
+				addArr.add(map);
+			}else {
+				//修改
+				updateArr.add(map);
+			}
+		}
+		if(addArr.size()>0)
+			 this.batchCommonOperationDatabase(addArr, "sys_dept_responsibility_community", false);
+		if(updateArr.size()>0)
+			this.batchCommonOperationDatabase(updateArr, "sys_dept_responsibility_community","id", false);
+		ExecutionResult.descFormat("", "修改责任盘");
+		return true;
+	}
+
+	/**   
+	 * 查询部门所属城市
+	 * <p>Title: queryDeptCityCode</p>   
+	 * <p>Description: 查询部门所属城市</p>   
+	 * @param deptId 部门编号
+	 * @see com.bashiju.manage.service.DeptService#queryDeptCityCode(java.lang.String)   
+	 */
+	
+	@Override
+	public Map<String, Object> queryDeptCityCode(String deptId) {
+		if(StringUtils.isEmpty(deptId))
+			throw new BusinessException("部门编号不能为空");
+		return deptMapper.queryDeptCityCode(deptId);
+	}
+
+	/**   
+	 * 条件查询部门责任盘 
+	 * <p>Title: queryResponsibilityDisk</p>   
+	 * <p>Description: 条件查询部门责任盘 </p>   
+	 * @param deptId 部门编号
+	 * @see com.bashiju.manage.service.DeptService#queryResponsibilityDisk(java.lang.String)   
+	 */
+	
+	@Override
+	public List<Map<String, Object>> queryResponsibilityDisk(String deptId) {
+		if(StringUtils.isEmpty(deptId))
+			throw new BusinessException("部门编号不能为空");
+		return deptMapper.queryResponsibilityDisk(deptId);
+	}
+
+
+}

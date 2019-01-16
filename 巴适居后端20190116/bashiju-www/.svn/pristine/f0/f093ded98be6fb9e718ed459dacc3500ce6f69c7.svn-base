@@ -1,0 +1,18 @@
+package com.bashiju.www.test.usercentraltest;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.service.user.ICustomerSeeHouseRecordService;
+import com.bashiju.www.test.BaseServiceTest;
+
+public class CustomerSeeHouseRecordTest extends BaseServiceTest {
+	@Autowired
+	private ICustomerSeeHouseRecordService mICustomerSeeHouseRecordService;
+	
+	@Test
+	public void queryAllCustomerSeeHouseRecord() {
+		mICustomerSeeHouseRecordService.queryAllCustomerSeeHouseRecord("1", 0, 20);
+	}
+
+}

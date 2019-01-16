@@ -1,0 +1,61 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseStarCommentsEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月4日 下午5:27:25   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
+import lombok.Data;
+
+/**
+ * 房源评价实体类
+ * @ClassName:CustomerHouseStarCommentsEntity
+ * @Description:房源评价实体类
+ * @author:zuoyuntao
+ * @date:2018年8月4日 下午5:27:25
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ *             本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerHouseStarCommentsEntity {
+	/**主键**/
+	private int id;
+	/**房源ID**/
+	@NotEmpty(message="房源ID不能为空")
+	private int houseId;
+	/**带看记录ID**/
+	@NotEmpty(message="带看记录ID不能为空")
+	private int showedRecordId;
+	/**经纪人ID**/
+	@NotEmpty(message="经纪人ID不能为空")
+	private int userId;
+	/**客户ID**/
+	@NotEmpty(message="客户ID不能为空")
+	private int custId;
+	/**公司ID**/
+	private String companyId;
+	/**客户名称**/
+	private String custName;
+	/**评价内容**/
+	@NotEmpty(message="评价内容不能为空")
+	private String content;
+	/**权限域**/
+	private String permissionArea;
+	/**操作人ID**/
+	private int operatorId;
+	/**操作人**/
+	private String operator;
+	/**添加事件**/
+	private String addTime;
+	/**更新时间**/
+	private String updateTime;
+	/**是否可用**/
+	private int isValid;
+}

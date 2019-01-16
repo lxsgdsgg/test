@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.HouseTransactionTaxMapper">
+	<select id="queryHousePropertyListByCity" resultType="map">
+		SELECT *FROM cust_calculator_houseproperty WHERE isvalid=1 
+		<if test="cityCode!=null and cityCode!='' "> AND cityCode=#{cityCode}</if>
+	</select>
+
+	<select id="queryDeedTaxs" resultType="map">
+		SELECT `code`,taxRate FROM cust_calculator_houseproperty_deedtax WHERE isvalid=1 AND housePropertyId=#{housePropertyId}
+	</select>
+	
+	
+</mapper>

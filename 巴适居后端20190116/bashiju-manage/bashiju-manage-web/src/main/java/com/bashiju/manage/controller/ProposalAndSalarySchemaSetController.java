@@ -1,0 +1,322 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ProposalAndSalarySchemaSetController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:提成工资方案配置控制器
+ * @author: zuoyuntao     
+ * @date:   2018年6月22日 上午9:30:47   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.service.DeptService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IProposalAndWageSchemaService;
+import com.bashiju.manage.service.IProposalSetService;
+import com.bashiju.manage.service.IUserManageService;
+import com.bashiju.manage.service.IWageSchemaSettingService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 提成工资方案配置控制器
+ * @ClassName:ProposalAndSalarySchemaSetController
+ * @Description:提成工资方案配置控制器
+ * @author:zuoyuntao
+ * @date:2018年6月22日 上午9:30:47
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="proposalAndSalarySchemaSet")
+public class ProposalAndSalarySchemaSetController extends BaseController{
+	/**
+	 * 构造树接口
+	 */
+	@Autowired
+	private ICommunityService communityService;
+	/**
+	 * 提成工资方案配置接口
+	 */
+	@Autowired
+	private IProposalAndWageSchemaService mIProposalAndWageSchemaService;
+	/**
+	 * 部门接口
+	 */
+	@Autowired
+	private DeptService deptService;
+	/**
+	 * 提成方案设置接口
+	 */
+	@Autowired
+	private IProposalSetService mIProposalSetService;
+	/**
+	 * 工资方案设置
+	 */
+	@Autowired
+	private IWageSchemaSettingService mIWageSchemaSettingService;
+	/**
+	 * 用户管理接口对象
+	 */
+	@Autowired
+	private IUserManageService mIUserManageService;
+	/**
+	 * 获取主页面视图
+	 * @Title: getWageSchemeSettingPage
+	 * @author: zuoyuntao  
+	 * @Description:获取主页面视图
+	 * @param request 请求对象
+	 * @param response 响应对象
+	 * @return      
+	 * ModelAndView JSON 格式为：{}     
+	 */
+	@RequestMapping(value="getProposalAndWageSchemeSettingPage")
+	public ModelAndView getProposalAndWageSchemeSettingPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response, "proposalAndWageSetting/proposal_wage_schema_set");
+		List<Map<String, Object>> cityList = communityService.queryAreaSelect();
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = deptService.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString(),
+				UserThreadLocal.get().get("id").toString());
+		List<Map<String, Object>> proposalList = mIProposalSetService
+				.queryProposalSetAllDataListPage(new HashMap<String,Object>(), 0, 0);
+		List<Map<String, Object>> wageList = mIWageSchemaSettingService
+				.queryAllWageSchemaInfo(new HashMap<String,Object>());
+		List<Map<String, Object>> userList = mIUserManageService.queryAllUserInfoWithPage(new HashMap<String,Object>(), 0, 0);
+		
+		model.addObject("cityList",JSONObject.toJSON(cityList));
+		model.addObject("deptList",JSONObject.toJSON(deptList));
+		model.addObject("proposalList",JSONObject.toJSON(proposalList));
+		model.addObject("wageList",JSONObject.toJSON(wageList));
+		model.addObject("userList",JSONObject.toJSON(userList));
+		return model;
+	}
+	/**
+	 * 获取批量设置界面视图
+	 * @Title: getBatchSetModel
+	 * @author: zuoyuntao  
+	 * @Description:获取批量设置界面视图
+	 * @param request 页面请求对象
+	 * @param response 页面响应对象
+	 * @param deptId 门店ID（部门ID）
+	 * @return      
+	 * ModelAndView JSON 格式为：
+	 */
+	@RequestMapping(value="getBatchSetModel")
+	public ModelAndView getBatchSetModel(HttpServletRequest request,HttpServletResponse response
+			,String dataParam) {
+		ModelAndView model = this.getModelAndView(request, response
+				, "proposalAndWageSetting/proposal_wage_schema_batch_set");
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(dataParam)) {
+			paraMap = JSON.parseObject(dataParam);
+		}
+		
+		List<Map<String, Object>> cityList = communityService.queryAreaSelect();
+		List<Map<String, Object>> userList = mIUserManageService
+				.queryAllUserInfoWithPage(paraMap, 0, 0);
+		List<Map<String, Object>> proposalList = mIProposalSetService
+				.queryProposalSetAllDataListPage(new HashMap<String,Object>(), 0, 0);
+		List<Map<String, Object>> wageList = mIWageSchemaSettingService
+				.queryAllWageSchemaInfo(new HashMap<String,Object>());
+		
+		model.addObject("userList",JSONObject.toJSON(userList));
+		model.addObject("cityList",JSONObject.toJSON(cityList));
+		model.addObject("proposalList",JSONObject.toJSON(proposalList));
+		model.addObject("wageList",JSONObject.toJSON(wageList));
+		return model;
+	}
+	
+	/**
+	 * 查询提成工资方案数据
+	 * @Title: queryWageSchemaSetAllDataList
+	 * @author: zuoyuntao  
+	 * @Description:查询提成工资方案数据
+	 * @param jsonData 请求参数集合
+	 * @param page 最少条数
+	 * @param limit 最大条数
+	 * @param deptId 经纪人所在门店ID
+	 * @param areaCode 行政区划编码
+	 * @param salaryName 工资方案名称
+	 * @param proposalName 提成方案名称
+	 * @return      
+	 * Object JSON 格式为：{}     
+	 */
+	@RequestMapping(value="queryProposalAndWageSchemaInfoWithPage")
+	@ResponseBody
+	public Object queryProposalAndWageSchemaInfoWithPage(String jsonData, int page, int limit
+			,String deptId,String areaCode,String salaryId,String proposalId,String userName) {
+		Map<String, Object> paraMap = new HashMap<String, Object>();
+		if (StringUtil.isNotEmpty(jsonData)) {
+			paraMap = JSON.parseObject(jsonData);
+		}
+		paraMap.put("deptId", deptId);
+		paraMap.put("areaCode", areaCode);
+		paraMap.put("salaryId", salaryId);
+		paraMap.put("proposalId", proposalId);
+		paraMap.put("userName", userName);
+		Page<Map<String, Object>> pageObj = mIProposalAndWageSchemaService
+				.queryProposalAndWageSchemaInfoWithPage(paraMap, page, limit);
+		return getPageResult(pageObj);
+	}
+	/**
+	 * 保存或修改工资方案配置信息
+	 * @Title: saveOrUpdateWageSchema
+	 * @author: zuoyuntao  
+	 * @Description:保存或修改工资方案配置信息  
+	 * @param jsonData
+	 * @return      
+	 * BashijuResult    
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateProposalAndWageSchemaInfo")
+	@ResponseBody
+	public BashijuResult saveOrUpdateProposalAndWageSchemaInfo(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("数据错误!");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		Map<String,Object> jurgeParaMap = new HashMap<String,Object>();
+		paraMap = (Map<String,Object>) JSONObject.parse(jsonData);
+		String companyId = String.valueOf(UserThreadLocal.get().get("companyId"));
+		String permissionArea = String.valueOf(UserThreadLocal.get().get("deptId"));
+		String operatorId = String.valueOf(UserThreadLocal.get().get("id"));
+		jurgeParaMap.put("areaCode", paraMap.get("areaCode"));
+		jurgeParaMap.put("salaryId", paraMap.get("wageId"));
+		jurgeParaMap.put("extractId", paraMap.get("proposalId"));
+		jurgeParaMap.put("userId", paraMap.get("userId"));
+		jurgeParaMap.put("companyId", paraMap.get("companyId"));
+		
+		if(StringUtil.isEmpty(String.valueOf(paraMap.get("id")))) {
+			paraMap.remove("id");
+		}
+		if(mIProposalAndWageSchemaService.jurgeProposalAndWageDataExists(jurgeParaMap) 
+				&& StringUtil.isEmpty(String.valueOf(paraMap.get("id")))) {
+			throw new BusinessException("此配置已存在");
+		}
+		paraMap.put("companyId", companyId);
+		paraMap.put("permissionArea", permissionArea);
+		paraMap.put("operatorId", operatorId);
+		
+		mIProposalAndWageSchemaService.saveOrUpdateProposalAndWageSchemaInfo(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 批量保存提成工资方案配置
+	 * @Title: batchSaveProposalAndWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:批量保存提成工资方案配置
+	 * @param jsonData
+	 * @return      
+	 * BashijuResult JSON 格式为：
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="batchSaveProposalAndWageSchemaInfo")
+	@ResponseBody
+	public BashijuResult batchSaveProposalAndWageSchemaInfo(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("数据错误!");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		Map<String,Object> jurgeParaMap = new HashMap<String,Object>();
+		
+		paraMap = (Map<String, Object>) JSONObject.parse(jsonData);
+		
+		jurgeParaMap.put("areaCode", paraMap.get("areaCode"));
+		jurgeParaMap.put("companyId", String.valueOf(UserThreadLocal.get().get("companyId")));
+		
+		List<Map<String,Object>> saveList = buildSaveList(paraMap,jurgeParaMap);
+		mIProposalAndWageSchemaService.batchSaveProposalAndWageSchemaInfo(saveList, jurgeParaMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 组装保存数据
+	 * @Title: buildSaveList
+	 * @author: zuoyuntao  
+	 * @Description:组装保存数据 
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	private List<Map<String,Object>> buildSaveList(Map<String,Object> paraMap,Map<String,Object> userIdMap){
+		List<Map<String,Object>> retList = new ArrayList<Map<String,Object>>();
+		Map<String,String> userIdTemp = new HashMap<String,String>();
+		
+		String companyId = String.valueOf(UserThreadLocal.get().get("companyId"));
+		String operatorId = String.valueOf(UserThreadLocal.get().get("id"));
+		String permissionArea = String.valueOf(UserThreadLocal.get().get("companyId"));
+		String areaCode = String.valueOf(paraMap.get("areaCode"));
+		paraMap.remove("proposalOne");
+		paraMap.remove("wageOne");
+		paraMap.remove("areaCode");
+		Iterator<String> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			String value = String.valueOf(paraMap.get(key));
+			if(StringUtil.isEmpty(value)) {
+				continue;
+			}
+			if("null".equals(value)) {
+				continue;
+			}
+			if(key.indexOf("proposal") != -1) {
+				Map<String,Object> temp = new HashMap<String,Object>();
+				String userId = key.replace("proposal_", "");
+				temp.put("companyId",companyId );
+				temp.put("operatorId",operatorId);
+				temp.put("areaCode", areaCode);
+				temp.put("permissionArea", permissionArea);
+				temp.put("userId",userId);
+				temp.put("extractId",value);
+				temp.put("salaryConfId",paraMap.get("wage_" + userId));
+				userIdTemp.put(userId, userId);
+				retList.add(temp);
+			}
+			
+		}
+		userIdMap.put("userIdMap", userIdTemp);
+		return retList;
+	}
+	
+	/**
+	 * 删除提成工资方案配置信息
+	 * @Title: deleteWageSchema
+	 * @author: zuoyuntao  
+	 * @Description:删除提成工资方案配置信息
+	 * @param wageId 方案id
+	 * @return      
+	 * BashijuResult    
+	 */
+	@RequestMapping(value="deleteProposalAndWageSchemaInfo")
+	@ResponseBody
+	public BashijuResult deleteProposalAndWageSchemaInfo(String wageId) {
+		if(StringUtil.isEmpty(wageId)) {
+			throw new BusinessException("传入参数错误");
+		}
+		mIProposalAndWageSchemaService.deleteProposalAndWageSchema(wageId);
+		return BashijuResult.ok();
+	}
+}

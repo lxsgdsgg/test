@@ -1,0 +1,82 @@
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.CustCustomer;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+
+public interface CustCustomerMapper {
+	public List<CustCustomer> queryAllCustomer();
+	public Long saveCustomer(CustCustomer custCustomer);
+	
+	
+	/**
+	 * 查询手机号码是否已存在  
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否已存在  
+	 * @param mobile 手机号码
+	 * @return: long
+	 */
+    public long queryIsExistMobile(@Param("mobile")String mobile);
+    
+    /****
+     * 保存用户信息
+     * @Title: saveCustCustomer   
+     * @Description: 保存用户信息   
+     * @param custCustomerParam 用户注册时输入信息
+     * @return: long
+     */
+    public long  saveCustCustomer(CustCustomerEntity custCustomerEntity);
+    
+    /**
+     * 条件验证手机号码
+     * @Title: userMobileCheck   
+     * @Description:条件验证手机号码
+     * @param mobile 手机号码
+     * @param msgCode 短信验证码
+     * @return: boolean
+     */
+    public long userMobileCheck(@Param("mobile")String mobile,@Param("msgCode")String msgCode);
+    
+    /**
+     * 修改用户信息
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param paramMap 要修改的参数
+     * @return: long
+     */
+    public long updateCustCustomer(CustCustomerEntity custCustomerEntity );
+    
+    /**
+     *  用户登录   
+     * @Title: customerLogin   
+     * @Description: 用户登录   
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: long
+     */
+    public Map<String,Object> customerLogin(@Param("mobile")String mobile,@Param("password")String password);
+    
+    /**
+     *  短信登录   
+     * @Title: customerMobileLogin   
+     * @Description: 短信登录   
+     * @param mobile 手机号码
+     * @return: Map<String,String>
+     */
+    public Map<String,Object> customerMobileLogin(@Param("mobile")String mobile);
+	
+    
+    /**
+     * 通过手机号码修改用户密码
+     * @Title: updateCustomerPwdByMobile   
+     * @Description: 通过手机号码修改用户密码
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: long
+     */
+    public long updateCustomerPwdByMobile(@Param("mobile")String mobile,@Param("password")String password);
+}

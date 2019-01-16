@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bashiju.manage</groupId>
+    <artifactId>bashiju-manage</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>bashiju-manage-service</artifactId>
+<dependencies>
+  	<dependency>
+  		<groupId>com.bashiju.manage</groupId>
+    	<artifactId>bashiju-manage-mapper</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  		<!-- Jackson Json处理工具包 -->
+			<dependency>
+			    <groupId>com.fasterxml.jackson.core</groupId>
+			    <artifactId>jackson-databind</artifactId>
+			</dependency>
+	<!--String-MVC-->
+  		<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-webmvc</artifactId>
+	</dependency>
+	<!-- 加密用 -->
+	<dependency>
+	    <groupId>commons-codec</groupId>
+	    <artifactId>commons-codec</artifactId>
+	</dependency>
+		<dependency>
+        	<groupId>org.springframework.amqp</groupId>
+        	<artifactId>spring-rabbit</artifactId>
+    	</dependency>
+    				<!-- 分页助手 -->
+			<dependency>
+				<groupId>com.github.pagehelper</groupId>
+				<artifactId>pagehelper</artifactId>
+			</dependency>
+  </dependencies>
+</project>

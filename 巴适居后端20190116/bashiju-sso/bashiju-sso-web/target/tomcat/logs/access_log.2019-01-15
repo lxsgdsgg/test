@@ -1,0 +1,7 @@
+127.0.0.1 - - [15/Jan/2019:16:45:09 +0800] "POST /sso/userLogin HTTP/1.0" 200 245 http-bio-8080-exec-1 2871
+127.0.0.1 - - [15/Jan/2019:16:45:12 +0800] "GET /sso/queryUserInfo HTTP/1.0" 200 608 http-bio-8080-exec-2 239
+127.0.0.1 - - [15/Jan/2019:16:45:13 +0800] "GET /sso/main/menuData HTTP/1.0" 200 35587 http-bio-8080-exec-3 445
+127.0.0.1 - - [15/Jan/2019:16:45:25 +0800] "GET /sso/queryUserInfo HTTP/1.0" 200 608 http-bio-8080-exec-4 53
+127.0.0.1 - - [15/Jan/2019:16:45:25 +0800] "GET /sso/main/menuData HTTP/1.0" 200 35587 http-bio-8080-exec-5 235
+127.0.0.1 - - [15/Jan/2019:16:56:00 +0800] "GET /sso/queryUserInfo HTTP/1.0" 200 608 http-bio-8080-exec-6 160
+127.0.0.1 - - [15/Jan/2019:17:11:45 +0800] "POST /sso/unlock HTTP/1.0" 200 49 http-bio-8080-exec-7 293

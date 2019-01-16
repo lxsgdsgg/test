@@ -1,0 +1,362 @@
+﻿<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+
+<!DOCTYPE html >
+<html>
+	<head>
+	<title><%=application.getInitParameter("systemtitle")%></title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/css/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/frame/layui/css/layui.css">
+	<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/manage-platform/css/Mo2.css">
+	
+	<script type="text/javascript" src="${request.getContextPath()}/src/common/js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="${request.getContextPath()}/src/common/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="${request.getContextPath()}/src/common/js/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="${request.getContextPath()}/src/common/frame/layui/layui.js"></script>
+	</head>
+	<script type="text/javascript">
+	
+		var path = "<%=request.getContextPath()%>";
+		
+		var setType = "setRegion";
+		var type = '';
+		
+		
+		$(function() {
+			
+			//加载区间名称
+			$.post(path+"/manage/dynamicConfigure/getRegionType",{},function(d){
+				var data = d.data;
+				//console.log(data);
+				$(".setRegion tbody").empty();
+				for(var i=0;i<data.length;i++){
+					if(i==0){
+						var tr = $('<tr class="active regionTr" style="border:1px solid #eee;"></tr>')
+						type = data[i].widgetCode;
+						
+					}else{
+						var tr = $('<tr class="regionTr" style="border:1px solid #eee;"></tr>')
+					}
+					var td1 = '<td class="regionName" type="'+data[i].widgetCode+'">'+data[i].name+'</td>'
+					tr.append(td1);
+					var td2 = '<td type="'+data[i].widgetCode+'" class="clickTd" >设置区间</td>'
+					tr.append(td2);
+					
+					$(".setRegion tbody").append(tr);
+				}
+				
+				//加载区间数据
+				getRegion(type);
+				//切换
+				tabRegion();
+				
+				openSetRegion();
+			
+			})
+			
+			
+			
+			//保存区间
+			$(".save-region-btn").click(function(){
+					var maxregion = [];
+					var firstmin = $(".min-wrap").eq(0).find("input").val();
+					var max = $(".max-wrap");
+					var ele = $(".setRegion").find(".active").find(".regionName");
+					type = ele.attr("type");
+					
+					for(var i=0;i<10;i++){
+						if($(max[i]).find("input").val()!=""){
+							//最大值
+							var minvalue = $(max[i]).find("input").val();
+							maxregion.push(minvalue);
+						}
+						
+					}
+					
+					
+					var data = {
+							firstmin:firstmin,
+							type:type,
+							maxregion:maxregion
+					}
+					
+					console.log(data);
+				
+					$.ajax({
+			            type: "POST",//方法类型
+			            dataType: "json",//预期服务器返回的数据类型
+			            contentType: 'application/json',
+			            data:JSON.stringify(data),
+			            url: path+"/manage/dynamicConfigure/setRegion" ,//url	                
+			            success: function (result) {
+			            	if(result.success){
+			            		alert("保存成功！");
+			            	}else{
+			            		alert(result.msg);
+			            	}
+			            },
+			            error : function() {
+			            	
+			            },
+			            beforeSend : function() {
+			            	
+			            }
+			        }); 
+					
+					
+					
+				})
+				
+			
+				
+
+		});	  //$(function())结束
+		
+		
+		//切换
+		function tabRegion(){
+			$(".regionTr").click(function(){
+				$(".setRegion").find(".active").removeClass("active");
+				$(this).addClass("active");
+				type = $(this).find(".regionName").attr("type");
+				isload = false;
+				getRegion(type);
+				
+			})
+		}
+		
+		
+		//取值
+		function getRegion(type,dataCb){
+			$.post(path+"/manage/dynamicConfigure/getRegion",{type:type},function(d){
+				console.log(d)
+				//$('#tags').val(d.data);
+				$(".showRegion tbody").empty();
+				minValueArr = [];
+				maxValueArr = [];
+				for(var i=0;i<d.data.length;i++){
+					var minValueMap = {};
+					var maxValueMap = {};
+					var tr =$('<tr style="border:1px solid #eee;"></tr>');
+					if(d.data[i].fieldValue){
+						var td1 = '<td>'+d.data[i].fieldValue+'</td>'
+						tr.append(td1);
+						minValueMap.id = d.data[i].id;
+						minValueMap.minRegion = d.data[i].fieldValue; 
+						minValueArr.push(minValueMap);
+						if(d.data[i].maxRegionValue){
+							var td2 = '<td>'+d.data[i].maxRegionValue+'</td>'
+							tr.append(td2);
+							maxValueMap.id = d.data[i].id;
+							maxValueMap.maxRegion = d.data[i].maxRegionValue; 
+							maxValueArr.push(maxValueMap);
+						}
+					}
+					
+					
+					$(".showRegion tbody").append(tr);
+				}
+				
+				//console.log(minValueArr);
+				//console.log(maxValueArr);
+				isload = true;
+				dataCb&&dataCb(minValueArr,maxValueArr);
+				
+				//openSetRegion();
+			})
+		}
+		
+		
+		/* function opendiv(){
+			editRegion();
+		} */
+		
+		//打开弹窗
+		function openSetRegion(){
+			
+			$(".clickTd").click(function(event){
+				type = $(this).attr("type");
+				$(".editRegion tbody").empty();
+				getRegion(type,function(minValueArr,maxValueArr){
+					
+					//console.log(minValueArr);
+					//console.log(maxValueArr);
+					for(var i=0;i<10;i++){
+						var tr = $('<tr></tr>');
+						if(minValueArr[i]){
+							var td1 = '<td class="min-wrap"><input id="'+minValueArr[i].id+'" readonly="true"  type="text" value="'+minValueArr[i].minRegion+'"/></td>';
+							tr.append(td1);
+						}else{
+							var td1 = '<td class="min-wrap"><input readonly="true" type="text" value=""/></td>';
+							tr.append(td1);
+						}
+						if(maxValueArr[i]){
+							var td2 = '<td class="max-wrap"><input id="'+maxValueArr[i].id+'" class="max-input"  type="text" value="'+maxValueArr[i].maxRegion+'" onblur="setMaxValue(this)"/></td>';
+							tr.append(td2);
+						}else{
+							var td2 = '<td class="max-wrap"><input class="max-input newmax" type="text" value="" onblur="setMaxValue(this)"/></td>';
+							tr.append(td2);
+						}
+						
+						$(".editRegion tbody").append(tr);
+					}
+					
+					
+				})
+			 
+				editRegion();
+				stopDefault(event);
+			})
+		}
+		function stopDefault( event ) {
+
+			//取消事件冒泡
+		     var e=arguments.callee.caller.arguments[0]||event; //若省略此句，下面的e改为event，IE运行可以，但是其他浏览器就不兼容
+		     if (e && e.stopPropagation) {
+		     // this code is for Mozilla and Opera
+		     e.stopPropagation();
+		     } else if (window.event) {
+		     // this code is for IE
+		      window.event.cancelBubble = true;
+		     }
+
+		}
+		
+		//上限失去焦点
+		function setMaxValue(obj){
+			var val = parseInt($(obj).val());
+			//layer.msg(val)
+			console.log("上限："+val);
+			
+			var preval = parseInt($(obj).parent().prev().find("input").val());
+			console.log("下限："+preval);
+			//layer.msg(preval)
+			var nextval = parseInt($(obj).parent().parent().next().children().eq(1).find("input").val());
+			//layer.msg(nextval)
+			if(isNaN(val) || val<preval){
+				//layer.msg(11)
+				$(obj).parent().parent().next().children().eq(0).find("input").val("");
+				$(obj).val("");
+				if(val<preval){
+					layer.alert("数值不能小于"+preval);
+				}
+				
+			}
+			
+			if(!isNaN(nextval) && val>nextval){
+				
+				layer.alert("数值不能大于"+nextval);
+			}
+			
+			if(!$(obj).attr("id") && !isNaN(val) ){
+				var previnptv = $(obj).parent().parent().prev().children().eq(1).find("input").val();
+				if(previnptv==""){
+					$(".newmax").eq(0).val(val);
+					$(".newmax").eq(0).parent().parent().next().children().eq(0).find("input").val(val);
+					$(obj).val("");
+					var prevvalue = parseInt($(".newmax").eq(0).parent().parent().prev().children().eq(1).find("input").val());
+					if(val<prevvalue){
+						$(".newmax").eq(0).val("");
+						$(".newmax").eq(0).parent().parent().next().children().eq(0).find("input").val("");
+						layer.alert("数值不能小于"+prevvalue);
+					}
+				}
+				
+			}
+			
+		}
+		
+		var layer;
+		layui.use(['element','form','layer'], function(){
+			  var element = layui.element;
+			  var form = layui.form;
+			  layer = layui.layer;
+		}) 
+	
+		/*编辑弹出*/
+		function editRegion() {
+			layer.open({
+				type: 1,
+				title: "设置区间",
+				shade: [0],
+				area: ['800px', '700px'],
+				offset: 'auto', //弹出位置
+				btnAlign: 'r',
+				content: $(".editRegion-box") //显示的url，no代表不显示滚动条
+				
+			});
+		}
+	</script>
+	
+	
+	<body class="">
+	
+		<div class="layui-container">
+			<div class="layui-row">
+				<div class="layui-col-md3 setRegion-box">
+					<table class="setRegion" style="width: 100%;">
+						<thead>
+							<th>区间名称</th>
+							<th></th>
+						</thead>
+						<tbody>
+						
+						</tbody>
+					</table>
+					
+				</div>
+				<div class="layui-col-md9">
+					<div class="" style="border:1px solid #eee;height:360px;">
+						<table class="showRegion" style="width: 100%;">
+							<thead>
+								<th>最小值</th>
+								<th>最大值</th>
+							</thead>
+							<tbody>
+							
+							</tbody>
+						</table>
+							
+												
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		
+		<script>
+		
+				
+		</script>
+				
+	</body>
+	
+		<!-- 弹出增加区间 -->
+	 <div class="editRegion-box" style="display:none;">
+		<table class="editRegion" style="width: 100%;">
+			<thead>
+				<th>下限</th>
+				<th>上限</th>
+			</thead>
+			<tbody>
+				
+				
+			</tbody>
+		</table>
+		<div class="layui-form" style="margin-top: 20px;">
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			        <button type="button" class="layui-btn save-region-btn"  lay-filter="*" >保存</button>
+			    </div>
+		  	</div>
+		</div>	
+	</div>
+</html>

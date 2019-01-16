@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.TaskMapper">
+
+
+	<select id="getAllScheduleJobs" resultType="com.bashiju.quartz.pojo.ScheduleJob">
+			SELECT id,isValid,cronExpression,JobDescription,routingKey,targetParam FROM job 
+	</select>
+	
+	
+<!-- 	<select id="getScheduleJobById" parameterType="INTEGER" resultType="com.bashiju.quartz.pojo.ScheduleJob">
+			SELECT  id,jobName,isValid,cronExpression,conCurrent,JobDescription,jobGroup,routingKey,targetParam FROM job WHERE ID =#{id}
+	</select>
+	
+	<select id="getChildsJobByMainJobName" parameterType="String" resultType="com.bashiju.quartz.pojo.ScheduleJob">
+			SELECT CHILD_JOBS FROM JOB WHERE JOB_NAME =#{job_name}
+	</select>
+	 -->
+	
+
+</mapper>

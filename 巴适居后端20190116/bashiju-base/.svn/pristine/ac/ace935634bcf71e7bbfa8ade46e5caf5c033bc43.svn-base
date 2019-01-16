@@ -1,0 +1,10 @@
+import com.bashiju.base.service.redisservice.RedisGetIdImpl;
+
+public class Test {
+
+	public static void main(String[] args) {
+		RedisGetIdImpl ew=new RedisGetIdImpl();
+		ew.getCustomBindCode("123", "13577000337");
+		
+	}
+}

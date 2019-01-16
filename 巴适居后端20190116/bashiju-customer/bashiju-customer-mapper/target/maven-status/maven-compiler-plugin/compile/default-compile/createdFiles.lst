@@ -1,0 +1,8 @@
+com\bashiju\customer\mapper\DemandFollowRecordMapper.class
+com\bashiju\customer\mapper\AgentLeavingMsgAndCommentsMapper.class
+com\bashiju\customer\mapper\IDepositMangeMapper.class
+com\bashiju\customer\mapper\CustomerActionLogQueryMapper.class
+com\bashiju\customer\mapper\DemandShowedRecordMapper.class
+com\bashiju\customer\mapper\CustomerMapper.class
+com\bashiju\customer\mapper\BusinessExamineMapper.class
+com\bashiju\customer\mapper\FormMapper.class

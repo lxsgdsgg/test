@@ -1,0 +1,226 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TransferProcessServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(过户流程管理service层)   
+ * @author: zuoyuntao     
+ * @date:   2018年5月4日 上午11:56:07   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.TransferProcessMapper;
+import com.bashiju.manage.service.ITransferProcessService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * 过户流程管理service层
+ * @ClassName:  TransferProcessServiceImpl   
+ * @Description:过户流程管理service层
+ * @author: zuoyuntao
+ * @date:   2018年5月4日 上午11:56:07   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="过户流程管理")
+@Service
+public class TransferProcessServiceImpl implements ITransferProcessService {
+	/**
+	 * 通用数据库操作接口
+	 */
+	@Autowired
+	private CommonSqlServie commonSqlServie ;
+	/**
+	 * 过户方案管理映射接口
+	 */
+	@Autowired
+	private TransferProcessMapper mTransferProcessMapper;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 查询页面分页数据对象
+	 * <p>Title: queryTransferProcessDataInfo</p>   
+	 * <p>Description:查询页面分页数据对象 </p>   
+	 * @param paraMap 传入参数，包含（programmeName，areaCode）字段
+	 * @param curPageCount 页面显示最小条数
+	 * @param maxPageCont 页面显示最大条数
+	 * @return JSON 格式为（其中一条）：{id=9, programmeName=预约合同过户流程, isValid=1, cityId=BSJ0102, cityName=大理市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:41.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:29.0, permissionArea=BSJ0103, operatorId=1, procModify=procModify, hsOwnerDetail=hsOwnerDetail, cusDetail=cusDetail, procConf=procConf, procDel=procDel}   
+	 * @see com.bashiju.manage.service.ITransferProcessService#queryTransferProcessDataInfo(java.util.Map, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询所有过户方案")
+	public Page<Map<String, Object>> queryTransferProcessDataInfo(Map<String, Object> paraMap, int curPageCount,
+			int maxPageCont) {
+		PageHelper.startPage(curPageCount, maxPageCont);
+		dataAuthHelper.auth(MenuEnum.MENU_115.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mTransferProcessMapper.queryTransferProcessDataInfo(paraMap);
+	}
+	/**
+	 * 根据ID查询过户方案
+	 * <p>Title: queryTransferProcById</p>   
+	 * <p>Description:根据ID查询过户方案 </p>   
+	 * @param procId 配置方案ID
+	 * @return JSON格式：{id=9, programmeName=预约合同过户流程, isValid=1, cityId=BSJ0102, cityName=大理市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:41.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:29.0, permissionArea=BSJ0103, operatorId=1}  
+	 * @see com.bashiju.manage.service.ITransferProcessService#queryTransferProcById(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="根据ID查询过户方案")
+	public Map<String,Object> queryTransferProcById(String procId) {
+		dataAuthHelper.auth(MenuEnum.MENU_115.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mTransferProcessMapper.queryTransferProcById(procId);
+	}
+	/**
+	 * 根据名称查询过户方案
+	 * <p>Title: queryTransferProcByName</p>   
+	 * <p>Description: 根据名称查询过户方案</p>   
+	 * @param procName 过户方案名称
+	 * @return JSON格式：{id=9, programmeName=预约合同过户流程, isValid=1, cityId=BSJ0102, cityName=大理市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:41.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:29.0, permissionArea=BSJ0103, operatorId=1}   
+	 * @see com.bashiju.manage.service.ITransferProcessService#queryTransferProcByName(java.lang.String)
+	 */
+	@SystemServiceLog(operationType="根据名称查询过户方案")
+	@Override
+	public Map<String,Object> queryTransferProcByName(String procName) {
+		dataAuthHelper.auth(MenuEnum.MENU_115.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		ExecutionResult.descFormat(procName, "根据名称查询过户方案");
+		return mTransferProcessMapper.queryTransferProcByName(procName);
+	}
+	/**
+	 * 新增/修改过户方案
+	 * <p>Title: saveOrUpdateHouseExData</p>   
+	 * <p>Description: 新增/修改过户方案</p>   
+	 * @param paraMap 要保存的数据对象，修改时至少包含“id”，“updateOperator”
+	 * @return "success" 或抛出异常   
+	 * @see com.bashiju.manage.service.ITransferProcessService#saveOrUpdateHouseExData(java.util.Map)
+	 */
+	@SystemServiceLog(operationType="新增/修改过户方案")
+	@Override
+	public String saveOrUpdateHouseExData(Map<String,Object> paraMap) {
+		long retId = 0L;
+		if(!paraMap.containsKey("id")) {
+			retId = commonSqlServie.commonOperationDatabase(
+					paraMap, ManageGlobal.HOUSE_EXCHAGE_CONFIG,false);
+			ExecutionResult.descFormat(String.valueOf(retId), "新增过户方案");
+		}else {
+			retId = commonSqlServie.commonOperationDatabase(
+					paraMap, ManageGlobal.HOUSE_EXCHAGE_CONFIG,"id",false);
+			//如果存在明细数据，也需要修改
+			Map<String,Object> tempMap = new HashMap<String,Object>();
+			tempMap.put("confId", paraMap.get("id"));
+			tempMap.put("updateOperator", paraMap.get("updateOperator"));
+			commonSqlServie.commonOperationDatabase(
+					tempMap, ManageGlobal.HOUSE_EXCHAGE_DETAIL,"confId",false);
+			ExecutionResult.descFormat(String.valueOf(retId), "修改过户方案");
+		}
+		return "success";
+	}
+	/**
+	 * 新增/修改过户方案明细
+	 * <p>Title: saveOrUpdateHouseExDetailData</p>   
+	 * <p>Description: 新增/修改过户方案明细</p>   
+	 * @param saveList 要保存的数据集合
+	 * @param confId 主配置ID
+	 * @param isInsert 是否插入
+	 * @see com.bashiju.manage.service.ITransferProcessService#saveOrUpdateHouseExDetailData(java.util.List, java.lang.String, boolean)
+	 */
+	@SystemServiceLog(operationType="新增/修改过户方案明细")
+	@Override
+	public void saveOrUpdateHouseExDetailData(List<Map<String,Object>> saveList
+			,String confId,boolean isInsert) {
+		String confType = (String) saveList.get(0).get("confType");
+		if(isInsert) {
+			//先物理删除
+			String condition = " confId ='" + confId + "' and confType = '" + confType + "'";
+			commonSqlServie.clearData(ManageGlobal.HOUSE_EXCHAGE_DETAIL, condition);
+			commonSqlServie.batchCommonOperationDatabase(saveList
+					, ManageGlobal.HOUSE_EXCHAGE_DETAIL, false);
+			ExecutionResult.descFormat(String.valueOf(confId), "新增过户方案明细");
+		}else {
+			commonSqlServie.batchCommonOperationDatabase(saveList
+					, ManageGlobal.HOUSE_EXCHAGE_DETAIL, "id", false);
+			ExecutionResult.descFormat(String.valueOf(confId), "修改过户方案明细");
+		}
+	}
+	/**
+	 * 删除过户方案
+	 * <p>Title: delHouseExData</p>   
+	 * <p>Description: 删除过户方案</p>   
+	 * @param paraMap 参数对象中至少包含ID
+	 * @see com.bashiju.manage.service.ITransferProcessService#delHouseExData(java.util.Map)
+	 */
+	@SystemServiceLog(operationType="删除过户方案")
+	@Override
+	public void delHouseExData(Map<String,Object> paraMap) {
+		commonSqlServie.delData(ManageGlobal.HOUSE_EXCHAGE_CONFIG,"id"
+				,String.valueOf(paraMap.get("id")),false);
+		commonSqlServie.delData(ManageGlobal.HOUSE_EXCHAGE_DETAIL,"confId"
+				,String.valueOf(paraMap.get("id")),false);
+		ExecutionResult.descFormat(String.valueOf(paraMap.get("id")), "删除过户方案");
+	}
+	/**
+	 * 根据主配置ID明细配置数据信息
+	 * @Title: queryTransferDetailByConfId   
+	 * @Description: 根据主配置ID明细配置数据信息  
+	 * @param: confId：主配置ID
+	 * @param: confType：配置类型（1：业主明细材料，2：客户明细材料）
+	 * @return: List<Map<String,Object>> 
+	 * 返回数据其中一条的JSON格式：{id=52, detailName=策策, addTime=2018-05-09 10:00:07.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 13:58:13.0, confType=1, isValid=1, operatorId=1, confId=13, sortId=25, permissionArea=BSJ0103}     
+	 */
+	@Override
+	@SystemServiceLog(operationType="根据ID查询过户方案明细")
+	public List<Map<String,Object>> queryTransferDetailByConfId(String confId,String confType){
+		return mTransferProcessMapper.queryTransferDetailByConfId(confId,confType);
+	}
+	
+	/**
+	 * 判断数据是否存在
+	 * @Title: jargeDataIsExists   
+	 * @Description: 判断数据是否存在
+	 * @param: paramMap ：参数对象（对象中的所有数据将作为查询条件进行拼接，字段名称必须与表字段名称对应）
+	 * @param: tableOrViewName:表或视图名称 
+	 * @return: true/false      
+	 */
+	@Override
+	public boolean jargeDataIsExists(Map<String,Object> paramMap,String tableOrViewName) {
+		StringBuilder condition = new StringBuilder();
+		Iterator<String> it = paramMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			condition.append(" and ")
+					 .append(key)
+					 .append("='")
+					 .append(paramMap.get(key))
+					 .append("'");
+		}
+		List<Map<String,Object>> list = mTransferProcessMapper.queryDataInfoConfByConn(
+				condition.toString(), tableOrViewName);
+		if(list.size() > 0) {
+			return true;
+		}
+		return false;
+	}
+}

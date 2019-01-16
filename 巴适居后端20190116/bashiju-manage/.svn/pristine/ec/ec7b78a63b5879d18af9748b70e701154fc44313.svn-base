@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.DeptTypeMapper">
+	<select id="queryDeptTypeList" resultType="java.util.LinkedHashMap">
+		select a.id ,a.name,if(a.isvalid=1,'有效','无效') as statu ,b.name as parentName,b.id as parentId,a.permissionArea,a.operator,a.addTime ,a.updateTime ,a.isvalid from sys_dept_type a	
+		left join sys_dept_type b on a.parentId=b.id 
+		left join sys_user c on a.operator=c.id		
+		 where a.isvalid=1 
+		 <if test="deptTypeName !=null and deptTypeName !='' ">and a.name like '%${deptTypeName}%'</if>
+		 order by a.id
+	</select>
+	
+	<select id="queryDeptTypeById" resultType="java.util.LinkedHashMap">
+		select id,name,parentId,operatorId,operator,addTime,updateTime,level ,permissionArea from sys_dept_type where id=#{id} and isvalid=1
+	</select>
+	
+	<select id="queryAllDeptTypes" resultType="map">
+		select a.id ,a.name,if(a.isvalid=1,'有效','无效') as statu ,b.name as parentName,b.id as parentId,a.permissionArea,a.operator,a.addTime ,a.updateTime ,a.isvalid ,a.level from sys_dept_type a	
+		left join sys_dept_type b on a.parentId=b.id 
+		left join sys_user c on a.operator=c.id		
+		 where a.isvalid=1 
+	</select>
+	
+	<select id="isRelation" resultType="long">
+			select count(id) from sys_dept where deptTypeId=#{deptTypeId} and  isvalid=1
+	</select>
+	
+	<select id="queryDeptTypeIdAndName" resultType="map">
+		select id,name,parentId from sys_dept_type	where isvalid=1
+	</select>
+</mapper>

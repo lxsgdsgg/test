@@ -1,0 +1,226 @@
+package com.bashiju.www.service.user.impl;
+
+import java.util.Date;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.webservice.mapper.CustCustomerMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+import com.bashiju.www.service.user.CustCustomerService;
+/**
+ * 用户服务 
+ * @ClassName:  CustCustomerServiceImpl   
+ * @Description:用户服务 
+ * @author: wangpeng
+ * @date:   2018年8月15日 下午1:37:18   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustCustomerServiceImpl  implements CustCustomerService {
+
+	@Autowired
+	CustCustomerMapper custCustomerMapper;
+	@Autowired
+	private ICacheService cacheService;
+	@Autowired
+	private RedisGetIdServiceApi redisGetIdServiceApi;
+
+	//生成redis的key规则
+	private final static String USERKEY = "！@#￥%……& +";
+
+
+	/**
+	 * 查询手机号码是否已存在
+	 * @Description:  查询手机号码是否已存在
+	 * @param mobile 手机号码
+	 * @return: boolean
+	 * @see com.bashiju.www.service.user.UserRegisterService#queryIsExistMobile(java.lang.String)
+	 */
+	@Override
+	public boolean queryIsExistMobile(String mobile) {
+		long result = custCustomerMapper.queryIsExistMobile(mobile);
+		if(result>0)
+			return true;//号码已存在
+		return false;
+	}
+
+	/**
+	 * 保存用户注册信息
+	 * @Description: 保存用户注册信息
+	 * @param custCustomerParam 用戶输入参数
+	 * @return: boolean
+	 * @see  com.bashiju.www.service.user.UserRegisterService#saveCustCustomer(com.bashiju.www.pojo.service.user.CustCustomerParam) 
+	 */
+	
+	@Override
+	public boolean saveCustCustomer(CustCustomerParam custCustomerParam) {	
+		if(StringUtils.isEmpty(custCustomerParam.toString()))
+			throw new BusinessException("注册信息输入有误");
+		//判断手机号码是否在数据库已存在
+		boolean isExist = this.queryIsExistMobile(custCustomerParam.getMobile());
+		if(isExist)
+			throw new BusinessException("手机号码已注册");
+		//从redis获取短信验证码
+		String code = cacheService.getCache(custCustomerParam.getMobile());
+		//判断短信验证码是否正确
+		if(!code.equals(custCustomerParam.getSolt()))
+			throw new BusinessException("验证码有误");
+		//注册
+		CustCustomerEntity custCustomerEntity = new CustCustomerEntity();
+		custCustomerEntity.setMobile(custCustomerParam.getMobile());
+		custCustomerEntity.setName(custCustomerParam.getName());
+		custCustomerEntity.setPassword(custCustomerParam.getPassword());
+		custCustomerEntity.setSolt(custCustomerParam.getSolt());
+		custCustomerEntity.setBirthday(new Date());
+		custCustomerEntity.setIsValid("1");
+		custCustomerEntity.setAddTime(new Date());
+		//保存用户信息
+		long result = 	custCustomerMapper.saveCustCustomer(custCustomerEntity);
+		if(result>0)
+			return true;
+		return false;
+	}
+	/**
+	 * 修改用户信息
+	 * @Description:  修改用户信息
+	 * @param paramMap 修改参数
+	 * @return: boolean
+	 * @see  com.bashiju.www.service.user.UserRegisterService#updateCustCustomer(java.util.Map)    
+	 */
+	@Override
+	public boolean updateCustCustomer(CustCustomerEntity custCustomerEntity) {
+		if(StringUtils.isEmpty(custCustomerEntity.toString()))
+			throw new BusinessException("修改参数不能为空");
+		if(StringUtils.isEmpty(custCustomerEntity.getSolt()))
+			throw new BusinessException("短息验证码不能为空");
+		if(StringUtils.isEmpty(custCustomerEntity.getMobile()))
+			throw new BusinessException("手机号码不能为空");
+		String code = cacheService.getCache(custCustomerEntity.getMobile());
+		//验证页面输入短信验证是否正确
+		if(code.equals(custCustomerEntity.getSolt())) {
+			long rt= custCustomerMapper.updateCustCustomer(custCustomerEntity);
+			if(rt>0)
+				return true;
+			return false;
+		}else
+			throw new BusinessException("短信验证码有误");
+	}	
+		
+	/**
+	 * 用户账号密码登录
+	 * @Description:  用户账号密码登录
+	 * @param mobile 电话号码
+	 * @param password 密码
+	 * @return: boolean
+	 * @see com.bashiju.www.service.user.CustCustomerService#customerLogin(java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public String customerLogin(String mobile, String password) {
+			if(StringUtils.isEmpty(mobile) || StringUtils.isEmpty(password))
+				throw new BusinessException("账号或密码不能为空");
+			//判断用户输入的验证码是否正确
+			//redis验证码的取值
+			//获取用户信息
+			Map<String,Object> custMap = custCustomerMapper.customerLogin(mobile, password);
+			if(custMap==null || custMap.size()<=0)
+				throw new BusinessException("账号或密码有误");
+			String id=custMap.get("id").toString();
+			//生成redis key值，規則： 时间戳 + custId
+			String redisKey = USERKEY+System.currentTimeMillis()+id;
+			System.out.println(redisKey);
+			//将redisKey转为hash
+			String hashKey = Md5EncryptUtils.md5Encrypt(redisKey);
+			// 将转为hash值以后的key作为主键存入reids中，存储的value值为用户信息对象(包括：用户名称，用户id，用户电话)并且返回该key值
+			cacheService.saveCache(hashKey, custMap, WebGlobal.OTHER_EXPTIME);;
+			return hashKey;
+		 
+				
+	}
+	/**
+	 * 发送手机验证码
+	 * @Description:  发送手机验证码
+	 * @param mobile 电话号码
+	 * @return: String
+	 */
+	@Override
+	public String sendMobileMsgVerfyCode(String mobile) {
+		if(StringUtils.isEmpty(mobile))
+			throw new BusinessException("手机号码不能为空");
+		//发送短信验证码
+		String mobileCode = redisGetIdServiceApi.getMsgAuthCode(mobile);
+		return mobileCode;
+	}
+
+	/**
+	 * 短信登录
+	 * @Description:  发送手机验证码
+	 * @param mobile 电话号码
+	 * @param solt 短信验证码验证码
+	 */
+	@SuppressWarnings("null")
+	@Override
+	public String customerMobileLogin(String mobile,String solt) {
+		if(StringUtils.isEmpty(solt))
+			throw new BusinessException("短信验证码不能为空");
+		//redis获取短信验证码
+		String msgCode = cacheService.getCache(mobile);
+		if(StringUtils.isEmpty(msgCode))
+			throw new BusinessException("验证码失效，请重新发送");
+		//判断验证码是否正确
+		if(!solt.equals(msgCode)) {
+			throw new BusinessException("验证码输入有误");
+		}
+		boolean isExist = this.queryIsExistMobile(mobile);
+		if(!isExist){
+			//未注册
+			CustCustomerParam custCustomerParam = new CustCustomerParam();
+			custCustomerParam.setPassword("123456");
+			custCustomerParam.setName("游客");
+			custCustomerParam.setMobile(mobile);
+			custCustomerParam.setSolt(msgCode);
+			this.saveCustCustomer(custCustomerParam);
+		}
+		//登录
+		Map<String,Object> custInfo = custCustomerMapper.customerMobileLogin(mobile);
+		if(custInfo==null && custInfo.size()<0) {
+			throw new BusinessException("电话号码输入有误");
+		}
+		//初始化rediskey
+		String redisKey = USERKEY+System.currentTimeMillis()+custInfo.get("id");
+		String hashKey = Md5EncryptUtils.md5Encrypt(redisKey);
+		//将用户信息存入redis,并返回redis的key
+		cacheService.saveCache(hashKey, custInfo, WebGlobal.OTHER_EXPTIME);;
+		return hashKey;
+	}
+
+	
+	/**
+	 * 退出登陆
+	 * @Description:  退出登陆
+	 * @param redisKey redis的key
+	 */
+	
+	@Override
+	public boolean customerLoginout(String redisKey){
+		boolean result =  cacheService.delCache(redisKey);
+		if(result)
+			return true;
+		throw new BusinessException("退出失败");
+	}
+	
+	public String getCustIdByKey(String key) {
+		String custId = cacheService.getCache(key);
+		return custId ;
+	}
+	
+}

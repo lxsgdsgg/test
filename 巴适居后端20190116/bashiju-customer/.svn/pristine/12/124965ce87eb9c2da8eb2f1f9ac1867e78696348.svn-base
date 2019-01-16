@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.CustomerMapper">
+
+	<select id="queryMainter" resultType="map">
+		select maintainId,maintainer from demand_customerBusinessInfo where id=#{demandId} and isValid = 1
+	</select>
+	<select id="queryDeptName" resultType="map">
+		select a.companyId,a.deptId,a.realName,b.name as deptName,c.name as companyName from sys_user a INNER JOIN sys_dept b on a.id=#{id} and a.deptId = b.id INNER JOIN sys_company c on a.companyId = c.id
+	</select>
+	
+	<select id="queryLookHouse" resultType="map">
+		select a.*,b.name as deptname,'...' as img from demand_showedRecord a INNER JOIN sys_dept b on a.demandId = #{demandId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryFollowRecord" resultType="map">
+		select a.*,b.name as deptname from demand_followRecord a INNER JOIN sys_dept b on a.demandId = #{demandId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryCustomerPhone" resultType="map">
+		SELECT id,phone,remark FROM demand_custRelaterPhone WHERE isValid=1 AND demandId=#{demandId}
+	</select>
+	<select id="customerFindHouseList" resultType="map">
+		${sql}
+	</select>
+	
+	<select id="queryCustomerInfo" resultType="map">
+		select a.id as demandId,a.titles,a.transactionTypeId,a.transactionType,a.areaCodes,a.areaNames,a.regionNames,a.communityNames,a.status,a.discStatus,a.taobaoStatus,a.houseUses,
+		a.minRoom,a.maxRoom,a.minPrice,a.maxPrice,a.minSpace,a.maxSpace,a.minFloorCount,a.maxFloorCount,a.minBuildDates,a.maxBuildDates,a.decoration,a.matching,a.orientation,a.reason,
+		a.houseType,a.communicateStage,a.sourceType,a.levelType,a.labeld,a.isSchoolRoom,a.isFullAmount,a.isUrgent,a.closeDiscFlg,a.viewingCount,a.remark,a.formName,
+		b.custName,b.relateTypeId,b.relateTypeName,b.consumptIdeaName,b.censusRegister,b.nations,b.IDCard,b.email,b.qqNum,b.wxNum,b.vehicle,b.carType,c.phone,c.relateType,c.relateName,c.remark,d.isValid as isStore from demand_customerbusinessinfo a 
+		INNER JOIN demand_custrelater b on a.id = #{demandId} and a.id = b.demandId INNER JOIN demand_custrelaterphone c on a.id = c.demandId and c.ismainFlag = 1 left join demand_mycollection d on a.id=d.demandId and d.operatorId=#{userId}
+	</select>
+	<select id="queryFollowInfo" resultType="map">
+		select * from demand_followRecord where demandId = #{demandId} limit 0,6
+	</select>
+	<select id="queryRelateagentInfo" resultType="map">
+		select a.*,b.mobile from demand_custRelateAgent a INNER JOIN sys_user b on a.demandId = #{demandId} and a.agentId = b.id and a.isValid=1
+	</select>
+	<select id="queryCustomValue" resultType="map">
+		select id,
+		<foreach item="value" index="key" collection="customField"   open=" " separator="," close=" ">
+		 	${key}
+		 </foreach>
+		 from sys_custom_column_value where formName = #{formName} and keyId = #{keyId}
+	</select>
+	<select id="queryDepositByShhId" resultType="int">
+		select count(0) from demand_bond where shhId = #{shhId} and dealId!='' and dealId is not null and isValid=1
+	</select>
+
+	<select id="queryCustomerLevel" resultType="map">
+		SELECT levelType,conditions,beginPrice,endPrice,beginSpace,endSpace FROM res_cust_level_condition 
+		WHERE isValid=1 AND lookCount = 0 AND cityCode=#{cityCode} AND companyId=#{companyId} AND transactionType=#{transactionType} 
+		ORDER BY levelType ASC
+	</select>
+	<select id="queryStore" resultType="map">
+		select * from demand_mycollection where demandId=#{demandId} and operatorId = #{userId}
+	</select>
+	
+	<select id="queryCustomerListByIds" resultType="map">
+		SELECT sh.id,sh.houseId,sh.buildSpace,sh.sellingPrice/10000 AS sellingPrice,sh.rentPrice,hb.communityName,hb.buildingsName,hb.buildingsUnitName,hb.buildingHouseName
+	 FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.id IN (${ids})
+	</select>
+	<select id="queryCustomerList" resultType="map">
+		${sql}
+	</select>
+</mapper>

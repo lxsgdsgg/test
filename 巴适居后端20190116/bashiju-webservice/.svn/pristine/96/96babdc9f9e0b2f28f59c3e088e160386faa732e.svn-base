@@ -1,0 +1,62 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralBaseServiceApi.java   
+ * @Package com.bashiju.www.service.api.impl.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:00:10   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.api.impl.usercentral;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.exception.ErrorCodeEnum;
+import com.bashiju.wutils.redis.ICacheService;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心服务接口基类
+ * @ClassName:CustomerPersonalCentralBaseServiceApi
+ * @Description:个人中心服务接口基类
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:00:10
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerPersonalCentralBaseServiceApi {
+	/**
+	 * Redis缓存处理接口服务
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	/**
+	 * 根据key从Redis缓存中获取客户ID
+	 * @Title: getUserIdByRedisKey
+	 * @author: zuoyuntao  
+	 * @Description:根据key从Redis缓存中获取客户ID
+	 * @param key Redis的key
+	 * @return      
+	 * String 
+	 */
+	@SuppressWarnings("unchecked")
+	public String getUserIdByRedisKey(String key) {
+		if(StringUtil.isEmpty(key)) {
+			throw new BusinessException("传入的用户登陆Key为空");
+		}
+		String userInfo = mICacheService.getCache(key);
+		System.out.println("Redis读取用户数据KEY:" + key);
+		if(StringUtil.isNotEmpty(userInfo)) {
+			Map<String,Object> tempMap = (Map<String, Object>) JSONObject.parse(userInfo);
+			return String.valueOf(tempMap.get("id"));
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_LOGIN_KEY_INVALID.getCode());
+		}
+	}
+}

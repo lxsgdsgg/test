@@ -1,0 +1,35 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.manage.mapper.CommMapper;
+import com.bashiju.manage.service.ICommService;
+
+@Service
+public class CommService implements ICommService {
+	@Autowired
+	CommMapper commMapper;
+
+	@Override
+	public List<Map<String, Object>> queryAllCity() {
+		List<Map<String, Object>> result=commMapper.queryAllCity();
+		return result;
+	}
+
+	@Override
+	public List<Map<String, Object>> queryOpenCity() {
+		List<Map<String, Object>> result=commMapper.queryOpenCity();
+		return result;
+	}
+
+	@Override
+	public List<Map<String, Object>> queryOpenCityCounty() {
+		List<Map<String, Object>> result=commMapper.queryOpenCityCounty();
+		return result;
+	}
+	
+}

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/fasterxml/jackson/core/jackson-databind/2.9.3/jackson-databind-2.9.3.jar" />
+  </library>
+  <library name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.0">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/fasterxml/jackson/core/jackson-annotations/2.9.0/jackson-annotations-2.9.0.jar" />
+  </library>
+  <library name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/fasterxml/jackson/core/jackson-core/2.9.3/jackson-core-2.9.3.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-webmvc:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-webmvc/4.3.12.RELEASE/spring-webmvc-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-aop:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-aop/4.3.12.RELEASE/spring-aop-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-beans:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-beans/4.3.12.RELEASE/spring-beans-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-core:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-core/4.3.12.RELEASE/spring-core-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: commons-logging:commons-logging:1.2">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-logging/commons-logging/1.2/commons-logging-1.2.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-expression:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-expression/4.3.12.RELEASE/spring-expression-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-web:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-web/4.3.12.RELEASE/spring-web-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: commons-codec:commons-codec:1.11">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-codec/commons-codec/1.11/commons-codec-1.11.jar" />
+  </library>
+  <library name="Maven: org.springframework.amqp:spring-rabbit:2.0.3.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/amqp/spring-rabbit/2.0.3.RELEASE/spring-rabbit-2.0.3.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework.amqp:spring-amqp:2.0.3.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/amqp/spring-amqp/2.0.3.RELEASE/spring-amqp-2.0.3.RELEASE.jar" />
+  </library>
+  <library name="Maven: com.rabbitmq:amqp-client:5.1.2">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/rabbitmq/amqp-client/5.1.2/amqp-client-5.1.2.jar" />
+  </library>
+  <library name="Maven: org.slf4j:slf4j-api:1.7.25">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" />
+  </library>
+  <library name="Maven: com.rabbitmq:http-client:2.0.1.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/rabbitmq/http-client/2.0.1.RELEASE/http-client-2.0.1.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-webflux:5.0.1.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-webflux/5.0.1.RELEASE/spring-webflux-5.0.1.RELEASE.jar" />
+  </library>
+  <library name="Maven: io.projectreactor:reactor-core:3.1.1.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/projectreactor/reactor-core/3.1.1.RELEASE/reactor-core-3.1.1.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.reactivestreams:reactive-streams:1.0.1">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/reactivestreams/reactive-streams/1.0.1/reactive-streams-1.0.1.jar" />
+  </library>
+  <library name="Maven: org.apache.httpcomponents:httpclient:4.5.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/apache/httpcomponents/httpclient/4.5.3/httpclient-4.5.3.jar" />
+  </library>
+  <library name="Maven: org.apache.httpcomponents:httpcore:4.4.6">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.jar" />
+  </library>
+  <library name="Maven: io.projectreactor.ipc:reactor-netty:0.7.1.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/projectreactor/ipc/reactor-netty/0.7.1.RELEASE/reactor-netty-0.7.1.RELEASE.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-codec-http:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-codec-http/4.1.16.Final/netty-codec-http-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-codec:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-codec/4.1.16.Final/netty-codec-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-handler:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-handler/4.1.16.Final/netty-handler-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-buffer:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-buffer/4.1.16.Final/netty-buffer-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-transport:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-transport/4.1.16.Final/netty-transport-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-resolver:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-resolver/4.1.16.Final/netty-resolver-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-handler-proxy:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-handler-proxy/4.1.16.Final/netty-handler-proxy-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-codec-socks:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-codec-socks/4.1.16.Final/netty-codec-socks-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-transport-native-epoll:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-transport-native-epoll/4.1.16.Final/netty-transport-native-epoll-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-common:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-common/4.1.16.Final/netty-common-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: io.netty:netty-transport-native-unix-common:4.1.16.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty-transport-native-unix-common/4.1.16.Final/netty-transport-native-unix-common-4.1.16.Final.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-messaging:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-messaging/4.3.12.RELEASE/spring-messaging-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-tx:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-tx/4.3.12.RELEASE/spring-tx-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework.retry:spring-retry:1.2.2.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/retry/spring-retry/1.2.2.RELEASE/spring-retry-1.2.2.RELEASE.jar" />
+  </library>
+  <library name="Maven: joda-time:joda-time:2.9.9">
+    <archive path="C:/BSJ_ERP_Maven/maven/joda-time/joda-time/2.9.9/joda-time-2.9.9.jar" />
+  </library>
+  <library name="Maven: org.mybatis:mybatis-spring:1.3.1">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/mybatis/mybatis-spring/1.3.1/mybatis-spring-1.3.1.jar" />
+  </library>
+  <library name="Maven: jstl:jstl:1.2">
+    <archive path="C:/BSJ_ERP_Maven/maven/jstl/jstl/1.2/jstl-1.2.jar" />
+  </library>
+  <library name="Maven: javax.servlet:jsp-api:2.0">
+    <archive path="C:/BSJ_ERP_Maven/maven/javax/servlet/jsp-api/2.0/jsp-api-2.0.jar" />
+  </library>
+  <library name="Maven: javax.servlet:servlet-api:2.4">
+    <archive path="C:/BSJ_ERP_Maven/maven/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar" />
+  </library>
+  <library name="Maven: commons-fileupload:commons-fileupload:1.3.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3.jar" />
+  </library>
+  <library name="Maven: commons-io:commons-io:2.6">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-io/commons-io/2.6/commons-io-2.6.jar" />
+  </library>
+  <library name="Maven: com.bashiju.utils:bashiju-utils:0.0.1-SNAPSHOT">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/bashiju/utils/bashiju-utils/0.0.1-SNAPSHOT/bashiju-utils-0.0.1-20180629.081409-253.jar" />
+  </library>
+  <library name="Maven: com.bashiju.api:bashiju-api:0.0.1-SNAPSHOT">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/bashiju/api/bashiju-api/0.0.1-SNAPSHOT/bashiju-api-0.0.1-20180707.065752-110.jar" />
+  </library>
+  <library name="Maven: com.alibaba:dubbo:2.6.2">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/alibaba/dubbo/2.6.2/dubbo-2.6.2.jar" />
+  </library>
+  <library name="Maven: org.javassist:javassist:3.20.0-GA">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/javassist/javassist/3.20.0-GA/javassist-3.20.0-GA.jar" />
+  </library>
+  <library name="Maven: org.jboss.netty:netty:3.2.5.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/jboss/netty/netty/3.2.5.Final/netty-3.2.5.Final.jar" />
+  </library>
+  <library name="Maven: org.apache.zookeeper:zookeeper:3.4.11">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/apache/zookeeper/zookeeper/3.4.11/zookeeper-3.4.11.jar" />
+  </library>
+  <library name="Maven: org.slf4j:slf4j-log4j12:1.6.1">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/slf4j/slf4j-log4j12/1.6.1/slf4j-log4j12-1.6.1.jar" />
+  </library>
+  <library name="Maven: log4j:log4j:1.2.16">
+    <archive path="C:/BSJ_ERP_Maven/maven/log4j/log4j/1.2.16/log4j-1.2.16.jar" />
+  </library>
+  <library name="Maven: jline:jline:0.9.94">
+    <archive path="C:/BSJ_ERP_Maven/maven/jline/jline/0.9.94/jline-0.9.94.jar" />
+  </library>
+  <library name="Maven: org.apache.yetus:audience-annotations:0.5.0">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/apache/yetus/audience-annotations/0.5.0/audience-annotations-0.5.0.jar" />
+  </library>
+  <library name="Maven: io.netty:netty:3.10.5.Final">
+    <archive path="C:/BSJ_ERP_Maven/maven/io/netty/netty/3.10.5.Final/netty-3.10.5.Final.jar" />
+  </library>
+  <library name="Maven: com.github.sgroschupf:zkclient:0.1">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/github/sgroschupf/zkclient/0.1/zkclient-0.1.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-jdbc:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-jdbc/4.3.12.RELEASE/spring-jdbc-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-aspects:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-aspects/4.3.12.RELEASE/spring-aspects-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.aspectj:aspectjweaver:1.8.13">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/aspectj/aspectjweaver/1.8.13/aspectjweaver-1.8.13.jar" />
+  </library>
+  <library name="Maven: org.mybatis:mybatis:3.4.6">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/mybatis/mybatis/3.4.6/mybatis-3.4.6.jar" />
+  </library>
+  <library name="Maven: mysql:mysql-connector-java:5.1.46">
+    <archive path="C:/BSJ_ERP_Maven/maven/mysql/mysql-connector-java/5.1.46/mysql-connector-java-5.1.46.jar" />
+  </library>
+  <library name="Maven: com.alibaba:druid:1.1.10">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/alibaba/druid/1.1.10/druid-1.1.10.jar" />
+  </library>
+  <library name="Maven: eu.bitwalker:UserAgentUtils:1.21">
+    <archive path="C:/BSJ_ERP_Maven/maven/eu/bitwalker/UserAgentUtils/1.21/UserAgentUtils-1.21.jar" />
+  </library>
+  <library name="Maven: org.springframework:spring-context:4.3.12.RELEASE">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/springframework/spring-context/4.3.12.RELEASE/spring-context-4.3.12.RELEASE.jar" />
+  </library>
+  <library name="Maven: org.apache.commons:commons-lang3:3.7">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/apache/commons/commons-lang3/3.7/commons-lang3-3.7.jar" />
+  </library>
+  <library name="Maven: commons-lang:commons-lang:2.4">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-lang/commons-lang/2.4/commons-lang-2.4.jar" />
+  </library>
+  <library name="Maven: org.jsoup:jsoup:1.7.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/jsoup/jsoup/1.7.3/jsoup-1.7.3.jar" />
+  </library>
+  <library name="Maven: commons-net:commons-net:3.6">
+    <archive path="C:/BSJ_ERP_Maven/maven/commons-net/commons-net/3.6/commons-net-3.6.jar" />
+  </library>
+  <library name="Maven: com.alibaba:fastjson:1.2.47">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/alibaba/fastjson/1.2.47/fastjson-1.2.47.jar" />
+  </library>
+  <library name="Maven: com.github.pagehelper:pagehelper:5.1.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/github/pagehelper/pagehelper/5.1.3/pagehelper-5.1.3.jar" />
+  </library>
+  <library name="Maven: com.github.jsqlparser:jsqlparser:1.0">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/github/jsqlparser/jsqlparser/1.0/jsqlparser-1.0.jar" />
+  </library>
+  <library name="Maven: com.bashiju.cert:bashiju-cert:0.0.1-SNAPSHOT">
+    <archive path="C:/BSJ_ERP_Maven/maven/com/bashiju/cert/bashiju-cert/0.0.1-SNAPSHOT/bashiju-cert-0.0.1-20180621.112553-17.jar" />
+  </library>
+  <library name="Maven: javax.servlet:javax.servlet-api:3.1.0">
+    <archive path="C:/BSJ_ERP_Maven/maven/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar" />
+  </library>
+  <library name="Maven: junit:junit:4.12">
+    <archive path="C:/BSJ_ERP_Maven/maven/junit/junit/4.12/junit-4.12.jar" />
+  </library>
+  <library name="Maven: org.hamcrest:hamcrest-core:1.3">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar" />
+  </library>
+  <library name="Maven: org.slf4j:slf4j-api:1.6.1">
+    <archive path="C:/BSJ_ERP_Maven/maven/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1.jar" />
+  </library>
+</eclipse-userlibraries>
+

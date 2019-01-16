@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.PhoneSecurityManageMapper">
+	
+	<select id="queryPhoneSecurityData" resultType="map">
+			select id, realNum,virtualNum,virtualExtensionNum,alibabaCode,operator,permissionArea,
+			operatorId,addTime from sys_phoneSecurityManage where isvalid = 1
+			<if test="realNum!= '' and realNum!=null ">
+					and realNum =#{realNum}
+			</if>
+	</select>
+</mapper>

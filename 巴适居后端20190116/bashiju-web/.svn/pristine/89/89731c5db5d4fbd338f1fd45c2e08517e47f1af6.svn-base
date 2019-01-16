@@ -1,0 +1,57 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="bashiju-web-consumer" >
+		<dubbo:parameter key="qos.enable" value="false"/>
+	</dubbo:application>
+	<!-- 从注册中心中查找服务 -->
+	<dubbo:reference id="IZiXunPageServiceApi"
+		interface="com.bashiju.wapi.IZiXunPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IBaiKePageServiceApi"
+		id="baiKePageServiceApi" />	
+	<dubbo:reference interface="com.bashiju.wapi.IHomePageServiceApi"
+		id="homePageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseRentInfoPageServiceApi"
+		id="houseRentInfoPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseRentListPageServiceApi"
+		id="houseRentListPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseSellInfoPageServiceApi"
+		id="houseSellInfoPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseSellListPageServiceApi"
+		id="houseSellListPageServiceApi" />	
+	<dubbo:reference interface="com.bashiju.wapi.IMapHouseRentPageServiceApi"
+		id="mapHouseRentPageServiceApi" />	
+	<dubbo:reference interface="com.bashiju.wapi.IMapHouseSellPageServiceApi"
+		id="mapHouseSellPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.ICommunityDetailServiceApi"
+		id="communityDetailServiceApi" />	
+	<dubbo:reference interface="com.bashiju.wapi.ICommunityServiceApi"
+		id="communityServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IAgentServiceApi"
+		id="agentServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IAgentDetailServiceApi"
+		id="agentDetailServiceApi" />
+	<dubbo:reference interface="com.bashiju.wutils.redis.ICacheService"
+		id="cacheServieImpl" />
+			
+	<!-- 个人中心消费者服务注册开始 -->
+	<dubbo:reference id="customerConcernedPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi"/>	
+	<dubbo:reference id="customerHouseEntrustPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi"/>	
+	<dubbo:reference id="customerHouseTransitSchedulePageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerHouseTransitSchedulePageServiceApi"/>	
+	<dubbo:reference id="customerMyAgentServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerMyAgentServiceApi"/>	
+	<dubbo:reference id="customerMyAppointmentPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerMyAppointmentPageServiceApi"/>	
+	<dubbo:reference id="customerMyHousesourcePageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerMyHousesourcePageServiceApi"/>	
+	<dubbo:reference id="customerMyRequestPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerMyRequestPageServiceApi"/>	
+	<dubbo:reference id="customerPersonCentralPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerPersonCentralPageServiceApi"/>	
+	<dubbo:reference id="customerPersonInfoPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerPersonInfoPageServiceApi"/>	
+	<dubbo:reference id="customerSeeHouseRecordPageServiceApi" interface="com.bashiju.wapi.usercentral.ICustomerSeeHouseRecordPageServiceApi"/>	
+	<dubbo:reference id="customerRecruitServiceApi" interface="com.bashiju.wapi.ICustomerRecruitServiceApi"/>	
+	<!-- 个人中心消费者服务注册结束-->	
+</beans>

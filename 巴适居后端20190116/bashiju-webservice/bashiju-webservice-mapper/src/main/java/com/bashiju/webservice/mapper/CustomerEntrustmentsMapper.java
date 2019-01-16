@@ -1,0 +1,170 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentsMapper.java   
+ * @Package com.bashiju.webservice.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月30日 下午2:40:48   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingHouseEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralCommunityEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 客户委托持久层接口
+ * @ClassName:CustomerEntrustmentsMapper
+ * @Description:客户委托持久层接口
+ * @author:zuoyuntao
+ * @date:2018年7月30日 下午2:40:48
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerEntrustmentsMapper {
+	/**
+	 * 保存客户房源委托信息 
+	 * @Title: saveHouseEntrustmentData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户房源委托信息         
+	 * @param paraMap 要保存数据对象
+	 * void
+	 */
+	public Long saveHouseEntrustmentData(Map<String,Object> saveMap);
+	/**
+	 * 保存客户需求委托
+	 * @Title: saveDemandEntrustmentData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户需求委托
+	 * @param paraMap 要保存数据对象
+	 * void
+	 */
+	public void saveDemandEntrustmentData(@Param("paraMap")Map<String,Object> paraMap);
+	/**
+	 * 根据客户需求匹配房源信息
+	 * @Title: queryHouseSourceDataByMatchingCondition
+	 * @author: zuoyuntao  
+	 * @Description:根据客户需求匹配房源信息     
+	 * @param demandEntity 客户需求实体对象
+	 * List<CustomerHouseEntrustmentEntity>
+	 */
+	public List<CustomerHouseEntrustmentEntity> queryHouseSourceDataByMatchingCondition(
+			CustomerDemandEntrustmentEntity demandEntity);
+	/**
+	 * 查询客户房源出售、出租委托信息
+	 * @Title: queryHouseEntrustData
+	 * @author: zuoyuntao  
+	 * @Description:查询客户房源出售、出租委托信息
+	 * @param custId  客户ID
+	 * @return      
+	 * WebPage<CustomerHouseEntrustmentEntity>
+	 */
+	public Page<CustomerHouseEntrustmentEntity> queryHouseEntrustData(@Param("custId") String custId);
+	/**
+	 * 查询客户需求求租、求购委托信息
+	 * @Title: queryDemandEntrustData
+	 * @author: zuoyuntao  
+	 * @Description:查询客户需求求租、求购委托信息
+	 * @param custId 客户ID
+	 * @param entrustType 委托类型
+	 * @return      
+	 * List<CustomerDemandEntrustmentEntity>
+	 */
+	public Page<CustomerDemandEntrustmentEntity> queryDemandEntrustData(@Param("custId") String custId
+			,@Param("entrustType") String entrustType);
+	/**
+	 * 保存经纪人受理数据信息
+	 * @Title: saveAgentAcceptDataList
+	 * @author: zuoyuntao  
+	 * @Description:保存经纪人受理数据信息
+	 * @param paraMap  经纪人受理数据对象
+	 * void
+	 */
+	public void saveAgentAcceptDataList(@Param("paraMap")Map<String,Object> paraMap);
+	/**
+	 * 房源撤销委托
+	 * @Title: concelEntrust
+	 * @author: zuoyuntao  
+	 * @Description:房源撤销委托
+	 * @param entrustId 委托ID 
+	 * void
+	 */
+	public void concelEntrust(@Param("entrustId")String entrustId);
+	
+	/**
+	 * 获取小区数据信息
+	 * @Title: queryCommunityList
+	 * @author: zuoyuntao  
+	 * @Description:获取小区数据信息
+	 * @param rgCode: 当前城市编码
+	 * @return      
+	 * List<CustomerUserCentralCommunityEntity> 数据中包含【行政区、片区、小区】数据
+	 */
+	public List<CustomerUserCentralCommunityEntity> queryCommunityList(@Param("rgCode") String rgCode);
+	
+	/**
+	 * 根据小区ID获取座栋信息
+	 * @Title: queryBuildingsData
+	 * @author: zuoyuntao  
+	 * @Description:根据小区ID获取座栋信息 
+	 * @param communityId 小区ID
+	 * @return      
+	 * List<CustomerUserCentralBuildingEntity> 
+	 */
+	public List<CustomerUserCentralBuildingEntity> queryBuildingsData(@Param("communityId") String communityId);
+	/**
+	 * 根据座栋ID查询单元、门牌号数据信息
+	 * @Title: queryBuildingUnityAndHouse
+	 * @author: zuoyuntao  
+	 * @Description:根据座栋ID查询单元、门牌号数据信息
+	 * @param buildingId 座栋ID
+	 * @return      
+	 * List<CustomerUserCentralBuildingHouseEntity>
+	 */
+	public List<CustomerUserCentralBuildingHouseEntity> queryBuildingUnityAndHouse(@Param("buildingId") String buildingId);
+	/**
+	 * 根据客户登陆key和委托ID查委托
+	 * @Title: queryEntrustDataByCustIdAndEntrustId
+	 * @author: zuoyuntao  
+	 * @Description:根据客户登陆key和委托ID查委托
+	 * @param custId 用户ID
+	 * @param entrustId 委托ID
+	 * @return      
+	 * CustomerHouseEntrustmentEntity
+	 */
+	public CustomerHouseEntrustmentEntity queryEntrustDataByCustIdAndEntrustId(
+			@Param("custId")String custId,@Param("entrustId")String entrustId);
+	/**
+	 * 
+	 * 房源重新委托
+	 * @Title: updateCustomerEntrust
+	 * @author: zuoyuntao  
+	 * @Description:房源重新委托
+	 * @param paramMap 
+	 * @return      
+	 * void
+	 */
+	public void updateCustomerEntrust(Map<String,Object> paramMap);
+	
+	/**
+	 * 根据房源Id撤销房源
+	 * @Title: cancelOurHouse
+	 * @author: zuoyuntao  
+	 * @Description:根据房源Id撤销房源
+	 * @param houseId 房源ID
+	 * @param custId 客户ID
+	 * void
+	 */
+	public void cancelOurHouseById(@Param("houseId")String houseId,@Param("custId")String custId);
+}

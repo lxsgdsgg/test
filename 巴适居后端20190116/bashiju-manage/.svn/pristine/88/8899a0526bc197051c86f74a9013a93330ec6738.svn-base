@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.PostMapper">
+	<select id="queryPostList" resultType="map">
+		select sp.id,sp.name,if(sp.isvalid=1,'有效','无效') as isvalid,sp.addTime,sp.updateTime,sp.permissionArea,sp.operatorId from sys_post sp where isvalid=1
+		<if test="postName!=null and postName!=''"> and name like'%${postName}%'</if>
+	</select>
+	
+	
+	<select id="queryPostById" resultType="java.util.LinkedHashMap">
+		select * from sys_post where id=#{id} and isvalid=1
+	</select>
+	 
+	 <select id="isRelation" resultType="long">
+	 
+	 	select count(id)from sys_user where postId=#{postId}
+	 	
+	 </select>
+	 
+	 
+
+
+</mapper>

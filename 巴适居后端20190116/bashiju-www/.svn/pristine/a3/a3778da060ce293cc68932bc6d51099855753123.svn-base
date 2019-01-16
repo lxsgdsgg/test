@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustomerConcernedHouseMapper">
+	<resultMap type="com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity" id="resultMap">
+		<id property="id" column="id"/>
+        <result property="type" column="type"/>
+        <result property="sourceId" column="sourceId"/>
+        <result property="custId" column="custId"/>
+        <result property="addTime" column="addTime"/>
+        <result property="isValid" column="isValid"/>
+     </resultMap>
+	
+	<select id="queryAllConcernedList" resultMap="resultMap">
+		select * from cust_attention where custId = #{custId} and isValid = 1
+		and type = #{houseType} and sourceId = #{sourceId}
+	</select>
+	
+	<update id="cancelConcernedHouse">
+		update cust_attention set isValid = 0 where custId = #{custId} and sourceId = #{sourceId}
+	</update>
+	
+</mapper>

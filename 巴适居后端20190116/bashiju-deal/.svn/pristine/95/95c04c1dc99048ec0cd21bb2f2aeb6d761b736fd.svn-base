@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.DealFinanceDividenInfoMapper">
+	<select id="queryDealFinanceDividenInfoData" resultType="map">
+		SELECT CONCAT(dti.areaName,dti.regionName,dti.communityName,dti.buildingsName,dti.buildingsUnitName,dti.buildingHouseName) as address,dti.dealType,sd.name as dividerDeptName,sy.realName as dividerName,cr.id as commissionId,cr.dealId,cr.isDivide,dfi.id,dfi.companyId,dfi.companyName,dfi.dividerId,dfi.dividReason,dfi.dividRate,dfi.estimateProfit,
+		dfi.actualProfit,dfi.permissionArea,dfi.addTime,dfi.updateTime,dfi.operatorId,dfi.operator,dfi.isValid
+		FROM deal_commissionrecord AS cr
+		INNER JOIN deal_financedivideninfo AS dfi ON cr.id = dfi.commissionId
+		INNER JOIN sys_user sy on sy.id= dfi.dividerId
+		INNER JOIN sys_dept sd on sy.deptId =sd.id
+		INNER JOIN deal_transactioninfo dti on dti.id=cr.dealId
+		<if test="dealType!=null and dealType!='' "> and dti.dealType = #{dealType}</if>
+		<if test="beginTime!=null and beginTime !='' "> and dfi.addTime &gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime !='' "> and dfi.addTime &lt;=#{endTime}</if>
+		<if test="dividerId!=null and dividerId!='' ">and ddi.dividerId = #{dividerId}</if>
+		<if test="isValid!=null and isValid!='' "> and dfi.isValid = #{isValid}</if>
+		<if test="dealId!=null and dealId!='' "> and cr.dealId = #{dealId}</if>
+	</select>
+</mapper>

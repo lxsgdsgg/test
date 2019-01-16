@@ -1,0 +1,87 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerTransitHouseEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年9月21日 下午8:38:47   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 过户房源实体类
+ * @ClassName:CustomerTransitHouseEntity
+ * @Description:过户房源实体类
+ * @author:zuoyuntao
+ * @date:2018年9月21日 下午8:38:47
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustomerTransitHouseEntity implements Serializable{
+	/**   
+	 * @Fields serialVersionUID : 
+	 */ 
+	private static final long serialVersionUID = 3093427882794028957L;
+	/**房源ID**/
+	private int id;
+	/**房间数**/
+	private int room;
+	/**大厅数**/
+	private int hall;
+	/**卫生间数**/
+	private int toilet;
+	/**厨房数**/
+	private int kitchen;
+	/**房屋性质**/
+	private String houseUses;
+	/**房屋性质ID**/
+	private int houseUsesId;
+	/**使用面积**/
+	private int useSpace;
+	/**建筑面积**/
+	private int buildSpace;
+	/**朝向Id**/
+	private int orientationId;
+	/**朝向**/
+	private String orientation;
+	/**装修ID**/
+	private int decorationId;
+	/**装修**/
+	private String decoration;
+	/**周边配套ID**/
+	private int matchingIds;
+	/**周边配套**/
+	private String matching;
+	/**建筑年代**/
+	private String buildDates;
+	/**房源标签**/
+	private String labeld;
+	/**建筑结构**/
+	private String structure;
+	/**建筑结构ID**/
+	private int structureId;
+	/**房屋类型ID**/
+	private int houseTypeId;
+	/**房屋类型**/
+	private String houseType;
+	/**产权年限ID**/
+	private int propRightsLenId;
+	/**产权年限**/
+	private String propRightsLen;
+	/**所在楼层*/
+	private String floorHeight;
+	/**电梯数**/
+	private String elevatorCount;
+	/**每层户数**/
+	private String householdCount;
+	
+
+}

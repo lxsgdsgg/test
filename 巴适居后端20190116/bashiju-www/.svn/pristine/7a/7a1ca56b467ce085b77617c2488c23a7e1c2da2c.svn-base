@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CommMapper">
+	
+	<insert id="saveAttention">
+           insert into cust_attention(type,sourceId,custId,addTime,isValid) 
+           value(#{type},#{sourceId},#{custId},now(),1)
+     </insert> 
+
+	<update id="addAttentionCount">
+		UPDATE hs_secondHandHouse SET attentionCount=attentionCount+1 WHERE id=#{houseId}
+	</update>
+	<update id="minusAttentionCount">
+		UPDATE hs_secondHandHouse SET attentionCount=attentionCount-1 WHERE id=#{houseId}
+	</update>
+
+	 <delete id="delAttention">
+  	 	delete from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+  	 </delete>
+  	 
+	<select id="isAttention" resultType="int">
+		select count(0) from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+	</select>
+	
+	<insert id="addFeedback">
+		insert into cust_feedback (content,contact,addTime)
+		value(#{content},#{contact},#{addTime})
+	</insert>
+	
+	<select id="queryCommunityBestAgent" parameterType="String" resultType="com.bashiju.www.pojo.service.agent.Agent">
+		select a.userId,a.agentId,c.realName as agentName,c.deptId,c.profilePhoto profileUrl,d.name as postName,b.mainRegions mainRegionsCodes,
+		 b.mainRegions,b.showedRdCnt,b.histShowedRdCnt,b.StarRating,b.commentCnt,c.telPhone,
+		 (select group_concat(distinct labels) from sys_cust_starRating where agentId=b.id group by agentId) as label  from sys_communityBestAgent a 
+		left join sys_agent_details b on a.agentId = b.id
+		left join sys_user c on a.userId = c.id 
+		left join sys_post d on c.postId = d.id
+		where a.communityId = #{communityCode};
+	</select>
+	<select id="queryWebProtocol" resultType="com.bashiju.www.pojo.service.out.comm.WebProtocolResult">
+		select title,content from sys_protocol where typeId=#{typeId} and isValid = 1 order by addTime desc
+	</select>
+</mapper>

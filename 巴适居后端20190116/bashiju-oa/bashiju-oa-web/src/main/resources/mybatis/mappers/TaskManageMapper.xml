@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.oa.mapper.TaskManageMapper">
+	
+	<select id="queryTask" resultType="map">
+		select id, name,beginTime,endTime,companyId,operatorId,operator,
+		permissionArea from sys_task_main where isvalid =1 
+		<if test="taskName!=null and taskName!=''"> and name like concat('%',#{taskName},'%')</if>
+		order by addTime desc
+	</select>	
+	
+	<select id="queryUserBelongDept" resultType="map">
+		<!-- select a.id as agentId,a.realName as agentName,a.deptId,b.name as deptName from sys_user a 
+		left join sys_dept b on a.deptId = b.id
+		 where a.permissionArea like concat(#{deptId},'%') and  a.isAgent =1 and a.isvalid=1 -->
+		 select a.id as agentId,a.realName as agentName,a.deptId ,b.name as deptName from sys_user a 
+		 left join sys_dept b on a.deptId = b.id 
+		 where a.isValid and b.id =#{deptId} and a.isAgent = 1  
+	</select>
+	
+	<select id="queryAlreadyDistributedTaskUser" resultType="map">
+		SELECT a.id,a.taskId,
+		a.agentId,a.agentName,a.deptId,a.deptName,a.sellHouseAdd,a.rentHouseAdd,
+		a.sellCustomerAdd,a.rentCustomerAdd,a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerFollow,
+		a.rentCustomerFollow,a.sellHouseFollow,a.rentlHouseFollow,a.sellHouseShowed,a.rentHouseShowed,
+		a.sellDeal,a.rentDeal,a.sellHouseRealExploration,a.rentHouseRealExploration,a.sellHouseKey,
+		a.rentHouseKey,a.permissionArea,a.operatorId,a.operator,a.addTime,a.sellDealMoney,a.rentDealMoney FROM
+		sys_task_detailed AS a WHERE a.taskId = #{taskId} AND a.deptId = #{deptId} and a.isvalid = 1
+	</select>
+	
+	<select id="queryTaskIsExist" resultType="long">
+		select count(*) from sys_task_main where  isvalid = 1 and companyId = #{companyId} and (beginTime BETWEEN #{beginTime} and #{endTime}  or endTime BETWEEN #{endTime}  and #{beginTime});
+
+	</select>
+	
+	<select id="queryAllAgent" resultType="map">
+		select a.realName as agentName,a.id as agentId,b.name as deptName,b.id as deptId   from sys_user a 
+		left join sys_dept b on a.deptId = b.id 
+	    where a.isValid = 1 and  a.companyId = #{companyId} and a.isAgent = 1
+	</select>
+	
+	<select id="queryAgentIsExistTask" resultType="long">
+		select count(*) from sys_task_detailed where isvalid = 1 and  taskId = #{taskId} and agentId  = #{agentId} 
+	</select>
+	
+	<select id="queryAgentInfoById" resultType="map">
+		select a.id as agentId,a.realName as agentName,b.name as deptName,b.id as deptId from sys_user a 
+		left join sys_dept b on a.deptId = b.id
+		where a.isvalid = 1 and   a.isAgent = 1 and a.id = #{agentId}
+	</select>
+	
+	<select id="queryTaskDetail" resultType="map">
+		<!-- select id,agentId,agentName,deptName from sys_task_detailed where taskId = #{taskId} and isvalid = 1	 -->
+		SELECT a.id,a.taskId,a.agentId,a.agentName,a.deptId,a.deptName,
+		a.sellHouseAdd,a.rentHouseAdd,a.sellCustomerAdd,a.rentCustomerAdd,
+		a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerFollow,a.rentCustomerFollow,
+		a.sellHouseFollow,a.rentlHouseFollow,a.sellHouseShowed,a.rentHouseShowed,
+		a.sellDeal,a.rentDeal,a.sellHouseRealExploration,a.rentHouseRealExploration,
+		a.sellHouseKey,a.rentHouseKey,a.permissionArea,a.operatorId,a.operator,
+		a.addTime,a.updateTime,a.sellDealMoney,a.rentDealMoney FROM sys_task_detailed AS a
+		WHERE a.isvalid = 1 and a.taskId =#{taskId}
+		 <if test="deptId !=null and deptId!='' ">
+			  and a.deptId =#{deptId} 
+		 </if>
+		 <if test="agentId !=null and agentId!='' ">
+ 			  and a.agentId =#{agentId}
+		 </if>
+	</select>
+	
+	<select id="queryAgentDistributedTaskDetail" resultType="map">
+		SELECT b.name as taskName,a.id,a.taskId,a.agentId,a.agentName,a.deptId,a.deptName,a.sellHouseAdd,a.rentHouseAdd,a.sellCustomerAdd,
+		a.rentCustomerAdd,a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerFollow,a.rentCustomerFollow,a.sellHouseFollow,
+		a.rentlHouseFollow,a.sellHouseShowed,a.rentHouseShowed,a.sellDeal,a.rentDeal,a.sellHouseRealExploration,
+		a.rentHouseRealExploration,a.sellHouseKey,a.rentHouseKey,a.permissionArea,a.operator,a.addTime,a.isvalid,
+		a.sellDealMoney,a.rentDealMoney
+		FROM sys_task_detailed AS a
+		left join sys_task_main b on a.taskId = b.id
+		 where  a.isvalid = 1 and a.agentId = #{agentId} and a.taskId =#{taskId}
+	</select>
+	
+	<select id="queryAgentTaksCompletedNumber" resultType="map">
+	     select  
+			count(case when operatTypeId = 1 then id end) as sellDeal1,
+			count(case when operatTypeId = 2 then id end) as rentDeal1,
+			count(case when operatTypeId = 3 then id end) as newHouseDeal1,
+			count(case when operatTypeId = 34 then id end) as cusSellDeposit1,
+			count(case when operatTypeId = 41 then id end) as cusRentDeposit1,
+			count(case when operatTypeId = 4 then id end) as sellHouseAdd1,
+			count(case when operatTypeId = 18 then id end) as rentHouseAdd1,
+			count(case when operatTypeId = 32 then id end) as sellCustomerAdd1,
+			count(case when operatTypeId = 39 then id end) as rentCustomerAdd1,
+			count(case when operatTypeId = 21 then id end) as sellExclusivet1,
+			count(case when operatTypeId = 7 then id end) as rentExclusivet1,
+			count(case when operatTypeId = 16 then id end) as sellVideo1,
+			count(case when operatTypeId = 30 then id end) as rentVideo1,
+			count(case when operatTypeId = 6 then id end) as sellHouseKey1,
+			count(case when operatTypeId = 20 then id end) as rentHouseKey1,
+			count(case when operatTypeId = 17 then id end) as sellEntrust1,
+			count(case when operatTypeId = 31 then id end) as rentEntrust1,
+			count(case when operatTypeId = 5 then id end) as sellOpenDisc1,
+			count(case when operatTypeId = 19 then id end) as rentOpenDisc1,
+			count(case when operatTypeId = 50 then id end) as sellCustomerShowed1,
+			count(case when operatTypeId = 52 then id end) as rentCustomerShowed1,
+			count(case when operatTypeId = 51 then id end) as sellHouseShowed1,
+			count(case when operatTypeId = 53 then id end) as rentHouseShowed1,
+			count(case when operatTypeId = 54 then id end) as newHouseShowed1,
+			count(case when operatTypeId = 48 then id end) as sellCustomerFollow1,
+			count(case when operatTypeId = 49 then id end) as rentCustomerFollow1,
+			count(case when operatTypeId = 46 then id end) as sellHouseFollow1,
+			count(case when operatTypeId = 47 then id end) as houseRealExploration1,
+			count(case when operatTypeId = 56 then id end) as housePhone1,
+			count(case when operatTypeId = 57 then id end) as sellCustomerPhone1,
+			count(case when operatTypeId = 58 then id end) as rentCustomerPhone1,
+			count(case when operatTypeId = 59 then id end) as rentHouseFollow1,
+			count(case when operatTypeId = 60 then id end) as rentHouseRealExploration1
+		 from report_operation_analysis  where   isvalid = 1 and operatorId = #{agentId} and   addTime BETWEEN #{beginTime} and #{endTime}
+	</select>
+
+</mapper>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ResCustReturnCycleMapper">
+
+	<select id="queryResCustReturnCycleData" resultType="map">
+			select id,companyId,levelType,transactionType,privateAllBack,privateAdminBack,
+		pubicAllBack,publicAdminBack,privateAllLook,privateAdminLook,
+		publicAllLook,publicAdminLook,permissionArea,operatorId,operator,addTime,
+		updateTime,isValid from res_cust_return_cycle where isValid=1 and companyId=#{companyId} 
+	</select>
+
+</mapper>

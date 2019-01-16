@@ -1,0 +1,111 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ExcelTestController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年11月29日 下午2:54:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.controller;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.bashiju.manage.service.ExcelModelService;
+import com.bashiju.manage.utils.ExcelUtil;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+/**   
+ * @ClassName:  ExcelModelController   
+ * @Description:excel模板导出  
+ * @author: yangz
+ * @date:   2018年11月29日 下午2:54:21   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="excelModel")
+public class ExcelModelController {
+	
+	@Autowired
+	private ExcelModelService excelModelService;
+	
+	/**
+	 * @Description: 导出小区模板  
+	 * @param request
+	 * @param response      
+	 * @return: void
+	 */
+	@RequestMapping(value="exportCommunityExcelModel")
+	public void exportCommunityExcelModel(HttpServletRequest request,HttpServletResponse response) {
+		Map<String,String> title = new TreeMap<String,String>();
+		title.put("name","名称");
+		title.put("recordName","备案名");
+		title.put("pinyin","名称拼音");
+		title.put("areaCode","区域");
+		title.put("regionId","片区");
+		title.put("address","地址");
+		title.put("longitude","经度");
+		title.put("latitude","纬度");
+		title.put("floorArea","占地面积");
+		title.put("buildingArea","建筑面积");
+		title.put("buildingCount","楼栋总数");
+		title.put("houseCount","房屋总套数");
+		title.put("propertyLimit","产权年限");
+		title.put("capacityRatio","容积率");
+		title.put("greenRate","绿化率");
+		title.put("developers","开发商");
+		title.put("communityProfile","小区简介");
+		
+		title.put("salePrice","出售均价");
+		title.put("isHot","是否热门小区");
+		title.put("buildYear","建筑年代");
+		title.put("matching","配套");
+		title.put("gas","燃气");
+		title.put("elevatorService","电梯服务");
+		title.put("waterSupply","供水");
+		title.put("heatSupply","供暖");
+		title.put("powerSupply","供电");
+		title.put("groundParkingCount","地上停车位数量");
+		title.put("underGroundParkingCount","地下停车位数量");
+		title.put("groundParkingLeasePrice","地上停车位出租价");
+		title.put("underGroundParkingLeasePrice","地下停车位出租价");
+		title.put("groundParkingSalePrice","地上停车位出售价");
+		title.put("underGroundParkingSalePrice","地下停车位出售价");
+		title.put("propertyPhone","物业电话");
+		title.put("propertyFees","物业费");
+		title.put("propertyName","物业名称");
+		title.put("propertyAddress","物业地址");
+		title.put("street","街道");
+		
+		try {
+			Map<String, List<String>> dropDowns = new HashMap<String,List<String>>(0);
+			String cityCode = UserThreadLocal.get().get("cityCode").toString();
+			String[] isUse = {"1.是","0.否"};
+			dropDowns.put("areaCode", excelModelService.queryAreaCodeDropDown(cityCode));
+			dropDowns.put("regionId", excelModelService.queryRegionDropDown(cityCode));
+			dropDowns.put("matching", excelModelService.queryCommunityMatchingDropDown());
+			dropDowns.put("isHot", Arrays.asList(isUse));
+			dropDowns.put("elevatorService", Arrays.asList(isUse));
+			dropDowns.put("waterSupply", Arrays.asList(isUse));
+			dropDowns.put("heatSupply", Arrays.asList(isUse));
+			dropDowns.put("powerSupply", Arrays.asList(isUse));
+			ExcelUtil.exportModelXLSX(dropDowns, title, "小区信息模板", response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}

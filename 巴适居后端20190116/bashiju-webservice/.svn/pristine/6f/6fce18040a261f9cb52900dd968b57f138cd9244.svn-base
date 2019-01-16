@@ -1,0 +1,14 @@
+jdbc.master.driver=com.mysql.jdbc.Driver
+jdbc.master.url=jdbc:mysql://masterdb.bashiju.com:3306/bashiju_erp?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+jdbc.master.username=root
+jdbc.master.password=123456
+
+jdbc.slave01.driver=com.mysql.jdbc.Driver
+jdbc.slave01.url=jdbc:mysql://slave01db.bashiju.com:3306/bashiju_erp?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+jdbc.slave01.username=root
+jdbc.slave01.password=123456
+
+jdbc.slave02.driver=com.mysql.jdbc.Driver
+jdbc.slave02.url=jdbc:mysql://slave02db.bashiju.com:3306/bashiju_erp?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+jdbc.slave02.username=root
+jdbc.slave02.password=123456

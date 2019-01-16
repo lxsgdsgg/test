@@ -1,0 +1,44 @@
+package com.bashiju.www.service.comm.impl;
+
+import org.springframework.stereotype.Service;
+
+import com.bashiju.www.pojo.service.input.comm.FeedbackParam;
+import com.bashiju.www.service.comm.ICommService;
+/**
+ * 
+ *   公共服务类
+ * @ClassName:  CommServiceImpl   
+ * @Description:  公共服务类
+ * @author: wangkaifa
+ * @date:   2018年7月27日 下午4:33:35       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CommServiceImpl implements ICommService {
+
+	@Override
+	public boolean addAttention(int custId, String sourceId, int type) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean cancelAttention(int custId, String sourceId, int type) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isAttention(int custId, String sourceId, int type) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addFeedback(FeedbackParam param) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+}

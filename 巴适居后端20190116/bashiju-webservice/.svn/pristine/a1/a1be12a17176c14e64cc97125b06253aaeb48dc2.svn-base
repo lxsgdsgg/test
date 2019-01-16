@@ -1,0 +1,83 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 用dubbo协议在20881端口暴露服务 ,同一台服务器上不同应用都要发布dubbo,端口号不能相同-->
+	<dubbo:protocol name="dubbo"  port="20887" />
+		
+	<!-- 将该接口暴露到dubbo中 -->
+	 <dubbo:service interface="com.bashiju.wapi.IZiXunPageServiceApi"
+		ref="ziXunPageServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IBaiKePageServiceApi"
+		ref="baiKePageServiceApiImpl" />	
+	<dubbo:service interface="com.bashiju.wapi.IHomePageServiceApi"
+		ref="homePageServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseRentInfoPageServiceApi"
+		ref="houseRentInfoPageServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseRentListPageServiceApi"
+		ref="houseRentListPageServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseSellInfoPageServiceApi"
+		ref="houseSellInfoPageServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseSellListPageServiceApi"
+		ref="houseSellListPageServiceApiImpl" />	
+	<dubbo:service interface="com.bashiju.wapi.IMapHouseRentPageServiceApi"
+		ref="mapHouseRentPageServiceApiImpl" />	
+	<dubbo:service interface="com.bashiju.wapi.IMapHouseSellPageServiceApi"
+		ref="mapHouseSellPageServiceApiImpl" />	
+	<dubbo:service interface="com.bashiju.wapi.ICommunityDetailServiceApi"
+		ref="communityDetailServiceApiImpl" />	
+	<dubbo:service interface="com.bashiju.wapi.ICommunityServiceApi"
+		ref="communityServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IAgentServiceApi"
+		ref="agentServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.wapi.IAgentDetailServiceApi"
+		ref="agentDetailServiceApiImpl" />
+		
+	<!-- 个人中心生产者服务注册开始 -->
+	<dubbo:service ref="customerConcernedPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi"/>	
+	<dubbo:service ref="customerHouseEntrustPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi"/>	
+	<dubbo:service ref="customerHouseTransitSchedulePageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerHouseTransitSchedulePageServiceApi"/>	
+	<dubbo:service ref="customerMyAgentServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerMyAgentServiceApi"/>	
+	<dubbo:service ref="customerMyAppointmentPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerMyAppointmentPageServiceApi"/>	
+	<dubbo:service ref="customerMyHousesourcePageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerMyHousesourcePageServiceApi"/>	
+	<dubbo:service ref="customerMyRequestPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerMyRequestPageServiceApi"/>	
+	<dubbo:service ref="customerPersonCentralPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerPersonCentralPageServiceApi"/>	
+	<dubbo:service ref="customerPersonInfoPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerPersonInfoPageServiceApi"/>	
+	<dubbo:service ref="customerSeeHouseRecordPageServiceApiImpl" interface="com.bashiju.wapi.usercentral.ICustomerSeeHouseRecordPageServiceApi"/>	
+	<dubbo:service ref="customerRecruitServiceApiImpl" interface="com.bashiju.wapi.ICustomerRecruitServiceApi"/>
+	<!-- 个人中心生产者服务注册结束-->
+		
+	<!--将具体的实现类加入到Spring容器中-->
+	<bean id="ziXunPageServiceApiImpl" class="com.bashiju.www.service.api.impl.ZiXunPageServiceApiImpl" /> 
+	<bean id="baiKePageServiceApiImpl" class="com.bashiju.www.service.api.impl.BaiKePageServiceApiImpl" />
+	<bean id="homePageServiceApiImpl" class="com.bashiju.www.service.api.impl.HomePageServiceApiImpl" />
+	<bean id="houseRentInfoPageServiceApiImpl" class="com.bashiju.www.service.api.impl.HouseRentInfoPageServiceApiImpl" />
+	<bean id="houseRentListPageServiceApiImpl" class="com.bashiju.www.service.api.impl.HouseRentListPageServiceApiImpl" />
+	<bean id="houseSellInfoPageServiceApiImpl" class="com.bashiju.www.service.api.impl.HouseSellInfoPageServiceApiImpl" />
+	<bean id="houseSellListPageServiceApiImpl" class="com.bashiju.www.service.api.impl.HouseSellListPageServiceApiImpl" />
+	<bean id="mapHouseRentPageServiceApiImpl" class="com.bashiju.www.service.api.impl.MapHouseRentPageServiceApiImpl" />
+	<bean id="mapHouseSellPageServiceApiImpl" class="com.bashiju.www.service.api.impl.MapHouseSellPageServiceApiImpl" />
+	<bean id="communityDetailServiceApiImpl" class="com.bashiju.www.service.api.impl.CommunityDetailServiceApiImpl" />
+	<bean id="communityServiceApiImpl" class="com.bashiju.www.service.api.impl.CommunityServiceApiImpl" />
+	<bean id="agentServiceApiImpl" class="com.bashiju.www.service.api.impl.AgentServiceApiImpl" />
+	<bean id="agentDetailServiceApiImpl" class="com.bashiju.www.service.api.impl.AgentDetailServiceApiImpl" />
+	
+	<!-- 个人中心生产者服务注册开始 -->
+	<bean id="customerConcernedPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerConcernedPageServiceApiImpl"/>	
+	<bean id="customerHouseEntrustPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerHouseEntrustPageServiceApiImpl"/>	
+	<bean id="customerHouseTransitSchedulePageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerHouseTransitSchedulePageServiceApiImpl"/>	
+	<bean id="customerMyAgentServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerMyAgentServiceApiImpl"/>	
+	<bean id="customerMyAppointmentPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerMyAppointmentPageServiceApiImpl"/>	
+	<bean id="customerMyHousesourcePageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentralCustomerMyHousesourcePageServiceApiImpl."/>	
+	<bean id="customerMyRequestPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerMyRequestPageServiceApiImpl"/>	
+	<bean id="customerPersonCentralPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerPersonalCentralBaseServiceApi"/>	
+	<bean id="customerPersonInfoPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerPersonInfoPageServiceApiImpl"/>	
+	<bean id="customerSeeHouseRecordPageServiceApiImpl" class="com.bashiju.www.service.api.impl.usercentral.CustomerSeeHouseRecordPageServiceApiImpl"/>	
+	<bean id="customerRecruitServiceApiImpl" class="com.bashiju.www.service.api.impl.recruit.CustomerRecruitServiceApiImpl"/>
+	<!-- 个人中心生产者服务注册结束-->
+</beans>

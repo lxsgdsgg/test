@@ -1,0 +1,220 @@
+package com.bashiju.wapi;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.comm.ContactUsResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.comm.NavigationBar;
+import com.bashiju.www.pojo.service.out.comm.OpenCity;
+import com.bashiju.www.pojo.service.out.comm.ThemeResult;
+import com.bashiju.www.pojo.service.out.comm.WebProtocolResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.GoodNewHouseListResult;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+
+/**
+ * 
+ *   首页接口
+ * @ClassName:  IHomePageService   
+ * @Description:   首页接口
+ * @author: wangkaifa
+ * @date:   2018年7月31日 上午10:31:39       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IHomePageServiceApi {
+	/**
+	 * 查询头部导航栏 
+	 * @Title: queryHeadNavigationBar   
+	 * @Description: 查询头部导航栏 
+	 * @param cityCode  已开通城市行政区域代码
+	 * @return: List<NavigationBar>
+	 */
+	List<NavigationBar> queryHeadNavigationBar(String cityCode);
+	
+	/**
+	 * 查询底部友情链接 
+	 * @Title: queryLinkedNavigationBar   
+	 * @Description: 查询底部友情链接 
+	 * @param cityCode 城市代码
+	 * @return: List<NavigationBar>
+	 */
+	List<NavigationBar> queryLinkedNavigationBar(String cityCode);
+	
+	/**
+	 * 
+		 * 查询城市的新房、二手房、租房数量
+		 * @Description: 查询城市的新房、二手房、租房数量
+		 * @param cityCode 城市代码
+		 * @return 
+		 * HouseTotalResult
+	 */
+	HouseTotalResult queryHouseTotalByCityCode(String cityCode);
+
+	/**
+	 * 
+		 * 首页根据城市查询最新资讯列表
+		 * @Description: 根据城市查询热门资讯列表，点击率高的的最新资讯文章 
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> queryNewZiXunList(String cityCode,int limit);
+	
+	/**
+	 * 
+		 * 首页二手房推荐查询,显示4个靓房最后修改的靓房排在最前边
+		 * @Description: 首页二手房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 
+	List<GoodHouseListResult> querySellGoodHouse(String cityCode);*/
+	/**
+	 * 
+		 * 查询二手房主题列表
+		 * @Description: 查询二手房主题列表 
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<ThemeResult>
+	 */
+	List<ThemeResult> querySellHouseThemes(String cityCode);
+	/**
+	 * 
+		 * 首页租房推荐查询,显示4个靓房最后修改的靓房排在最前边
+		 * @Description: 首页租房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<GoodHouseListResult> queryRentGoodHouse(String cityCode);
+	/**
+	 * 
+		 * 首页查询推荐新房列表
+		 * @Description: 首页查询推荐新房列表
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<GoodNewHouseListResult>
+	 */
+	public List<GoodNewHouseListResult> queryGoodProjects(String cityCode,int limit);
+	/**
+	 * 查询城市下的热门小区     (返回最热门的3条房产资讯)
+	 * @Description: 查询城市下的热门小区     (返回最热门的3条房产资讯)
+	 * @param cityCode 城市代码
+	 * @return: List<Community>
+	 */
+	public List<Community> queryHotCommunitys(String cityCode);
+	
+	/**用户注册接口   
+	 * @Description: 用户注册接口 
+	 * @param CustCustomerParam 用户信息
+	 * @return: 
+	 */
+	public boolean  saveCustCustomer(CustCustomerParam CustCustomerParam);
+	/**
+	 * 查询开通的城市信息   
+	 * @Description: 查询开通的城市信息   
+	 * @return: List<OpenCity>
+	 */
+	List<OpenCity> queryOpenCitys(); 
+	
+	/**
+	 * 
+		 * 查询网站关于我们、用户协议的详细信息
+		 * @Description: 查询网站关于我们、用户协议的详细信息
+		 * @param type 类型:0关于我们,1用户协议
+		 * @return 
+		 * ArticleInfoResult
+	 */
+	WebProtocolResult queryArticle(Integer type);
+	/**
+	 * 
+		 * 查询网站联系我们列表
+		 * @Description: 查询网站联系我们列表
+		 * @return 
+		 * List<ContactUsResult>
+	 */
+	List<ContactUsResult> queryContactUs(); 
+	/**
+	 * 用户登录  
+	 * @Title: customerLogin   
+	 * @Description: 用户登录  
+	 * @param mobile 电话号码
+	 * @param password 密码
+	 * @return: String
+	 */
+    public String userLogin(String mobile,String password);
+    /**
+     * 退出登陆
+     * @Title: userLoginout   
+     * @Description: 退出登陆
+     * @return: boolean
+     * @throws UnsupportedEncodingException 
+     */
+    public boolean userLoginout(String redisKey);
+    /**
+     * 短信登录
+     * @Title: mobileLogin   
+     * @Description: 短信登录
+     * @param mobile 电话号码
+     * @return: String
+     */
+    public String mobileLogin(String mobile,String solt);
+    /**
+     * 修改用户信息
+     * @Title: updateUserInfo
+     * @Description: 修改用户信息
+     * @param custCustomerEntity
+     * @return: boolean
+     */
+    public boolean updateUserInfo(CustCustomerEntity custCustomerEntity);
+    /**
+     * 发送短息号码 
+     * @Title: sendMobileMsgVerfyCode   
+     * @Description: 发送短息号码   
+     * @param mobile 手机号码
+     * @return: String
+     */
+    public String sendMobileMsgVerfyCode(String mobile);
+	/***
+	 * 查询手机号码是否存在 
+	 * @Title: checkMobileIsExist   
+	 * @Description: 查询手机号码是否存在 
+	 * @param mobile 手机号码
+	 * @return: boolean true:已存在，false:不存在
+	 */
+    public boolean checkMobileIsExist(String mobile);
+
+    /**
+     *  修改用户密码
+     * @Title: updateCustomerPwdByMobile   
+     * @Description:修改用户密码
+     * @param mobile 手机号码
+     * @param password 密码
+     * @return: boolean  true:成功，false：失败
+     */
+    public boolean updateCustomerPwdByMobile(String mobile,String password);
+    
+    
+    /**
+     * 短信验证码是否正确  
+     * @Title: mobileMsgCheck   
+     * @Description: 短信验证码是否正确  
+     * @param mobile 手机号码
+     * @param slot 短信验证码
+     * @return: boolean true:正确，false:错误
+     */
+    public boolean mobileMsgCheck(String mobile,String slot);
+    //TODO 头部图片接口
+    
+	//TODO 新房推荐接口
+	
+	//TODO 微店宝图片接口
+	
+}

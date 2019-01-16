@@ -1,0 +1,51 @@
+package com.bashiju.www.global;
+
+/**   
+ * 房源全局变量类
+ * @ClassName  HouseGlobal   
+ * @Description 本全局类的变量仅存放对单点登陆模块范围类使用的变量，针对整个系统的全局变量存放到bashiju-utils工程中  
+ * @author zhaobin
+ * @date   2018年5月30日 下午1:57:05   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class WebGlobal {	
+		/*------左云涛建立的全局类 开始------*/
+	
+	
+		/*左云涛建立的全局类 结束*/
+	
+	/*------王开发建立的全局类 开始------*/
+	/** 区县值存入redis的key值前缀**/
+	public static final String AREA_ITEM_REDIS_PREFIX="AREA_REDIS_PREFIX_";
+	/** 片区值存入redis的key值前缀**/
+	public static final String REGION_ITEM_REDIS_PREFIX="REGION_REDIS_PREFIX_";
+	/** 动态下拉值存入redis的key值**/
+	public static final String SELECT_ITEM_REDIS_KEY="SELECT_REDIS_KEY";
+	/** 区间值存入redis的key值前缀**/
+	public static final String RANGE_ITEM_REDIS_PREFIX="RANGE_REDIS_PREFIX_";
+	/** 地铁线路存入redis的key值前缀**/
+	public static final String METRO_LINE_REDIS_PREFIX="METRO_REDIS_PREFIX_";
+	/** 地铁站点存入redis的key值前缀**/
+	public static final String METRO_STATION_REDIS_PREFIX="METRO_STATION_REDIS_PREFIX_";
+	/*王开发建立的全局类 结束*/
+	
+	
+	/*------杨智建立的全局类 开始------*/
+	
+	
+	/*杨智建立的全局类 结束*/
+	
+	
+	/*------王鹏建立的全局类 开始------*/
+	
+	
+	/*王鹏建立的全局类 结束*/
+	
+	
+	/*-----李雯建立的全局类 开始-----*/
+	
+	
+	/*李雯建立的全局类 结束*/
+}

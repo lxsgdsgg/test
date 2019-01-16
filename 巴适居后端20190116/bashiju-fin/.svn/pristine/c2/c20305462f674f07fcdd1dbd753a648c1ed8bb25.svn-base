@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.EmployeeCommissionsInfoMapper">
+
+	<select id="queryEmployeeCommissionsInfo" resultType="map">
+		select a.id,a.companyId,a.companyName,a.userId,a.userName,c.name as deptName,a.months,a.businessType,truncate(a.estimateProfit/100,2) as estimateProfit,truncate(a.amount/100,2) as amount
+		,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid
+		from finance_employeeCommissions a inner join sys_user b on a.userId = b.id inner join sys_dept c on b.deptId = c.id
+		where a.isvalid=1 
+		
+		<if test="businessType != null and businessType!=0">
+			and a.businessType = #{businessType}
+		</if>
+		<if test="userId != null and userId !='' ">
+			and a.userId = #{userId}
+		</if>
+		<if test="deptId != null and deptId !='' ">
+			and b.deptId = #{deptId}
+		</if>
+		<if test="companyId!= null and companyId!=0">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="startMonth!=null and startMonth!='' ">
+			and a.months &gt;= #{startMonth}
+		</if>
+		<if test="endMonth!=null and endMonth!='' ">
+			and a.months &lt;= #{endMonth}
+		</if>
+		group by a.id desc
+	</select>
+	
+	<select id="saveGenerateCommissions">
+		call sys_employeeCommissionsCaculate(#{companyId},#{month},#{userIds})
+	</select>
+	
+	
+</mapper>

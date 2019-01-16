@@ -1,0 +1,951 @@
+package com.bashiju.customer.controller;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.customer.service.CustomerService;
+import com.bashiju.customer.service.FormService;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+
+@Controller 
+public class CustomerController extends BaseController{
+	
+	@Autowired
+	private CustomerService customerService;
+	@Autowired
+	FormService formService;
+	
+	
+	/**
+	 * 具体的跳转逻辑
+	 * @param pageName
+	 * @return 视图
+	 */
+	@RequestMapping(value="{pageName}",method=RequestMethod.GET)
+	public String toPage(@PathVariable("pageName") String pageName,Model m)
+	{
+		return pageName;
+	}
+	
+	@RequestMapping(value="list")
+	public ModelAndView goCustomerList(HttpServletRequest request,HttpServletResponse response){
+		ModelAndView mv=getModelAndView(request, response, "customer/list");
+		//mv.addObject("communitList", JSON.toJSONString(buildingService.getRegionList()));
+		mv.addObject("houseList",HouseUsesEnum.enumList);
+		mv.addObject("houseStatusList",HouseStatusEnum.enumList);
+		mv.addObject("communitList", JSON.toJSONString(formService.searchCommunity()));
+		mv.addObject("departmentList", JSON.toJSONString(formService.queryDept()));
+		mv.addObject("dynamicColumnList",formService.queryCustomField("house_customer"));
+		return mv;
+	}
+	
+
+	@RequestMapping(value="searchCustomerList")
+	@ResponseBody
+	public Map<String,Object> searchCustomerList(String condition,int start,int length,int draw) throws Exception{
+		int page=1;
+		if (start>0) {
+			start++;
+			page=start/length;
+			if (page>0&&(start%length)>0) {
+				page++;
+			}
+		}
+		if (StringUtils.isEmpty(condition)) {
+			condition="{\"transactionTypeId\":4}";
+		}	
+		Page<Map<String, Object>> pageInfo = customerService.queryCustomerTableDatas(condition,page,length);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("recordsTotal", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("draw", draw);
+		map.put("recordsFiltered", pageInfo.getTotal());
+		return map;
+	}
+	
+	
+	
+	/**
+	 * 
+		 * 查询用户自定义隐藏的列名称
+		 * @Description: 查询表格隐藏的列名称
+		 * @param formName 表单名称
+		 * @return  返回columns数组["id","name"]
+		 * @return: BashijuResult
+	 */
+	@RequestMapping(value="getTableColHiddenList")
+	@ResponseBody
+	public BashijuResult getTableColHiddenList(String formName) {
+		Map<String, Object> result=formService.queryTableHiddenField(formName);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 保存用户自定义列设置
+		 * @Description: 保存用户自定义列设置
+		 * @param formName 表单名称
+		 * @param columns 隐藏的列名称，用英文逗号分隔
+		 * @return 
+		 * @return: BashijuResult
+	 */
+	@RequestMapping(value="setTableColHidden")
+	@ResponseBody
+	public BashijuResult setTableColHidden(String formName,String columns) {
+		boolean result=formService.saveTableHiddenInfo(formName, columns);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 
+	 * @Title: showCustomerInfo （客源详细信息页面）  
+	 * @Description: TODO(获取客源和需求相关的基本信息)   
+	 * @param: @param m （把返回信息绑定到页面用）
+	 * @param: @param demandId(需求id)
+	 * @param: @param formName(表单的一个固定名称)
+	 * @param: @return  服务返回的res是一个封装了各信息的Map，   类似：res={customerInfo：{}，customInfo：{customField:{},customValue:{}}，followInfo：[{},{}]，relateagentInfo:[{},{}],nums:{}}
+	 * @return: String (返回客源详细信息页面(showcustomer)，页面所带信息：1、关于权限控制的信息，被封装到res.houseInfo里了(demandInfoPermission)；2、页面上要显示的相关的信息(info),3、选部门、选人控件所需数据depts，4、选区域控件所需数据areas
+	 *          其中，info里的具体信息有：客源和需求基本信息（customerInfo）,需求自定义的字段和值（customInfo：{字段（customField），值（customValue）}）,客源跟进信息集合（followInfo）,客源相关经纪人信息集合（relateagentInfo），近7天客源被浏览和被带看次数（nums）)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="showCustomerInfo")
+	public String showCustomerInfo(Model m,String demandId,String formName,String transactionTypeId) {
+		customerService.addBrowseRecord(demandId);
+		Map res=customerService.queryCustomerInfo(demandId,formName,"showinfo",transactionTypeId);
+		LinkedList<Map> depts = formService.queryDept();
+		List areas = formService.searchCommunity();
+		m.addAttribute("demandInfoPermission", res.get("customerInfo"));
+		m.addAttribute("info", JSON.toJSONString(res));
+		m.addAttribute("depts", JSON.toJSONString(depts));
+		m.addAttribute("areas", JSON.toJSONString(areas));
+		return "showcustomer";
+	}
+	
+	/**
+	 * 
+	 * @Title: getCustomerInfo   
+	 * @Description: 客源详细信息
+	 * @param: @param demandId:客源编号
+	 * @param: @param formName:表单名称
+	 * @param: @return res
+	 * (返回值res中包括：1、houseInfo：{}（页面所有显示字段信息）；  2、customInfo：{customField：[](自定义的字段名称的集合),customValue：{}(自定义的字段对应的值)} ；
+	 *           3、followInfo：[](跟进信息列表) ；  4、relateagentInfo：[] (全部经纪人信息) ； 5、relateagentMoney：[](各经纪人预期业绩) ；
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	
+	@RequestMapping(value="getCustomerInfo")
+	@ResponseBody
+	public BashijuResult getCustomerInfo(String demandId,String formName,String transactionTypeId) {
+		customerService.addBrowseRecord(demandId);
+		Map<String,Object> res=customerService.queryCustomerInfo(demandId,formName,"showinfo",transactionTypeId);
+		res.put("custInfoPermission", res.get("customerInfo"));
+		return BashijuResult.ok(res); 
+		
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: exchangeDemand （租售转换页面）  
+	 * @Description: TODO(获取客源和需求相关的基本信息)   
+	 * @param: @param m （把返回信息绑定到页面用）
+	 * @param: @param demandId(需求id)
+	 * @param: @param formName(表单的一个固定名称)
+	 * * @param: @param type（是个类型标记，租售转换为：exchange，更改信息为：update）
+	 * @param: @return  服务返回的res是一个封装了各信息的Map，   类似：res={customerInfo：{}，customInfo：{customField:{},customValue:{}}，followInfo：[{},{}]，relateagentInfo:[{},{}],nums:{}}
+	 * @return: String (返回租售转换或更改信息页面(convert)，页面所带信息：1、关于权限控制的信息，被封装到res.houseInfo里了(demandInfoPermission)；2、页面上要显示的客源和需求信息(customerInfo),
+	 *                                                       3、自定义的字段集customField，4、自定义字段的值customValue
+	 *                                                       5、选部门、选人控件所需数据depts，6、选区域控件所需数据areas
+	 *                                                       7、房源用途列表houseList，8、页面所属类型type
+	 * @throws liwen
+	 */
+	@RequestMapping(value="exchangeDemand")
+	public String exchangeDemand(Model m,String demandId,String formName,String type,String transactionTypeId) {
+		
+		Map res=customerService.queryCustomerInfo(demandId,formName,"updateinfo",transactionTypeId);
+		LinkedList<Map> depts = formService.queryDept();
+		List areas = formService.searchCommunity();
+		m.addAttribute("customerInfo", JSON.toJSONString(res.get("customerInfo")));//客源信息
+		if(res.containsKey("customInfo")) {
+			Map<String,Object> customInfo = (Map<String,Object>)res.get("customInfo");
+			if(customInfo.containsKey("customField")) {//自定义字段
+				m.addAttribute("customField",customInfo.get("customField"));
+			}else {
+				m.addAttribute("customField",null);
+			}
+			if(customInfo.containsKey("customValue")) {//自定义字段的值
+				m.addAttribute("customValue", JSON.toJSONString(customInfo.get("customValue")));
+			}else {
+				m.addAttribute("customValue", "");
+			}
+		}
+		
+		m.addAttribute("depts", JSON.toJSONString(depts));
+		m.addAttribute("areas", JSON.toJSONString(areas));
+		m.addAttribute("houseList",HouseUsesEnum.enumList);
+		m.addAttribute("type", type);
+		return "convert";
+	}
+	
+	/**
+	 * 
+	 * @Title: saveExchangeCustomerInfo  
+	 * @Description: TODO(保存租售转换或更改信息页面所填写的信息)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="saveExchangeCustomerInfo")
+	@ResponseBody
+	public BashijuResult saveExchangeCustomerInfo(String dataJson,String type) {
+		
+		Long res=customerService.saveExchangeCustomerInfo(dataJson,type);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getLookHouse(查看客源带看记录)   
+	 * @Description: TODO(查看该客源被带看了哪些房源)   
+	  * @param: @param demandId(请求传来的参数1：需求id)
+	 * @param: @param page (请求传来的参数2：当前页码)
+	 * @param: @param limit (请求传来的参数3：每一页记录条数)
+	 * @param: @return pageInfo (服务返回的是封装好的当前页的请求数据)        
+	 * @return: Map<String,Object>  （当前页的带看记录信息）        
+	 * @throws liwen
+	 */
+	@RequestMapping(value="getLookHouse")
+	@ResponseBody
+	public Map<String,Object> getLookHouse(String demandId,int page,int limit) {
+		Page<Map<String, Object>> pageInfo = customerService.queryLookHouse(demandId,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	/**
+	 * 
+	 * @Title: getLookHousePath （看房轨迹）  
+	 * @Description: TODO(查询客房看的房源的小区、经纬度等信息)   
+	 * @param: @param datadata（请求传来的参数（一个json对象）：data = {demandId:需求id,
+	 *                                                        startTime：起始时间，(若填写了)
+	 *                                                        endTime：结束时间，(若填写了)
+	 *                                                        deptId：部门id,(若选择了)
+	 *                                                        peopleId:带看人id(若选择了)
+	 *                                                        }
+	 * @param: @return （服务返回客户看的房源的小区、经纬信息的列表集）     
+	 * @return: BashijuResult（把数据返回）      
+	 * @throws
+	 */
+	@RequestMapping(value="getLookHousePath")
+	@ResponseBody
+	public BashijuResult getLookHousePath(@RequestBody Map<String,Object> data){
+		List<Map<String, Object>> list = customerService.queryLookHousePath(data);
+		return BashijuResult.ok(list);
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: getFollowRecord （查看客源跟进信息）  
+	 * @Description: TODO(查看该客源被跟进的详细信息)   
+	 * @param: @param demandId(请求传来的参数1：需求id)
+	 * @param: @param page (请求传来的参数2：当前页码)
+	 * @param: @param limit (请求传来的参数3：每一页记录条数)
+	 * @param: @return pageInfo (服务返回的是封装好的当前页的请求数据)        
+	 * @return: Map<String,Object> （当前页的跟进记录信息）             
+	 * @throws liwen
+	 */
+	@RequestMapping(value="getFollowRecord")
+	@ResponseBody
+	public Map<String,Object> getFollowRecord(String demandId,int page,int limit) {
+		Page<Map<String, Object>> pageInfo = customerService.queryFollowRecord(demandId,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	/**
+	 * 
+	 * @Title: delFollow（删除跟进记录） 
+	 * @Description: TODO(删除跟进信息)   
+	 * @param: @param id(请求传来的参数1：跟进记录id)
+	 * @param: @return res (服务返回一个boolean型,false为异常，true为正常)      
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws
+	 */
+	@RequestMapping(value="delFollow")
+	@ResponseBody
+	public BashijuResult delFollow(Long id) {
+		
+		boolean res=customerService.delFollow(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getCustomerPhone  
+	 * @Description: TODO(查看客户的电话)   
+	 * @param: @param demandId（需求id）
+	 * @param: @return  （服务返回的是符合条件的电话列表集）    
+	 * @return: BashijuResult （返回电话列表）     
+	 * @throws
+	 */
+	@RequestMapping(value="getCustomerPhone")
+	@ResponseBody
+	public BashijuResult getCustomerPhone(String demandId) {
+		List phones = customerService.queryCustomerPhone(demandId);
+		return BashijuResult.ok(phones);
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: changeExamine （房源业务审核）  
+	 * @Description: TODO(房源这块需要提交审核的业务，包括：申请封盘，淘宝（从淘宝淘出），客源状态修改)   
+	 * @param: @param data（请求传来的参数（一个json对象）：data = {
+					type:type,(审核的类型：申请封盘：customerclose，淘宝：fromtaobao,客源状态修改:changestatus）
+					examineInfo:examineInfo（相关的审核信息：examineInfo={demandId：客源Id,
+					                                                remark:{
+								                                              //若是申请封盘
+								                                               (
+								                                                closeCustomerType：封盘类型，
+								                                                closeCustomerEndTime：封盘到期时间
+								                                               )
+								                                               //若是淘宝
+								                                               ( 
+								                                                 mainterRecordid：维护人记录id
+								                                               )
+								                                               //若是客源状态修改
+								                                               ( statusId：新状态id，
+								                                                 statusName：新状态名称，
+								                                               )
+								                                               
+					                                                        }
+					                                                content:申请原因
+			}
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)     
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="businessExamine")
+	@ResponseBody
+	public BashijuResult businessExamine(@RequestBody Map<String,Object> data) {
+		
+		String res=customerService.businessExamine(data);
+		if("受保护不能淘".equals(res) || "不能淘".equals(res) || "已到淘宝上限，不能再淘".equals(res) || "已淘宝，不能再淘".equals(res) || "已申请封盘，不能再封".equals(res)) {
+			throw new BusinessException(res);
+		}else if(Long.parseLong(res)>0){
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: changeSomeStatus(客源的一些信息的改变)   
+	 * @Description: TODO(客源一些信息的改变，包括：设置为进淘宝池，放入公盘，收为私盘)   
+	 * @param: @param data（请求传来的参数（一个json对象）：data = {
+	 *                  type:type,（要改的类型：设置为进淘宝池：toTaobao,放入公盘:toPublicdisc,收为私盘:setPrivatedisc)
+					    statusInfo:statusInfo(要改的相关信息：statusInfo={
+					                                                 id：房源id，
+					                                                //若是收为私盘
+					                                                 recordid:原维护人记录id
+					                                                }
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)      
+	 * @return: BashijuResult (返回执行情况)      
+	 * @throws liwen
+	 */
+	@RequestMapping(value="changeSomeStatus")
+	@ResponseBody
+	public BashijuResult changeSomeStatus(@RequestBody Map<String,Object> data) {
+		
+		String res=customerService.changeSomeStatus(data);
+		if("私盘数量已达到上限".equals(res)) {
+			throw new BusinessException("私盘数量已达到上限");
+		}else if(Long.parseLong(res)>0){
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: saveLookhouse (保存带看)  
+	 * @Description: TODO(保存带客户看房源的信息)   
+	 * @param: @param data （请求传来的参数（一个json对象）：data = {shhId：房源id(若多个房源，拼接为字符串),
+	 *                                                     houseId:房源编号（若多个房源，拼接为字符串），
+	 *                                                     houseCount:带盘量（带客户看了几套房），
+	 *                                                     content:客户评价，
+	 *                                                     demandId：需求id，
+	 *                                                     custName：客户姓名，
+	 *                                                     custCallType：客户称呼（先生，女士，公司等），
+	 *                                                     transactionTypeId:需求类型id,
+	 *                                                     transactionType:需求类型(求租或求购)
+	 *                                                     isRepeat：1（若勾选了复看选项）
+	 *                                                     }
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)      
+	 * @return: BashijuResult  (返回执行情况)    
+	 * @throws liwen
+	 */
+	@RequestMapping(value="saveLookhouse")
+	@ResponseBody
+	public BashijuResult saveLookhouse(@RequestBody Map<String,Object> data) {
+		
+		Long res=customerService.saveLookhouse(data);
+		if(res>0) {
+			return BashijuResult.ok(res);
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: delLookhouse（删除带看记录） 
+	 * @Description: TODO(删除带客户看房源的信息)   
+	 * @param: @param id(请求传来的参数1：带看记录id)
+	 * @param: @param demandId(请求传来的参数2：需求id)
+	 * @param: @return res (服务返回一个boolean型,false为异常，true为正常)      
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws
+	 */
+	@RequestMapping(value="delLookhouse")
+	@ResponseBody
+	public BashijuResult delLookhouse(Long id,String demandId) {
+		
+		boolean res=customerService.delLookhouse(id,demandId);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: uploadFile （带看房源图片上传）  
+	 * @Description: TODO(上传带看的房源的图片)   
+	 * @param: @param request（服务端上传文件用到）
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)     
+	 * @return: Map (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="uploadImg")
+	@ResponseBody
+	public BashijuResult uploadFile(HttpServletRequest request) {
+		Map<String,Object> res = customerService.saveImg(request);
+		if(res!=null && res.size()>0) {
+			return BashijuResult.ok(res);
+		}else {
+			throw new BusinessException("上传错误");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getImg （查看带看图片）  
+	 * @Description: TODO(查看带看的房源的图片)   
+	 * @param: @param id（传来的参数：带看记录id）
+	 * @param: @return  (服务返回图片的路径列表集)    
+	 * @return: BashijuResult （返回数据）     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="getImg")
+	@ResponseBody
+	public BashijuResult getImg(Long id){
+		List<Map<String,Object>> imgs = customerService.queryImg(id);
+		return BashijuResult.ok(imgs);
+	}
+	
+	/**
+	 * 
+	 * @Title: saveDeposit（保存定金）   
+	 * @Description: TODO(保存用户下的定金)   
+	 * @param: @param data（请求传来的参数（一个json对象）:data={}）
+	 * @param: @return  （服务返回会一个long值，>0为正常）    
+	 * @return: BashijuResult （返回执行情况）    
+	 * @throws liwen
+	 */
+	@RequestMapping(value="saveDeposit")
+	@ResponseBody
+	public BashijuResult saveDeposit(@RequestBody Map<String,Object> data) {
+		//String depositInfo = request.getParameter("depositInfo");
+		String res=customerService.saveDeposit(data);
+	if(!"".equals(res)){
+		
+			return BashijuResult.ok(res);
+			
+		}else {
+			throw new BusinessException("失败");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: updateStore (修改客源的收藏状态)   
+	 * @Description: TODO(修改客源的收藏状态)   
+	 * @param: @param demandId（请求传来的参数1：需求id）
+	 * @param: @param status（请求传来的参数2：收藏状态（设置为1，取消为0））
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)         
+	 * @return: BashijuResult (返回执行情况)      
+	 * @throws liwen
+	 */
+	@RequestMapping(value="updateStore")
+	@ResponseBody
+	public BashijuResult updateStore(String demandId,int status) {
+		
+		Long res=customerService.updateStore(demandId,status);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: saveOwnerPhone (新增客户的电话）  
+	 * @Description: TODO(为该客户新增一个电话)   
+	 * @param: @param data （请求传来的参数（一个json对象）：data = {
+	 						demandId:需求id,
+					 		phone:电话,
+					 		remark:电话类型（本人,配偶，亲戚，朋友）
+					    }
+	 * @param: @return  res (服务返回一个Long型,0为异常，>0为正常)      
+	 * @return: BashijuResult  (返回执行情况)    
+	 * @throws liwen
+	 */
+	@RequestMapping(value="saveCustomerPhone")
+	@ResponseBody
+	public BashijuResult saveCustomerPhone(@RequestBody Map<String,Object> data) {
+		
+		Long res=customerService.saveCustomerPhone(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: updateOwnerPhone (修改客户的电话)   
+	 * @Description: TODO(修改 客户的电话信息)   
+	 * @param: @param data （请求传来的参数（一个json对象）：data = {
+	 						id:客户此条电话记录id,
+					 		phone:电话,
+					 		remark:电话类型（本人,配偶，亲戚，朋友）
+					    }
+	 * @param: @return   res (服务返回一个Long型,0为异常，>0为正常)     
+	 * @return: BashijuResult  (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="updateCustomerPhone")
+	@ResponseBody
+	public BashijuResult updateCustomerPhone(@RequestBody Map<String,Object> data) {
+		
+		Long res=customerService.updateCustomerPhone(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: delOwnerPhone (删除客户的电话)  
+	 * @Description: TODO(删除客户的一个电话的信息)   
+	 * @param: @param id （请求传来的参数：客户此条电话记录id）
+	 * @param: @return  res (服务返回一个boolean型,true为成功，false为失败)    
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="delCustomerPhone")
+	@ResponseBody
+	public BashijuResult delCustomerPhone(Long id) {
+		
+		boolean res=customerService.delCustomerPhone(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: saveHouseFollow (保存房源跟进、提醒和通知撤单) 
+	 * @Description: TODO(保存房源的跟进和提醒信息)   
+	 * @param: @param data（请求传来的参数（一个json对象）：data = {
+	                    //若填写跟进
+	                      followInfo：followInfo{demandId:需求id，followType：跟进方式id，followTypeName：跟进方式名称，content:跟进内容}
+	                    //若填写提醒
+	                     remindInfo：remindInfo{receivePeopleId:提醒人id，receivePeopleName：提醒人名称，remindTime:提醒时间，remindContent：提醒内容}
+	                    //若选中通知撤单
+	                    isCancelNotice:1
+	                 }
+	 * @param: @return  res (服务返回一个Long型,0为异常，>0为正常)    
+	 * @return: BashijuResult (返回执行情况)      
+	 * @throws liwen
+	 */
+	@RequestMapping(value="saveCustomerFollowAndRemind")
+	@ResponseBody
+	public BashijuResult saveCustomerFollow(@RequestBody Map<String,Object> data) {
+		
+		Long res=customerService.saveCustomerFollow(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getArchives（查看客户档案信息）   
+	 * @Description: TODO(获取客户的档案信息，包括：1、房源（出租、出售、租售）；2、求租；3、求购；)   
+	 * @param: @param demandId(请求传来的参数1：需求id)
+	 * @param: @param type(请求传来的参数2：档案类型（房源：‘house’，求租：‘rent’，求购：‘buy’）)
+	 * @param: @param page (请求传来的参数3：当前页码)
+	 * @param: @param limit (请求传来的参数4：每一页记录条数)
+	 * @param: @return pageInfo (服务返回的是封装好的当前页的请求数据)        
+	 * @return: Map<String,Object> （当前页的客户档案信息）        
+	 * @throws liwen
+	 */
+	@RequestMapping(value="getArchives")
+	@ResponseBody
+	public Map<String,Object> getArchives(String demandId,String type,int page,int limit) {
+		
+		Page<Map<String, Object>> pageInfo = customerService.queryArchives(demandId,type,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: updateAgent (新增或修改相关经纪人)  
+	 * @Description: TODO(新增或修改房源的相关经纪人的信息，包括：维护人等)   
+	 * @param: @param data （请求传来的参数（一个json对象）：data = {
+	 									//若维护人
+	 									 (demandId:需求id,
+										  recordid:原维护人记录id,
+										  peopleid:原维护人id,
+										  people:原维护人,
+										  type:"wh"
+										 )
+	                         		}
+	 * @param: @return res(服务返回一个Long型,0为异常，>0为正常)      
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="updateAgent")
+	@ResponseBody
+	public BashijuResult updateAgent(@RequestBody Map<String,Object> data) {
+		
+		Long res=customerService.updateAgent(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+		 * 客源查找房源表格
+		 * @Description: 客源查找房源表格
+		 * @param conditions 查询条件，可以为空，{"transactionTypeId":4、求购 5、求租,"departmentOrUser":{"type":"1、部门，2、用户","value":部门或用户id},
+		 * "buildSpace":{"min":最小面积,"max":最大面积},"areas":[{"type":"1:行政区域、2:片区、3:小区","value":id值}],
+		 * "building":"座栋","vagueData":{"1、房源编号，2、业主姓名，3、门牌号，4、业主电话、5小区名称，6、钥匙编号，7、委托编号，8、推荐标签，9、房源备注","value":关键值}
+		 * @param page
+		 * @param limit
+		 * @return 
+		 * Map<String,Object>
+	 */
+	@RequestMapping(value="customerFindHouseList")
+	@ResponseBody
+	public Map<String, Object> customerFindHouseList(String conditions, int page, int limit){
+		String a = "11";
+		System.out.println(a);
+		Page<Map<String, Object>> pageInfo = customerService.queryHouseListByCustomer(conditions,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	/**
+	 * 
+	 * @Title: queryNewHouseList   
+	 * @Description: TODO(查询一手楼盘列表)   
+	 * @param: @param conditions
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	@RequestMapping(value="queryNewHouseList")
+	@ResponseBody
+	public Map<String, Object> queryNewHouseList(String conditions, int page, int limit){
+		Page<Map<String, Object>> pageInfo = customerService.queryNewHouseList(conditions,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+		 * 新增需求
+		 * @Description: 新增需求 
+		 * @param dataJson 需求信息{customData:{动态表单数据},transactionTypeId:4,transactionType:求购...}
+		 * @param formName 动态表单名称
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="addCustomer")
+	@ResponseBody
+	public BashijuResult addCustomer(String dataJson) {
+		customerService.addCustomer(dataJson,"add");
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 客源带看房源列表
+		 * @Description: 客源带看房源列表 
+		 * @param ids 房源id，多个用逗号分隔
+		 * @param page
+		 * @param limit
+		 * @return 
+		 * Map<String,Object>
+	 */
+	@RequestMapping(value="queryCustomerListByIds")
+	@ResponseBody
+	public Map<String, Object> queryCustomerListByIds(String ids, int page, int limit){
+		Page<Map<String, Object>> pageInfo = customerService.queryCustomerListByIds(ids,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+		 * 批量删除客源需求
+		 * @Description: 批量删除客源需求
+		 * @param customerIds 客源id，多个用逗号分隔
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="deleteCustomer")
+	@ResponseBody
+	public BashijuResult deleteCustomer(String customerIds) {
+		customerService.deleteCustomer(customerIds);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 批量转移客源
+		 * @Description:  批量转移客源
+		 * @param customerIds 客源id，多个用逗号分隔
+		 * @param userId 接收用户id
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="customerTransfer")
+	@ResponseBody
+	public BashijuResult customerTransfer(String customerIds, long userId) {
+		customerService.customerTransfer(customerIds, userId);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 匹配房源
+		 * @Description: 匹配房源 
+		 * @param conditions 查询条件，可为空: {areas:[{type:1,value:区域编号},{type:2,value:片区id},{type:3,value:小区id}],minSpace:最小面积,maxSpace:最大面积,minSellingPrice:最小售价,maxSellingPrice:最大售价,
+		 *   minRentPrice:最小租价,maxRentPrice:最大租价,minRoom:最小房间数,maxRoom:最大房间数,minFloor:最小楼层,maxFloor:最大楼层,minBuildDate:最小建筑年代,minBuildDate:最大建筑年代,transactionTypeId:交易类型(4求购，5求租)}
+		 * @param page 当前页数
+		 * @param limit 每页条数
+		 * @return status,id,houseId,communityName,buildSpace,room,sellingPrice,rentPrice,orientation,maintainer,floorCount
+		 * Map<String,Object>
+	 */
+	@RequestMapping(value="matchingHousing")
+	@ResponseBody
+	public Map<String,Object> matchingHousing(String conditions,int page,int limit) {
+		//conditions="{\"transactionTypeId\":4,\"minSpace\":90,\"areas\":[{\"type\":1,\"value\":\"530113\"}]}";
+		Page<Map<String, Object>> pageInfo = customerService.queryMatchingHousing(conditions, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+		
+	}
+	/**
+	 * 
+		 * 判断客源电话是否在黑名单，是否重复
+		 * @Description: 判断客源电话是否在黑名单，是否重复
+		 * @param phone 客源电话
+		 * @param transactionTypeId 交易类型:4、求购,5、求租
+		 * @return {success:true电话客源使用、false电话不能使用,msg:错误信息}
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryCustomerRepeat")
+	@ResponseBody
+	public BashijuResult queryCustomerRepeat(String phone,Integer transactionTypeId) {
+		customerService.queryCustomerRepeat(phone, transactionTypeId);
+		return BashijuResult.ok();
+	}
+	
+	@RequestMapping("/sendBindCode")
+	@ResponseBody
+	public BashijuResult sendBindCode(String customerId){
+		customerService.sendBindCode(customerId);
+		return BashijuResult.ok();
+	}
+
+	
+	//返回下拉值
+	@RequestMapping("/getSelectValue/{type}")
+	@ResponseBody
+	public BashijuResult getSelectValue(HttpServletRequest request,HttpServletResponse response,Model m,@PathVariable("type") String type,@RequestParam(required=false) String param){
+		List selectitems = formService.querySelectValue(type,param);
+		if ("many".equals(type)) {
+			Map<String, Object> map=new HashMap<>();
+			for (Object o : selectitems) {
+				Map<String, Object> item=(Map<String, Object>) o;
+				for (String key : item.keySet()) {
+					map.put(key, item.get(key));
+					break;
+				}			
+			}
+			return BashijuResult.ok(map);
+		}
+		return BashijuResult.ok(selectitems);
+		
+	}
+	
+	//返回一些枚举类
+	@RequestMapping("/getSomeEnum")
+	@ResponseBody
+	public BashijuResult getSomeEnum(HttpServletRequest request,HttpServletResponse response){
+		Map<String,Object> enums = new HashMap<>();
+		enums.put("houseUses", HouseUsesEnum.enumMap);
+		return BashijuResult.ok(enums);
+		
+	}
+		
+
+	/**
+	 * 
+		 * 合同签订选择客源列表
+		 * @Description: 合同签订选择客源列表 
+		 * @param conditions 条件{phone:电话,discStatusId:公私客,mainterDeptId:维护人部门,maintainId:维护人,minSpace:最小面积,
+		 * maxSpace:最大面积,minPrice:最低价格,maxPrice:最高价格,code:客户编号,custName:客户姓名,taobaoStatusId:淘宝池,transactionTypeId:需求类型}
+		 * @param page
+		 * @param limit
+		 * @return 
+		 * Map<String,Object>
+	 */
+	@RequestMapping(value="queryContractCustomer")
+	@ResponseBody
+	public Map<String,Object> queryContractCustomer(String conditions,int page,int limit) {
+		//conditions="{\"transactionTypeId\":4}";
+		Page<Map<String, Object>> pageInfo = customerService.queryContractCustomer(conditions, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;	
+	}
+/**
+ * 
+	 * 查询我的私客列表
+	 * @Description: 查询我的私客列表
+	 * @param page
+	 * @param limit
+	 * @return 
+	 * Map<String,Object>
+ */
+	@RequestMapping(value="queryMyPrivateGuest")
+	@ResponseBody
+	public Map<String,Object> queryMyPrivateGuest(int page,int limit) {
+		Page<Map<String, Object>> pageInfo = customerService.queryMyPrivateGuest(page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;	
+	}
+}

@@ -1,0 +1,66 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.PhoneBlacklistMapper;
+import com.bashiju.manage.service.PhoneBlacklistService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  PhoneBlacklistServiceImpl   
+ * @Description:TODO(电话黑名单服务)   
+ * @author: wangpeng
+ * @date:   2018年6月29日 下午6:07:58   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="电话黑明单")
+public class PhoneBlacklistServiceImpl extends CommonSqlServie  implements PhoneBlacklistService{
+	@Autowired
+	private PhoneBlacklistMapper phoneBlacklistMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="查询电话黑名单")
+	public Page<Map<String, Object>> queryPhoneBlacklist(String keyWord,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_275.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String, Object>> map = phoneBlacklistMapper.queryPhoneBlacklist(keyWord);
+		return map;
+	}
+	
+	@Override
+	@SystemServiceLog(operationType="查询是否已有电话")
+	public boolean queryMobileIsExist(String mobile) {
+		long result=phoneBlacklistMapper.queryMobileIsExist(mobile);
+		if(result>0) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="新增电话黑名单")
+	public boolean savePhoneBlacklist(Map<Object, Object> paramMap) {
+		long result = this.commonOperationDatabase(paramMap, "sys_phoneblacklist", false);
+		if(result>0) {
+			ExecutionResult.descFormat(Long.toString(result), "新增电话黑名单");
+			return true;
+		}	
+		return false;
+	}
+}

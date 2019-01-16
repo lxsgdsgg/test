@@ -1,0 +1,47 @@
+package com.bashiju.base.BaseGlobal;
+
+public class BaseGlobal {
+	
+	//房源绑定码超时时间(小时)
+	public final static int HOUSEBINDCODEEXPTIME=48;
+	//客源绑定码超时时间(小时)
+	public final static int CUSTOMBINDCODEEXPTIME=48;
+	//(秒转小时)
+	public final static int SECONDSTOHOURS=60*60;
+	//短信验证码超时时间(分钟)
+	public final static int MSGAUTHCODEEXPTIME=5;	
+	//客源前缀
+	public final static String KY_PERFIX="KY-";
+	//买卖成交前缀
+	public final static String MMCJ_PERFIX="MM-";
+	//租赁成交前缀
+	public final static String ZLCJ_PERFIX="ZL-";
+	//房源前缀
+	public final static String FY_PERFIX="";
+	//发送频率(秒)
+	public final static int SENDSPEED=1*60;
+	
+	/**
+	 * 短信发送静态变量
+	 * url前半部分
+	 */
+	public static final String BASE_URL = "https://api.miaodiyun.com/20150822/industrySMS/sendSMS";
+
+	/**
+	 * 短信发送静态变量
+	 * 开发者注册后系统自动生成的账号，可在官网登录后查看
+	 */
+	public static final String ACCOUNT_SID = "308e9f93d4114eda95c03f7f918f1abb";
+
+	/**
+	 * 短信发送静态变量
+	 * 开发者注册后系统自动生成的TOKEN，可在官网登录后查看
+	 */
+	public static final String AUTH_TOKEN = "0ebba156d5794efe8fb01101f219c4f5";
+
+	/**
+	 * 短信发送静态变量
+	 * 响应数据类型, JSON或XML
+	 */
+	public static final String RESP_DATA_TYPE = "json";
+}

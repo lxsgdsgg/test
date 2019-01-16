@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd 
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<!-- 扫描Controller -->
+	<context:component-scan base-package="com.bashiju.housing.controller"/>
+
+	<mvc:annotation-driven/>
+	<aop:aspectj-autoproxy/>
+	<!-- 视图解析器 -->
+	<!-- 
+		Example: prefix="/WEB-INF/jsp/", suffix=".jsp", viewname="test" -> "/WEB-INF/jsp/test.jsp" 
+	 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	<!-- 拦截器 -->
+	<mvc:interceptors>
+		<!-- CSRF拦截器 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="com.bashiju.utils.interceptors.CSRFinterceptor"/>
+		</mvc:interceptor>	
+	<!-- 检测用户是否登录的拦截器 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="com.bashiju.housing.interceptors.SsoHandlerInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>	
+	
+	<!-- 文件上传解析器 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		 <property name="defaultEncoding" value="UTF-8" />
+		<!-- 最大的文件大小为100MB 此处设置的值必须大于等于上传的最大值，否则后台接收报空指针-->
+		<property name="maxUploadSize" value="102400000"/>
+	</bean>
+
+</beans>

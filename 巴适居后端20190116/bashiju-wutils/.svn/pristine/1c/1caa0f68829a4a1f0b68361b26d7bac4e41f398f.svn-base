@@ -1,0 +1,105 @@
+package com.bashiju.wapi;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.SellHouseParam;
+import com.bashiju.www.pojo.service.out.comm.AreaResult;
+import com.bashiju.www.pojo.service.out.comm.MetroLinesResult;
+import com.bashiju.www.pojo.service.out.comm.MetroStationResult;
+import com.bashiju.www.pojo.service.out.comm.RegionResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+
+/**
+ * 
+ *   二手房列表页面接口
+ * @ClassName:  IHouseSellListPageService   
+ * @Description:  二手房列表页面接口
+ * @author: wangkaifa
+ * @date:   2018年8月10日 上午9:14:15       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IHouseSellListPageServiceApi {
+	/**
+	 * 
+		 * 根据小区名称模糊搜索二手房房源
+		 * @Description: 根据小区名称模糊搜索二手房房源 
+		 * @param communityName 小区名称
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> queryHouseSellListByCoummunity(String cityCode,String communityName,int page,int limit);
+	/**
+	 * 
+		 * 根据城市查询区县
+		 * @Description: 根据城市查询区县
+		 * @param cityCode 城市代码
+		 * @return [{name:五华区,code:530102},{name:官渡区,code:530104}]
+		 * List<AreaResult>
+	 */
+	List<AreaResult> queryAreaByCity(String cityCode);
+	/**
+	 * 
+		 * 根据区划码查询片区
+		 * @Description: 根据区划码查询片区
+		 * @param cityCode 城市代码
+		 * @param areaCode 区划码
+		 * @return [{name:大学城片区,id:1,areaCode:530102},{name:乌龙片区,id:2,areaCode:530102}]
+		 * List<RegionResult>
+	 */
+	List<RegionResult> queryRegionByArea(String cityCode,String areaCode);
+	/**
+	 * 
+		 * 按区域搜索二手房源列表
+		 * @Description: 按区域搜索二手房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> queryHouseSellListByArea(SellHouseParam param,int page,int limit);
+	/**
+	 * 
+		 * 根据城市查询地铁线路
+		 * @Description: 根据城市查询地铁线路
+		 * @param cityCode 城市代码
+		 * @return [1号线,2号线]
+		 * List<String>
+	 */
+	List<MetroLinesResult> queryMetroLines(String cityCode);
+	/**
+	 * 
+		 * 根据城市、线路查询地铁站点
+		 * @Description: 查询地铁站点
+		 * @param cityCode 城市代码
+		 * @param metroName 地铁线名称
+		 * @return [{name:大学城,id:1,metroName:1号线},{name:春融街,id:2,metroName:1号线}]
+		 * List<MetroStationResult>
+	 */
+	List<MetroStationResult> queryMetroStationsByLine(String cityCode,String metroName);
+	/**
+	 * 
+		 * 按地铁线路搜索二手房源列表
+		 * @Description: 按地铁线路搜索二手房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> querySellHouseListByMetro(SellHouseParam param,int page,int limit);
+	/**
+	 * 
+		 * 二手房列表好房推荐查询
+		 * @Description: 二手房列表好房推荐查询 
+		 * @param cityCode 城市代码
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<GoodHouseListResult>
+	 */
+	WebPage<GoodHouseListResult> querySellGoodHouse(String cityCode,int page,int limit);
+}

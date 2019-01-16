@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.ext.mapper.LogOperateMapper">
+<!-- 通用的添加方法 -->
+	<insert id="commonAdd"  parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id" >
+		insert into ${tableName}
+
+			   <foreach collection="fields.entrySet()" index="key" open="(" close=")" separator="," >
+					   
+					   		${key}
+					  
+				</foreach> 
+				
+				values
+				
+				<foreach collection="fields.entrySet()" index="key" item="value" open="(" close=")" separator=","> 
+				
+							#{value}
+					
+				</foreach>
+	</insert>
+	
+	<select id="queryRegionInfoByCommunityId" resultType="map">
+		SELECT DISTINCT CONCAT(LEFT(c.areaCode,4),'00') AS cityCode,c.areaCode,a.`name` AS areaName,c.regionId,r.`name` AS regionName,c.id AS communityId,c.`name` AS communityName,
+		CASE WHEN sc.id IS NOT NULL THEN 1 ELSE 0 END AS isSubwayRoom,CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isSchoolRoom
+ 		FROM sys_community AS c INNER JOIN sys_area AS a ON a.`code`=c.areaCode INNER JOIN sys_region AS r ON r.id=c.regionId and c.id=#{communityId}
+ 		LEFT JOIN station_block_community AS sc ON sc.isValid=1 AND sc.communityId=c.id
+		LEFT JOIN school_block_community AS s ON s.isValid=1 AND s.communityId=c.id
+	</select>
+	<select id="queryRegionInfoByBuildingId" resultType="map">
+	SELECT DISTINCT CONCAT(LEFT(c.areaCode,4),'00') AS cityCode,c.areaCode,a.`name` AS areaName,c.regionId,r.`name` AS regionName,c.id AS communityId,c.`name` AS communityName,
+	CASE WHEN sc.id IS NOT NULL THEN 1 ELSE 0 END AS isSubwayRoom,CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isSchoolRoom
+ 	FROM sys_community AS c INNER JOIN sys_area AS a ON a.`code`=c.areaCode INNER JOIN sys_region AS r ON r.id=c.regionId INNER JOIN sys_buildings AS b ON c.id=b.communityId AND b.id=#{buildingId}
+ 	LEFT JOIN station_block_community AS sc ON sc.isValid=1 AND sc.communityId=c.id
+	LEFT JOIN school_block_community AS s ON s.isValid=1 AND s.communityId=c.id
+	</select>
+	<select id="queryHouseNumberInfoByBuildingIds" resultType="map">
+	SELECT b.id AS buildingsId,CONCAT(b.`name`,b.buildUnitAlias) AS buildingsName,u.id AS bulidingUnitId,CONCAT(u.`name`,u.unitAlias) AS buildingsUnitName,h.id AS buildingHouseId,
+	h.houseNumber AS buildingHouseName,u.unitElevatorCount AS elevatorCount,u.unitHouseCount AS householdCount,h.floor as floorCount,u.floorTotal AS totalLayers
+	FROM sys_buildinghouse AS h INNER JOIN sys_bulidingunit AS u ON h.buildingUnitId=u.id INNER JOIN sys_buildings AS b ON b.id=h.buildingId AND b.id IN 
+	<foreach item="item" index="index" collection="buildIds"   open="(" separator="," close=")">${item}</foreach>
+	</select>
+	<select id="queryHouseNumberInfoByUnitId" resultType="map">
+		SELECT b.id AS buildingsId,CONCAT(b.`name`,b.buildUnitAlias) AS buildingsName,u.id AS bulidingUnitId,CONCAT(u.`name`,u.unitAlias) AS buildingsUnitName,h.id AS buildingHouseId,
+		h.houseNumber AS buildingHouseName,u.unitElevatorCount AS elevatorCount,u.unitHouseCount AS householdCount,h.floor as floorCount,u.floorTotal AS totalLayers
+		FROM sys_buildinghouse AS h  INNER JOIN sys_buildings AS b ON b.id=h.buildingId INNER JOIN sys_bulidingunit AS u ON h.buildingUnitId=u.id AND u.id=#{unitId}
+	</select>
+</mapper>

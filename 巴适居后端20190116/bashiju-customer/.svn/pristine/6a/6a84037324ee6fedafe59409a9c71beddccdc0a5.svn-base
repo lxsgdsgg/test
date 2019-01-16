@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.customer.mapper.IDepositMangeMapper">
+  	<!-- ****查询开始 *******-->
+  	<select id="queryAllDepositDataList" resultType="map">
+  		SELECT demand_bond.id,demand_bond.billNo,demand_bond.demandId,demand_bond.houseId,
+		demand_bond.shhid as shhId,demand_bond.companyId,demand_bond.companyName,demand_bond.price,
+		demand_bond.maybeDealPrice,demand_bond.maybeDealDate,demand_bond.expenditureNo,
+		demand_bond.expenditureRemark,demand_bond.dealId,demand_bond.`status`,		
+		demand_bond.trusteesId,demand_bond.trustees,demand_bond.entrustTime,
+		demand_bond.permissionArea,demand_bond.operatorId,demand_bond.operator,
+		demand_bond.addTime,demand_bond.updateTime,demand_bond.isValid,demand_bond.remark,
+		demand_customerbusinessinfo.custName,demand_customerbusinessinfo.formName,house.buildingsId,
+		house.buildingsName,house.bulidingUnitId,sys_dept.`name` as deptName,
+		house.buildingsUnitName,house.buildingHouseId,house.houseUsesId,
+		house.buildingHouseName,sys_user.realName,sys_user.areaCode,
+		(case when demand_bond.`status`=0 then '未确认' when demand_bond.`status`=1 then '已确认' 
+		when demand_bond.`status`=2 then '已退订' when demand_bond.`status`=3 then '已支出'
+		when demand_bond.`status`=4 then '已驳回' else '其他' end ) as statusName,
+		demand_customerbusinessinfo.transactionType,demand_customerbusinessinfo.transactionTypeId
+		FROM
+		demand_bond
+		LEFT JOIN demand_customerbusinessinfo ON demand_bond.demandId = demand_customerbusinessinfo.id
+		LEFT JOIN (SELECT
+		hs_secondhandhouse.houseId,hs_secondhandhouse.companyId,hs_secondhandhouse.transactionTypeId,
+		hs_secondhandhouse.transactionType,hs_secondhandhouse.statusId,hs_secondhandhouse.`status`,
+		hs_secondhandhouse.houseUsesId,hs_secondhandhouse.houseUses,hs_secondhandhouse.buildSpace,
+		hs_secondhandhouse.resourceTypeId,hs_secondhandhouse.resourceType,hs_secondhandhouse.sellingPrice,
+		hs_secondhandhouse.rentPrice,hs_secondhandhouse.rentPriceTypeId,hs_secondhandhouse.rentPriceTypeName,
+		hs_secondhandhouse.taoBaoStatusId,hs_secondhandhouse.taoBaoStatus,hs_secondhandhouse.useSpace,
+		hs_secondhandhouse.minSellingPrice,hs_secondhandhouse.minRentPrice,hs_housebaseinfo.areaName,
+		hs_housebaseinfo.areaCode,hs_housebaseinfo.cityCode,
+		hs_housebaseinfo.buildingsId,hs_housebaseinfo.buildingsName,hs_housebaseinfo.bulidingUnitId,
+		hs_housebaseinfo.buildingsUnitName,hs_housebaseinfo.buildingHouseId,hs_housebaseinfo.buildingHouseName
+		FROM hs_secondhandhouse
+		INNER JOIN hs_housebaseinfo ON hs_housebaseinfo.id = hs_secondhandhouse.houseId
+		where hs_housebaseinfo.isValid = 1
+		GROUP BY hs_secondhandhouse.houseId,hs_secondhandhouse.companyId )house on house.houseId = demand_bond.houseId
+		LEFT JOIN deal_transactioninfo ON demand_bond.dealId = deal_transactioninfo.id
+		LEFT JOIN sys_user ON sys_user.id = demand_bond.trusteesId
+		LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		where demand_bond.isValid = 1
+
+		<if test="custType != null and custType != ''">
+			and demand_customerbusinessinfo.transactionTypeId = #{custType}
+		</if>
+		<if test="status != null and status != ''">
+			and demand_bond.status = #{status}
+		</if>
+		<if test="trusteesId != null and trusteesId != ''">
+			and demand_bond.trusteesId = #{trusteesId}
+		</if>
+		<if test="startTime != null and startTime != ''">
+			and demand_bond.entrustTime &gt;= #{startTime}
+		</if>
+		<if test="endTime != null and endTime != ''">
+			and demand_bond.entrustTime &lt;= #{endTime}
+		</if>
+  	</select>
+  </mapper>
+  
+   

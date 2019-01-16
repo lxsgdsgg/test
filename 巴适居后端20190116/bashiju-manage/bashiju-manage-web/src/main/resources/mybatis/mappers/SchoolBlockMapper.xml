@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.SchoolBlockMapper">
+	<select id="getSchoolPageObj" resultType="map">
+		SELECT id,schoolName,schoolAddress,middleSchoolName,isValid,operator,addTime,updateOperator,
+		updateTime,permissionArea,operatorId,rgCode,rgCode AS cityCode,schoolWebsite,
+		(select name from sys_area b where rgCode = b.`code` and b.isValid = 1) cityName,
+		(select name from sys_area b where rgCode = b.`code` and b.isValid = 1) AS rgName
+		FROM school_info WHERE isValid = 1
+		<if test="schoolName != null and schoolName != ''">
+			and schoolName like '%${schoolName}%'
+		</if>
+		<if test="schoolAddress != null and schoolAddress != ''">
+			and schoolAddress like '%${schoolAddress}%'
+		</if>
+		<if test="rgCode != null and rgCode != ''">
+			and rgCode = #{rgCode}
+		</if>
+		order by id desc
+	</select>
+	<select id="getCommunityPageObj" resultType="map">
+		select * from school_block_community where isValid = 1 and schoolId = #{schoolId}
+		<if test="communityName != null and communityName != ''">
+			and communityName like '%${communityName}%'
+		</if>
+		 order by id desc
+	</select>
+	
+	<select id="getDataById" resultType="map">
+		select * from #{tableName} where isValid = 1 and id = #{id}
+	</select>
+	
+	<select id="getSchoolCountByName" resultType="long">
+		select count(1) from school_info where isValid = 1
+		<if test="schoolName != null and schoolName != ''">
+			and schoolName like '%${schoolName}%'
+		</if>
+		<if test="rgCode != null and rgCode != ''">
+			and rgCode = #{rgCode}
+		</if>
+		
+	</select>
+	<select id="getCommunityCountByCodintion" resultType="long">
+		select count(1) from school_block_community where isValid = 1
+		<if test="communityId != null and communityId != ''">
+			and communityId = #{communityId}
+		</if>
+		<if test="schoolId != null and schoolId != ''">
+			and schoolId = #{schoolId}
+		</if>
+	</select>
+	<select id="getRegionList" resultType="map" >
+		<![CDATA[select code,name,parentCode,longitude,latitude,'1' as level from sys_area where parentCode = #{rgCode} and isvalid = 1 
+		union all select CONCAT('region',id) as code,name as name,areacode as parentCode,longitude,latitude,'2' as level from sys_region 
+		where areacode in(select code from sys_area where parentCode = #{rgCode} and isvalid = 1)
+		union all select id as code,name,CONCAT('region',regionId) as parentCode,longitude,latitude,'3' as level from sys_community where isValid =1 
+		and regionId in(select id from sys_region where areacode in(select code from sys_area where parentCode = #{rgCode}
+		and isvalid = 1))]]>
+	</select>
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.www.mapper.CustomerStarCommentsMapper">
+	 <resultMap id="agentCommentsMap" type="com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="agentId" property="userId" />
+	    <result column="star" property="star" />
+	    <result column="content" property="content" />
+	    <result column="labelIds" property="labelIds" />
+	    <result column="labels" property="labels" />
+	    <result column="secondLabelIds" property="secondLabelIds" />
+	    <result column="secondLabels" property="secondLabels" />
+	    <result column="examineStatus" property="examineStatus" />
+	    <result column="auditorId" property="auditorId" />
+	    <result column="auditor" property="auditor" />
+	    <result column="addTime" property="addTime" />
+	    <result column="auditTime" property="auditTime" />
+	    <result column="reason" property="reason" />
+	    <result column="isValid" property="isvalid" />
+	  </resultMap>
+	 <resultMap id="houseCommentsMap" type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseStarCommentsEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="userId" property="userId" />
+	    <result column="houseId" property="shhId" />
+	    <result column="content" property="content" />
+	    <result column="showedRecordId" property="showedRecordId" />
+	    <result column="companyId" property="companyId" />
+	    <result column="addTime" property="addTime" />
+	    <result column="isValid" property="isvalid" />
+	  </resultMap>
+	  
+	<select id="queryCustomerCommentsDataList" resultMap="agentCommentsMap">
+		SELECT id,userId,agentId,star,content,custId,custName,labelIds,labels,secondLabelIds,
+		secondLabels,examineStatus,auditorId,auditor,auditTime,reason,addTime,isValid
+		from sys_cust_starrating where isValid = 1 and custId = #{custId}
+	</select>
+	<select id="queryCustomerHouseCommentsDataList" resultMap="houseCommentsMap">
+		SELECT id,shhId,showedRecordId,companyId,userId,custId,custName
+		,content,addTime,isValid from cust_houseVistEvaluate where isValid = 1 and custId = #{custId}
+	</select>
+	<insert id="saveCustomerComments" 
+		parameterType="com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity">
+		insert into sys_cust_starrating (
+			userId,agentId,star,content,custId,custName,labelIds
+			,labels,secondLabelIds,secondLabels,examineStatus,auditorId,auditor,auditTime,reason
+			,permissionArea,operatorId,operator,addTime,updateTime,isValid
+		)
+		values(
+			#{userId},#{agentId},#{star},#{content},#{custId},#{custName},#{labelIds},#{labels},#{secondLabelIds},
+			#{secondLabels},#{examineStatus},#{auditorId},#{auditor},#{auditTime},#{reason},#{permissionArea},
+			#{operatorId},#{operator},#{addTime},#{updateTime},#{isValid}
+		)
+	</insert>
+	<!--保存对房源的评价 -->
+	<insert id="saveCustomerHouseComments" 
+		parameterType="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseStarCommentsEntity">
+		insert into cust_houseVistEvaluate (
+			shhId,showedRecordId,userId,custId,companyId,custName,content
+			,permissionArea,operatorId,operator,addTime,updateTime,isValid
+		)
+		values(
+			#{shhId},#{showedRecordId},#{userId},#{custId},#{companyId},#{custName},#{content},
+			#{permissionArea},#{operatorId},#{operator},#{addTime},#{updateTime},#{isValid}
+		)
+	</insert>
+	<select id="queryUserInfoById" resultType="map">
+		select operator,operatorId,permissionArea,companyId from sys_user where isValid = 1 and id = ${userId}
+	</select>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.BlackListMapper">
+	<select id="queryBlackListData" resultType="map">
+		select sb.id,sb.companyId,sc.name as companyName,sb.foulsNum,sb.isValid,sb.addTime,sb.updateTime,sb.operator,sb.legalName,sb.legalPhone,sb.note from sys_blacklist sb  inner join sys_company sc on sc.id=sb.companyId 
+		 where sb.isValid =1 
+		<if test="keyword!=null and keyword!='' "> and sc.name like concat ('%',#{keyword},'%') or sb.legalPhone like  concat('%',#{keyword},'%')</if>
+	</select>
+	
+	<select id="queryBlackListById" resultType="map">
+			select sb.id,sb.companyId,sc.name as companyName,sb.foulsNum,sb.isValid,sb.addTime,sb.updateTime,sb.operator,sb.legalName,sb.legalPhone,sb.note from sys_blacklist sb  inner join sys_company sc on sc.id=sb.companyId
+			 where sb.id= #{id}
+	</select>
+</mapper>

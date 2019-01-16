@@ -1,0 +1,43 @@
+package com.bashiju.deal.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealFinanceDividenInfoMapper;
+import com.bashiju.deal.service.DealFinanceDividenInfoService;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  DealFinanceDividenInfoServiceImpl   
+ * @Description:TODO(金融分成查询)   
+ * @author: wangpeng
+ * @date:   2018年6月29日 下午2:25:37   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="金融分成查询服务")
+public class DealFinanceDividenInfoServiceImpl  implements DealFinanceDividenInfoService{
+	@Autowired
+	private DealFinanceDividenInfoMapper dealFinanceDividenInfoMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="金融分成查询")
+	public Page<Map<String, Object>> queryDealFinanceDividenInfoData(Map<String, Object> paramMap,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenuEnum.MENU_111.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> map = dealFinanceDividenInfoMapper.queryDealFinanceDividenInfoData(paramMap);
+		return map;
+	}
+
+}

@@ -1,0 +1,29 @@
+package com.bashiju.www.pojo.service.out.comm;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   地铁线路输出对象
+ * @ClassName:  MetroLinesResult   
+ * @Description:  地铁线路输出对象
+ * @author: liwen
+ * @date:   2018年8月13日 上午11:48:18       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class MetroLinesResult implements Serializable{
+	
+	private static final long serialVersionUID = -4494762777456460742L;
+
+	/**线路id**/
+	private Long id;
+
+	/**线路名称**/
+	private String name;
+	
+	
+}

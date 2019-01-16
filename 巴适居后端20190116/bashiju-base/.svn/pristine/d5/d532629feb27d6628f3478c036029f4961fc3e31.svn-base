@@ -1,0 +1,18 @@
+public class Task  {
+/*
+	CountDownLatch latch;
+	RedisGetIdImpl clust;
+	public Task(CountDownLatch latch,RedisGetIdImpl clust) {
+
+		this.latch = latch;
+		this.clust=clust;
+	}
+	
+	@Override
+	public void run() {
+		
+		System.out.println("时间"+System.currentTimeMillis()+" 线程名称:"+Thread.currentThread().getName()+" Id="+clust.getHouseId("530000"));
+		
+	}*/
+
+}

@@ -1,0 +1,104 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerPersonCentralPageServiceApi.java   
+ * @Package com.bashiju.wapi.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:15:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.wapi.usercentral;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity;
+import com.bashiju.www.pojo.service.out.usercentral.AdministrativeDivisionEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 个人中心页面API接口
+ * @ClassName:ICustomerPersonCentralPageServiceApi
+ * @Description:个人中心页面API接口
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:15:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerPersonCentralPageServiceApi {
+	/**
+	 * 获取个人信息 
+	 * @Title: queryPersonalInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取个人信息（包含：关注房源、过户进度、过户房源信息信息、预约统计、足迹统计）
+	 * @param key 用户登陆标记
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryPersonalDetailInfo(String key);
+	
+
+	/**
+	 * 查询所有省级行政区划
+	 * @Title: queryAllPrivinceDataList
+	 * @author: zuoyuntao  
+	 * @Description:查询所有省级行政区划
+	 * @return      
+	 * List<AdministrativeDivisionEntity> 
+	 */
+	public List<AdministrativeDivisionEntity> queryAllPrivinceDataList();
+	/**
+	 * 根据省级行政区划编码查询市级行政区划 
+	 * @Title: queryCityAreaListByPrivinceCode
+	 * @author: zuoyuntao  
+	 * @Description:根据省级行政区划编码查询市级行政区划
+	 * @param privinceCode 省级行政区划编码
+	 * @return      
+	 * List<AdministrativeDivisionEntity>
+	 */
+	public List<AdministrativeDivisionEntity> queryCityAreaListByPrivinceCode(String privinceCode);
+	/**
+	 * 根据市级行政区划查询县区行政区划
+	 * @Title: queryCountryAreaListByCityCode
+	 * @author: zuoyuntao  
+	 * @Description:根据市级行政区划查询县区行政区划
+	 * @param cityCode 市级行政区划编码
+	 * @return      
+	 * List<AdministrativeDivisionEntity>
+	 */
+	public List<AdministrativeDivisionEntity> queryCountryAreaListByCityCode(String cityCode);
+	
+	
+	/***
+	 *  条件查询我的足迹  
+	 * @Title: queryFootPrintByCustId   
+	 * @Description: 条件查询我的足迹  
+	 * @param custId  用户编号
+	 * @param type  房源交易类型
+	 * @return: Page<FootPrintToQueryEntity>
+	 */
+	Page<FootPrintToQueryEntity> queryFootPrintByCustId (String custId,String type);
+	
+	
+	/***
+	 *  新增我的足迹  
+	 * @Title: saveFootPrint   
+	 * @Description:  新增我的足迹  
+	 * @param footPrintToSaveEntity
+	 * @return: boolean
+	 */
+	boolean  saveFootPrint(FootPrintToSaveEntity footPrintToSaveEntity);
+	
+	
+	
+	/**
+	 * @Title: queryFootPrintCount   
+	 * @Description: 条件查询用户足迹数量
+	 * @param custId 用户id
+	 * @return: FootPrintToQueryEntity
+	 */
+	FootPrintToQueryEntity queryFootPrintCountByCustId(String custId);
+}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.ArticleMapper">
+	
+	<select id="queryArticleList" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select * from (select a.title,a.abstracts,a.addTime, a.cover from sys_article a INNER JOIN sys_article_classes b on a.classesId=b.id and b.type=#{type} and b.cityCode=#{cityCode} and a.examineStatus=1 and a.isValid=1 
+		UNION select a.title,a.abstracts,a.addTime, a.cover from sys_article a INNER JOIN sys_article_classes b on a.classesId=b.id and b.type = #{type} and b.cityCode!=#{cityCode} and a.isOpen=1 and a.examineStatus=1 and a.isValid=1) c order by addTime desc limit #{limit}
+	</select>
+	
+	<select id="queryArticleType" resultType="com.bashiju.www.pojo.service.out.article.ArticleTypeResult">
+		select id ,name ,parentId, level from sys_article_classes where cityCode=#{cityCode} and type=#{type}
+	</select>
+	
+	<select id="queryHotList" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select title, abstracts, addTime, cover from (
+			select a.title, a.abstracts, a.addTime, a.cover,a.browseCnt
+			from sys_article a inner join sys_article_classes b on a.classesId = b.id and b.type = #{type} and b.cityCode = #{cityCode} and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover,a.browseCnt 
+			from sys_article a inner join sys_article_classes b on a.classesId = b.id and b.type = #{type} and b.cityCode !=#{cityCode} and a.isOpen = 1 and a.examineStatus = 1 and a.isValid = 1) c 
+		order by browseCnt,addTime desc limit #{limit}
+	</select>
+	
+	<select id="queryZiXunListByType" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select * from (
+			select a.title, a.abstracts, a.addTime, a.cover
+			from sys_article a inner join sys_article_classes b on
+			<if test="typeId==0 ">
+		    a.classesId = b.id 
+		    </if>
+		    <if test="typeId!=0 ">
+		    a.classesId = b.id and a.classesId=#{typeId}
+		    </if>
+		    and b.type = #{type} and b.cityCode = #{cityCode} and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover
+			from sys_article a inner join sys_article_classes b on 
+			<if test="typeId==0 ">
+		    a.classesId = b.id 
+		    </if>
+		    <if test="typeId!=0 ">
+		    a.classesId = b.id and a.classesId=#{typeId}
+		    </if>
+			and b.type = #{type} and b.cityCode !=#{cityCode} and a.isOpen = 1 and a.examineStatus = 1 and a.isValid = 1) c 
+		order by addTime desc 
+	</select>
+	
+	<select id="queryBaikeListByType" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select * from (
+			select a.title, a.abstracts, a.addTime, a.cover from sys_article a inner join sys_article_classes b on a.classesId = b.id and a.classesId=#{typeId} and b.type = #{type} and b.cityCode = #{cityCode} and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover from sys_article a inner join sys_article_classes b on a.classesId = b.id and a.classesId in (select id from sys_article_classes where parentId=#{typeId}) and b.type = #{type} and b.cityCode = #{cityCode} and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover from sys_article a inner join sys_article_classes b on a.classesId = b.id and a.classesId=#{typeId} and b.type = #{type} and b.cityCode !=#{cityCode} and a.isOpen = 1 and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover from sys_article a inner join sys_article_classes b on a.classesId = b.id and a.classesId in (select id from sys_article_classes where parentId=#{typeId}) and b.type = #{type} and b.cityCode !=#{cityCode} and a.isOpen = 1 and a.examineStatus = 1 and a.isValid = 1) c 
+		order by addTime desc
+	</select>
+	
+	<select id="queryArticleInfo" resultType="com.bashiju.www.pojo.service.out.article.ArticleInfoResult">
+		select title ,updateTime ,sources, browseCnt,abstracts,content from sys_article where id=#{id}
+	</select>
+	<select id="queryArticleListForPage" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select * from (
+			select a.title, a.abstracts, a.addTime, a.cover
+			from sys_article a inner join sys_article_classes b on a.classesId = b.id and b.type = #{type} and b.cityCode = #{cityCode} and a.title like '%${key}%' and a.examineStatus = 1 and a.isValid = 1
+			union
+			select a.title, a.abstracts, a.addTime, a.cover
+			from sys_article a inner join sys_article_classes b on a.classesId = b.id and b.type = #{type} and b.cityCode !=#{cityCode} and a.isOpen = 1 and a.title like '%${key}%' and a.examineStatus = 1 and a.isValid = 1) c 
+		order by addTime desc 
+	</select>
+</mapper>

@@ -1,0 +1,62 @@
+package com.bashiju.www.pojo.service.out.house;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   房源列表搜索返回对象
+ * @ClassName:  HouseListResult   
+ * @Description:  房源列表搜索返回对象
+ * @author: wangkaifa
+ * @date:   2018年7月24日 下午3:23:45       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class HouseListResult implements Serializable{
+	/**房源id**/
+	protected Long id;
+	/**房源标题**/
+	protected String title;
+	/**房源最新图片地址**/
+	protected String imageUrl;
+	/**房源封面图片地址**/
+	protected String url;
+	/**几室**/
+	protected int room;
+	/**几厅**/
+	protected int hall;
+	/**几卫**/
+	protected int toilet;
+	/**朝向**/
+	protected String orientation;
+	/**建筑面积**/
+	protected int buildSpace;
+	/**使用面积**/
+	protected int useSpace;
+	/**装修**/
+	protected String decoration;
+	/**所在楼层描述**/
+	private String floorDes;
+	/**总楼层**/
+	protected int totalFloor;
+	/**建筑年代**/
+	protected String buildDates;
+	/**销售价格万元**/
+	protected int sellingPrice;
+	/**出租价格元/月**/
+	protected int rentPrice;
+	/**小区名称**/
+	protected String community;
+	/**片区名称**/
+	protected String region;
+	/**区域名称**/
+	protected String areaName;
+	/**房源标签，逗分隔**/
+	protected String labeld;
+	/**地铁标签，逗号分隔**/
+	protected String metroLabel;
+	
+}

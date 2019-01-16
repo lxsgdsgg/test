@@ -1,0 +1,80 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustCustomer.java   
+ * @Package com.bashiju.www.pojo.service.user   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年7月31日 下午4:56:40   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.user;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity;
+
+import lombok.Data;
+
+/**   
+ * @ClassName:  CustCustomer   
+ * @Description:后台保存用户输入信息实体 
+ * @author: wangpeng
+ * @date:   2018年7月31日 下午4:56:40   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustCustomerEntity implements Serializable {
+	
+	private static final long serialVersionUID = -141638135870965923L;
+	
+	/**用户名称**/
+	private String name;
+	/**用户电话号码**/
+	private String mobile;
+	/**密码**/
+	private String password;
+	/**短信验证码**/
+	private String solt;
+	/**性别0:女， 1 男**/
+	private String sex;
+	/**添加时间**/
+	private Date  addTime;
+	/**修改时间**/
+	private Date updateTime;
+	/**是否有效**/
+	private  String isValid;
+	/**操作人**/
+	private String operator;
+	/**省**/
+	private String proviceCode;
+	/**城市代码**/
+	private String cityCode;
+	/**区域代码**/
+	private String areaCode;
+	/**地址**/
+	private String address;
+	/**出生年月日**/
+	private Date birthday;
+	/**要修改的电话**/
+	private String newMobile;
+	/**要修改的密码**/
+	private String newPassword;
+	/**add by zuoyuntao 个人中心使用**/
+	/**主键ID**/
+	private String id;
+	/**我的预约数量**/
+	private long reservationCount;
+	/**我的足迹数量**/
+	private String footprintCount;
+	/**房源过户进度集合--个人中心使用**/
+	private List<CustomerHouseTransitScheduleEntity> transitScheduleList;
+	/**我的关注数据集合--个人中心使用**/
+	private List<CustomerConcernedHouseEntity> concernedHouseList;
+
+}

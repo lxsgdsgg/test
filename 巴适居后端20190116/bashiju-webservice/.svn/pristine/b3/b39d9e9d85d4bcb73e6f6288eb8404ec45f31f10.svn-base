@@ -1,0 +1,108 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralMapper.java   
+ * @Package com.bashiju.webservice.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:41:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseCommentsEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 客户个人中心映射接口
+ * @ClassName:CustomerPersonalCentralMapper
+ * @Description:客户个人中心映射接口
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:41:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerStarCommentsMapper {
+	/**
+	 * 获取用户对经纪人评价信息
+	 * @Title: queryCustomerCommentsDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取用户对经纪人评价信息
+	 * @param custId 客户ID
+	 * @return      
+	 * WebPage<CustomerAgentStarCommentsEntity>
+	 */
+	public Page<CustomerAgentStarCommentsEntity> queryCustomerCommentsDataList(String custId);
+	/**
+	 * 获取用户对房源评价信息
+	 * @Title: queryCustomerCommentsDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取用户对房源评价信息
+	 * @param custId 客户ID
+	 * @return      
+	 * WebPage<CustomerHouseStarCommentsEntity>
+	 */
+	public Page<CustomerSeeHouseCommentsEntity> queryCustomerHouseCommentsDataList(String custId);
+	/**
+	 * 保存客户对经纪人的评价
+	 * @Title: saveCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:保存客户对经纪人的评价
+	 * @param commentEntity 必须包含{custId,shhId,addTime,isValid}
+	 * @return      @Param("commentEntity")
+	 */
+	public long saveCustomerComments(
+			CustomerAgentStarCommentsEntity commentEntity);
+	/**
+	 * 根据用户Id查询用户权限域信息 
+	 * @Title: queryUserInfoByAgentId
+	 * @author: zuoyuntao  
+	 * @Description:根据用户Id查询用户权限域信息
+	 * @param agentId 经纪人ID
+	 * @return      
+	 * Map<String,Object>
+	 */
+	public Map<String,Object> queryUserInfoByAgentId(@Param("agentId") int agentId);
+	/**
+	 * 将客户对房源的评价更新到带看记录表
+	 * @Title: updateCustomerSeeHouseComments
+	 * @author: zuoyuntao  
+	 * @Description:将客户对房源的评价更新到带看记录表
+	 * @param visterEvaluate
+	 * @param updateTime 更新时间
+	 * @param id 带看记录ID
+	 * void
+	 */
+	public void updateCustomerSeeHouseComments(@Param("visterEvaluate")String visterEvaluate
+			,@Param("id")String id,@Param("updateTime")String updateTime);
+	/**
+	 * 批量保存热评、热门标签数据信息
+	 * @Title: batchAddLabels
+	 * @author: zuoyuntao  
+	 * @Description:批量保存热评、热门标签数据信息   
+	 * @param hotList 热评标签集合
+	 * @param serviceRateList 服务点评集合    
+	 * void
+	 */
+	public void batchAddLabels(@Param("hotList") List<Map<String,Object>> hotList
+			,@Param("serviceRateList") List<Map<String,Object>> serviceRateList) ;
+	/**
+	 * 更新经纪人最后一次评价内容
+	 * @Title: updateAgentLastTimesComments
+	 * @author: zuoyuntao  
+	 * @Description:更新经纪人最后一次评价内容
+	 * @param id 经纪人ID
+	 * @param lastComment 评价内容
+	 * @param updateTime  更新时间
+	 * void
+	 */
+	public void updateAgentLastTimesComments(@Param("id")int id,@Param("lastComment") String lastComment
+			,@Param("updateTime") String updateTime);
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.webservice.mapper.CustomerHouseRequestMapper">
+	 <resultMap id="requestEntity" type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseRequestEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="transactionTypeId" property="transactionTypeId" />
+	    <result column="transactionType" property="transactionType" />
+	    <result column="releaseTime" property="releaseTime" />
+	    <result column="titles" property="titles" />
+	    <result column="custCallType" property="custCallType" />
+	    <result column="areaCode" property="areaCodes" />
+	    <result column="areaName" property="areaNames" />
+	    <result column="regionId" property="regionIds" />
+	    <result column="regionName" property="regionNames" />
+	    <result column="communityId" property="communityIds" />
+	    <result column="communityName" property="communityNames" />
+	    <result column="houseUsesIds" property="houseUsesIds" />
+	    <result column="houseUses" property="houseUses" />
+	    <result column="minRoom" property="minRoom" />
+	    <result column="maxRoom" property="maxRoom" />
+	    <result column="minPrice" property="minPrice" />
+	    <result column="minSpace" property="minSpace" />
+	    <result column="maxSpace" property="maxSpace" />
+	    <result column="minFloorCount" property="minFloorCount" />
+	    <result column="maxFloorCount" property="maxFloorCount" />
+	    <result column="minBuildDates" property="minBuildDates" />
+	    <result column="maxBuildDates" property="maxBuildDates" />
+	    <result column="decorationIds" property="decorationIds" />
+	    <result column="decoration" property="decoration" />
+	    <result column="matchingIds" property="matchingIds" />
+	    <result column="matching" property="matching" />
+	    <result column="orientationId" property="orientationId" />
+	    <result column="orientation" property="orientation" />
+	    <result column="houseTypeIds" property="houseTypeIds" />
+	    <result column="houseType" property="houseType" />
+	    <result column="isSchoolRoom" property="isSchoolRoom" />
+	    <result column="isFullAmount" property="isFullAmount" />
+	    <result column="isUrgent" property="isUrgent" />
+	    <result column="allFollowTime" property="allFollowTime" />
+	    <result column="lastShowedTime" property="lastShowedTime" />
+	  </resultMap>
+	<!--b.type=1(表示客源) -->
+	<select id="queryCustomerRequestDataList" resultMap="requestEntity">
+		select a.id,custId ,custName,transactionTypeId,transactionType,b.addTime as releaseTime
+		,titles,custName,custCallType,areaCodes,areaNames,regionIds,regionNames,communityIds
+		,communityNames,houseUsesIds,houseUses,minRoom,maxRoom,minPrice,minSpace,maxSpace
+		,minFloorCount,maxFloorCount,minBuildDates,maxBuildDates,decorationIds,decoration
+		,matchingIds,matching,orientationId,orientation,houseTypeIds,houseType,
+		isSchoolRoom,isFullAmount,isUrgent,allFollowTime,lastShowedTime from demand_customerbusinessinfo a
+		INNER JOIN sys_custbindinfo b on a.id = b.sourcesId where a.isValid = 1 
+		and b.type = 1 and b.custId = #{custId} 
+		<if test="null != requestType and requestType != '' and requestType != 0">
+			and a.transactionTypeId = #{requestType}
+		</if>
+	  </select>
+</mapper>
+
+
+

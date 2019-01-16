@@ -1,0 +1,87 @@
+package com.bashiju.www.service.user;
+
+import java.io.UnsupportedEncodingException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+/**
+ * @ClassName:  CustCustomerService   
+ * @Description:用户服务接口
+ * @author: wangpeng
+ * @date:   2018年8月15日 下午1:38:50   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustCustomerService  {
+
+
+	/**
+	 * 
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否已存在  
+	 * @param mobile 手机号码
+	 * @return: boolean
+	 */
+	public boolean queryIsExistMobile(String mobile);
+	
+	/**
+	 * @Title: saveCustCustomer   
+	 * @Description: 保存用户在注册时输入信息 
+	 * @param CustCustomerParam 用户输入参数
+	 * @return: long
+	 */
+	public boolean  saveCustCustomer(CustCustomerParam custCustomerParam);
+	
+	  /**
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param custCustomerEntity 要修改的参数
+     * @return: boolean
+     */
+    public boolean updateCustCustomer(CustCustomerEntity custCustomerEntity);
+    
+    /**
+     * @Title: customerLogin   
+     * @Description:用户登录
+     * @param mobile 电话号码
+     * @param password 密码
+     * @param validateCode 图片验证码
+     * @return: String
+     */
+    public String customerLogin(String mobile,String password,String validateCode);
+	/**
+	 * @Title: imageCheck   
+	 * @Description: 验证码
+	 * @param request
+	 * @param response
+	 * @return: String
+	 */
+    public String imageCheck(HttpServletRequest request,HttpServletResponse response);
+    
+    /**
+     * @Title: sendMobileMsgVerfyCode   
+     * @Description: 发送短信验证码
+     * @param mobile 电话号码
+     * @return: String
+     */
+    public String sendMobileMsgVerfyCode(String mobile);
+    /**
+     * @Title: customerMobileLogin   
+     * @Description: 短信登录
+     * @param mobile 电话号码
+     * @return: Map<String,Object>
+     */
+    public String customerMobileLogin(HttpServletRequest request,HttpServletResponse response,String mobile,String solt);
+    /**
+     * @Title: customerLoginout   
+     * @Description: 退出登陆
+     * @return: boolean
+     * @throws UnsupportedEncodingException 
+     */
+    public boolean customerLoginout(@Param("redisKey")String redisKey);
+}

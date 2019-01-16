@@ -1,0 +1,41 @@
+package com.bashiju.base.service.smsservice;
+
+import java.net.URLEncoder;
+import java.util.Map;
+
+import com.bashiju.base.BaseGlobal.BaseGlobal;
+import com.bashiju.base.util.HttpUtil;
+
+/**
+ * 发送短息通知
+ * @ClassName:  IndustrySMS   
+ * @Description:发送短息通知  
+ * @author: zhaobin
+ * @date:   2018年7月31日 下午2:25:29   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class SendSMS
+{
+	/**
+	 * 验证码通知短信
+	 */
+	public static void execute(Map<String,Object> map)
+	{
+		String tmpSmsContent = null;
+		String toPhone=map.get("toPhone").toString();
+		String smsContent=map.get("smsContent").toString();
+	    try{
+	      tmpSmsContent =URLEncoder.encode("【巴适居】尊敬的用户:"+smsContent+"内有效。请您妥善保存本码", "UTF-8");
+	    }catch(Exception e){
+	      
+	    }
+	    String body = "accountSid=" + BaseGlobal.ACCOUNT_SID + "&to=" + toPhone + "&smsContent=" + tmpSmsContent
+	        + HttpUtil.createCommonParam();
+
+	    // 提交请求
+	    String result = HttpUtil.post(BaseGlobal.BASE_URL, body);
+	    System.out.println("=====短信发送结果:" + System.lineSeparator() + result);
+	}
+}

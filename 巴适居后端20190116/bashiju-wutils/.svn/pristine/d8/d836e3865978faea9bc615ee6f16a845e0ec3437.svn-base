@@ -1,0 +1,63 @@
+package com.bashiju.www.pojo.service.out.newhouse;
+
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import lombok.Data;
+
+/**
+ * 
+ *   新房楼盘返回对象
+ * @ClassName:  NewHouseInfoResult   
+ * @Description:   新房楼盘返回对象
+ * @author: liwen
+ * @date:   2018年8月18日 下午17:10:39       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class NewHouseDetailResult implements Serializable{
+	
+	private static final long serialVersionUID = -8034222945621191964L;
+	/**楼盘名称**/
+	private String name;
+	/**近期开盘**/
+	protected String openDate;
+	/**交房时间**/
+	private String deliverDate;	
+	/**预售证号**/
+	private String preSellNo;
+	/**楼盘地址**/
+	protected String address;
+	/**平均价格**/
+	private int avgPrice;
+	/**售楼地址**/
+	private String salesDeptAdd;
+	/**开发商**/
+	private String developers;
+	/**产权年限**/
+	private int propertyLimit;
+	/**地铁标签**/
+	private String metroLabel;
+	/**学校标签**/
+	private String schoolLabel;
+	/**经纪人名字**/
+	private String agentName;
+	/**经纪人电话**/
+	private String agentPhone;
+	/**经纪人头像**/
+	private String agentUrl;
+	/**楼盘图片**/
+	private List<Map<String,Object>> imgList;
+	/**价格详情**/
+	private List<Map<String,Object>> priceList;
+	/**预售证号**/
+	private List<Map<String,Object>> preSellNoList;
+	/**开盘时间**/
+	private List<Map<String,Object>> openDateList;
+	/**近期交房**/
+	private List<Map<String,Object>> deliverDateList;
+}

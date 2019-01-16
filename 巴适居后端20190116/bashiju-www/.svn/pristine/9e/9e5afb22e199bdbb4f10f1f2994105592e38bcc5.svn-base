@@ -1,0 +1,240 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:12:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.CustomerEntrustmentsMapper;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.user.ICustomerEntrustmentService;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心--我的委托--管理服务
+ * @ClassName:CustomerEntrustmentServiceImpl
+ * @Description:个人中心--我的委托--管理服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:12:28
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerEntrustmentServiceImpl implements ICustomerEntrustmentService{
+	/**
+	 * Redis操作服务接口
+	 */
+	@Autowired
+	private ICacheService iCacheService;
+	/**
+	 * 客户委托持久层接口
+	 */
+	@Autowired
+	private CustomerEntrustmentsMapper mCustomerEntrustmentsMapper;
+	/**
+	 * 对象映射
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * 公共服务
+	 */
+	@Autowired
+	private ICommService mICommService;
+	/**
+	 * <p>Title: queryHouseEntrustmentDataList</p>   
+	 * <p>Description: 查询房源出租、出售委托信息</p>   
+	 * @param custId 客户ID
+	 * @param entrustType 委托类型（0 出租 1出售）
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @return
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#queryHouseEntrustmentDataList(java.lang.String, java.lang.String, int, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Page<CustomerHouseEntrustmentEntity> queryHouseEntrustmentDataList(String custId, String entrustType,
+			int page, int limit) {
+		String key = Md5EncryptUtils.md5Encrypt(
+				"queryHouseEntrustmentDataList" + custId.trim() + entrustType.trim() + page + limit);
+		Page<CustomerHouseEntrustmentEntity> pageList 
+					= (Page<CustomerHouseEntrustmentEntity>) readDataListFromRedisAsList(key,Page.class);
+		if(null == pageList) {
+			PageHelper.startPage(page,limit);
+			pageList = mCustomerEntrustmentsMapper.queryHouseEntrustData(custId,entrustType);
+			//保存数据到Redis
+			iCacheService.saveCache(key,pageList,WebGlobal.OTHER_EXPTIME);
+		}
+		return pageList;
+	}
+	/**
+	 * <p>Title: queryDemandEntrustmentDataList</p>   
+	 * <p>Description:查询客户需求数据信息 </p>   
+	 * @param custId 客户ID
+	 * @param entrustType 委托类型（0求租 1求购）
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#queryDemandEntrustmentDataList(java.lang.String, java.lang.String, int, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CustomerDemandEntrustmentEntity> queryDemandEntrustmentDataList(String custId
+			, String entrustType,int page, int limit) {
+		String key = Md5EncryptUtils.md5Encrypt(
+			"queryDemandEntrustmentDataList" + custId.trim() 
+				+ entrustType.trim() + page + limit);
+		Page<CustomerDemandEntrustmentEntity> pageList 
+				= (Page<CustomerDemandEntrustmentEntity>) readDataListFromRedisAsList(key,Page.class);
+		if(null == pageList) {
+			PageHelper.startPage(page,limit);
+			pageList = mCustomerEntrustmentsMapper.queryDemandEntrustData(custId,entrustType);
+			//保存数据到Redis
+			iCacheService.saveCache(key,pageList, WebGlobal.OTHER_EXPTIME);
+		}
+		return pageList;
+	}
+	/**
+	 * <p>Title: saveHouseEntrustmentData</p>   
+	 * <p>Description: 保存客户房源出租出售委托信息</p>   
+	 * @param houseEntity 房屋委托信息实体对象  
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#saveHouseEntrustmentData(com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity)
+	 */
+	@Override
+	public void saveHouseEntrustmentData(CustomerHouseEntrustmentEntity houseEntity) {
+		int communityId = houseEntity.getCommunityId();
+		houseEntity.setDecoration("");
+		houseEntity.setDecorationId(0);
+		houseEntity.setFloorDesc(0);
+		houseEntity.setJoinRentStyle(0);
+		houseEntity.setOrientation("");
+		houseEntity.setOrientationId(0);
+		if(StringUtil.isEmpty(String.valueOf(communityId))) {
+			throw new BusinessException("请传入小区ID");
+		}
+		List<Agent> agentInfo = mICommService.queryCommunityBestAgent(String.valueOf(communityId));
+		if(null == agentInfo) {
+			return ;
+		}
+		Map<String,Object> paraMap = castEntityToHashMap(houseEntity);
+		long id = mCustomerEntrustmentsMapper.saveHouseEntrustmentData(paraMap);
+		
+		Agent agent = agentInfo.get(0);
+		Map<String,Object> agentParaMap = new HashMap<String,Object>();
+		Date nowDate = new Date();
+		agentParaMap.put("addTime", nowDate);
+		agentParaMap.put("entrustType", 0);
+		agentParaMap.put("handelResult", "");
+//		agentParaMap.put("handelTime", "");
+		agentParaMap.put("isvalid", 1);
+		agentParaMap.put("resultId", 0);
+		agentParaMap.put("sourceId", id);
+		agentParaMap.put("status", 0);
+		agentParaMap.put("updateTime",nowDate);
+		agentParaMap.put("operatorId", agent.getAgentId());
+		agentParaMap.put("permissionArea", agent.getDeptId());
+		agentParaMap.put("operator", agent.getAgentName());
+		agentParaMap.put("userId", agent.getUserId());
+		mCustomerEntrustmentsMapper.saveAgentAcceptDataList(agentParaMap);
+	}
+	
+	/**
+	 * 对象转换为Map
+	 * @Title: castEntityToHashMap
+	 * @author: zuoyuntao  
+	 * @Description:对象转换 
+	 * @param oriEntityObj 原来的实体
+	 * @return      
+	 * Map<String,Object> 
+	 */
+	@SuppressWarnings("rawtypes")
+	private Map<String,Object> castEntityToHashMap(Object oriEntityObj){
+		Map<String, Object> map = new HashMap<>();
+        if (oriEntityObj == null) {
+            return new HashMap<String,Object>();
+        }
+        Class clazz = oriEntityObj.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        try {
+            for (Field field : fields) {
+                field.setAccessible(true);
+                map.put(field.getName(), field.get(oriEntityObj));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BusinessException("数据转换异常");
+        }
+        return map;
+	}
+	
+	/**
+	 * <p>Title: saveDemandEntrusData</p>   
+	 * <p>Description: 保存客户需求委托数据信息</p>   
+	 * @param demandEntity  客户需求委托对象
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#saveDemandEntrusData(com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public void saveDemandEntrusData(CustomerDemandEntrustmentEntity demandEntity) {
+		Object oriObj = castEntityToHashMap(demandEntity);
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(null != oriObj) {
+			paraMap = (Map<String, Object>) oriObj;
+		}
+		//保存客户需求信息
+		mCustomerEntrustmentsMapper.saveDemandEntrustmentData(paraMap);
+		//按照客户需求匹配房源
+		mCustomerEntrustmentsMapper.queryHouseSourceDataByMatchingCondition(demandEntity);
+	}
+	/**
+	 * 从Redis读取数据信息
+	 * @Title: readHouseDataListFromRedis
+	 * @author: zuoyuntao  
+	 * @Description:从Redis读取数据信息
+	 * @param key 
+	 * @param className 返回类型 
+	 * @return      
+	 * List<?> 
+	 */
+	private Object readDataListFromRedisAsList(String key,Class<?> className){
+		String retObj = iCacheService.getCache(key);
+		if(null != retObj) {
+			try {
+				return MAPPER.readValue(retObj, className);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+}

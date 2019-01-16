@@ -1,0 +1,8 @@
+fileTypes=png|jpg|gif|jpeg|doc|xls|pdf|docx|xlsx|zip|rar
+filesize=20
+imageTypes=png|jpg|gif|jpeg
+imagesize=5
+videoTypes=mp4|avi
+videosize=100
+
+

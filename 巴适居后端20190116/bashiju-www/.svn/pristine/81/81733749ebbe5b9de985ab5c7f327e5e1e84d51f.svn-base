@@ -1,0 +1,108 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerPersonalCentralService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:39:23   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import com.bashiju.www.pojo.service.out.comm.CustomerPersonalCentralQueryParamEntity;
+
+/**
+ * 个人中心服务接口
+ * @ClassName:ICustomerPersonalCentralService
+ * @Description:个人中心服务接口
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:39:23
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerPersonalCentralService {
+	/**
+	 * 查询成交房源过户进度
+	 * @Title: queryTransitSchedule
+	 * @author: zuoyuntao  
+	 * @Description:查询成交房源过户进度    
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryTransitScheduleList(CustomerPersonalCentralQueryParamEntity custEntity) ;
+	/**
+	 * 查询我的房子（委托经纪人发布的房源信息）
+	 * @Title: queryMyHouseList
+	 * @author: zuoyuntao  
+	 * @Description:查询我的房子（委托经纪人发布的房源信息）
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyHouseList(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 获取看房记录
+	 * @Title: querySeekHouseRecord
+	 * @author: zuoyuntao  
+	 * @Description:获取看房记录   
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void querySeekHouseRecordList(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 查询我的房源需求列表
+	 * @Title: queryMyHouseRequestList
+	 * @author: zuoyuntao  
+	 * @Description:查询我的房源需求列表 
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyHouseRequestList(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 根据绑定码绑定房源信息
+	 * @Title: bindingHouseByBindCode
+	 * @author: zuoyuntao  
+	 * @Description:根据绑定码绑定房源信息
+	 * @param custEntity 登陆用户实体对象 【custId，bindCode必填】
+	 * void JSON 格式为：
+	 */
+	public void bindingHouseByBindCode(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 根据绑定码绑定客源信息
+	 * @Title: bindingHouseByBindCode
+	 * @author: zuoyuntao  
+	 * @Description:根据绑定码绑定客源信息 
+	 * @param custEntity 登陆用户实体对象 【custId，bindCode必填】
+	 * void JSON 格式为：
+	 */
+	public void bindingCustomerByBindCode(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 查询用户发布的个人房源委托
+	 * @Title: queryMyEntrustment
+	 * @author: zuoyuntao  
+	 * @Description:查询用户发布的个人房源委托
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyEntrustment(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 查询我关注的房源
+	 * @Title: queryMyConceredHouseSources
+	 * @author: zuoyuntao  
+	 * @Description:查询我关注的房源  
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyConceredHouseSources(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 获取我的评价
+	 * @Title: queryMyComments
+	 * @author: zuoyuntao  
+	 * @Description:获取我的评价
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyComments(CustomerPersonalCentralQueryParamEntity custEntity);
+	
+}

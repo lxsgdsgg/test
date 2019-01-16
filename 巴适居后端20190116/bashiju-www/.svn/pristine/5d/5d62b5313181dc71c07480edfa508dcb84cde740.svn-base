@@ -1,0 +1,49 @@
+package com.bashiju.www.test;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  InterFaceTest.java   
+ * @Package    
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月25日 下午5:24:12   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+/**   
+ * @ClassName:  InterFaceTest   
+ * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @author: yangz
+ * @date:   2018年7月25日 下午5:24:12   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@RunWith(SpringJUnit4ClassRunner.class)    
+@ContextConfiguration(locations = {
+		"classpath*:/bashiju-www-servlet.xml",
+		"classpath*:/spring/applicationContext.xml",
+		"classpath*:/spring/applicationContext-transaction.xml",
+		"classpath*:/spring/applicationContext-mybatis.xml"
+		})  
+public class ServiceTest {
+	
+//	@Autowired
+//	private CommunityService communityService;
+	
+	@Test
+	public void test1() {
+//		CommunityQueryParams params = new CommunityQueryParams();
+//		params.setCityCode("530100");
+//		params.setPageNum(1);
+//		params.setPageSize(10);
+//		Page<Community> page = communityService.queryCommunitys(params);
+//		System.out.println(JSONObject.toJSONString(page));
+	}
+}

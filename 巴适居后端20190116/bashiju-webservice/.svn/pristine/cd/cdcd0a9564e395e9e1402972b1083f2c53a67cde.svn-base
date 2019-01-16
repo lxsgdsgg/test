@@ -1,0 +1,43 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 用dubbo协议在20881端口暴露服务 ,同一台服务器上不同应用都要发布dubbo,端口号不能相同-->
+	<dubbo:protocol name="dubbo"  port="20887" />
+		
+	<!-- 将该接口暴露到dubbo中 -->
+	 <dubbo:service interface="com.bashiju.wapi.IZiXunPageServiceApi"
+		ref="ZiXunPageServiceApi" />
+	<dubbo:service interface="com.bashiju.wapi.IBaiKePageServiceApi"
+		ref="BaiKePageServiceApi" />	
+	<dubbo:service interface="com.bashiju.wapi.IHomePageServiceApi"
+		ref="HomePageServiceApi" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseRentInfoPageServiceApi"
+		ref="HouseRentInfoPageServiceApi" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseRentListPageServiceApi"
+		ref="HouseRentListPageServiceApi" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseSellInfoPageServiceApi"
+		ref="houseSellInfoPageServiceApi" />
+	<dubbo:service interface="com.bashiju.wapi.IHouseSellListPageServiceApi"
+		ref="HouseSellListPageServiceApi" />	
+	<dubbo:service interface="com.bashiju.wapi.IMapHouseRentPageServiceApi"
+		ref="MapHouseRentPageServiceApi" />	
+	<dubbo:service interface="com.bashiju.wapi.IMapHouseSellPageServiceApi"
+		ref="MapHouseSellPageServiceApi" />		
+		
+	<!--将具体的实现类加入到Spring容器中-->
+	<bean id="ZiXunPageServiceApi" class="com.bashiju.www.service.api.impl.ZiXunPageServiceApi" /> 
+	<bean id="BaiKePageServiceApi" class="com.bashiju.www.service.api.impl.BaiKePageServiceApi" />
+	<bean id="HomePageServiceApi" class="com.bashiju.www.service.api.impl.HomePageServiceApi" />
+	<bean id="HouseRentInfoPageServiceApi" class="com.bashiju.www.service.api.impl.HouseRentInfoPageServiceApi" />
+	<bean id="HouseRentListPageServiceApi" class="com.bashiju.www.service.api.impl.HouseRentListPageServiceApi" />
+	<bean id="houseSellInfoPageServiceApi" class="com.bashiju.www.service.api.impl.HouseSellInfoPageServiceApi" />
+	<bean id="HouseSellListPageServiceApi" class="com.bashiju.www.service.api.impl.HouseSellListPageServiceApi" />
+	<bean id="MapHouseRentPageServiceApi" class="com.bashiju.www.service.api.impl.MapHouseRentPageServiceApi" />
+	<bean id="MapHouseSellPageServiceApi" class="com.bashiju.www.service.api.impl.MapHouseSellPageServiceApi" />
+</beans>

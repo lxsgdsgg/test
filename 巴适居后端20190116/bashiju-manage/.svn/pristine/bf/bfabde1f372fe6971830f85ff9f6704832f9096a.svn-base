@@ -1,0 +1,509 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * 用户管理控制器
+ * @ClassName:  UserManageController.java
+ * @Package com.bashiju.manage.controller   
+ * @Description: 用户管理控制器  
+ * @author: zuoyuntao     
+ * @date:   2018年5月24日 上午10:30:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.pojo.controller.CommunityQueryEntity;
+import com.bashiju.manage.service.DeptService;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IRegionService;
+import com.bashiju.manage.service.IUserManageService;
+import com.bashiju.manage.service.PostService;
+import com.bashiju.manage.service.RoleService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**   
+ * 用户管理控制器  
+ * @ClassName:  UserManageController   
+ * @Description:用户管理控制器   
+ * @author: zuoyuntao
+ * @date:   2018年5月24日 上午10:30:49   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Controller
+@RequestMapping(value="usermanage")
+public class UserManageController extends BaseController{
+	/**
+	 * 用户管理接口对象
+	 */
+	@Autowired
+	private IUserManageService mIUserManageService;
+	/**
+	 * 角色管理接口对象
+	 */
+	@Autowired
+	private RoleService mRoleService;
+	/**
+	 * 职位管理接口
+	 */
+	@Autowired
+	private PostService mPostService;
+	/**
+	 * 动态表单接口
+	 */
+	@Autowired
+	private FormService formservice;
+	
+	@Autowired
+	private DeptService deptService;
+	/**
+	 * 小区管理接口对象
+	 */
+	@Autowired
+	private ICommunityService mICommunityService;
+	/**
+	 * 片区接口
+	 */
+	@Autowired
+	private IRegionService regionService;
+	/**
+	 * 获取用户管理主页面Model
+	 * @Title: getUserManageMainMv
+	 * @author: zuoyuntao  
+	 * @Description: TODO(获取用户管理主页面Model)   
+	 * @param: request:页面请求对象
+	 * @param: response:页面响应对象
+	 * @return: ModelAndView 视图中包含如下对象
+	 * deptMaxLevel 数字：部门的最大级次
+	 * referMaxLevel数字：介绍人的最大级次
+	 * {"maxLevel":"5","name":"呈贡一区一店二组","code":"BSJ010101010102","parentCode":"BSJ0101010101","level":"5"}
+	 * positionInfo 职位信息 {"permissionArea":"BSJ0103","userEdit":"userEdit","addTime":1523260518000,"isvalid":"有效","updateTime":1525836089000,"lockedUser":"lockedUser","moveUserInfo":"moveUserInfo","permissionSet":"permissionSet","name":"行政管理","resetPsw":"resetPsw","id":1,"dataUpdate":"dataUpdate","operatorId":1}
+	 * sexInfo 性别信息 {1=女, 2=男}
+	 * syncFlag 是否外网同步 {0=否, 1=是}
+	 * birthdayOpen 是否生日弹出 {0=否, 1=是}
+	 * isHotInfo 是否热门经纪人 {0=否, 1=是}
+	 * referInfo 介绍人信息 {"maxLevel":6.0,"name":"昆明市","code":"BSJ0101","parentCode":"","level":"1"}
+	 * sourceInfo 用户信息转移
+	 * areaList {"name":"北京市","code":"110000","parentCode":"0","level":"1"}
+	 * userDynamicField 用户动态表单字段 {"field":"customField_2","title":"斤斤计较","city":"city","value":"","fieldType":"1","fieldUnit":""}
+	 * @throws
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value="getUserManageMainMv")
+	public ModelAndView getUserManageMainMv(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "usermanage/user_manage_main");
+		//获取角色信息
+		List<Map<String, Object>> roleList = mRoleService.queryRoles(null,null, null);
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = deptService.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString(),
+				UserThreadLocal.get().get("id").toString());
+		
+		//获取介绍人数据
+		List<Map<String, Object>> referList = mIUserManageService
+				.queryDeptInfoToCreateTree(UserThreadLocal.get().get("roleGroup").toString(),
+						UserThreadLocal.get().get("id").toString());
+		//获取职位信息
+		Page<Map<String, Object>> positionList = mPostService.queryPost(null, 0, 0);
+		//获取用户动态表单信息
+		List userDynamicField = formservice.queryCustomField("userInfo");
+		//获取行政区划信息
+		List<Map<String, Object>> list = mICommunityService.queryAreaSelect();
+		//获取片区
+		List<Map<String,Object>> regionList = regionService
+				.queryRegionsByCity(String.valueOf(UserThreadLocal.get().get("areaCode")));
+		//获取小区
+		List<Map<String,Object>> communityList = new ArrayList<Map<String,Object>>();
+		CommunityQueryEntity entity = new CommunityQueryEntity();
+		entity.setAreaCode(null);
+		entity.setBiaozhu(null);
+		entity.setHot(null);
+		entity.setPinyin(null);
+		entity.setRegionName(null);
+		
+		try {
+			communityList = mICommunityService.queryCommunityList(entity , 0, 0);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new BusinessException(e.getMessage());
+		}
+		mv.addObject("roleInfo",JSON.toJSON(roleList));
+		mv.addObject("deptInfo",JSON.toJSON(deptList));
+		mv.addObject("positionInfo",JSON.toJSON(positionList));
+		mv.addObject("sexInfo",ManageGlobal.USER_SEX);
+		mv.addObject("isHotInfo",ManageGlobal.ZERO_OR_ONE);
+		mv.addObject("isAgent",ManageGlobal.ZERO_OR_ONE);
+		mv.addObject("birthdayOpen",ManageGlobal.ZERO_OR_ONE);
+		mv.addObject("isHotInfo",ManageGlobal.ZERO_OR_ONE);
+		mv.addObject("syncFlag",ManageGlobal.ZERO_OR_ONE);
+		mv.addObject("referInfo",JSON.toJSON(referList));//介绍人信息
+		//这里还需要读取资源信息，在转移用户数据信息的时候适用--需要预留接口
+		mv.addObject("sourceInfo","");//数据转移时用到
+		mv.addObject("areaList",JSON.toJSON(list));
+		mv.addObject("communityList",JSON.toJSON(communityList));
+		mv.addObject("regionList",JSON.toJSON(regionList));
+		mv.addObject("userDynamicField",JSON.toJSON(userDynamicField));
+		
+		return mv;
+	}
+	
+	/**
+	 * 获取用户数据更新模型
+	 * @Title: getUserDataUpdateModel
+	 * @author: zuoyuntao  
+	 * @Description:获取用户数据更新模型   
+	 * @param: request 页面请求对象
+	 * @param: response 页面响应对象
+	 * @return: ModelAndView 视图包含storInfo
+	 *  JSON 格式为：{} 
+	 * @throws
+	 */
+	@RequestMapping(value="getUserDataUpdateModel")
+	public ModelAndView getUserDataUpdateModel(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response, "usermanage/user_data_update");
+		//需要获取一下所有门店信息
+		//TODO
+		model.addObject("storInfo",null);
+		return model;
+	}
+	
+	/**
+	 * 用户数据转移时的页面模型
+	 * @Title: getUserDataTransferModel
+	 * @author: zuoyuntao  
+	 * @Description:用户数据转移时的页面模型
+	 * @param: request 页面请求对象
+	 * @param: response 页面响应对象
+	 * @return: ModelAndView      
+	 * @throws
+	 */
+	@RequestMapping(value="getUserDataTransferModel")
+	public ModelAndView getUserDataTransferModel(HttpServletRequest request
+			,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request,response,"usermanage/user_data_transfer");
+		//获取资源数据信息
+		//TODO
+		model.addObject("sourceInfo",null);
+		return model;
+	}
+	
+	/**
+	 * 获取主页面数据--带分页
+	 * @Title: getUserAllDataWithPage
+	 * @author: zuoyuntao  
+	 * @Description: 获取主页面数据--带分页
+	 * @param: userName 用户名称
+	 * @param: employeeNum 员工编码
+	 * @param: mobile 手机号码
+	 * @param: deptId 部门ID
+	 * @param: roleId 角色ID
+	 * @param: isLocked 锁定状态 0锁定，01正常
+	 * @param: curPage 每页显示最少数据条数
+	 * @param: limit 每页显示最多条数
+	 * @return: Page<Map<Object,Object>>     
+	 * Page{count=true, pageNum=0, pageSize=10, startRow=0, endRow=0, total=11, pages=2, reasonable=false, pageSizeZero=false}[{deptName=呈贡一区二店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, isPCLoginName=否, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, solt=123, password=1, areaName=昆明市, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:48:52.0, id=5, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888884, userEdit=userEdit, syncFlag=1, roleId=7, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888884, deptId=BSJ010101010201, updateTime=2018-05-29 15:49:35.0, sortNo=1, realName=呈贡一区一店一组组员1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=006, userTypeName=是, roleName=组员, userType=1, parentMobile=13577000337, status=1}, {deptName=呈贡一区一店, isHotName=是, addTime=2018-04-09 16:06:01.0, lockedUser=lockedUser, operator=[系统更新], passwordErrorCount=0, moveUserInfo=moveUserInfo, password=1, areaName=昆明市, sexName=男, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:36:07.0, id=2, birthWindowFlag=1, operatorId=1, wxNum=18888888887, entryDate=2018-05-15, syncFlagName=是, deptId=BSJ0101010101, postId=2, isPCLogin=1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, userTypeName=是, roleName=店长, userType=1, parentMobile=13577000337, status=1, permissionArea=BSJ0103, isPCLoginName=是, solt=123, telPhone=40000002, postName=部门经理, statusName=正常, dataUpdate=dataUpdate, email=, userEdit=userEdit, syncFlag=1, roleId=5, idCode=, sex=2, hotAgentFlag=1, isValid=1, mobile=18888888887, updateTime=2018-05-29 15:36:50.0, loginStatus=online, birthDate=2018-05-23, sortNo=1, realName=呈贡一区一店店长, employee_num=002}, {refereeId=, deptName=呈贡一区一店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, isPCLoginName=否, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, solt=123, password=1, areaName=昆明市, postName=行政人员, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 11:25:03.0, id=4, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, email=123@132.com, wxNum=18888888885, userEdit=userEdit, entryDate=2018-05-16, syncFlag=1, roleId=7, idCode=522426198607080816, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888885, deptId=BSJ010101010101, updateTime=2018-05-29 11:25:46.0, postId=3, birthDate=2018-05-28, sortNo=1, realName=呈贡一区一店一组组员1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=005, userTypeName=否, roleName=组员, userType=0, parentMobile=13577000337, status=1}, {deptName=A组, isHotName=是, addTime=2018-04-09 16:06:01.0, lockedUser=lockedUser, operator=[系统更新], passwordErrorCount=0, moveUserInfo=moveUserInfo, password=123456, areaName=昆明市, sexName=女, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-31 14:08:31.0, id=1, birthWindowFlag=1, operatorId=1, wxNum=13577000337, entryDate=2018-04-09, syncFlagName=是, deptId=BSJ0103, postId=1, isPCLogin=1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, userTypeName=是, roleName=行政管理, userType=1, status=01, permissionArea=BSJ0103, isPCLoginName=是, solt=123, telPhone=40000001, postName=行政管理, statusName=正常, dataUpdate=dataUpdate, userEdit=userEdit, syncFlag=1, roleId=1, idCode=, sex=1, hotAgentFlag=1, isValid=1, mobile=13577000337, updateTime=2018-05-31 14:08:31.0, loginStatus=online, birthDate=2018-04-09, sortNo=1, realName=超级管理员, employee_num=001}, {deptName=呈贡一区一店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, isPCLoginName=否, lockedUser=lockedUser, operator=1, passwordErrorCount=0, moveUserInfo=moveUserInfo, solt=123, telPhone=40000003, password=1, areaName=昆明市, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-30 14:45:50.0, id=3, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888886, userEdit=userEdit, syncFlag=1, roleId=6, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888886, deptId=BSJ010101010101, updateTime=2018-05-30 14:46:38.0, loginStatus=Offline, isPCLogin=, sortNo=1, realName=呈贡一区一店一组组长, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=003, userTypeName=否, roleName=组长, userType=0, parentMobile=, status=01}, {refereeId=, deptName=呈贡一区二店, isHotName=是, addTime=2018-04-09 16:06:01.0, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, password=1, areaName=昆明市, sexName=女, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-28 18:25:09.0, id=6, birthWindowFlag=1, operatorId=1, wxNum=18888888883, entryDate=2018-05-30, syncFlagName=是, deptId=BSJ0101010102, postId=3, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, userTypeName=否, roleName=店长, userType=0, parentMobile=13577000337, status=0, permissionArea=BSJ0103, isPCLoginName=否, solt=123, telPhone=40000004, postName=行政人员, statusName=锁定, dataUpdate=dataUpdate, email=, userEdit=userEdit, syncFlag=1, roleId=5, idCode=522426198607080816, sex=1, hotAgentFlag=1, isValid=1, mobile=18888888883, updateTime=2018-05-28 18:25:51.0, birthDate=2018-05-02, sortNo=1, realName=呈贡一区二店店长, employee_num=007}, {refereeId=, deptName=呈贡一区一店二组, permissionArea=BSJ0103, isHotName=否, addTime=2018-05-28 19:07:54.0, isPCLoginName=否, lockedUser=lockedUser, operator=测试人员, moveUserInfo=moveUserInfo, solt=BSHJ-999, password=123456, postName=部门经理, sexName=女, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 09:43:25.0, id=7, dataUpdate=dataUpdate, birthWindowFlag=0, operatorId=1, email=163@163.com, userEdit=userEdit, entryDate=2018-05-30, syncFlag=0, roleId=3, idCode=522426198607080816, sex=1, syncFlagName=否, hotAgentFlag=0, isValid=1, mobile=13699987665, deptId=BSJ010101010102, updateTime=2018-05-29 09:44:07.0, postId=2, birthDate=2018-05-02, sortNo=31, realName=测试--99++, companyId=BSJ01, permissionSet=permissionSet, employee_num=13, userTypeName=否, roleName=大区经理, status=01}, {refereeId=, deptName=呈贡一区一店一组, permissionArea=BSJ0103, isHotName=否, addTime=2018-05-29 14:57:33.0, isPCLoginName=否, lockedUser=lockedUser, operator=测试人员, moveUserInfo=moveUserInfo, solt=BSHJ-999, password=123456, areaName=盘龙区, postName=行政管理, sexName=女, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:34:34.0, id=8, dataUpdate=dataUpdate, birthWindowFlag=0, operatorId=1, email=fdasf@163.com, userEdit=userEdit, entryDate=2018-05-31, syncFlag=0, roleId=3, idCode=522426198607080816, sex=1, syncFlagName=否, hotAgentFlag=0, isValid=1, mobile=18999665555, deptId=BSJ010101010101, updateTime=2018-05-29 15:35:17.0, postId=1, birthDate=2018-05-01, sortNo=65, realName=测试, companyId=BSJ01, areaCode=530103, permissionSet=permissionSet, employee_num=测试, userTypeName=否, roleName=大区经理, status=01}, {deptName=呈贡一区一店一组, permissionArea=BSJ0103, isHotName=否, addTime=2018-05-29 15:50:52.0, isPCLoginName=否, lockedUser=lockedUser, operator=测试人员, moveUserInfo=moveUserInfo, solt=BSHJ-999, password=123456, areaName=官渡区, postName=开发人员, sexName=男, statusName=正常, resetPsw=resetPsw, id=9, dataUpdate=dataUpdate, birthWindowFlag=0, operatorId=1, userEdit=userEdit, entryDate=2018-05-30, syncFlag=0, roleId=4, sex=2, syncFlagName=否, hotAgentFlag=0, isValid=1, mobile=13645459696, deptId=BSJ010101010101, postId=4, birthDate=2012-03-15, sortNo=13, realName=测试, companyId=BSJ01, areaCode=530111, permissionSet=permissionSet, employee_num=012, userTypeName=否, roleName=区经理, status=01}, {deptName=A组, permissionArea=BSJ0103, isHotName=是, addTime=2018-05-30 09:43:20.0, isPCLoginName=是, lockedUser=lockedUser, operator=1, passwordErrorCount=0, moveUserInfo=moveUserInfo, solt=123, telPhone=40000004, password=1, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-30 15:25:38.0, id=10, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888882, userEdit=userEdit, syncFlag=1, roleId=3, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888882, deptId=BSJ0103, updateTime=2018-05-30 15:25:38.0, loginStatus=online, isPCLogin=1, sortNo=8, realName=城市管理员1号, companyId=BSJ01, permissionSet=permissionSet, employee_num=008, userTypeName=是, roleName=大区经理, userType=1, parentMobile=, status=01}] 
+	 * @throws
+	 */
+	@RequestMapping(value="getUserAllDataWithPage")
+	@ResponseBody
+	public Object getUserAllDataWithPage(String userName,String employeeNum,
+			String mobile,String deptId,String roleId,String isLocked, int page,int limit){
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("realName",userName);
+		paraMap.put("employee_num",employeeNum);
+		paraMap.put("mobile",mobile);
+		paraMap.put("deptId",deptId);
+		paraMap.put("isLocked",isLocked);
+		paraMap.put("roleId",roleId);
+		paraMap.put("isLocked",isLocked);
+
+		Page<Map<String, Object>> pageObj = mIUserManageService.queryAllUserInfoWithPage(paraMap,page, limit);
+		return this.getPageResult(pageObj);
+	}
+	
+	/**
+	 * 根据用户ID获取用户数据信息
+	 * @Title: getUserInfoByUserId
+	 * @author: zuoyuntao  
+	 * @Description: 根据用户ID获取用户数据信息
+	 * @param: userId：用户ID
+	 * @param: userName：用户名称
+	 * @return: Object：JSON 格式为：{deptName=呈贡一区二店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, isPCLoginName=否, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, solt=123, password=1, areaName=昆明市, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:48:52.0, id=5, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888884, userEdit=userEdit, syncFlag=1, roleId=7, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888884, deptId=BSJ010101010201, updateTime=2018-05-29 15:49:35.0, sortNo=1, realName=呈贡一区一店一组组员1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=006, userTypeName=是, roleName=组员, userType=1, parentMobile=13577000337, status=1}     
+	 * @throws
+	 */
+	@RequestMapping(value="getUserInfoByUserId")
+	@ResponseBody
+	public Object getUserInfoByUserId(String userId,String userName) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id",userId);
+		return mIUserManageService.queryUserInfoByConn(paraMap);
+	}
+	/**
+	 * 领导人信息
+	 * @Title: getUserInfoForSelect
+	 * @author: zuoyuntao  
+	 * @Description:领导人信息   
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="")
+	@ResponseBody
+	public Object getUserInfoForSelect() {
+		return mIUserManageService.queryDeptInfoToCreateTree(UserThreadLocal.get().get("roleGroup").toString(),
+				UserThreadLocal.get().get("id").toString());
+	}
+	
+	/**
+	 * 添加或更新用户数据信息
+	 * @Title: saveOrUpdateUserInfo
+	 * @author: zuoyuntao  
+	 * @Description:添加或更新用户数据信息 
+	 * @param:jsonData
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateUserInfo")
+	@ResponseBody
+	public BashijuResult saveOrUpdateUserInfo(HttpServletRequest request,String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("页面传入参数为空,请重试！");
+		}
+		Map<Object,Object> paraMap = (Map<Object, Object>) JSON.parse(jsonData);
+		String id = String.valueOf(paraMap.get("id"));
+		paraMap.put("refereeId",paraMap.get("code"));
+		paraMap.remove("code");
+		paraMap.remove("deptName");
+		paraMap.remove("postName");
+		paraMap.remove("roleName");
+		paraMap.remove("areaName");
+		paraMap.remove("refereeName");
+		if(StringUtil.isEmpty(id)) {
+			boolean exists = mIUserManageService.jurgeUserExistsByMobile((String) paraMap.get("mobile"));
+			if(exists) {
+				throw new BusinessException("已存在此手机号码的用户!");
+			}
+			paraMap.remove("id");//ID为空的情况为新增，移除ID，否则为更新数据
+			paraMap.put("operatorId",UserThreadLocal.get().get("id"));
+			paraMap.put("password",ManageGlobal.PASSWORD );
+			paraMap.put("status", "01");
+			paraMap.put("solt", "BSHJ-999");
+		}
+		String companyId = String.valueOf(UserThreadLocal.get().get("companyId"));
+		
+		Map<String, Object> deptMap = deptService.getDept(String.valueOf(paraMap.get("deptId")));
+		if(null != deptMap) {
+			//如果部门中存在公司ID则取部门的公司ID否则取线程中的公司ID
+			companyId = String.valueOf(deptMap.get("companyId"));
+		}
+		paraMap.put("permissionArea",UserThreadLocal.get().get("deptId"));
+		paraMap.put("companyId",companyId );
+
+		Iterator<Object> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = (String) it.next();
+			if(StringUtil.isEmpty(String.valueOf(paraMap.get(key)))) {
+				paraMap.put(key, null);//Mysql 暂时没有设置支持""字符
+			}
+		}
+		mIUserManageService.saveOrUpdateUserInfo(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 锁定用户数据信息
+	 * @Title: lockedUserInfo
+	 * @author: zuoyuntao  
+	 * @Description:锁定用户数据信息
+	 * @param: userId:用户ID
+	 * @param: status:用户状态
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="lockedUserInfo")
+	@ResponseBody
+	public BashijuResult lockedUserInfo(String userId) {
+		Map<Object,Object> paraMap = new HashMap<Object,Object>();
+		paraMap.put("id", userId);
+		paraMap.put("status", "0");
+		mIUserManageService.lockedUserInfo(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 解锁用户
+	 * @Title: unLockedUserInfor
+	 * @author: zuoyuntao  
+	 * @Description:解锁用户 
+	 * @param: userId：用户ID
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="unLockedUserInfor")
+	@ResponseBody
+	public BashijuResult unLockedUserInfor(String userId) {
+		Map<Object,Object> paraMap = new HashMap<Object,Object>();
+		paraMap.put("id", userId);
+		paraMap.put("status", "01");
+		mIUserManageService.unLockedUserInfo(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 转移用户数据--将用户所拥有的一些数据资源转移给其他人
+	 * @Title: moveBelongUserAllThingsToOther
+	 * @author: zuoyuntao  
+	 * @Description: 转移用户数据--将用户所拥有的一些数据资源转移给其他人
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="moveBelongUserAllThingsToOther")
+	@ResponseBody
+	public BashijuResult moveBelongUserAllThingsToOther() {
+		//TODO
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 数据更新--更新用户所属的一些数据信息
+	 * @Title: updateUserBelongOther
+	 * @author: zuoyuntao  
+	 * @Description:数据更新--更新用户所属的一些数据信息  
+	 * @param:jsonData
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="updateUserBelongOther")
+	@ResponseBody
+	public BashijuResult updateUserBelongOther(String jsonData) {
+		//TODO
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 重置用户密码
+	 * @Title: resetUserPassword
+	 * @author: zuoyuntao  
+	 * @Description:重置用户密码
+	 * @param:userId
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="resetUserPassword")
+	@ResponseBody
+	public BashijuResult resetUserPassword(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("传入参数为空!");
+		}
+		Map<Object,Object> tempMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		Map<Object,Object> paraMap = new HashMap<Object,Object>();
+		String userId = String.valueOf(tempMap.get("userId"));
+		if(StringUtil.isEmpty(userId)) {
+			throw new BusinessException("传入用户Id为空");
+		}
+		paraMap.put("id", userId);
+		paraMap.put("password", tempMap.get("confirmPassword"));
+		mIUserManageService.resetUserPassword(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 保存用户数据更新日志信息
+	 * @Title: saveUserUpdateLog
+	 * @author: zuoyuntao  
+	 * @Description:保存用户数据更新日志信息   
+	 * @param:jsonData
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveUserUpdateLog")
+	@ResponseBody
+	public BashijuResult saveUserUpdateLog(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("页面传入参数为空,请重试！");
+		}
+		Map<Object,Object> paraMap = (Map<Object, Object>) JSON.parse(jsonData);
+		String id = String.valueOf(paraMap.get("id"));
+		if(StringUtil.isEmpty(id)) {
+			paraMap.remove("id");//ID为空的情况为新增，移除ID，否则为更新数据
+		}
+		mIUserManageService.saveUserActionLog(paraMap);
+		return BashijuResult.ok();
+		
+	}
+	
+	/**
+	 * 查询用户更新日志数据
+	 * @Title: queryUserDataUpdateActionLog
+	 * @author: zuoyuntao  
+	 * @Description: 查询用户更新日志数据  
+	 * @param: curPage 每页显示最小条数
+	 * @param: limit 每页显示最大条数
+	 * @return: Object      
+	 * @throws
+	 */
+	@RequestMapping(value="queryUserDataUpdateActionLog")
+	@ResponseBody
+	public Object queryUserDataUpdateActionLog(int page, int limit) {
+		Page<Map<String, Object>> pageObj = mIUserManageService
+				.queryUserDataUpdateLogWithPage(null, page, limit);
+		return this.getPageResult(pageObj);
+	}
+	
+	/**
+	 * 保存用户转移的数据信息 
+	 * @Title: saveUserTransferData
+	 * @author: zuoyuntao  
+	 * @Description:保存用户转移的数据信息 
+	 * @param:jsonData 页面请求的json格式数据
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="saveUserTransferData")
+	@ResponseBody
+	public BashijuResult saveUserTransferData(String jsonData) {
+		//TODO
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 查询介绍人信息 
+	 * @Title: queryReferenInfoToCreateTree
+	 * @author: zuoyuntao  
+	 * @Description:查询介绍人信息
+	 * @param areaCode 行政区划
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	@RequestMapping(value="queryReferenInfoToCreateTree")
+	@ResponseBody
+	public List<Map<String,Object>> queryReferenInfoToCreateTree(String areaCode){
+		return mIUserManageService.queryReferenInfoToCreateTree(areaCode);
+	}
+}

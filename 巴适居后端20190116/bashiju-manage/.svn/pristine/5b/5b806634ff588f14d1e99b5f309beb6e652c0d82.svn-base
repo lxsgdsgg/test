@@ -1,0 +1,118 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ITransferProcessService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:    过户流程管理接口类)   
+ * @author: zuoyuntao     
+ * @date:   2018年5月4日 上午11:52:19   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * 过户流程管理接口类
+ * @ClassName:  ITransferProcessService   
+ * @Description:过户流程管理接口类  
+ * @author: zuoyuntao
+ * @date:   2018年5月4日 上午11:52:19   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ITransferProcessService {
+	/**
+	 * 获取到所有带分页的过户流程数据信息
+	 * @Title: queryTransferProcessDataInfo   
+	 * @Description: 获取到所有带分页的过户流程数据信息   
+	 * @param: paraMap
+	 * @param: curPageCount
+	 * @param: maxPageCont
+	 * @return: Page<Map<String,Object>>  
+	 * JSON格式为L:{id=9, programmeName=预约合同过户流程, isValid=1, cityId=BSJ0102, cityName=大理市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:41.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:29.0, permissionArea=BSJ0103, operatorId=1, procModify=procModify, hsOwnerDetail=hsOwnerDetail, cusDetail=cusDetail, procConf=procConf, procDel=procDel}    
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryTransferProcessDataInfo(Map<String,Object> paraMap,
+			int curPageCount,int maxPageCont) ;
+	/**
+	 * 根据配置Id获取过户流程主配置信息
+	 * @Title: queryTransferProcById   
+	 * @Description: 根据配置Id获取过户流程主配置信息 
+	 * @param: procId
+	 * @return: Map<Object,Object>      
+	 * JSON格式为：{id=13, programmeName=公积金（组合）过户流程, isValid=1, cityId=BSJ0101, cityName=昆明市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:25.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:13.0, permissionArea=BSJ0103, operatorId=1, procModify=procModify, hsOwnerDetail=hsOwnerDetail, cusDetail=cusDetail, procConf=procConf, procDel=procDel}
+	 * @throws
+	 */
+	public Map<Object,Object> queryTransferProcById(String procId);
+	/**
+	 * 根据配置名称获取过户流程主配置信息
+	 * @Title: queryTransferProcById   
+	 * @Description: 根据配置名称获取过户流程主配置信息  
+	 * @param: procId 主配置ID
+	 * @return: Map<Object,Object>  
+	 * JSON格式为：{id=13, programmeName=公积金（组合）过户流程, isValid=1, cityId=BSJ0101, cityName=昆明市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:25.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:13.0, permissionArea=BSJ0103, operatorId=1, procModify=procModify, hsOwnerDetail=hsOwnerDetail, cusDetail=cusDetail, procConf=procConf, procDel=procDel}    
+	 * @throws
+	 */
+	public Map<Object,Object> queryTransferProcByName(String procName);
+	/**
+	 * 新增或修改过户方案明细
+	 * @Title: saveOrUpdateHouseExData   
+	 * @Description: 新增或修改过户方案明细
+	 * @param: paraMap 要保存的数据对象，修改时至少包含“id”，“updateOperator”
+	 * @return: String 返回“success”     
+	 * @throws
+	 */
+	public String saveOrUpdateHouseExData(Map<Object,Object> paraMap);
+	/**
+	 * 删除过户方案
+	 * @Title: delHouseExData   
+	 * @Description: 删除过户方案   
+	 * @param: paraMap 参数对象中至少包含ID     
+	 * @return: void      
+	 * @throws
+	 */
+	public void delHouseExData(Map<Object,Object> paraMap);
+	
+	/**
+	 * 根据主配置ID明细配置数据信息
+	 * @Title: queryTransferDetailByConfId   
+	 * @Description: 根据主配置ID明细配置数据信息   
+	 * @param: confId：主配置ID
+	 * @param: confType：配置类型（1：业主明细材料，2：客户明细材料）
+	 * @return: List<Map<String,Object>>      
+	 * List 对象的其中一条：{id=57, detailName=身份证, addTime=2018-05-09 10:00:07.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 13:58:13.0, confType=1, isValid=1, operatorId=1, confId=13, sortId=1, permissionArea=BSJ0103},
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryTransferDetailByConfId(String confId,String confType);
+	/**
+	 * 设置或修改过户方案明细数据信息
+	 * @Title: saveOrUpdateHouseExDetailData   
+	 * @Description: 设置或修改过户方案明细数据信息   
+	 * @param: saveList：传入数据集合
+	 * @param: confId：主配置信息ID
+	 * @param: isInsert：是否新增
+	 * @return: String      
+	 * @throws
+	 */
+	public void saveOrUpdateHouseExDetailData(List<Map<String, Object>> saveList
+			, String confId, boolean isInsert);
+	/**
+	 * 判断数据是否存在
+	 * @Title: jargeDataIsExists   
+	 * @Description: 判断数据是否存在  
+	 * @param: paramMap ：参数对象（对象中的所有数据将作为查询条件进行拼接，字段名称必须与表字段名称对应）
+	 * @param: tableOrViewName:表或视图名称 
+	 * @return: void      
+	 * @throws
+	 */
+	public boolean jargeDataIsExists(Map<String,Object> paramMap,String tableOrViewName);
+	
+}

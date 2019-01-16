@@ -1,0 +1,73 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  EmployeeWagesConfigurate.java   
+ * @Package com.bashiju.fin.service   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年9月10日 下午4:35:05   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.fin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  EmployeeWagesConfigurate   
+ * @Description:员工薪资配置管理   
+ * @author: yangz
+ * @date:   2018年9月10日 下午4:35:05   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface EmployeeWagesConfigurateService {
+
+	/**
+	 * 查询员工薪资配置信息   
+	 * @Description: 查询员工薪资配置信息   
+	 * @param userName 员工名称
+	 * @param welfareId 福利方案编号
+	 * @param ssfConfigId 社保方案编号
+	 * @param agentComConfigId 中介类提成方案编号
+	 * @param financeComConfigId 金融类提成方案编号
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryEmployeeWagesConfigurates(Long userId,String deptId,String welfareId
+			,String ssfConfigId,String agentComConfigId,String financeComConfigId);
+	
+	/**
+	 * 查询员工薪资配置信息(分页)  
+	 * @Description: 查询员工薪资配置信息(分页)   
+	 * @param userName 员工名称
+	 * @param welfareId 福利方案编号
+	 * @param ssfConfigId 社保方案编号
+	 * @param agentComConfigId 中介类提成方案编号
+	 * @param financeComConfigId 金融类提成方案编号
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryEmployeeWagesConfigurates(Long userId,String deptId,String welfareId
+			,String ssfConfigId,String agentComConfigId,String financeComConfigId,int pageNum,int pageSize);
+	
+	
+	/**
+	 * 保存员工薪资配置方案信息
+	 * @Description: 保存员工薪资配置方案信息   
+	 * @param map 待保存的员工薪资配置方案
+	 * @return: boolean
+	 */
+	public boolean saveOrUpdateEmployeeWagesConfigurate(Map<Object,Object> map);
+	
+	/**
+	 * 删除薪资配置方案
+	 * @Description:删除薪资配置方案   
+	 * @param wagesId 薪资配置方案编号
+	 * @return: boolean
+	 */
+	public boolean delEmployeeWagesConfigurate(String wagesId);
+	
+}

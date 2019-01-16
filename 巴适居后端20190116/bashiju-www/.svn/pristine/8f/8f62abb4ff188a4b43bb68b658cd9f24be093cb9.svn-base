@@ -1,0 +1,162 @@
+package com.bashiju.www.pojo.service.out.comm;
+/**
+ * 
+ * @ClassName:  NavigationBar   
+ * @Description:导航条实体   
+ * @author: wangpeng
+ * @date:   2018年7月25日 上午9:23:48   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class NavigationBar {
+	/**
+	 * 导航栏id
+	 */
+	private int id;
+	
+	/**
+	 * 导航栏名称
+	 */
+	private String name;
+	/**
+	 * 导航栏等级
+	 */
+	private int level;
+	
+	/**
+	 * 导航栏地址
+	 */
+	private String url;
+	
+	/**
+	 * 上级导航栏id
+	 */
+	private int parentId;
+	
+	
+	/**
+	 * 上级导航栏名称
+	 */
+	private String parentName;
+	
+	
+	/**  
+	 * @Title:  getId <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public int getId() {
+		return id;
+	}
+
+	/**  
+	 * @Title:  setId <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	/**  
+	 * @Title:  getName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**  
+	 * @Title:  setName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	/**  
+	 * @Title:  getLevel <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public int getLevel() {
+		return level;
+	}
+	
+	/**  
+	 * @Title:  setLevel <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	/**  
+	 * @Title:  getUrl <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public String getUrl() {
+		return url;
+	}
+	
+	/**  
+	 * @Title:  setUrl <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	/**  
+	 * @Title:  getParentId <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public int getParentId() {
+		return parentId;
+	}
+	/**  
+	 * @Title:  setParentId <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setParentId(int parentId) {
+		this.parentId = parentId;
+	}
+	
+	/**  
+	 * @Title:  getParentName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public String getParentName() {
+		return parentName;
+	}
+	
+	/**  
+	 * @Title:  setParentName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	
+	public void setParentName(String parentName) {
+		this.parentName = parentName;
+	}
+
+	@Override
+	public String toString() {
+		return "NavigationBar[id= "+id+",name= "+name+",level= "+level+",url= "+url+"]";
+	}
+	
+}

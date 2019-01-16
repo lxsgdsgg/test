@@ -1,0 +1,561 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TestDataController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月10日 下午5:35:24   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.housing.controller;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.housing.service.FormService;
+import com.bashiju.housing.service.INewHousingService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName  NewHousingController   
+ * @Description  新房楼盘
+ * @author liwen
+ * @date   2018年8月17日 上午10:16:59   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Controller
+@RequestMapping("/newHouse")
+public class NewHousingController extends BaseController{
+	
+	@Autowired
+	INewHousingService newHousingService;
+
+	@Autowired
+	FormService formService;
+	
+	/**
+	 * 
+	 * @Title: showHouseInfo （新房楼盘详细信息页面）  
+	 * @Description: TODO(获取新房楼盘相关的基本信息)   
+	 * @param: @param m （把返回信息绑定到页面用）
+	 * @param: @param newHouseId(新房楼盘id)
+	 * @param: @return  服务返回的res是一个新房楼盘信息的Map
+	 * @return:
+	 * @throws liwen
+	 */
+	@RequestMapping(value="showNewHouseInfo")
+	public String showNewHouseInfo(Model m,int newHouseId) {
+		//erHousingService.addHousingSee(houseId);
+		Map res=newHousingService.queryNewHouseInfo(newHouseId);
+		m.addAttribute("newHouseInfo", JSON.toJSONString(res));
+		m.addAttribute("depts", JSON.toJSONString(newHousingService.queryDept()));
+		//m.addAttribute("areas", JSON.toJSONString(newHousingService.queryCommunity()));
+		return "showNewHouse";
+	}
+	
+	@RequestMapping(value="getNewHouseInfo")
+	@ResponseBody
+	public BashijuResult getCustomerInfo(Model m,int newHouseId) {
+		Map<String,Object> res=newHousingService.queryNewHouseInfo(newHouseId);
+		return BashijuResult.ok(res); 
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getLookHouse(查看新房楼盘带看记录)   
+	 * @Description: TODO(查看新房楼盘带看记录)   
+	  * @param: @param newHouseId(请求传来的参数1：新房楼盘信息id)
+	 * @param: @param page (请求传来的参数2：当前页码)
+	 * @param: @param limit (请求传来的参数3：每一页记录条数)
+	 * @param: @return pageInfo (服务返回的是封装好的当前页的请求数据)        
+	 * @return: Map<String,Object>  （当前页的带看记录信息）        
+	 * @throws liwen
+	 */
+	@RequestMapping(value="getLookHouse")
+	@ResponseBody
+	public Map<String,Object> getLookHouse(int newHouseId,int page,int limit) {
+		Page<Map<String, Object>> pageInfo = newHousingService.queryLookHouse(newHouseId,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	
+	
+
+	
+	/**
+	 * 
+	 * @Title: setOverallview （设置全景地址）  
+	 * @Description: TODO(设置新房楼盘的全景看房地址)   
+	 * @param: @param newHouseId （请求传来的参数1：房源信息id）
+	 * @param: @param address （请求传来的参数2：全景看房的地址）
+	 * @param: @return res (服务返回一个Long型,>0为正常)         
+	 * @return: BashijuResult  (返回执行情况)      
+	 * @throws liwen
+	 */
+	@RequestMapping(value="setOverallview")
+	@ResponseBody
+	public BashijuResult setOverallview(int newHouseId,String address) {
+		
+		Long res=newHousingService.saveOverallview(newHouseId,address);
+		if(res==1) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: saveHousetypeImg   
+	 * @Description: TODO(上传新房楼盘户型图)   
+	 * @param: @param request（户型图相关参数：imgInfo={projectId：新房楼盘id,name：户型名称，buildingArea:建筑面积，buildingsIds：分布楼栋ids(多个用英文逗号隔开)，
+	 *                                                  buildings：分布楼栋(多个用英文逗号隔开)，room：卧室，hall：大厅，toilet：卫生间，kitchen：厨房，balcony：阳台，
+	 *                                                  orientation：朝向，totalPrice：总价
+	 *                                                  }）
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	
+	@RequestMapping(value="saveHousetypeImg")
+	@ResponseBody
+	public BashijuResult saveHousetypeImg(HttpServletRequest request) {
+			Long res = newHousingService.saveHousetypeImg(request);
+			if(res>0) {
+				return BashijuResult.ok();
+			}else {
+				throw new BusinessException("上传错误");
+			}
+	}
+	/**
+	 * 
+		 * 上传户型图视频
+		 * @Description: 上传户型图视频
+		 * @param request
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="saveHousetypeVideo")
+	@ResponseBody
+	public BashijuResult saveHousetypeVideo(HttpServletRequest request) {
+			Long res = newHousingService.saveHousetypeVideo(request);
+			if(res>0) {
+				return BashijuResult.ok();
+			}else {
+				throw new BusinessException("上传错误");
+			}
+	}
+	/**
+	 * 
+	 * @Title: getHousetypeImg   
+	 * @Description: TODO(查询新房楼盘户型图)   
+	 * @param: @param newHouseId:新房楼盘ID
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/getHousetypeImg")
+	@ResponseBody
+	public BashijuResult getHousetypeImg(int newHouseId){
+		List<Map<String,Object>> res = newHousingService.queryHousetypeImg(newHouseId);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+	 * @Title: updateHousetypeImg   
+	 * @Description: TODO(修改新房楼盘户型图信息)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/updateHousetypeImg")
+	@ResponseBody
+	public BashijuResult updateHousetypeImg(@RequestBody Map<String,Object> data){
+		Long res = newHousingService.updateHousetypeImg(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("修改失败");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: updateHousetypePicture   
+	 * @Description: TODO(修改新房楼盘户型图图片)   
+	 * @param: 
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/updateHousetypePicture")
+	@ResponseBody
+	public BashijuResult updateHousetypePicture(HttpServletRequest request){
+		String res = newHousingService.updateHousetypePicture(request);
+		if(!"".equals(res)) {
+			return BashijuResult.ok(res);
+		}else {
+			throw new BusinessException("修改失败");
+		}
+	}
+	/**
+	 * 
+	 * @Title: delHousetypeImg   
+	 * @Description: TODO(删除新房楼盘户型图)   
+	 * @param: @param ids
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/delHousetypeImg")
+	@ResponseBody
+	public BashijuResult delHousetypeImg(String ids,int newHouseId){
+		boolean res = newHousingService.delHousetypeImg(ids,newHouseId);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+	}
+	
+	/**
+	 * 
+		 * 进入房源编辑主页面 
+		 * @Description: 进入房源编辑主页面 
+		 * @param m
+		 * @param houseId 房源id
+		 * @param formName 表单类型名称
+		 * @return 
+		 * @return: String
+	 */
+	@RequestMapping(value="editHouse")
+	public String editHouse(Model m,int newHouseId) {
+		Map res=newHousingService.queryNewHouseInfo(newHouseId);
+		LinkedList<Map<String,Object>> depts = newHousingService.queryDept();
+		//List<Map<String,Object>> labelList = newHousingService.queryLabel();
+		m.addAttribute("newHouseInfo", JSON.toJSONString(res));
+		//m.addAttribute("depts", JSON.toJSONString(depts));
+		return "/house/editHouse";
+	}
+	
+	
+	
+	
+	/**
+	 * 
+		 * 修改房源信息
+		 * @Description: 修改房源信息
+		 * @param data {communityData:{楼盘小区数据(有id是修改，没有id是新增小区)},newHouseData:{楼盘信息}}
+		 * @return 
+		 * @return: BashijuResult
+	 */
+	@RequestMapping(value="updateHousing")
+	@ResponseBody
+	public BashijuResult updateHousing(String data) {
+		if (StringUtils.isNotEmpty(data)) {
+			Map<Object, Object> param=JSON.parseObject(data, Map.class);
+			Map<Object, Object> communityData=(Map)param.get("communityData");
+			Map<Object, Object> newHouseData=(Map)param.get("newHouseData");
+			newHousingService.updateHousing(newHouseData,communityData);
+			return BashijuResult.ok();
+		}
+		throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+	}
+	/**
+	 * 
+		 *修改楼盘客户
+		 * @Description: 修改楼盘客户 
+		 * @param projectId 楼盘id
+		 * @param custServicerId 客户id
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="updateCustServicer")
+	@ResponseBody
+	public BashijuResult updateCustServicer(Integer projectId,long custServicerId) {
+		long result = newHousingService.updateCustServicer(projectId, custServicerId);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 修改楼盘佣金
+		 * @Description: 修改楼盘佣金 
+		 * @param projectId 楼盘id
+		 * @param channelCommissions 渠道佣金
+		 * @param settlementCommissions 结算佣金
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="updateCommissions")
+	@ResponseBody
+	public BashijuResult updateCommissions(Integer projectId,Integer channelCommissions, Integer settlementCommissions)  {
+		long result = newHousingService.updateCommissions(projectId, channelCommissions,settlementCommissions);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 根据单元查询一手房成交房源 
+	 * @Title: getSellHouseInfo   
+	 * @Description: 根据单元查询一手房成交房源  
+	 * @param: bulidingUnitId 座栋单元id
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/getSellHouseInfo")
+	@ResponseBody
+	public BashijuResult getSellHouseInfo(Long bulidingUnitId){
+		List<Map<String,Object>> res = newHousingService.querySellHouseInfo(bulidingUnitId);
+		return BashijuResult.ok(res);
+	}
+	
+	/**
+	 * 
+	 * @Title: getSellHouseInfoByUser   
+	 * @Description: TODO(查询用户能看到的楼栋单元下的成交情况)   
+	 * @param: bulidingUnitId 座栋单元id
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping("/getSellHouseInfoByUser")
+	@ResponseBody
+	public BashijuResult getSellHouseInfoByUser(Long bulidingUnitId){
+		List<Map<String,Object>> res = newHousingService.querySellHouseInfoByUser(bulidingUnitId);
+		return BashijuResult.ok(res);
+	}
+	
+	/**
+	 * 
+	 * @Title: queryBuildingsByCommunity   
+	 * @Description: 根据小区id查询座栋列表  
+	 * @param: @param cid 小区id
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	@RequestMapping(value="queryBuildingList")
+	@ResponseBody
+	public Map<String,Object> queryBuildingsByCommunity(Long cid,int page,int limit){
+		Page<Map<String, Object>> pageInfo = newHousingService.queryBuildingsByCommunity(cid, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: queryBuildingUnitsByBuild   
+	 * @Description: 根据座栋id查询单元列表 
+	 * @param: @param bid 座栋id
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	@RequestMapping(value="queryBuildingUnitList")
+	@ResponseBody
+	public Map<String,Object> queryBuildingUnitsByBuild(Long bid,int page,int limit){
+		Page<Map<String, Object>> pageInfo = newHousingService.queryBuildingUnitsByBuild(bid, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: queryHouseByUnit   
+	 * @Description: 根据单元id查询房号列表
+	 * @param: @param buid 单元id
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="queryHouses")
+	@ResponseBody
+	public BashijuResult  queryHouseByUnit(Long buid){
+		List<Map<String, Object>> list=newHousingService.queryHouseByUnit(buid);
+		return BashijuResult.build(true, "success", list);
+	}
+	/**
+	 * 
+		 * 添加楼盘
+		 * @Description: 添加楼盘 
+		 * @param data {communityData:{楼盘小区数据(有id是修改，没有id是新增小区)},newHouseData:{楼盘信息}}
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping("/addNewHouse")
+	@ResponseBody
+	public BashijuResult addNewHouse(String data){
+		Map<String,Object> communityData=new HashMap<>();
+		communityData.put("name", "润城");
+		communityData.put("recordName", "润城");
+		communityData.put("pinyin", "runcheng润城");
+		communityData.put("areaCode", "530112");
+		communityData.put("regionId", 20);
+		communityData.put("address", "日新中路和前卫西路交叉口");
+		communityData.put("salePrice", 13717);
+		communityData.put("isHot", 1);
+		Map<String,Object> newHouseData=new HashMap<>();
+		newHouseData.put("parkCnt", 2000);
+		newHouseData.put("salesDeptAdd", "日新中路");
+		newHouseData.put("propertyFees", 1.8);
+		newHouseData.put("propertyName", "怡和物业");
+		newHouseData.put("saleType", 1);
+		newHouseData.put("isSynchron", 1);
+		Map<String,Object> param=new HashMap<>();
+		param.put("communityData", communityData);
+		param.put("newHouseData", newHouseData);
+		System.out.println(JSON.toJSONString(param));
+		//Integer res = newHousingService.addNewHouse(JSON.toJSONString(param));
+		Integer res = newHousingService.addNewHouse(data);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+		 * 根据小区名称查询小区基本信息
+		 * @Description: 根据小区名称查询小区基本信息
+		 * @param areaCode 区域代码
+		 * @param name 小区名称
+		 * @return {"success":true,"msg":"操作成功","data":{"areaCode":"530101","pinyin":"","address":"官渡区矣六街道子君路星泽园","salePrice":10000,"regionId":2,"reginName":"新亚洲体育城","areaName":"市辖区","recordName":"星泽园","name":"星泽园1","id":1,"isHot":1}}
+		 * BashijuResult
+	 */
+	@RequestMapping("/queryCommunityByName")
+	@ResponseBody
+	public BashijuResult queryCommunityByName(String areaCode,String name){
+		Map<String, Object> res = newHousingService.queryCommunityByName(areaCode,name);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+		 * 删除楼盘
+		 * @Description: 删除楼盘
+		 * @param id 楼盘id
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping("/deleteNewHouse")
+	@ResponseBody
+	public BashijuResult deleteNewHouse(Integer id){
+		Boolean res = newHousingService.deleteNewHouse(id);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+		 * 设置新房楼盘同步状态
+		 * @Description: 设置新房楼盘同步状态
+		 * @param id 楼盘id
+		 * @param result 1为同步，0为不同步
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping("/setSynchron")
+	@ResponseBody
+	public BashijuResult setSynchron(Integer id, Integer result){
+		Integer res = newHousingService.setSynchron(id,result);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+		 * 设置新房楼盘推荐状态
+		 * @Description: 设置新房楼盘推荐状态
+		 * @param id 楼盘id
+		 * @param result 1为推荐，0为不推荐
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping("/setIsGood")
+	@ResponseBody
+	public BashijuResult setIsGood(Integer id, Integer result){
+		Integer res = newHousingService.setIsGood(id,result);
+		return BashijuResult.ok(res);
+	}
+	/**
+	 * 
+		 *查询新房列表
+		 * @Description: 查询新房列表
+		 * @param param 条件json字符串{areaCodes:[区域代码],regionIds:[片区id],communityIds:[小区id],houseUseTypes:[房屋用途],minPrice:最低价格,maxPrice:最大价格,name:小区名称,synchron:同步状态(0,1)}
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * {"msg":"","code":0,"data":[{"address":"春融街置信银河广场","developers":"","isSynchron":1,"buildingArea":0.0,"propertyLimit":0,"cs":{"salePrice/100":10000.0000},"greenRate":0.0000,"areaCode":"530101","pinyin":"","regionId":3,"recordName":"置信银河","buildingCount":0,"name":"置信银河","houseCount":0,"id":1,"floorArea":0.0,"capacityRatio":0.0000},{"address":"官渡区矣六街道子君路星泽园","developers":"","isSynchron":1,"buildingArea":0.0,"propertyLimit":0,"cs":{"salePrice/100":10000.0000},"greenRate":0.0000,"areaCode":"530101","pinyin":"","regionId":2,"recordName":"星泽园","buildingCount":0,"name":"星泽园1","houseCount":0,"id":6,"floorArea":0.0,"capacityRatio":0.0000}],"count":2}
+		 * Map<String,Object>
+	 */
+	@RequestMapping("/queryNewHouseList")
+	@ResponseBody
+	public Map<String, Object> queryNewHouseList(String param,Integer page,Integer limit){
+		Page<Map<String, Object>> pageInfo = newHousingService.queryNewHouseList(param,page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+		 * 查询当前用户公司的用户列表
+		 * @Description: 查询当前用户公司的用户列表 
+		 * @return [{id:1,realName:张三}]
+		 * BashijuResult {"success":true,"msg":"操作成功","data":[{"realName":"超级管理员","id":1},{"realName":"赵朗","id":5},{"realName":"左云涛测试","id":22}]}
+	 */
+	@RequestMapping("/queryUserByCompanyId")
+	@ResponseBody
+	public BashijuResult queryUserByCompanyId(){
+		List<Map<String, Object>> res = newHousingService.queryUserByCompanyId();
+		return BashijuResult.ok(res);
+	}
+	//新房成交
+	@RequestMapping("/dealNewHousing")
+	@ResponseBody
+	public BashijuResult dealNewHousing(String dataJson, String commissionsJson){
+		
+		/*dataJson="{\"buildingHouseId\":2253862,\"agreementId\":\"kherg1427\",\"houseUsesId\":\"house\",\"houseUses\":\"住宅\",\"buildSpace\":120,\"useSpace\":100,\"orientationId\":1,"
+				+"\"orientation\":\"东\",\"decorationId\":1,\"decoration\":\"毛胚\",\"propertyTypeId\":1,\"propertyType\":\"商品房\",\"room\":2,\"hall\":2,\"toilet\":1,\"kitchen\":1,\"balcony\":1,"
+				+"\"buildDates\":2016,\"propCertificate\":\"dsgdgd5256\","
+				+ "\"demandId\":\"QG-18072309004\",\"owner\":\"白皮纹\",\"custName\":\"五十块\","
+				+ "\"traderId\":13320,\"price\":100,\"dealTime\":\"2018-09-25\",\"landCertifcate\":\"123\",\"referenceId\":\"456\",\"referenceId\":13154,\"isautoDivide\":\"1\","
+				+ "\"reference\":\"城市管理员1号13154\",\"commissionPrice\":1000,\"supplementInfo\":\"dchgfh\",\"isLoan\":1}";
+		commissionsJson="[{\"moneyType\":\"0\",\"moneyProjId\":1,\"moneyProjName\":\""+CommissionProjEnum.AGENCYFEE.getDesc()+"\",\"price\":200,\"payerType\":\"0\",\"estimatePayTime\":\"2018-06-28\",\"remark\":\"不是个\"}]";*/
+		
+		Boolean res = newHousingService.dealNewHousing(dataJson,commissionsJson);
+		return BashijuResult.ok(res);
+	}
+}

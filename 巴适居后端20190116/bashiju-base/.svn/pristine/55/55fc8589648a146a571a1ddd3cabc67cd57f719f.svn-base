@@ -1,0 +1,122 @@
+package com.bashiju.base.service.smsservice;
+
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
+import com.bashiju.base.BaseGlobal.BaseGlobal;
+import com.bashiju.utils.exception.BusinessException;
+
+/**
+ * 发送短息通知
+ * @ClassName:  IndustrySMS   
+ * @Description:发送短息通知  
+ * @author: zhaobin
+ * @date:   2018年7月31日 下午2:25:29   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class SendSMS
+{
+	final static Logger logger=LoggerFactory.getLogger(SendSMS.class);
+	/**  
+	 * 验证码通知短信 
+	 * @Title: execute   
+	 * @Description: 验证码通知短信   
+	 * @param: @param phone 接受的手机号码
+	 * @param: @param code 验证码
+	 * @param: @param time 有效时间
+	 * @param: @param smsType  短信类型 1-房源认领码;2-需求认领码; 3-其他验证码;
+	 * @return: void  返回空    
+	 * @throws ClientException 
+	 */ 
+	public static SendSmsResponse execute(String phone,String code,int time, int smsType)
+	{
+		if(phone.isEmpty()) {
+    		throw new BusinessException("接受短息的手机号码不能为空");
+    	}
+		
+		Resource resource = new ClassPathResource("properties/sms.properties");
+		SendSmsResponse sendSmsResponse=null;
+		try {			
+			Properties props = new Properties();
+			String TemplateId=null;
+			 //短信内容
+			String smsContext=null;
+			 props = PropertiesLoaderUtils.loadProperties(resource);
+			 //获取签名
+			String signName= new String(props.getProperty("signName").getBytes("ISO-8859-1"), "UTF-8"); 
+			System.out.println("签名为"+signName);
+			 switch (smsType) {
+				case 1:
+					TemplateId=String.valueOf(props.getProperty("houseTemplateId"));
+					smsContext="{\'code\':\'"+code+"\',\'time\':\'"+time+"\'}";
+					break;
+				case 2:
+					TemplateId=String.valueOf(props.getProperty("customerTemplateId"));
+					smsContext="{\'code\':\'"+code+"\',\'time\':\'"+time+"\'}";
+					break;			
+				default:
+					TemplateId=String.valueOf(props.getProperty("msgAuthCodeTemplateId"));
+					smsContext="{\'code\':\'"+code+"\'}";
+					break;
+				}
+		        //可自助调整超时时间
+		        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+		        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+		        //初始化acsClient,暂不支持region化
+		        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", BaseGlobal.accessKeyId, BaseGlobal.accessKeySecret);
+		        try {
+					DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", BaseGlobal.smsproduct, BaseGlobal.smsdomain);
+				} catch (ClientException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        IAcsClient acsClient = new DefaultAcsClient(profile);
+
+		        //组装请求对象-具体描述见控制台-文档部分内容
+		        SendSmsRequest request = new SendSmsRequest();
+		        //必填:待发送手机号
+		        request.setPhoneNumbers(phone);
+		        //必填:短信签名-可在短信控制台中找到
+		        request.setSignName(signName);
+		        //必填:短信模板-可在短信控制台中找到
+		        request.setTemplateCode(TemplateId);
+		        //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
+		        request.setTemplateParam(smsContext);
+
+		        //选填-上行短信扩展码(无特殊需求用户请忽略此字段)
+		        //request.setSmsUpExtendCode("90997");
+
+		        //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
+		        request.setOutId("yourOutId");
+
+		        //hint 此处可能会抛出异常，注意catch
+		         sendSmsResponse = acsClient.getAcsResponse(request);
+		} catch (Exception e1) {
+			logger.error("发送短信是出错，具体原因是：{}",e1.getMessage());
+			return null;
+		}
+		        if(sendSmsResponse!=null&&!"OK".equals(sendSmsResponse.getCode())) {
+		        	throw new BusinessException("短信未发送成功，错误码为"+sendSmsResponse.getCode());
+		        }
+		     return sendSmsResponse;
+
+		
+
+		
+	}
+}

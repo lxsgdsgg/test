@@ -1,0 +1,63 @@
+package com.bashiju.www.service.house.impl;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.input.house.HouseAreaParam;
+import com.bashiju.www.pojo.service.input.house.HouseMetroParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.service.house.IHouseService;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ *  房源服务类
+ * @ClassName:  HouseServiceImpl   
+ * @Description:  房源服务类
+ * @author: wangkaifa
+ * @date:   2018年7月25日 下午3:53:21       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class HouseServiceImpl implements IHouseService {
+
+	@Override
+	public HouseInfoResult queryHouseInfo(long id) {
+		
+		return null;
+	}
+
+	@Override
+	public CommunityResult queryCommunity(long id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<AgentResult> queryShowedAgents(long houseId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ShowedRecordResult> queryShowedRecordByHouseId(long houseId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Page<HouseListResult> queryHouseList(HouseAreaParam param, int page, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Page<HouseListResult> queryHouseList(HouseMetroParam param, int page, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

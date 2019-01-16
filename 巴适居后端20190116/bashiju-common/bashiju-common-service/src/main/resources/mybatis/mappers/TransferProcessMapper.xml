@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.common.mapper.TransferProcessMapper">
+	<select id="queryDataInfoConfByConn" resultType="map">
+		select * from ${tableName} where isValid = 1 
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+	<select id="queryTransferDetailByConfId" resultType="java.util.LinkedHashMap">
+	 	select * from house_exchange_detail where 1 = 1 and isValid=1  
+	 	<if test="null != confId and confId != ''">
+	 		and confId = #{confId}
+	 	</if>
+	 	<if test="null != confType and confType != ''">
+	 		and confType = #{confType}
+	 	</if>
+	 	order by sortId
+	</select>
+</mapper>

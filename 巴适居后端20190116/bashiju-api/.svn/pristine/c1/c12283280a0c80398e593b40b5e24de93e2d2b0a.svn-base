@@ -1,0 +1,397 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FileTypeEnum.java   
+ * @Package com.bashiju.enums      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 下午5:48:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * 日志操作类型 枚举类
+ * @ClassName:LogOperateTypeEnum
+ * @Description:文件类型 枚举类
+ * @author:wangkaifa
+ * @date:2018年8月7日 下午5:48:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public enum LogBusinessOperateTypeEnum {
+	/**ADD_PHONE("1","1",新增电话")**/
+	ADD_PHONE("1","1","新增电话"),
+	/**ADD_PICTURE("2","新增照片")**/
+	ADD_PICTURE("2","1","新增照片"),
+	/**ADD_HOUSE("3","新增")**/
+	ADD_HOUSE("3","1","新增"),
+	/**UPDATE_HOUSE("4","修改")**/
+	UPDATE_HOUSE("4","1","修改"),
+	/**DEL_HOUSE("5","房源删除")**/
+	DEL_HOUSE("5","1","房源删除"),
+	/**DEPOSIT("6","下定")**/
+	DEPOSIT("6","1","下定"),
+	/**DEAL("7","成交")**/
+	DEAL("7","1","成交"),
+	/**UPDATE_STATUS("8","修改状态")**/
+	UPDATE_STATUS("8","1","修改状态"),
+	/**EXAMINE_UPDATE_STATUS("9","处理修改状态")**/
+	EXAMINE_UPDATE_STATUS("9","1","处理修改状态"),
+	/**OPENPLATE("10","开盘")**/
+	OPENPLATE("10","1","开盘"),
+	/**SET_PERSONAL("11","设置私盘")**/
+	SET_PERSONAL("11","1","设置私盘"),
+	/**CLOSEDISC("12","")**/
+	CLOSEDISC("12","1",""),
+	/**TIPOFF("13","举报")**/
+	TIPOFF("13","1","举报"),
+	/**MAINER_TRANSFER("14","信息转移")**/
+	MAINER_TRANSFER("14","1","信息转移"),
+	/**MAINER_CHANGE("15","变更维护人")**/
+	MAINER_CHANGE("15","1","变更维护人"),
+	/**UPDATE_DESCRIBE("16","修改房源描述")**/
+	UPDATE_DESCRIBE("16","1","修改房源描述"),
+	/**DEL_PICTURE("17","删除图片")**/
+	DEL_PICTURE("17","1","删除图片"),
+	/**ENTRUST_CHANGE("18","变更委托")**/
+	ENTRUST_CHANGE("18","1","变更委托"),
+	/**OWER_CHANGE("19","变更业主")**/
+	OWER_CHANGE("19","1","变更业主"),
+	/**SET_PUBLICK("20","设置公盘")**/
+	SET_PUBLICK("20","1","设置公盘"),
+	/**ADD_KEY("21","新增钥匙")**/
+	ADD_KEY("21","1","新增钥匙"),
+	/**RETURN_KEY("22","钥匙退还")**/
+	RETURN_KEY("22","1","钥匙退还"),
+	/**DEL_PHONE("23","删除电话")**/
+	DEL_PHONE("23","1","删除电话"),
+	/**TAOBAO("24","淘宝")**/
+	TAOBAO("24","1","淘宝"),
+	/**KEEP_KEY("25","钥匙封存")**/
+	KEEP_KEY("25","1","钥匙封存"),
+	/**UPDATE_PHONE("26","修改电话")**/
+	UPDATE_PHONE("26","1","修改电话"),
+	/**CANCEL_ORDER("27","通知撤单")**/
+	CANCEL_ORDER("27","1","通知撤单"),
+	/**ADD_RELEVANT_PICTURE("28","新增相关照片")**/
+	ADD_RELEVANT_PICTURE("28","1","新增相关照片"),
+	/**EXPIRATION_EXECUTION("29","到期执行")**/
+	EXPIRATION_EXECUTION("29","1","到期执行"),
+	/**TIMING_EXECUTION("30","定时执行")**/
+	TIMING_EXECUTION("30","1","定时执行"),
+	/**DEL_FOLLOW("31","删除跟进")**/
+	DEL_FOLLOW("31","1","删除跟进"),
+	/**UPDATE_VRURL("32","修改VR看房地址")**/
+	UPDATE_VRURL("32","1","修改VR看房地址"),
+	/**UPLOAD_VIDEO("33","上传视频")**/
+	UPLOAD_VIDEO("33","1","上传视频"),
+	/**SET_UNIQUE("34","设置独家")**/
+	SET_UNIQUE("34","1","设置独家"),
+	/**SET_PICTURE_PEOPLE("35","设置图片人")**/
+	SET_PICTURE_PEOPLE("35","1","设置图片人"),
+	/**ADD_FEEDBACK("36","写带看反馈")**/
+	ADD_FEEDBACK("36","1","写带看反馈"),
+	/**ADD_HOUSE_FOLLOW_RECORD("37","1","房源跟进"),**/
+	ADD_HOUSE_FOLLOW_RECORD("37","1","房源跟进"),
+	/**ADD_HOUSE_REALEXPLORATION("38","1","房源实勘"),**/
+	ADD_HOUSE_REALEXPLORATION("38","1","房源实勘"),
+	/**LOOK_HOUSE_PHONE("39","1","查看电话"),**/
+	LOOK_HOUSE_PHONE("39","1","查看电话"),
+	/**LEND_KEY("40","钥匙借出")**/
+	LEND_KEY("40","1","钥匙借出"),
+	/**HOUSE_RELATIONPICEXAM("41","相关图片审核状态")**/
+	HOUSE_RELATIONPICEXAM("41","1","相关图片审核状态"),
+	/**HOUSE_CRAWLERLIST("42","房源采集")**/
+	HOUSE_CRAWLERLIST("42","1","房源采集"),
+	/**HOUSE_PICTRUE_CHECK("43","房屋图片审核")**/
+	HOUSE_PICTRUE_CHECK("43","1","房屋图片审核"),
+	/**HOUSE_ENTRUST_DEAL("44","房源委托受理")**/
+	HOUSE_ENTRUST_DEAL("44","1","房源委托受理"),
+	/**HOUSE_ADD_EXAM("45,"房源新增审核")**/
+	HOUSE_ADD_EXAM("45","1","房源新增审核"),
+	/**HOUSE_UPDSTATUS_EXAM("46,"房源修改状态审核")**/
+	HOUSE_UPDSTATUS_EXAM("46","1","房源修改状态审核"),
+	/**HOUSE_REPORT_EXAM("47,"房源举报审核")**/
+	HOUSE_REPORT_EXAM("47","1","房源举报审核"),
+	/**TAOBAO_EXAM("48,"淘宝审核")**/
+	TAOBAO_EXAM("48","1","淘宝审核"),
+	/**OPENING_EXAM("49,"开盘审核")**/
+	OPENING_EXAM("49","1","开盘审核"),
+	/**SEALED_EXAM("50,"开盘审核")**/
+	SEALED_EXAM("50","1","封盘审核"),
+	/**HOUSE_UPD_REJECT("51","1","驳回房源修改审核"),**/
+	HOUSE_UPD_REJECT("51","1","驳回房源修改审核"),
+	/**AGENT_FEEDBACK("52","1","经纪人反馈审核")**/
+	AGENT_FEEDBACK("52","1","经纪人反馈审核"),
+	/**PUBLICDISK_TURN_PRIVATEDISK("53","1","公盘转私盘审核")**/
+	PUBLICDISK_TURN_PRIVATEDISK("53","1","公盘转私盘审核"),
+	/**PRINT_CONTRACT("54","1","打印合同"),**/
+	PRINT_CONTRACT("54","1","打印合同"),
+	/**ADD_CONTRACT("55","1","新增合同审核"),**/
+	ADD_CONTRACT_EXAM("55","1","新增合同审核"),
+	
+	
+	
+	/**ADD_CUSTOMER("200","2","新增")**/
+	ADD_CUSTOMER("200","2","新增"),
+	/**ADD_CUSTOMER_PHONE("201","2","新增电话")**/
+	ADD_CUSTOMER_PHONE("201","2","新增电话"),
+	/**UPDATE_CUSTOMER("202","2","修改")**/
+	UPDATE_CUSTOMER("202","2","修改"),
+	/**UPDATE_CUSTOMER_STATUS("203","2","修改状态")**/
+	UPDATE_CUSTOMER_STATUS("203","2","修改状态"),
+	/**DELETE_CUSTOMER("204","2","客源删除")**/
+	DELETE_CUSTOMER("204","2","客源删除"),
+	/**CUSTOMER_SETPUBLIC("205","2","放入公盘")**/
+	CUSTOMER_SETPUBLIC("205","2","放入公盘"),
+	/**CUSTOMER_CLOSEDISC("206","2","")**/
+	CUSTOMER_CLOSEDISC("206","2",""),
+	/**CUSTOMER_MAINER_TRANSFER("207","2","信息转移")**/
+	CUSTOMER_MAINER_TRANSFER("207","2","信息转移"),
+	/**CUSTOMER_MAINER_CHANGE("208","2","变更维护人")**/
+	CUSTOMER_MAINER_CHANGE("208","2","变更维护人"),
+	/**CUSTOMER_TAOBAO("209","2","淘宝")**/
+	CUSTOMER_TAOBAO("209","2","淘宝"),
+	/**CUSTOMER_DEPOSIT("210","2","下定")**/
+	CUSTOMER_DEPOSIT("210","2","下定"),
+	/**CUSTOMER_DEAL("211","2","成交")**/
+	CUSTOMER_DEAL("211","2","成交"),
+	/**CUSTOMER_DELETE_PHONE("212","2","删除电话")**/
+	CUSTOMER_DELETE_PHONE("212","2","删除电话"),
+	/**CUSTOMER_DELETE_DEPOSIT("213","2","下定删除")**/
+	CUSTOMER_DELETE_DEPOSIT("213","2","下定删除"),
+	/**CUSTOMER_SETPRIVE("214","2","设置私盘")**/
+	CUSTOMER_SETPRIVE("214","2","设置私盘"),
+	/**CUSTOMER_CANCEL_CLOSEDISC("215","2","取消设置")**/
+	CUSTOMER_CANCEL_CLOSEDISC("215","2","取消设置"),
+	/**CUSTOMER_CHECKED_DEPOSIT("216","2","定金确认")**/
+	CUSTOMER_CHECKED_DEPOSIT("216","2","定金确认"),
+	/**CUSTOMER_DEPOSIT_PAY("217","2","下定支出")**/
+	CUSTOMER_DEPOSIT_PAY("217","2","下定支出"),
+	/**UPDATE_CUSTOMER_PHONE("218","2","修改电话")**/
+	UPDATE_CUSTOMER_PHONE("218","2","修改电话"),
+	/**ADD_ERHOUSE_SHOWED("219","2","写二手房带看"),**/
+	ADD_ERHOUSE_SHOWED("219","2","写二手房带看"),
+	/**ADD_NEWHOUSE_SHOWED("220","2","写一手房带看"),**/
+	ADD_NEWHOUSE_SHOWED("220","2","写一手房带看"),
+	/**ADD_CUSTOMER_FOLLOW_RECORD("221","2","客源跟进"),**/
+	ADD_CUSTOMER_FOLLOW_RECORD("221","2","客源跟进"),
+	/**LOOK_CUSTOMER_PHONE("222","2","查看电话"),**/
+	LOOK_CUSTOMER_PHONE("222","2","查看电话"),
+
+	/**CUSTOMER_STORE("223","2","客源收藏"),**/
+	CUSTOMER_STORE("223","2","客源收藏"),
+	/**CUSTOMER_CANCELSTORE("224","2","客源取消收藏"),**/
+	CUSTOMER_CANCELSTORE("224","2","客源取消收藏"),
+	/**CUSTOMER_REMIND("225","2","写提醒"),**/
+	CUSTOMER_REMIND("225","2","写提醒"),
+	/**CUSTOMER_ARCHIVES("226","2","查看客户档案"),**/
+	CUSTOMER_ARCHIVES("226","2","查看客户档案"),
+	/**CUSTOMER_LOOKHOUSEPATH("227","2","查看看房轨迹"),**/
+	CUSTOMER_LOOKHOUSEPATH("227","2","查看看房轨迹"),
+	/**CUSTOMER_FOLLOW_RECONNAISSANCE("228","2","实勘"),**/
+	CUSTOMER_FOLLOW_RECONNAISSANCE("228","2","实勘"),
+	/**	CUSTOMER_EXAMINE("229","2","客源业务审批")**/
+	CUSTOMER_EXAMINE("229","2","客源业务审批"),
+	/**CUSTOMER_TAKELOOK("230","2","删除带看记录")**/
+	CUSTOMER_TAKELOOK("230","2","删除带看记录"),
+	/**CUSTOMER_UPDATETAKELOOK("231","2","编辑带看记录")**/
+	CUSTOMER_UPDATETAKELOOK("231","2","修改带看记录"),
+	/**CUSTOMER_DEPOSITMANGER("232","2","定金管理**/
+	CUSTOMER_DEPOSITMANGER("232","2","定金管理"),
+	/**CUSTOMER_UPDSTATUS_EXAM("233","2","修改状态审核**/
+	CUSTOMER_UPDSTATUS_EXAM("233","2","修改状态审核"),
+	/**CUSTOMER_SEAL_EXAM("234","2","封盘审核审核**/
+	CUSTOMER_SEAL_EXAM("234","2","封盘审核审核"),
+	/**CUSTOMER_TAOBAO_EXAM("235","2","淘宝审核**/
+	CUSTOMER_TAOBAO_EXAM("235","2","淘宝审核"),
+
+	
+	
+	/**ADD_NEWHOUSE("300","3","新增")**/
+	ADD_NEWHOUSE("300","3","新增"),
+	/**UPDATE_NEWHOUSE("301","3","修改")**/
+	UPDATE_NEWHOUSE("301","3","修改"),
+	/**DELETE_NEWHOUSE("302","3","删除")**/
+	DELETE_NEWHOUSE("302","3","删除"),
+	/**NEWHOUSE_DEAL("303","3","成交")**/
+	NEWHOUSE_DEAL("303","3","成交"),
+	/**NEWHOUSE_ADD_DYNAMIC("304","3","发布动态")**/
+	NEWHOUSE_ADD_DYNAMIC("304","3","发布动态"),
+	/**NEWHOUSE_ADD_HUXING("305","3","新增户型图")**/
+	NEWHOUSE_ADD_HUXING("305","3","新增户型图"),
+	/**NEWHOUSE_UPDATE_HUXING("306","3","修改户型图")**/
+	NEWHOUSE_UPDATE_HUXING("306","3","修改户型图"),
+	/**NEWHOUSE_SYNCHRO("307","3","外网同步")**/
+	NEWHOUSE_SYNCHRO("307","3","外网同步"),
+	/**NEWHOUSE_SETGOOD("308","3","项目推荐")**/
+	NEWHOUSE_SETGOOD("308","3","项目推荐"),
+	/**NEWHOUSE_UPDATE_HUXING_PICTURE("309","3","替换户型图"),**/
+	NEWHOUSE_UPDATE_HUXING_PICTURE("309","3","替换户型图"),
+	/**NEWHOUSE_ADD_HUXING_VIDEO("310","3","上传户型图视频"),**/
+	NEWHOUSE_ADD_HUXING_VIDEO("310","3","上传户型图视频"),
+	/**NEWHOUSE_ADD_SHOWED("311","3","一手带看"),**/
+	NEWHOUSE_ADD_SHOWED("311","3","一手带看"),
+	
+
+	/************以下是成交模块**************/
+	/**ADD_DEAL("400","4","新增")**/
+	ADD_DEAL("400","4","新增"),
+	/**ADD_DEAL_PICTURE("401","4","上传照片")**/
+	ADD_DEAL_PICTURE("401","4","上传照片"),
+	/**UPDATE_DEAL("402","4","修改")**/
+	UPDATE_DEAL("402","4","修改"),
+	/**DELETE_DEAL("403","4","成交删除")**/
+	DELETE_DEAL("403","4","成交删除"),
+	/**DEAL_STARTTRANSFER("404","4","启动过户")**/
+	DEAL_STARTTRANSFER("404","4","启动过户"),
+	/**DEAL_STOPTRANSFER("405","4","取消过户")**/
+	DEAL_STOPTRANSFER("405","4","取消过户"),
+	/**DEAL_SETDIVIDE("406","4","设置分成")**/
+	DEAL_SETDIVIDE("406","4","修改分成"),
+	/**DEAL_COMPLETETRANSFER("407","4","过户完成")**/
+	DEAL_COMPLETETRANSFER("407","4","过户完成"),
+	/**DEAL_DELETE_PICTURE("408","4","删除图片")**/
+	DEAL_DELETE_PICTURE("408","4","删除图片"),
+	/**DEAL_DELETE_TRANSFER("409","4","删除过户进度")**/
+	DEAL_DELETE_TRANSFER("409","4","删除过户进度"),
+	/**DEAL_DELETE_TRANSFER("410","4","合同打印")**/
+	DEAL_PRINT_CONTRACT("410","4","合同打印"),
+	/**DEAL_DELETE_TRANSFER("411","4","确认分成")**/
+	DEAL_CONFIRM_DIVIDE("411","4","确认分成"),
+	/**DEAL_DELETE_TRANSFER("412","4","违约")**/
+	DEAL_BREACH("412","4","违约"),
+	/**DEAL_DELETE_TRANSFER("413","4","取消违约")**/
+	DEAL_CANCEL_BREACH("413","4","取消违约"),
+	/**DEAL_ADJUST_TRANSFER_DATE("414","4","调整过户时间")**/
+	DEAL_ADJUST_TRANSFER_DATE("414","4","调整过户日期"),
+	/**DEAL_MODIFY_TRANSFER("415","4","修改过户")**/
+	DEAL_MODIFY_TRANSFER("415","4","修改过户"),
+	/**DEAL_RECEIVE_COMMISSION("416","4","收取佣金")**/
+	DEAL_RECEIVE_COMMISSION("416","4","收取佣金"),
+	/**DEAL_MODIFY_COMMISSION("417","4","修改佣金")**/
+	DEAL_MODIFY_COMMISSION("417","4","修改佣金"),
+	/**DEAL_PRINT_RECEIPT("418","4","打印收据")**/
+	DEAL_PRINT_RECEIPT("418","4","打印收据"),
+	/**DEAL_DELETE_COMMISSION("419","4","删除佣金")**/
+	DEAL_DELETE_COMMISSION("419","4","删除佣金"),
+	/**DEAL_ADJUST_PLAN("420","4","调整计划")**/
+	DEAL_ADJUST_PLAN("420","4","调整计划"),
+	/**DEAL_CANCEL_RECEIVE_COMMISSION("421","4","取消收取佣金")**/
+	DEAL_CANCEL_RECEIVE_COMMISSION("421","4","取消收取佣金"),
+	/**DEAL_DOWNLOAD_SINGLE_PICTRUE("422","4","单张下载图片")**/
+	DEAL_DOWNLOAD_SINGLE_PICTRUE("422","4","单张下载图片"),
+	/**DEAL_DOWNLOAD_BATCH_PICTRUE("423","4","批量下载图片")**/
+	DEAL_DOWNLOAD_BATCH_PICTRUE("423","4","批量下载图片"),
+	/**DEAL_ADD_FOLLOW_RECORD("424","4","新增跟进记录")**/
+	DEAL_ADD_FOLLOW_RECORD("424","4","新增跟进记录"),
+	/**DEAL_DELETE_FOLLOW_RECORD("425","4","删除跟进记录")**/
+	DEAL_DELETE_FOLLOW_RECORD("425","4","删除跟进记录"),
+	/**DEAL_ADD_PAYMENT("426","4","新增代收付款")**/
+	DEAL_ADD_PAYMENT("426","4","新增代收付款"),
+	/**DEAL_MODIFY_PAYMENT("427","4","修改代收付款")**/
+	DEAL_MODIFY_PAYMENT("427","4","修改代收付款"),
+	/**DEAL_DELETE_PAYMENT("428","4","删除代收付款")**/
+	DEAL_DELETE_PAYMENT("428","4","删除代收付款"),
+	/**DEAL_EXPORT_CURENT_PAGE("429","4","导出当前页")**/
+	DEAL_EXPORT_CURENT_PAGE("429","4","导出当前页"),
+	/**DEAL_EXPORT_BATCH_PAGES("430","4","导出全部页")**/
+	DEAL_EXPORT_BATCH_PAGES("430","4","导出全部页"),
+	/**DEAL_SEE_PHONENO("431","4","查看电话")**/
+	DEAL_SEE_PHONENO("431","4","查看电话"),
+	/**DEAL_SEE_PHONENO("432","4","结案")**/
+	DEAL_SETTLE_CASE("432","4","结案"),
+	
+	;
+	
+	/**
+	 * 编码
+	 */
+	private String code;
+	/**
+	 * 类型
+	 */
+	private String type;
+	/**
+	 * 描述
+	 */
+	private String desc;
+	/**
+	 * 枚举map对象
+	 */
+	public static Map<String , String> enumMap;
+	/**
+	 * 枚举list对象
+	 */
+	public static List<Map<String , String>> enumList;
+	/**
+	 * @Title:  TransferProcessEnum   
+	 * @Description: 构造器（外部塞入枚举值）  
+	 * @param:  @param code
+	 * @param:  @param desc  
+	 * @throws
+	 */
+	LogBusinessOperateTypeEnum(String code,String type,String desc){
+		this.code = code;
+		this.type = type;
+		this.desc = desc;
+	}
+	
+	static {
+        enumMap = new TreeMap<String, String>();
+        
+        enumList=new ArrayList<>();
+        
+        for (LogBusinessOperateTypeEnum item : LogBusinessOperateTypeEnum.values()) {
+        	//将枚举值放入Map对象中
+            enumMap.put(item.getCode(), item.getDesc());
+            
+            Map<String,String> map = new HashMap<String,String>();
+            map.put("type", item.getType());
+            map.put("value", item.getCode());
+            map.put("name", item.getDesc());
+            //将枚举值放入List集合中
+            enumList.add(map);
+        }
+    }
+	 /**
+     * 枚举转换
+     */
+    public static LogBusinessOperateTypeEnum parseOf(String value){
+        for(LogBusinessOperateTypeEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+}

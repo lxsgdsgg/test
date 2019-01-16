@@ -1,0 +1,89 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentTest.java   
+ * @Package com.bashiju.www.test.usercentraltest      
+ * @author: zuoyuntao     
+ * @date:   2018年8月1日 下午3:16:38   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test.usercentraltest;
+
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.service.user.ICustomerEntrustmentService;
+import com.bashiju.www.test.BaseServiceTest;
+
+/**
+ * 房源委托、需求委托测试类
+ * @ClassName:CustomerEntrustmentTest
+ * @Description:房源委托、需求委托测试类
+ * @author:zuoyuntao
+ * @date:2018年8月1日 下午3:16:38
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerEntrustmentTest extends BaseServiceTest {
+	private String verifyCode = "";
+	/**
+	 * 委托服务层接口
+	 */
+	@Autowired
+	private ICustomerEntrustmentService mICustomerEntrustmentService;
+	
+	private CustomerDemandEntrustmentEntity demandEntity = new CustomerDemandEntrustmentEntity();
+	
+	private CustomerHouseEntrustmentEntity houseEntity = new CustomerHouseEntrustmentEntity();
+
+//	@Test
+	public void queryHouseVerifyCode() {
+		Map<String, List<SelectItemResult>>  temp = mICustomerEntrustmentService.queryPayOffMethod();
+		System.out.println(temp);
+//		mICustomerEntrustmentService.queryHouseVerifyCode("13577000337");
+//		List<CustomerUserCentralCommunityEntity>  list = mICustomerEntrustmentService.queryCommunityList("530100");
+//		System.out.println(JSON.toJSON(list));
+		houseEntity.setCityCode(530100);
+		houseEntity.setAreaCode("530100");
+		houseEntity.setAreaName("昆明市");
+		houseEntity.setRegionId(2);
+		houseEntity.setRegionName("新亚洲体育城");
+		houseEntity.setCommunityId(1);
+		houseEntity.setCommunityName("星泽园");
+		houseEntity.setBuildingsId(1);
+		houseEntity.setBuildingsName("1栋");
+		houseEntity.setBulidingUnitId(1);
+		houseEntity.setBuildingsUnitName("1单元");
+		houseEntity.setRoom(5);
+		houseEntity.setHall(2);
+		houseEntity.setKitchen(1);
+		houseEntity.setToilet(2);
+		houseEntity.setRentPrice(1600.20);
+//		houseEntity.setSellingPrice(200.00);
+		houseEntity.setBuildSpace(102.456);
+		houseEntity.setBuildingHouseId(102);
+		houseEntity.setBuildingHouseName("1054");
+		houseEntity.setClienteleName("张三");
+		houseEntity.setMobile("15284408814");
+		houseEntity.setDescs("测试测试");
+		houseEntity.setTransactionType(1);
+		houseEntity.setCustId("19");//C端调用时传登陆key:houseEntity.setLoginKey("fdsfadsfadsfads");
+		houseEntity.setPayType("押一半年付");
+		houseEntity.setPayTypeId(1);
+		mICustomerEntrustmentService.saveHouseEntrustmentData(houseEntity, verifyCode);
+		
+	}
+	@Test
+	public void cancel() {
+		mICustomerEntrustmentService.concelEntrust("1");
+		System.out.println("==================>>>>>>>>>>>>>>");
+	}
+}

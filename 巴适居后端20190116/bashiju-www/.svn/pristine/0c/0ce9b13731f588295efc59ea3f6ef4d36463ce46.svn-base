@@ -1,0 +1,23 @@
+package com.bashiju.www.pojo.service.input.house;
+
+import com.bashiju.www.pojo.comm.HouseSortEnum;
+
+import lombok.Data;
+
+/**
+ * 
+ *   房源区域查询参数
+ * @ClassName:  HouseAreaParam   
+ * @Description:  房源区域查询参数
+ * @author: wangkaifa
+ * @date:   2018年7月24日 下午2:16:30       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class HouseAreaParam extends HouseBaseParam{
+	/**区域代码**/
+	private String areaCode;
+	/**片区id**/
+	private Long regionId;
+}

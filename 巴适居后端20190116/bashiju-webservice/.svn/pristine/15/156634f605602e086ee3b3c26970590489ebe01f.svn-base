@@ -1,0 +1,211 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerTest.java   
+ * @Package com.bashiju.www.test   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月6日 下午3:38:57   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.test;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.wapi.IHomePageServiceApi;
+import com.bashiju.wapi.IHouseSellInfoPageServiceApi;
+import com.bashiju.wapi.usercentral.ICustomerPersonCentralPageServiceApi;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity;
+import com.bashiju.www.pojo.service.out.comm.NavigationBar;
+import com.bashiju.www.pojo.service.reservation.ReservationParam;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerInsertBingdingParam;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+import com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingParam;
+import com.bashiju.www.service.FootPrint.FootPrintService;
+import com.bashiju.www.service.agent.AgentService;
+import com.bashiju.www.service.navigationbar.NavigationBarService;
+import com.bashiju.www.service.user.CustCustomerService;
+import com.bashiju.www.service.user.ICustomerPersonalCentralService; 
+
+public class CustomerTest extends BaseServiceTest {
+	
+	
+	
+    @Autowired	
+    private CustCustomerService custCustomerService;
+    
+    @Autowired
+    private  NavigationBarService navigationBarService;
+    @Autowired
+    private FootPrintService footPrintService;
+    @Autowired
+    private ICacheService cacheService;
+    @Autowired
+    private AgentService agentService;
+    @Autowired
+	private RedisGetIdServiceApi redisGetIdServiceApi;
+    @Autowired
+    private ICustomerPersonalCentralService customerPersonalCentralService;
+    @Autowired 
+    private IHouseSellInfoPageServiceApi houseSellInfoPageServiceApi;
+    @Autowired 
+    private ICustomerPersonCentralPageServiceApi customerPersonCentralPageServiceApi;
+	@Autowired(required=false) 
+	MockHttpServletRequest request;
+	
+	@Autowired(required=false) 
+	MockHttpServletResponse response;
+	
+	@Autowired
+	IHomePageServiceApi homePageServiceApi;
+//	@Test
+//	public void checkImg() {
+//		String ss = custCustomerService.imageCheck(request, response);
+//		System.out.println("**********"+ss);
+//	}
+	
+//	@Test
+	public void userLoginTest() {
+		String mobile ="18302392883";
+//		String password = "123456"; 
+//		String user = custCustomerService.customerLogin(mobile, password, "123123");
+		String user = cacheService.getCache("d22ddf709dbf75514ecb632eba158c75");
+		System.out.println(user);
+	}
+
+//	@Test
+	public void msgTest() {
+		String mobile ="18302392883";
+		String user = custCustomerService.sendMobileMsgVerfyCode(mobile);
+//		String user = homePageServiceApi.sendMobileMsgVerfyCode(mobile);
+		System.out.println(user);
+	}
+//	@Test
+	public void Test() {
+		CustCustomerParam custCustomerParam = new CustCustomerParam();
+		custCustomerParam.setMobile("18302392883");
+		custCustomerParam.setName("waper97");
+		custCustomerParam.setPassword("123456");
+		custCustomerParam.setMsgCode("288090");
+		custCustomerService.saveCustCustomer(custCustomerParam);
+	}
+	
+//	@Test
+	public void updateCust() {
+		CustCustomerEntity custCustomerEntity = new CustCustomerEntity();
+		custCustomerEntity.setMsgCode("856060");
+		custCustomerEntity.setMobile("15696703407");
+		custCustomerEntity.setNewPassword("wangpeng");
+		custCustomerService.updateCustCustomer(custCustomerEntity);
+	}
+	
+//	@Test
+	public void customerMobileLogin() {
+		custCustomerService.customerMobileLogin("15696703407", "893188");
+	}
+//	@Test
+	public void testMsgCode() {
+		customerPersonalCentralService.sendMobileVerfyCode("15696703407");
+	}
+
+//	@Test
+	public void reWathc() {
+		ReservationParam reservationParam = new ReservationParam();
+		reservationParam.setCustId("19");
+		reservationParam.setMobile("15696703407");
+		reservationParam.setMsg("630183");
+		reservationParam.setName("程正");
+		reservationParam.setRemark("希望看下100平米以下的新房");
+		reservationParam.setReservationDate(new Date());
+		reservationParam.setReservationTime("3");
+		reservationParam.setShhId("2");
+		reservationParam.setMaintainId("1");
+		boolean result = customerPersonalCentralService.saveReservationWatchHouse(reservationParam);
+		System.out.println(result);
+	}
+//	@Test
+	public void test9() {
+		houseSellInfoPageServiceApi.sendMobileVerfyCode("15696703407");
+	}
+//	@Test
+	public void test10() {
+//		customerPersonCentralPageServiceApi.queryFootPrintByCustId("2", "1");
+	}
+//	@Test
+	public void addFoot() {
+		FootPrintToSaveEntity footPrintToSaveEntity = new FootPrintToSaveEntity();
+		footPrintToSaveEntity.setBrowsingTime(new Date());
+		footPrintToSaveEntity.setCust_id("5");
+		footPrintToSaveEntity.setSourceId("1");
+		footPrintToSaveEntity.setType("5");
+		customerPersonCentralPageServiceApi.saveFootPrint(footPrintToSaveEntity);
+	}
+//	@Test
+	public void footCount() {
+		FootPrintToQueryEntity  footPrintToQueryEntity = customerPersonCentralPageServiceApi.queryFootPrintCountByCustId("2");
+		System.out.println(footPrintToQueryEntity );
+	}
+		
+//	@Test
+	public void isEistRe() {
+		boolean result = houseSellInfoPageServiceApi.queryIsExistReservationWatchHouse("1","1");
+		System.out.println(result);
+	}
+//	@Test
+	public void na() {
+		 List<NavigationBar> result = navigationBarService.queryHeadNavigationBar("530100");
+		System.out.println(result);
+	}
+//	@Test
+	public void qqLogin() {
+		custCustomerService.thirdPartyLogin("waper97", "wx");
+	}
+//	@Test
+	public void Bind() {
+		CustCustomerInsertBingdingParam custCustomerInsertBingdingParam = new CustCustomerInsertBingdingParam();
+		custCustomerInsertBingdingParam.setCode("jj");
+		custCustomerInsertBingdingParam.setMobile("18302392883");
+		custCustomerInsertBingdingParam.setName("林俊杰");
+		custCustomerInsertBingdingParam.setNumType("wx");
+		custCustomerInsertBingdingParam.setProfilePhoto("hhe");
+		custCustomerService.bindingThirdparty(custCustomerInsertBingdingParam);
+	}
+	
+//	@Test
+	public void login() {
+		custCustomerService.thirdPartyLogin("zz", "qq");
+	}
+	
+//	@Test
+	public void update() {
+		CustCustomerUpdateBingdingParam custCustomerUpdateBingdingParam = new CustCustomerUpdateBingdingParam();
+		custCustomerUpdateBingdingParam.setCode("zz");
+		custCustomerUpdateBingdingParam.setName("fuck");
+		custCustomerUpdateBingdingParam.setProfilePhoto("zz");
+		custCustomerUpdateBingdingParam.setCustId("29");
+		custCustomerUpdateBingdingParam.setNumType("wx");
+		custCustomerService.updateBingding(custCustomerUpdateBingdingParam);
+	}
+//	@Test
+	public void footDelete() {
+		boolean result = customerPersonCentralPageServiceApi.deleteFootPrint("16");
+		System.out.println(result);
+	}
+	
+	@Test
+	public void queryFoot() {
+		customerPersonCentralPageServiceApi.queryFootPrintByCustId("1", "1", 1, 10);
+	}
+	
+}

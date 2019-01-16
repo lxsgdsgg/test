@@ -1,0 +1,258 @@
+/**  
+ * @Title:  CommonSelectController.java   
+ * @Package com.bashiju.manage.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年8月18日 下午2:55:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.pojo.controller.CommunityQueryEntity;
+import com.bashiju.manage.service.DeptService;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IRegionService;
+import com.bashiju.manage.service.IUserManageService;
+import com.bashiju.manage.service.PostService;
+import com.bashiju.manage.service.RoleService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 公共选择控制器
+ * @ClassName:CommonSelectController
+ * @Description:公共选择控制器
+ * @author:zuoyuntao
+ * @date:2018年8月18日 下午2:55:36
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="commonselect")
+public class CommonSelectController extends BaseController{
+	/**
+	 * 片区管理接口
+	 */
+	@Autowired
+	private IRegionService regionService;
+	/**
+	 * 部门接口
+	 */
+	@Autowired
+	private DeptService deptService;
+	/**
+	 * 用户管理接口对象
+	 */
+	@Autowired
+	private IUserManageService mIUserManageService;
+	/**
+	 * 角色管理接口对象
+	 */
+	@Autowired
+	private RoleService mRoleService;
+	/**
+	 * 职位管理接口
+	 */
+	@Autowired
+	private PostService mPostService;
+	/**
+	 * 小区管理接口对象
+	 */
+	@Autowired
+	private ICommunityService mICommunityService;
+	/**
+	 * 动态表单接口
+	 */
+	@Autowired
+	private FormService mFormService;
+	/**
+	 * 读取职位选择数据信息 
+	 * @Title: queryPositionSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取职位选择数据信息   
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryPositionSelect")
+	@ResponseBody
+	public Object queryPositionSelect() {
+		return mPostService.queryPost(null, 0, 0);
+	}
+	
+	/**
+	 * 读取角色选择数据 
+	 * @Title: queryRoleSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取角色选择数据
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryRoleSelect")
+	@ResponseBody
+	public Object queryRoleSelect() {
+		return mRoleService.queryRoles(null,null, null);
+		
+	}
+	/**
+	 * 读取城市选择数据
+	 * @Title: queryCitySelect
+	 * @author: zuoyuntao  
+	 * @Description:读取城市选择数据  
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryCitySelect")
+	@ResponseBody
+	public Object queryCitySelect() {
+		return regionService.queryAreaSelect();
+	}
+	/**
+	 * 读取片区选择数据 
+	 * @Title: queryRegionSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取片区选择数据 
+	 * @return      
+	 * Object JSON 格式为：
+	 */
+	@RequestMapping(value="queryRegionSelect")
+	@ResponseBody
+	public Object queryRegionSelect() {
+		return regionService.queryRegionsByCity(String.valueOf(UserThreadLocal.get().get("areaCode")));
+	}
+	/**
+	 * 读取小区选择数据 
+	 * @Title: queryCommunitySelect
+	 * @author: zuoyuntao  
+	 * @Description:读取小区选择数据
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryCommunitySelect")
+	@ResponseBody
+	public Object queryCommunitySelect() {
+		CommunityQueryEntity entity = new CommunityQueryEntity();
+		entity.setAreaCode(null);
+		entity.setBiaozhu(null);
+		entity.setHot(null);
+		entity.setPinyin(null);
+		entity.setRegionName(null);
+		
+		try {
+			return mICommunityService.queryCommunityList(entity , 0, 0);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new BusinessException(e.getMessage());
+		}
+	}
+	/**
+	 * 读取部门选择数据
+	 * @Title: queryDeptSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取部门选择数据
+	 * @return      
+	 * Object{"id":"1","name":"研发部"}
+	 */
+	@RequestMapping(value="queryDeptSelect")
+	@ResponseBody
+	public Object queryDeptSelect() {
+		return deptService.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString(),
+				UserThreadLocal.get().get("id").toString());
+	}
+	/**
+	 * 读取用户信息选择数据
+	 * @Title: queryUserSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取用户信息选择数据 
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryUserSelect")
+	@ResponseBody
+	public Object queryUserSelect() {
+		return mIUserManageService.queryAllUserInfoWithPage(null, 0, 0);
+	}
+	/**
+	 * 读取介绍人选择数据
+	 * @Title: queryReferenceUserSelect
+	 * @author: zuoyuntao  
+	 * @Description:读取介绍人选择数据
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryReferenceUserSelect")
+	@ResponseBody
+	public Object queryReferenceUserSelect() {
+		return mIUserManageService
+				.queryDeptInfoToCreateTree(UserThreadLocal.get().get("roleGroup").toString(),
+						UserThreadLocal.get().get("id").toString());
+	}
+	/**
+	 * 得到分成配置角色信息 
+	 * @Title: queryDivideintoRole
+	 * @author: zuoyuntao  
+	 * @Description:得到分成配置角色信息
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryDivideintoRole")
+	@ResponseBody
+	public Object queryDivideintoRole() {
+		// 这里由于Vue页面不好处理Map，因此转换一下成List
+		List<Map<String,Object>> retList = new ArrayList<Map<String,Object>>();
+		Iterator<String> it = ManageGlobal.ACTION_ROLE_MAP.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			String value = String.valueOf(ManageGlobal.ACTION_ROLE_MAP.get(key));
+			if(StringUtil.isEmpty(value)) {
+				continue;
+			}
+			Map<String,Object> retMap = new HashMap<String,Object>();
+			retMap.put("id", Integer.parseInt(key));
+			retMap.put("name", value);
+			retList.add(retMap);
+		}
+		return retList;
+	}
+	/**
+	 * 读取业绩类型管理的计算方式、业绩类型
+	 * @Title: queryCaculateMethod
+	 * @author: zuoyuntao  
+	 * @Description:读取业绩类型管理的计算方式
+	 * @return      
+	 * Object 返回数据包含{usePfmTypeValue，caculateMethod}两个key的数据
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="queryCaculateMethod")
+	@ResponseBody
+	public Object queryCaculateMethod() {
+		LinkedList<Map<String,Object>> values 
+			= (LinkedList<Map<String,Object>>) mFormService.querySelectValue("many", "pfmType");
+		Map<String, Object> map=new HashMap<>();
+		for (Object o : values) {
+			Map<String, Object> item=(Map<String, Object>) o;
+			for (String key : item.keySet()) {
+				map.put(key, item.get(key));
+				break;
+			}			
+		}
+		return map;
+	}
+	
+}

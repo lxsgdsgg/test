@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ReportMapper">
+	<select id="queryDaily"  resultType="map">
+		select  
+			count(case when operatTypeId = 1 then id end) as sellDeal,
+			count(case when operatTypeId = 2 then id end) as rentDeal,
+			count(case when operatTypeId = 3 then id end) as newHouseDeal,
+			count(case when operatTypeId = 34 then id end) as cusSellDeposit,
+			count(case when operatTypeId = 41 then id end) as cusRentDeposit,
+			count(case when operatTypeId = 4 then id end) as sellHouseAdd,
+			count(case when operatTypeId = 18 then id end) as rentHouseAdd,
+			count(case when operatTypeId = 32 then id end) as sellCustomerAdd,
+			count(case when operatTypeId = 39 then id end) as rentCustomerAdd,
+			count(case when operatTypeId = 21 then id end) as sellExclusivet,
+			count(case when operatTypeId = 7 then id end) as rentExclusivet,
+			count(case when operatTypeId = 16 then id end) as sellVideo,
+			count(case when operatTypeId = 30 then id end) as rentVideo,
+			count(case when operatTypeId = 6 then id end) as sellHouseKey,
+			count(case when operatTypeId = 20 then id end) as rentHouseKey,
+			count(case when operatTypeId = 17 then id end) as sellEntrust,
+			count(case when operatTypeId = 31 then id end) as rentEntrust,
+			count(case when operatTypeId = 5 then id end) as sellOpenDisc,
+			count(case when operatTypeId = 19 then id end) as rentOpenDisc,
+			count(case when operatTypeId = 50 then id end) as sellCustomerShowed,
+			count(case when operatTypeId = 52 then id end) as rentCustomerShowed,
+			count(case when operatTypeId = 51 then id end) as sellHouseShowed,
+			count(case when operatTypeId = 53 then id end) as rentHouseShowed,
+			count(case when operatTypeId = 54 then id end) as newHouseShowed,
+			count(case when operatTypeId = 48 then id end) as sellCustomerFollow,
+			count(case when operatTypeId = 49 then id end) as rentCustomerFollow,
+			count(case when operatTypeId = 46 then id end) as houseFollow,
+			count(case when operatTypeId = 47 then id end) as houseRealExploration,
+			count(case when operatTypeId = 56 then id end) as housePhone,
+			count(case when operatTypeId = 57 then id end) as sellCustomerPhone,
+			count(case when operatTypeId = 58 then id end) as rentCustomerPhone
+		from report_operation_analysis  where isvalid = 1 and operatorId = #{operatorId} and  DATEDIFF(addTime,NOW())=0 
+	</select>
+	
+	<select id="queryIsExistSubmitReport" resultType="map">
+		select count(*) as isSubmit,approval,experience,id from report_daily where agentId = #{agentId} and   DATEDIFF(addTime,NOW())=0 and  isvalid = 1
+	</select>
+	
+	<select id="queryDailyReportExam" resultType="map">
+		SELECT a.id,DATE(a.addTime) as date,a.approval,a.agentId,a.companyId,a.deptId,a.experience,a.approvaler,a.approvalTime,
+		a.sellDeal,a.rentDeal,a.newHouseDeal,a.cusSellDeposit,a.cusRentDeposit,a.sellHouseAdd,a.rentHouseAdd,a.sellCustomerAdd,
+		a.rentCustomerAdd,a.sellExclusivet,a.rentExclusivet,a.sellVideo,a.sellHouseKey,a.rentHouseKey,a.sellEntrust,a.rentEntrust,
+		a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerShowed,a.sellHouseShowed,a.rentCustomerShowed,a.rentHouseShowed,a.newHouseShowed,
+		a.sellCustomerFollow,a.houseRealExploration,a.housePhone,a.sellCustomerPhone,a.rentCustomerPhone,a.rentCustomerFollow,
+		a.houseFollow,a.rentVideo,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid,b.name as deptName,
+		c.realName as user,d.realName as approvalName FROM report_daily as a  
+		left join sys_dept b on a.deptId = b.id
+		left join sys_user c on a.agentId = c.id 
+		left join sys_user d on a.approvaler = c.id
+		where a.isvalid = 1 
+		<if test="deptId !='' and deptId!=null">
+			and a.deptId = #{deptId}
+		</if>
+		GROUP BY a.id order by a.addTime desc
+	</select>
+	
+	
+	
+</mapper>

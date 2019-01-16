@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustCustomerMapper">
+<!--  <resultMap id="customerMap" type="com.bashiju.www.pojo.CustCustomer">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="username" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="solt" jdbcType="VARCHAR" property="solt" />
+    <result column="sex" jdbcType="VARCHAR" property="sex" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="addTime" jdbcType="TIMESTAMP" property="addtime" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updatetime" />
+    <result column="isValid" jdbcType="TINYINT" property="isvalid" />
+  </resultMap>
+  
+	<select id="queryAllCustomer" resultMap="customerMap">
+		select name, mobile,password,solt from cust_customer
+	</select>
+	<select id="saveCustomer" parameterType="com.bashiju.www.pojo.CustCustomer">
+		insert into cust_customer (name,mobile,password,solt) values(#{username},#{mobile},#{password},#{solt})
+	</select> -->
+	
+	
+	
+	 <select id="queryIsExistMobile" resultType="long">
+		select count(0) from  cust_customer where mobile = #{mobile}
+	 </select>
+	
+	<insert id="saveCustCustomer" parameterType="com.bashiju.www.pojo.service.user.CustCustomerParam">
+		INSERT INTO cust_customer(name, mobile, password, solt, sex,proviceCode, cityCode, areaCode,
+	    address, birthday, operator, addTime, updateTime, isValid) 
+		VALUES (#{name}, #{mobile}, #{password},#{solt}, #{sex},#{proviceCode},#{cityCode},#{areaCode},#{address},#{birthday},#{operator}, #{addTime}, #{updateTime}, #{isValid})
+	</insert>
+	
+	<update id="updateCustCustomer"  parameterType="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		update cust_customer 
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name!=null"> name=#{name},</if>
+			<if test="newMobile!=null"> mobile=#{newMobile},</if>
+			<if test="newPassword">password=#{newPassword},</if>
+			<if test="operator!=null">operator=#{operator},</if>
+			<if test="solt!=null">solt=#{solt},</if>
+			<if test="sex!=null">sex=#{sex},</if>
+			<if test="operator!=null">operator=#{operator},</if>
+			<if test="proviceCode!=null">proviceCode=#{proviceCode},</if>
+			<if test="areaCode!=null">areaCode=#{areaCode},</if>
+			<if test="cityCode!=null">cityCode=#{cityCode},</if>
+			<if test="address!=null">address=#{address},</if>
+			<if test="birthday!=null">birthday=#{birthday},</if>
+			<if test="updateTime!=null">updateTime=#{updateTime},</if>
+			<if test="isValid!=null">isValid=#{isValid},</if>
+		</trim>
+		where mobile =#{mobile}
+	</update>
+	<select id="userMobileCheck" resultType="long">
+		select count(0) from cust_customer where mobile=#{mobile} and solt =#{solt}
+	</select>
+	
+	
+	<select id="customerLogin" resultType="map">
+		select id,name from cust_customer where mobile = #{mobile} and  password = #{password}
+	</select>
+	
+	
+	<select id="customerMobileLogin"  resultType="map">
+		select id,name from cust_customer where mobile = #{mobile}
+	</select>
+	
+</mapper>

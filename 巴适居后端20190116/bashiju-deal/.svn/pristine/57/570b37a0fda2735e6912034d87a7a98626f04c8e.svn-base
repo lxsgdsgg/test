@@ -1,0 +1,133 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealController.java   
+ * @Package com.bashiju.deal.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月15日 上午9:58:40   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.bashiju.customer.pojo.TransferScheduleStatusNum;
+import com.bashiju.deal.service.DealService;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  DealController   
+ * @Description:成交管理控制器 
+ * @author: yangz
+ * @date:   2018年6月15日 上午9:58:40   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="deal")
+public class DealController extends BaseController {
+	
+	@Autowired
+	private DealService dealService;
+	
+	
+	/**
+	 * 
+	 * @Description: 进入成交管理页面   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="dealPage")
+	public ModelAndView dealPage(HttpServletRequest request,HttpServletResponse response) {
+		String pageName = "businessDeal/businessDeal";//默认为买卖成交
+		String dt = request.getParameter("dt");
+		if(!StringUtils.isEmpty(dt) && DealTypeEnum.LEASEDEAL.getCode().equals(dt.toString())) //租赁成交
+			pageName = "leaseDeal/leaseDeal";
+		else if(!StringUtils.isEmpty(dt) && DealTypeEnum.NEWHOUSEDEAL.getCode().equals(dt.toString()))//一手房成交
+			pageName = "newHouseDeal/newHouseDeal";
+		else
+			dt = DealTypeEnum.BUSINESSDEAL.getCode();
+		
+		
+		ModelAndView mv = this.getModelAndView(request, response, pageName);
+		mv.addObject("dealType", dt);
+		mv.addObject("houseUsesEnum", HouseUsesEnum.enumMap);
+		mv.addObject("houseUsesEnumJson", JSON.toJSON(HouseUsesEnum.enumMap));
+		mv.addObject("transferScheduleStatus",TransferScheduleStatusNum.map);
+		mv.addObject("transferScheduleStatusJson",JSON.toJSON(TransferScheduleStatusNum.map));
+//		TODO:合同状态还没有
+//		mv.addObject("合同状态", 合同状态);
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 条件查询成交信息   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: Object
+	 */
+	@RequestMapping(value="getData")
+	@ResponseBody
+	public Object getData(HttpServletRequest request,HttpServletResponse response) {
+		String dealType = request.getParameter("dealType");
+		if(StringUtils.isEmpty(dealType)) {
+			throw new BusinessException("请指定要查询的成交类型");
+		}
+		int pageNum = 1;
+		int pageSize = 20;
+		String num = request.getParameter("page");
+		String size = request.getParameter("limit");
+		if(!StringUtils.isEmpty(num))
+			pageNum = Integer.parseInt(num);
+		if(!StringUtils.isEmpty(size))
+			pageSize = Integer.parseInt(size);
+		
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("agreementStatus", request.getParameter("agreementStatus"));//合同状态 TODO:合同信息还没做
+		map.put("houseUses", request.getParameter("houseUses"));//房源用途
+		map.put("beginDealTime", request.getParameter("beginDealTime"));//开始成交时间
+		map.put("endDealTime", request.getParameter("endDealTime"));//截止成交时间
+		map.put("beginCommissionFinishTime", request.getParameter("beginCommissionFinishTime"));//佣金结案时间
+		map.put("endCommissionFinishTime", request.getParameter("endCommissionFinishTime"));//佣金结案时间
+		map.put("beginFinishCaseTime", request.getParameter("beginFinishCaseTime"));//过户结案时间
+		map.put("endFinishCaseTime", request.getParameter("endFinishCaseTime"));//过户结案时间
+		map.put("traderId", request.getParameter("traderId"));//成交人
+		map.put("traderDeptId", request.getParameter("traderDeptId"));//成交人所在部门
+		map.put("referenceId", request.getParameter("referenceIdId"));//权证人
+		map.put("referenceDeptId", request.getParameter("referenceDeptId"));//权证人所在部门
+		map.put("operatorId", request.getParameter("operatorId"));//操作人id(录入人)
+		map.put("operatorDeptId", request.getParameter("operatorDeptId"));//操作人所在部门id
+		map.put("dealId", request.getParameter("dealId"));//成交编号
+		map.put("agreementId", request.getParameter("agreementId"));//合同编号
+		map.put("houseId", request.getParameter("houseId"));//房源编号；
+		map.put("demandId", request.getParameter("demandId"));//需求编号
+		map.put("owner", request.getParameter("owner"));//业主名称(模糊)
+		map.put("custName", request.getParameter("custName"));//客户名称(模糊)
+		map.put("communityName", request.getParameter("communityName"));//小区名称(模糊)
+		map.put("buildingHouseName", request.getParameter("buildingHouseName"));//门牌号(模糊)
+		Page<Map<String,Object>> pages = dealService.queryDeals(map, pageNum, pageSize);
+		return pages;
+	}
+}

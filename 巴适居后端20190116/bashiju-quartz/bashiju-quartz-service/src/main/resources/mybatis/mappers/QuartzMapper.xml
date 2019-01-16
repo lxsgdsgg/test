@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.QuartzMapper">
+
+<!-- 查询所有有效公司的id信息 -->
+<select id="queryAllCompanyId" resultType="String">
+	select id FROM sys_company where isValid=1
+</select>
+</mapper>

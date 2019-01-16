@@ -1,0 +1,139 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseRequestServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:12:47   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.CustomerHouseRequestMapper;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseRequestEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.user.ICustomerHouseRequestService;
+import com.bashiju.www.service.user.ICustomerOwnerHouseService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心--我的需求--服务
+ * @ClassName:CustomerHouseRequestServiceImpl
+ * @Description:个人中心--我的需求--服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:12:47
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerHouseRequestServiceImpl implements ICustomerHouseRequestService{
+	/**
+	 * 阿里巴巴对象映射对象
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * 房源绑定服务接口
+	 */
+	@Autowired
+	private ICustomerOwnerHouseService mICustomerOwnerHouseService;
+	/**
+	 * 个人中心：客户需求持久层接口
+	 */
+	@Autowired
+	private CustomerHouseRequestMapper mCustomerHouseRequestMapper;
+	/**
+	 * Redis缓存操作服务
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	
+	/**
+	 * <p>Title: queryMyHouseRequestList</p>   
+	 * <p>Description: 查询我的需求数据信息</p>   
+	 * @param custId 登陆用户ID
+	 * @param requestType 需求类型（租房、购房）
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @see com.bashiju.www.service.user.ICustomerHouseRequestService#queryMyHouseRequestList(java.lang.String, java.lang.String, int, int)
+	 */
+	@Override
+	public Page<CustomerHouseRequestEntity> queryMyHouseRequestList(
+			String custId, String requestType,int page,int limit) {
+		//生成Redis唯一key
+		String redisKey = Md5EncryptUtils.md5Encrypt("mCustomerHouseRequestMapper" 
+			+ custId + page + limit);
+		List<CustomerHouseRequestEntity> retList = readDataListFromRedisByKey(redisKey);
+		if(retList.size() == 0) {
+			PageHelper.startPage(page, limit);
+			retList = mCustomerHouseRequestMapper
+					.queryCustomerRequestDataList(custId,requestType);
+			this.updateDataToRedis(redisKey, retList);
+		}
+		return (Page<CustomerHouseRequestEntity>) retList;
+	}
+	/**
+	 * <p>Title: bindingCustomerByBindCode</p>   
+	 * <p>Description: 客户--需求绑定</p>   
+	 * @param custId 登陆用户ID
+	 * @param bindCode 登陆用户输入绑定码
+	 * @see com.bashiju.www.service.user.ICustomerHouseRequestService#bindingCustomerByBindCode(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void bindingCustomerByBindCode(String custId, String bindCode) {
+		try {
+			mICustomerOwnerHouseService.bindingSourcesByBindCode(custId, bindCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new BusinessException(e.getMessage());
+		}
+	}
+	/**
+	 * 根据Key从Redis服务器读取查询结果集
+	 * @Title: readDataListFromRedisByKey
+	 * @author: zuoyuntao  
+	 * @Description:根据Key从Redis服务器读取查询结果集
+	 * @param key
+	 * @return      
+	 * List<CustomerHouseRequestEntity> 
+	 */
+	private List<CustomerHouseRequestEntity> readDataListFromRedisByKey(String key){
+		String retStr = mICacheService.getCache(key);
+		List<CustomerHouseRequestEntity> retList = new ArrayList<CustomerHouseRequestEntity>();
+		if(StringUtil.isNotEmpty(retStr)) {
+			retList = readDataListFromRedisByKey(key);
+		}
+		return retList;
+	}
+	
+	/**
+	 * 将查询数据结果集更新到Redis服务
+	 * @Title: updateDataToRedis
+	 * @author: zuoyuntao  
+	 * @Description:将查询数据结果集更新到Redis服务
+	 * @param key
+	 * @param dataList 我的需求数据结果集   
+	 * void 
+	 */
+	private void updateDataToRedis(String key,List<CustomerHouseRequestEntity> dataList) {
+		try {
+			mICacheService.saveCache(key
+					,MAPPER.writeValueAsString(dataList), WebGlobal.OTHER_EXPTIME);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
+}

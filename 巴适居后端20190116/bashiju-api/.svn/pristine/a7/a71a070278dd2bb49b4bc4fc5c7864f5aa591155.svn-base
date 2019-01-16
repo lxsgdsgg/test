@@ -1,0 +1,76 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  RoleGroup.java   
+ * @Package com.bashiju.manage.pojo   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年5月25日 上午11:51:13   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.enums;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+/**   
+ * @ClassName:  RoleGroup   
+ * @Description:角色组   
+ * @author: yangz
+ * @date:   2018年5月25日 上午11:51:13   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum RoleGroup {
+	/**
+	 * 超级管理员
+	 */
+	ADMIN("01","超级管理员"),
+	
+	/**
+	 * 城市管理员
+	 */
+	CITY_ADMIN("02","城市管理员"),
+	
+	/**
+	 * 普通用户
+	 */
+	ORDINARY_USER("03","普通用户");
+	
+	private String value;
+    private String displayName;
+    
+    public String getValue() {
+        return this.value;
+    }
+    
+    public String getDisplayName() {
+        return this.displayName;
+    }
+    
+    
+    RoleGroup(String value, String displayName){
+        this.value = value ;
+        this.displayName = displayName ;
+    }
+    
+    public static Map<String, String> roleGroupMap = new TreeMap<String, String>();
+
+    static {
+        for (RoleGroup _enum : RoleGroup.values()) {
+        	roleGroupMap.put(_enum.value, _enum.displayName);
+        }
+    }
+    
+    /**
+     * 枚举转换
+     */
+    public static RoleGroup parseOf(String value){
+        for(RoleGroup item : values())
+            if(item.getValue().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+}

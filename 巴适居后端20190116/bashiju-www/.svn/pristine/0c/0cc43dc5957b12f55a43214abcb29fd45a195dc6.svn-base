@@ -1,0 +1,32 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerConernedHouseEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午2:22:05   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 我关注的房子实体类
+ * @ClassName:CustomerConernedHouseEntity
+ * @Description:我关注的房子实体类
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午2:22:05
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerConcernedHouseEntity extends CustomerHouseBaseEntity{
+	/**关注时间**/
+	private String concernedTime;
+	
+	public CustomerConcernedHouseEntity() {
+		super();
+	}
+}

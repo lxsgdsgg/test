@@ -1,0 +1,188 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  AgentServiceImpl.java   
+ * @Package com.bashiju.www.service.agent.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月28日 下午4:23:41   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.service.agent.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.webservice.mapper.AgentMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.agent.AgentAbility;
+import com.bashiju.www.pojo.service.agent.AgentAbilityIdentification;
+import com.bashiju.www.pojo.service.agent.AgentDeail;
+import com.bashiju.www.pojo.service.agent.AgentQueryParams;
+import com.bashiju.www.pojo.service.agent.CustStarRating;
+import com.bashiju.www.pojo.service.agent.DealTransactionInfo;
+import com.bashiju.www.pojo.service.agent.GuestMessage;
+import com.bashiju.www.pojo.service.agent.ServiceTravel;
+import com.bashiju.www.pojo.service.agent.SetGuestMessage;
+import com.bashiju.www.service.agent.AgentService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  AgentServiceImpl   
+ * @Description:经纪人服务   
+ * @author: yangz
+ * @date:   2018年7月28日 下午4:23:41   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class AgentServiceImpl implements AgentService {
+	@Autowired
+	private AgentMapper agentMapper;
+
+	/**
+	 * @Description: 条件查询经纪人列表信息  
+	 * @param params 查询条件
+	 * @return: Page<Agent>
+	 * @see com.bashiju.www.service.agent.AgentService#queryAgents(com.bashiju.www.pojo.service.agent.AgentQueryParams)   
+	 */
+	@Override
+	public Page<Agent> queryAgents(AgentQueryParams params) {
+		if(params==null)
+			throw new BusinessException("查询条件不允许为空");
+		if(StringUtils.isEmpty(params.getCityCode()))
+			throw new BusinessException("城市代码不允许为空");
+		//当每页显示的条数超过60条，则默认只显示30条
+		PageHelper.startPage(params.getPageNum(), params.getPageSize());
+		List<Agent> list = agentMapper.queryAgents(params);
+		Page<Agent> pages = (Page<Agent>) list;
+		return pages;
+	}
+
+
+	/**
+	 * @Description: 条件查询经纪人详情
+	 * @param params 经纪人id
+	 * @return AgentDeail 
+	 * @see  com.bashiju.www.service.agent.AgentService#queryAgentDeailByAgentId(java.lang.String)     
+	 */
+	@Override
+	public AgentDeail queryAgentDeailByAgentId(String agentId,String deptId) {
+		if(StringUtils.isEmpty(agentId))
+			throw new BusinessException("经纪人编号不能为空");
+		if(StringUtils.isEmpty(deptId))
+			throw new BusinessException("经纪人部门id不能为空");
+		AgentDeail agentDeail =	agentMapper.queryAgentDeailByAgentId(agentId,deptId);
+		return agentDeail;
+	}
+
+
+	/**
+	 * @Description: 条件查询经纪人详情
+	 * @param params 经纪人id
+	 * @return: AgentAbility 
+	 * @see  com.bashiju.www.service.agent.AgentService#queryAgentAbilityByAgentId(java.lang.String)    
+	 */
+	@Override
+	public  List<AgentAbility> queryAgentAbilityByAgentId(String agentId) {
+		if(StringUtils.isEmpty(agentId))
+			throw new BusinessException("经纪人编号不能为空");
+		 List<AgentAbility> agentaBility = agentMapper.queryAgentAbilityByAgentId(agentId);
+		return agentaBility;
+	}
+
+	/**
+	 * @Description: 条件用户对经纪人评分
+	 * @param agentId 经纪人id
+	 * @return: List<UserRating>
+	 * @see  com.bashiju.www.service.agent.AgentService#queryUserRatingByAgentId(java.lang.String)     
+	 */
+	@Override
+	public List<CustStarRating> queryUserRatingByAgentId(String agentId) {
+		if(StringUtils.isEmpty(agentId))
+			throw new BusinessException("经纪人编号不能为空");
+		List<CustStarRating> userRating =	agentMapper.queryUserRatingByAgentId(agentId);
+		return userRating;
+	}
+	
+	/**
+	 * @Description: 条件查询经纪人能力认定
+	 * @param agentId 经纪人id
+	 * @return: AgentAbilityIdentification 
+	 * @see com.bashiju.www.service.agent.AgentService#queryAgentAbilityIdentificationByAgentId(java.lang.String)    
+	 */
+	@Override
+	public AgentAbilityIdentification queryAgentAbilityIdentificationByAgentId(String agentId) {
+		if(StringUtils.isEmpty(agentId))
+			throw new BusinessException("经纪人id不能为空");
+		AgentAbilityIdentification agentAbilityIdentification = agentMapper.queryAgentAbilityIdentificationByAgentId(agentId);
+		return agentAbilityIdentification;
+	}
+	
+	/**
+	 * @Description:  新增用户留言
+	 * @param guestMessage 留言参数
+	 * @see  com.bashiju.www.service.agent.AgentService#saveGuestMessage(com.bashiju.www.pojo.service.agent.GuestMessage)
+	 */
+	@Override
+	public void saveGuestMessage(GuestMessage guestMessage) {
+		if(StringUtils.isEmpty(String.valueOf(guestMessage.getAgentCode())))
+			throw new BusinessException("经纪人id不能为空");
+		SetGuestMessage sm = new SetGuestMessage();
+		sm.setUserId(guestMessage.getUserCode());
+		sm.setAgentId(guestMessage.getAgentCode());
+		sm.setDeptId(guestMessage.getDeptCode());
+		sm.setDeptName(guestMessage.getDeptName());
+		sm.setMessageType(guestMessage.getMessageType());
+		sm.setMessageTypeId(guestMessage.getMessageTypeCode());
+		sm.setRealName(guestMessage.getRealName());
+		sm.setMobile(guestMessage.getMobile());
+		sm.setContent(guestMessage.getContent());
+		sm.setOperator(guestMessage.getRealName());
+		sm.setOperatorId(guestMessage.getAgentCode());
+		sm.setPermissionArea(guestMessage.getUserCode());
+		sm.setIsvalid(true);
+		sm.setAddTime(new Date());
+		sm.setUpdateTime(new Date());
+		sm.setRead(false);
+		agentMapper.saveGuestMessage(sm);
+	}
+
+	
+	/**
+	 * @Description: 条件查询成交信息
+	 * @param traderId 成交人id
+	 * @return:  DealTransactionInfo 
+	 * @see  com.bashiju.www.service.agent.AgentService#queryDealTransactionInfoByTraderId(java.lang.String)
+	 */
+	@Override
+	public Page<DealTransactionInfo> queryDealTransactionInfoByTraderId(String traderId,int page,int limit) {
+		if(StringUtils.isEmpty(traderId))
+			throw new BusinessException("成交人id不能为空");
+		PageHelper.startPage(page, limit);
+		Page<DealTransactionInfo> dealTransactionInfo = agentMapper.queryDealTransactionInfoByTraderId(traderId);
+		return dealTransactionInfo;
+	}
+
+
+	/**
+	 * @Title: queryServiceTravel   
+	 * @Description: 查询服务行程
+	 * @param userId 经纪人系统编号
+	 * @return: List<ServiceTravel>
+	 * @see  com.bashiju.www.service.agent.AgentService#queryServiceTravel()  
+	 */
+	@Override
+	public List<ServiceTravel> queryServiceTravel(String userId) {
+		List<ServiceTravel> serviceTravel	= agentMapper.queryServiceTravel(userId);
+		if(serviceTravel!=null)
+			return serviceTravel;
+		return null;
+	}
+}

@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bashiju.webservice</groupId>
+    <artifactId>bashiju-webservice</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>bashiju-webservice-service</artifactId>
+  <dependencies>
+  	<dependency>
+		<groupId>com.bashiju.webservice.mapper</groupId>
+		<artifactId>bashiju-webservice-mapper</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+		<groupId>com.bashiju.webservice.utils</groupId>
+		<artifactId>bashiju-webservice-utils</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+  	</dependency>  		
+  </dependencies>
+  
+   <!--MAVEN打包duboo可执行jar begin -->
+<build>
+
+	<finalName>bashiju-webservice</finalName>
+        <resources>
+             <!--主要是把src/main/resources下的所有的文件中的变量替换-->
+            <!--如：dubbo.properties 中的prop.log.dir=${pom.log.dir}，pom.log.dir配置在pom.xml文件中-->
+            <resource>
+                <targetPath>${project.build.directory}/classes</targetPath>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+            <!--dubbo 容器配置-->
+            <!-- 把 directory 下的 include 文件 复制到 targetPath-->
+            <resource>
+                <!--dubbo 默认指定的容器启动目录-->
+                <targetPath>${project.build.directory}/classes/META-INF/spring</targetPath>
+                <directory>src/main/resources/spring</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>bashiju-web-jar.xml</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.alibaba.dubbo.container.Main</mainClass>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.handlers</resource>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.schemas</resource>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+<!--MAVEN打包duboo可执行jar end -->
+</project>

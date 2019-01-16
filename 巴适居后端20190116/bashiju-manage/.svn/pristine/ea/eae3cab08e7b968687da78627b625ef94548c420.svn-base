@@ -1,0 +1,37 @@
+package com.bashiju.manage.service;
+
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  HousePropertyArticleClassesService   
+ * @Description:TODO(房产文章分类接口)   
+ * @author: wangpeng
+ * @date:   2018年7月19日 下午6:03:34   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface HousePropertyArticleClassesService {
+	/**
+	 * 
+	 * @Title: queryHousePropertyArticleClasses   
+	 * @Description: TODO(查询房产文章分类)   
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryHousePropertyArticleClasses(String name,String level,int page,int limit);
+	
+	/**
+	 * 
+	 * @Title: saveHousePropertyArticleClasses   
+	 * @Description: TODO(新增房产文章分类)   
+	 * @param map
+	 * @return      
+	 * @return: boolean
+	 */
+    boolean saveHousePropertyArticleClasses(Map<Object,Object> map);
+    
+}

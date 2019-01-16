@@ -1,0 +1,268 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityQueryParams.java   
+ * @Package com.bashiju.www.pojo.service.out.comm   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月24日 下午3:55:29   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.pojo.service.community;
+
+import java.io.Serializable;
+
+/**   
+ * @ClassName:  CommunityQueryParams   
+ * @Description:小区查询条件   
+ * @author: yangz
+ * @date:   2018年7月24日 下午3:55:29   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class CommunityQueryParams implements Serializable {
+
+	private static final long serialVersionUID = -5300633317355811467L;
+
+	/**
+	 * 城市代码
+	 */
+	private String cityCode;
+	
+	/**
+	 * 行政区域编码
+	 */
+	private String areaCode;
+	
+	/**
+	 * 片区编号
+	 */
+	private String regionCode;
+	
+	/**
+	 * 地铁名称
+	 */
+	private String metroName;
+	
+	/**
+	 * 地铁站点编号
+	 */
+	private String stationCode;
+	
+	/**
+	 * 最低售价
+	 */
+	private Integer minPrice;
+	
+	/**
+	 * 最高售价
+	 */
+	private Integer maxPrice;
+	
+	/**
+	 * 当前页
+	 */
+	private int pageNum;
+	
+	/**
+	 * 每页显示的条数
+	 */
+	private int pageSize;
+	
+	public CommunityQueryParams() {
+		super();
+	}
+
+	public CommunityQueryParams(String cityCode,String areaCode, String regionCode, String metroName, String stationCode,
+			Integer minPrice, Integer maxPrice, int pageNum, int pageSize) {
+		super();
+		this.cityCode = cityCode;
+		this.areaCode = areaCode;
+		this.regionCode = regionCode;
+		this.metroName = metroName;
+		this.stationCode = stationCode;
+		this.minPrice = minPrice;
+		this.maxPrice = maxPrice;
+		this.pageNum = pageNum;
+		this.pageSize = pageSize;
+	}
+
+	
+	/**  
+	 * @Title:  getCityCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getCityCode() {
+		return cityCode;
+	}
+
+	/**  
+	 * @Title:  setCityCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setCityCode(String cityCode) {
+		this.cityCode = cityCode;
+	}
+
+	/**  
+	 * @Title:  getAreaCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getAreaCode() {
+		return areaCode;
+	}
+
+	/**  
+	 * @Title:  setAreaCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setAreaCode(String areaCode) {
+		this.areaCode = areaCode;
+	}
+
+	/**  
+	 * @Title:  getRegionCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getRegionCode() {
+		return regionCode;
+	}
+
+	/**  
+	 * @Title:  setRegionCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setRegionCode(String regionCode) {
+		this.regionCode = regionCode;
+	}
+
+	/**  
+	 * @Title:  getMetroName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getMetroName() {
+		return metroName;
+	}
+
+	/**  
+	 * @Title:  setMetroName <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setMetroName(String metroName) {
+		this.metroName = metroName;
+	}
+
+	/**  
+	 * @Title:  getStationCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getStationCode() {
+		return stationCode;
+	}
+
+	/**  
+	 * @Title:  setStationCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setStationCode(String stationCode) {
+		this.stationCode = stationCode;
+	}
+
+	/**  
+	 * @Title:  getMinPrice <BR>  
+	 * @Description:  <BR>  
+	 * @return: Integer <BR>  
+	 */
+	public Integer getMinPrice() {
+		return minPrice;
+	}
+
+	/**  
+	 * @Title:  setMinPrice <BR>  
+	 * @Description: <BR>  
+	 * @return: Integer <BR>  
+	 */
+	public void setMinPrice(Integer minPrice) {
+		this.minPrice = minPrice;
+	}
+
+	/**  
+	 * @Title:  getMaxPrice <BR>  
+	 * @Description:  <BR>  
+	 * @return: Integer <BR>  
+	 */
+	public Integer getMaxPrice() {
+		return maxPrice;
+	}
+
+	/**  
+	 * @Title:  setMaxPrice <BR>  
+	 * @Description: <BR>  
+	 * @return: Integer <BR>  
+	 */
+	public void setMaxPrice(Integer maxPrice) {
+		this.maxPrice = maxPrice;
+	}
+
+	/**  
+	 * @Title:  getPageNum <BR>  
+	 * @Description:  <BR>  
+	 * @return: int <BR>  
+	 */
+	public int getPageNum() {
+		return pageNum;
+	}
+
+	/**  
+	 * @Title:  setPageNum <BR>  
+	 * @Description: <BR>  
+	 * @return: int <BR>  
+	 */
+	public void setPageNum(int pageNum) {
+		this.pageNum = pageNum;
+	}
+
+	/**  
+	 * @Title:  getPageSize <BR>  
+	 * @Description:  <BR>  
+	 * @return: int <BR>  
+	 */
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	/**  
+	 * @Title:  setPageSize <BR>  
+	 * @Description: <BR>  
+	 * @return: int <BR>  
+	 */
+	public void setPageSize(int pageSize) {
+		if(pageSize>60) //当每页显示的条数大于60条的时候，则默认只查询30条
+			pageSize=30;
+		this.pageSize = pageSize;
+	}
+
+	/**   
+	 * <p>Title: toString</p>   
+	 * <p>Description: </p>   
+	 * @return   
+	 * @see java.lang.Object#toString()   
+	 */
+	@Override
+	public String toString() {
+		return "CommunityQueryParams [areaCode=" + areaCode + ", regionCode=" + regionCode + ", metroName=" + metroName
+				+ ", stationCode=" + stationCode + ", minPrice=" + minPrice + ", maxPrice=" + maxPrice + ", pageNum="
+				+ pageNum + ", pageSize=" + pageSize + "]";
+	}
+	
+}

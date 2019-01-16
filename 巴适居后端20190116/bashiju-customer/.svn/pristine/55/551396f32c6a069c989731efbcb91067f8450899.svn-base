@@ -1,0 +1,99 @@
+package com.bashiju.customer.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  CustomerService   
+ * @Description:TODO(客源接口)   
+ * @author: liwen
+ * @date:   2018年6月12日 下午2:03:42   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustomerService {
+	public Map<String,Object> queryCustomerInfo(String demandId,String formName,String type);
+	public Page<Map<String, Object>> queryLookHouse(String demandId,int page,int limit);
+	public List<Map<String, Object>> queryLookHousePath(Map<String,Object> data);
+	public Page<Map<String, Object>> queryFollowRecord(String demandId,int page,int limit);
+	public List queryCustomerPhone(String demandId);
+	public Long changeExamine(Map<String,Object> data);
+	public Long changeSomeStatus(Map<String,Object> data);
+	public Long saveLookhouse(Map<String,Object> data);
+	public boolean delLookhouse(Long id,String demandId);
+	public Long saveImg(HttpServletRequest request) throws Exception;
+	public List<Map<String,Object>> getImg(Long id);
+	public Long saveDeposit(Map<String,Object> data);
+	public Long updateDepositStatus(String demandId,int status);
+	public Long saveExchangeCustomerInfo(Map<String,Object> data);
+	public Long updateStore(String demandId,int status);
+	public Long saveCustomerFollow(Map<String,Object> data);
+	public Page<Map<String, Object>> getArchives(String demandId,String type,int page,int limit);
+	public Long saveCustomerPhone(Map<String,Object> data);
+	public Long updateCustomerPhone(Map<String,Object> data);
+	public boolean delCustomerPhone(Long id);
+	/**
+	 * 
+		 * 新增客源
+		 * @Description: 新增客源
+		 * @param dataJson 客源数据
+		 * @param formName 客源动态表单名称
+		 * @return 
+		 * boolean
+	 */
+	public boolean addCustomer(String dataJson);
+	public Long updateAgent(Map<String,Object> data);
+	/**客源查找房源表格**/
+	public Page<Map<String, Object>> customerFindHouseList(String conditions, int page, int limit);
+
+	/**客源查找房源表格**/
+	public Page<Map<String, Object>> queryCustomerListByIds(String ids, int page, int limit);
+	/**
+	 * 
+		 * 
+		 * @Description:搜索客源需求列表
+		 * @param conditions 条件
+		 * @param page 
+		 * @param limit
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryCustomerTableDatas(String conditions, int page, int limit);
+	/**
+	 * 
+		 * 批量删除客源
+		 * @Description: 进入菜单主页面（详细描述） 
+		 * @param customerIds 逗号分隔
+		 * @return 
+		 * int
+	 */
+	public int deleteCustomer(String customerIds);
+	/**
+	 * 
+		 * 客源批量转移
+		 * @Description: 客源批量转移
+		 * @param customerIds 逗号分隔
+		 * @param userId 接收用户id
+		 * @return 
+		 * boolean
+	 */
+	boolean customerTransfer(String customerIds,long userId);
+	
+	/**客源匹配房源表格**/
+	public Page<Map<String, Object>> matchingHousing(String conditions, int page, int limit);
+	/**
+	 * 
+		 * 添加客源浏览
+		 * @Description: 添加客源浏览，同一天多次浏览一个客源只算一次
+		 * @param demandId 客源id
+		 * @return 
+		 * int
+	 */
+	public int addBrowseRecord(String demandId);
+}

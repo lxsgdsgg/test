@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerPersonalCentralMapper">
+	<resultMap id="customerEntity"
+		type="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="name" property="name" />
+		<result column="mobile" property="mobile" />
+		<result column="password" property="password" />
+		<result column="proviceCode" property="proviceCode" />
+		<result column="proviceName" property="proviceName" />
+		<result column="cityCode" property="cityCode" />
+		<result column="cityName" property="cityName" />
+		<result column="areaCode" property="areaCode" />
+		<result column="areaName" property="areaName" />
+		<result column="solt" property="solt" />
+		<result column="sex" property="sex" />
+		<result column="operator" property="operator" />
+		<result column="addTime" property="addTime" />
+		<result column="updateTime" property="updateTime" />
+		<result column="isValid" property="isValid" />
+	</resultMap>
+	<resultMap id="agentEntity"
+		type="com.bashiju.www.pojo.service.agent.Agent">
+		<id column="id" property="id" />
+		<result column="userId" property="userId" />
+		<result column="agentId" property="agentId" />
+		<result column="agentName" property="agentName" />
+		<result column="profileUrl" property="profileUrl" />
+		<result column="postName" property="postName" />
+		<result column="mainAreaCodes" property="mainAreaCodes" />
+		<result column="mainAreaNames" property="mainAreaNames" />
+		<result column="mainRegionsCodes" property="mainRegionsCodes" />
+		<result column="mainRegionsNames" property="mainRegionsNames" />
+		<result column="showedRdCnt" property="showedRdCnt" />
+		<result column="histDealCnt" property="histDealCnt" />
+		<result column="showedRdCnt" property="showedRdCnt" />
+		<result column="telPhone" property="telPhone" />
+		<result column="label" property="label" />
+	</resultMap>
+	
+	<resultMap id="areaEntity" type="com.bashiju.www.pojo.service.out.usercentral.AdministrativeDivisionEntity">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="areaCode" property="areaCode" />
+		<result column="areaName" property="areaName" />
+		<result column="parentCode" property="parentCode" />
+		<result column="level" property="level" />
+		<result column="longitude" property="longitude" />
+		<result column="latitude" property="latitude" />
+	</resultMap>
+	
+	<select id="queryMyselfAgentList" resultMap="agentEntity">
+		<choose>
+			<when test="agentType = 0">
+				select d.id as agentId,d.userId,b.realName as agentName,d.mainAreaCodes, d.mainArea as mainAreaNames
+				,d.mainRegionsIds as mainRegionsCodes,d.mainRegions as mainRegionsNames,CONCAT(ff.virtualNum,'-'
+				,ff.virtualExtensionNum) as telPhone,e.`name` as postName,d.dealCnt,d.histDealCnt,d.showedRdCnt
+				,d.histShowedRdCnt,b.profilePhoto as profileUrl,group_concat( distinct scs.labeld)label
+				from im_message as a inner join sys_agent_details AS d ON a.receiveUid = d.id
+				inner join sys_user as b on b.id = d.userId
+				inner join sys_post as e ON b.postId = e.id
+				left join  sys_cust_starRating_hotLabel scs on scs.agentId = d.id
+				LEFT JOIN sys_phonesecuritymanage ff on d.id = ff.agentId
+				where a.isvalid = 1 and isGroup is null and a.sendUid = ${custId}
+				group by d.id
+			</when>
+			<when test="agentType = 1">
+				select d.id as agentId,b.id as userId,b.realName as agentName,d.mainAreaCodes, d.mainArea as mainAreaNames
+				,d.mainRegionsIds as mainRegionsCodes,d.mainRegions as mainRegionsNames,CONCAT(ff.virtualNum,'-'
+				,ff.virtualExtensionNum) as telPhone,b.profilePhoto as profileUrl,e.`name` as postName,d.dealCnt,d.histDealCnt
+				,d.showedRdCnt,d.histShowedRdCnt,group_concat( distinct scs.labeld)label
+				from sys_agentacceptance AS a inner join sys_user AS b ON a.userId = b.id
+				inner join sys_custbindinfo AS c ON a.sourceId = c.sourcesId
+				inner join sys_agent_details AS d ON d.userId = a.userId
+				inner join sys_post AS e ON b.postId = e.id
+				left join sys_cust_starRating_hotLabel scs on scs.agentId = d.id
+				LEFT JOIN sys_phonesecuritymanage ff on d.id = ff.agentId
+				where a.isvalid = 1 and custId = ${custId}
+				group by d.userId
+			</when>
+		</choose>
+		
+	</select>
+  	<!-- 查询个人信息 -->
+	<select id="queryPersonalInfo" resultMap="customerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime
+		,a.updateTime,a.isValid,proviceCode,cityCode,areaCode,address,birthday,
+		(select b.name from sys_area b where a.proviceCode = b.code) as proviceName,
+		(select b.name from sys_area b where a.cityCode = b.code) as cityName ,
+		(select b.name from sys_area b where a.areaCode = b.code) as areaName 
+		 from cust_customer a where isValid = 1
+		<if test="custId != null and custId != ''">
+			and id = #{custId}
+		</if>
+	</select>
+	<!-- 查询个人详细信息 -->
+	<select id="queryPersonalDetailInfo" resultType="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime
+		,a.updateTime,a.isValid,proviceCode,cityCode,areaCode,address,birthday,
+		(select b.name from sys_area b where a.proviceCode = b.code) as proviceName,
+		(select b.name from sys_area b where a.cityCode = b.code) as cityName ,
+		(select b.name from sys_area b where a.areaCode = b.code) as areaName ,a.updateTime,a.isValid from cust_customer
+		 a where a.isValid = 1
+		and a.id = #{custId}
+	</select>
+	<!-- 查询我的预约 -->
+	<select id="queryMyselfAppointmentList" resultType="map">
+		select a.id,a.custId,a.`name`,a.remark,a.mobile as custMobile,a.shhId,a.maintainId,a.reservationTime,
+		a.reservationDate,a.`status`,a.handelTime,a.handelerId,a.handelResult,d.houseId,d.titles,a.sourceType,d.buildSpace
+		,d.room,d.hall,d.toilet,d.kitchen,d.balcony,d.propRightsLen,d.houseType,b.id as agentId,
+		(case when ifnull(a.handelerId,0)=0 then ('正在安排经纪人')
+		else (select u.realName from sys_user u where a.handelerId = u.id) end) as agentName,
+		(case when ifnull(a.handelerId,0)=0 then ('') else (select u.profilePhoto from sys_user u where a.handelerId = u.id) end) as profilePhoto,
+		(case when ifnull(a.handelerId,0)=0 then ('') else (CONCAT(ff.virtualNum,'-',ff.virtualExtensionNum)) end) as agentMobile,
+		e.name as label,f.path as houseImg,d.transactionTypeId,d.transactionType
+		from cust_reservations as a 
+		inner join sys_agent_details b on a.maintainId = b.id
+		inner join sys_user c on b.userId = c.id 
+		inner join hs_secondhandhouse d on a.shhId = d.id
+		inner join sys_post e on c.postId = e.id 
+		left join (select max(path) as path,shhid from hs_houseattachment where attachType='01' group by shhId) f on d.id = f.shhid
+		left join sys_phonesecuritymanage ff on a.handelerId = ff.agentId
+		where d.isValid=1 and a.sourceType = 1 and not exists(
+			select 1 from sys_custbindinfo bind where a.custId = bind.custId 
+		and bind.type=1 and a.shhId = bind.sourcesId) and a.custId=#{custId}
+		
+		union all
+		
+		select a.id,a.custId,a.`name`,a.remark,a.mobile as custMobile,a.shhId,a.maintainId,a.reservationTime,
+				a.reservationDate,a.`status`,a.handelTime,a.handelerId,a.handelResult,b.id as houseId,b.name as titles,
+		a.sourceType,'' buildSpace,'' room,'' hall,'' toilet,'' kitchen,'' balcony,'' propRightsLen,'' houseType,c.id as agentId,
+		(case when ifnull(a.handelerId,0)=0	then ('正在安排经纪人')
+			else (select u.realName from sys_user u where a.handelerId = u.id) end) as agentName,
+			(case when ifnull(a.handelerId,0)=0 then ('')
+			else (select u.profilePhoto from sys_user u where a.handelerId = u.id) end) as profilePhoto,
+			(case when ifnull(a.handelerId,0)=0 then ('')
+					else (CONCAT(ff.virtualNum,'-',ff.virtualExtensionNum)) end) as agentMobile,
+			e.name as label,b.imageUrl as houseImg,'1' as transactionTypeId,'出售' as transactionType 
+		from cust_reservations a 
+		inner join sys_client_communityProjectQueryInfos b on a.shhId = b.id 
+		inner join sys_agent_details c on a.maintainId = c.id
+		inner join sys_user d on c.userId = d.id 
+		inner join sys_post e on d.postId = e.id 
+		left join sys_phonesecuritymanage ff on a.handelerId = ff.agentId
+		where a.sourceType = 0 and a.isvalid = 1
+		and not exists(	select 1 from sys_custbindinfo bind where a.custId = bind.custId 
+		and bind.type=1 and a.shhId = bind.sourcesId) and a.custId=#{custId}
+	</select>
+	
+	<update id="modifyCustomerPassword">
+		update cust_customer set password = #{finalPassword} ,updateTime = #{updateTime} 
+		where id = #{custId} and isValid = 1
+	</update>
+	<update id="updateCustCustormer" parameterType="map">
+		update cust_customer set 
+		<if test="name != null and name != ''">name=#{name},</if>
+		<if test="sex != null and sex != ''">sex=#{sex},</if>
+		<if test="mobile != null and mobile != ''">mobile=#{mobile},</if>
+		<if test="privinceAreaCode != null and privinceAreaCode != ''">proviceCode = #{privinceAreaCode},</if>
+		<if test="cityAreaCode != null and cityAreaCode != ''">cityCode = #{cityAreaCode},</if>
+		<if test="countyAreaCode != null and countyAreaCode != ''">areaCode = #{countyAreaCode},</if>
+		<if test="address != null and address != ''">address = #{address},</if>
+		<if test="birthday != null and birthday != ''">birthday = #{birthday},</if>
+		<if test="updateTime != null">updateTime = #{updateTime}</if>
+		where id = #{id}
+	</update>
+	<update id="concelMyselfAppointment">
+		update cust_reservations set status = 2,updateTime = #{updateTime} 
+		where isValid = 1 and id = #{id}
+	</update>
+	<select id="countMyReservateCount" resultType = "long">
+		select count(1) from cust_reservations where isValid = 1 and custId = #{custId}
+	</select>
+	<insert id="saveReservationWatchHouse" parameterType="com.bashiju.www.pojo.service.reservation.ReservationEntity">
+		insert into cust_reservations (custId,name,remark,mobile,shhId,maintainId,reservationTime,reservationDate,sourceType,
+		status,permissionArea,operatorId,operator,addTime,isvalid) 
+		values(#{custId},#{name},#{remark},#{mobile},#{shhId},#{maintainId},#{reservationTime},#{reservationDate},#{sourceType},#{status},
+		#{permissionArea},#{operatorId},#{operator},#{addTime},#{isvalid})
+	</insert>
+	
+	<select id="queryIsExistReservationWatchHouseByCustIdAndShhId" resultType="long">
+		select  count(0) from cust_reservations where custId=#{custId} and shhId=#{shhId} and status =0
+	</select>
+	
+	<select id="queryMaintainInfoByShhId" resultType="map">
+		select  a.maintainer, a.maintainId,a.mainterDept ,a.mainterDeptId,a.companyName from hs_secondhandhouse a where a.isValid = 1 and a.id =#{shhId}
+	</select>
+	
+	<select id="queryAreaListByPro" resultMap="areaEntity">
+		select id,code as areaCode,name as areaName,parentCode,level,longitude,latitude from sys_area where isvalid = 1 and level = ${level}
+		<if test="parentCode != null and parentCode != ''"> 
+			and parentCode = #{parentCode} 
+		</if>
+	</select>
+	
+	<select id="queryAllAreaList" resultMap="areaEntity">
+		select id,code as areaCode,name as areaName,parentCode,level,longitude,latitude from sys_area where isvalid = 1
+		<if test="parentCode != null and parentCode != ''"> 
+			and parentCode = #{parentCode} 
+		</if>
+	</select>
+	
+	<select id="queryMaintainInfoByAgentId" resultType="map">
+		select a.permissionArea,b.realName as name,b.companyId  from sys_agent_details a  
+		left join sys_user b on b.id = a.userId where a.id=#{maintainId} and a.isvalid = 1
+	</select>
+	
+	<select id="queryBuildingGuardianInfo" resultType="map">
+		select b.companyId,b.realName as name,b.permissionArea from sys_community_project a 
+		left join sys_user b on a.operatorId = b.id where a.id =#{maintainId}  and a.isvalid = 1
+	</select>	
+	
+	<delete id="deleteAppointment">
+		delete from cust_reservations where id = #{id}
+	</delete>
+</mapper>
+
+
+

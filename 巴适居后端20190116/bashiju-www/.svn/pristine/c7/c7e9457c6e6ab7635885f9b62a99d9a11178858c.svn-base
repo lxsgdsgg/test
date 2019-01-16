@@ -1,0 +1,101 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseEntrustmentEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月30日 上午10:00:42   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 房源委托实体对象
+ * @ClassName:CustomerHouseEntrustmentEntity
+ * @Description:房源委托实体对象
+ * @author:zuoyuntao
+ * @date:2018年7月30日 上午10:00:42
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustomerHouseEntrustmentEntity {
+	/**主键**/
+	private int id;
+	/**客户ID**/
+	private String custId;
+	/**交易类型（1出售 2出租）**/
+	private int transactionType;
+	/**出租类型0--标识非出租(默认)1--整租 2--合租**/
+	private int leaseType;
+	/**合租类型(当出租类型为合租时有效)--0--非合租类型(默认)	1--主卧	2--次卧	3--单间**/
+	private int joinRentStyle;
+	/**城市编码**/
+	private int cityCode;
+	/**区域代码**/
+	private String areaCode;
+	/**区域名称**/
+	private String areaName;
+	/**片区ID**/
+	private int regionId;
+	/**片区名称**/
+	private String regionName;
+	/**小区ID**/
+	private int communityId;
+	/**小区名称**/
+	private String communityName;
+	/**座栋ID**/
+	private int buildingsId;
+	/**座栋名称**/
+	private String buildingsName;
+	/**单元ID**/
+	private int bulidingUnitId;
+	/**单元名称**/
+	private String buildingsUnitName;
+	/**房号ID**/
+	private int buildingHouseId;
+	/**房号名称**/
+	private String buildingHouseName;
+	/**卧室**/
+	private int room;
+	/**大厅**/
+	private int hall;
+	/**卫生间**/
+	private int toilet;
+	/**建筑面积**/
+	private int buildSpace;
+	/**楼层描述**/
+	private int floorDesc;
+	/**装修ID**/
+	private int decorationId;
+	/**装修描述**/
+	private String decoration;
+	/**朝向ID**/
+	private int orientationId;
+	/**朝向名称**/
+	private String orientation;
+	/**出售价格**/
+	private int sellingPrice;
+	/**出租价格**/
+	private int rentPrice;
+	/**手机号码**/
+	private String mobile;
+	/**委托人称呼**/
+	private String clienteleName;
+	/**委托人性别**/
+	private int clienteleSex;
+	/**委托时间**/
+	private Object addTime;
+	/**房源描述--备注**/
+	private String descs;
+	/**处理标记（0未处理1已处理）**/
+	private int handleFlag;
+	/**付款方式ID**/
+	private int payTypeId;
+	/**付款方式名称**/
+	private String payType;
+}

@@ -1,0 +1,183 @@
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.manage.service.DataacquService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DataacquController   
+ * @Description:TODO(数据采集)   
+ * @author: liwen
+ * @date:   2018年7月3日 上午10:02:36   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+public class DataacquController {
+	@Autowired
+	DataacquService dataacquService;
+	@Autowired	
+	private ICommunityService communityService;
+	
+	@RequestMapping("/dataacqu/{pageName}")
+	public String toPage(HttpServletRequest request,HttpServletResponse response,Model m,@PathVariable("pageName") String pageName){
+		if("addressConf".equals(pageName)) {
+			List<Map<String, Object>> list = communityService.queryAreaSelect();
+			m.addAttribute("areaListJson", JSON.toJSONString(list));
+			List<Map<String,Object>> templetNames = dataacquService.queryTempletName();
+			m.addAttribute("templetNames", templetNames);
+		}
+		return "dataacqu/"+pageName;
+		
+	}
+	
+	//返回全部模板名称
+	@RequestMapping("/getTempletNames")
+	@ResponseBody
+	public BashijuResult getTempletNames(){
+		
+		List<Map<String,Object>> templetNames = dataacquService.queryTempletName();
+		return BashijuResult.ok(templetNames);
+		
+	}
+	
+	@RequestMapping("/saveAnalysisTemplet")
+	@ResponseBody
+	public BashijuResult saveAnalysisTemplet(@RequestBody Map<String,Object> data){
+		
+		Long res = dataacquService.saveAnalysisTemplet(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("保存失败");
+		}
+		
+	}
+	
+	@RequestMapping("/getAnalysisTemplet")
+	@ResponseBody
+	public Map<String,Object> getAnalysisTemplet(HttpServletRequest request,int page,int limit){
+		Map<String,Object> conditions = new HashMap<>();
+		conditions.put("templateName", request.getParameter("templateName"));
+		Page<Map<String, Object>> pageInfo = dataacquService.queryAnalysisTemplet(page,limit,conditions);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+		
+	}
+
+		
+	@RequestMapping("/delAnalysisTemplet")
+	@ResponseBody
+	public BashijuResult delAnalysisTemplet(Long id){
+		boolean res = dataacquService.delAnalysisTemplet(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("保存失败");
+		}
+		
+	}
+	
+	@RequestMapping("/saveAddressConf")
+	@ResponseBody
+	public BashijuResult saveAddressConf(@RequestBody Map<String,Object> data){
+		
+		Long res = dataacquService.saveAddressConf(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	@RequestMapping("/getAddressConf")
+	@ResponseBody
+	public Map<String,Object> getAddressConf(HttpServletRequest request,int page,int limit){
+		Map<String,Object> conditions = new HashMap<>();
+		conditions.put("templateName", request.getParameter("templateName"));
+		Page<Map<String, Object>> pageInfo = dataacquService.queryAddressConf(page,limit,conditions);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+		
+	}
+	
+	@RequestMapping("/delAddressConf")
+	@ResponseBody
+	public BashijuResult delAddressConf(Long id){
+		boolean res = dataacquService.delAddressConf(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	@RequestMapping("/saveJobConf")
+	@ResponseBody
+	public BashijuResult saveJobConf(@RequestBody Map<String,Object> data){
+		
+		Long res = dataacquService.saveJobConf(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+	
+	@RequestMapping("/getJobConf")
+	@ResponseBody
+	public Map<String,Object> getJobConf(int page,int limit){ 
+		Page<Map<String, Object>> pageInfo = dataacquService.queryJobConf(page,limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+		
+	}
+	
+	@RequestMapping("/delJobConf")
+	@ResponseBody
+	public BashijuResult delJobConf(Long id){
+		boolean res = dataacquService.delJobConf(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("删除失败");
+		}
+		
+	}
+
+}

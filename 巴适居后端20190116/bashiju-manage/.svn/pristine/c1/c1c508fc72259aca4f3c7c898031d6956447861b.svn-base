@@ -1,0 +1,131 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CombinationServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年5月11日 上午9:11:56   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.manage.mapper.CombinationMapper;
+import com.bashiju.manage.service.CombinationService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**   
+ * @ClassName:  CombinationServiceImpl   
+ * @Description:数组组合管理  
+ * @author: yangz
+ * @date:   2018年5月11日 上午9:11:56   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="数组组合管理")
+@Service
+public class CombinationServiceImpl extends CommonSqlServie implements CombinationService {
+
+	@Autowired
+	private CombinationMapper combinationMapper;
+
+	/**
+	 * 
+	 * @Description: 条件查询组合条件信息  (包括主表信息以及相应子列表) 
+	 * @param combinationId 组合条件id 
+	 * @param name 组合条件名称
+	 * @param menuId 菜单id
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.manage.service.CombinationService#queryCombinations(java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryCombinations(String combinationId,String name, String menuId) {
+		return this.combinationMapper.queryCombinations(combinationId, name, menuId);
+	}
+	
+	/**
+	 * 
+	 * @Description: 条件查询组合条件主表信息 
+	 * @param name 组合条件名称
+	 * @param menuId 菜单id
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.manage.service.CombinationService#queryCombinationMains(java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryCombinationMains(String name,String menuId) {
+		return this.combinationMapper.queryCombinationMains(name,menuId);
+	}
+
+	/**
+	 * 
+	 * @Description: 保存组合条件信息  
+	 * @param main 组合条件主表信息
+	 * @param details 组合条件子表信息
+	 * @return: boolean
+	 * @see com.bashiju.manage.service.CombinationService#saveOrUpdateCombination(java.util.Map, java.util.List)   
+	 */
+	@SystemServiceLog(operationType="保存组合条件")
+	@Override
+	public boolean saveOrUpdateCombination(Map<String,Object> main, List<Map<String, Object>> details) {
+		if(main.containsKey("id") && !StringUtils.isEmpty((String)main.get("id"))) {//修改
+			long result = this.commonOperationDatabase(main, "sys_permission_combination", "id", false);
+			if(result<=0)
+				throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+			for(Map<String,Object> map : details) {//添加主表id字段
+				map.put("combinationId", (String)main.get("id"));
+			}
+			//将原来的子表数据删除
+			this.combinationMapper.delCombinationDetails((String)main.get("id"));
+			//新增子表数据
+			boolean fg = this.batchCommonOperationDatabase(details, "sys_permission_combination_detail", false);
+			if(!fg)
+				throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+			ExecutionResult.descFormat((String)main.get("id"), "编辑组合条件");
+			return true;
+		}else {//新增
+			long id = this.commonOperationDatabase(main, "sys_permission_combination", false);
+			if(id<=0)
+				throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+			for(Map<String,Object> map : details) {//添加主表id字段
+				map.put("combinationId", id);
+			}
+			boolean fg = this.batchCommonOperationDatabase(details, "sys_permission_combination_detail", false);
+			if(!fg)
+				throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+			ExecutionResult.descFormat(Long.toString(id), "新增组合条件");
+			return true;
+		}
+	}
+
+	/**
+	 * 
+	 * @Description: 根据id删除组合条件信息   
+	 * @param combinationId 组合条件id
+	 * @return: boolean
+	 * @see com.bashiju.manage.service.CombinationService#delCombination(java.lang.String)   
+	 */
+	@SystemServiceLog(operationType="删除组合条件")
+	@Override
+	public boolean delCombination(String combinationId) {
+		if(StringUtils.isEmpty(combinationId))
+			return false;
+		long dd = this.combinationMapper.delCombination(combinationId);
+		if(dd<1)
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+		ExecutionResult.descFormat(combinationId, "删除组合条件");
+		return true;
+	}
+
+}

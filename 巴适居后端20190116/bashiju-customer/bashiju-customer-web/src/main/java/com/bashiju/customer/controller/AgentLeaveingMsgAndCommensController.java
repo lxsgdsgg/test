@@ -1,0 +1,258 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  AgentLeaveingMsgAndCommensController.java   
+ * @Package com.bashiju.manage.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年7月21日 上午10:03:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.customer.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bashiju.customer.service.IAgentLeavingMsgAndCommentsService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 经纪人留言评价控制器
+ * @ClassName:AgentLeaveingMsgAndCommensController
+ * @Description:经纪人留言评价控制器
+ * @author:zuoyuntao
+ * @date:2018年7月21日 上午10:03:08
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="agentDetail")
+public class AgentLeaveingMsgAndCommensController extends BaseController{
+	/**
+	 * 客户留言/评价接口
+	 */
+	@Autowired
+	private IAgentLeavingMsgAndCommentsService mIAgentLeavingMsgAndCommentsService;
+	/**
+	 * 获取主页面视图
+	 * @Title: getMainPageModel
+	 * @author: zuoyuntao  
+	 * @Description:获取主页面视图
+	 * @param request
+	 * @param response
+	 * @return      
+	 * ModelAndView 
+	 */
+	@RequestMapping(value="getMainPageModel")
+	public ModelAndView getMainPageModel(HttpServletRequest request
+			,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response, "agentdetailmanage/agentdetail");
+		return model;
+	}
+	/**
+	 * 获取留言、评价视图
+	 * @Title: getLeavingMsgAndCommentsModel
+	 * @author: zuoyuntao  
+	 * @Description:获取留言、评价视图 
+	 * @param request
+	 * @param response
+	 * @return      
+	 * ModelAndView JSON 格式为：
+	 */
+	@RequestMapping(value="getLeavingMsgAndCommentsModel")
+	public ModelAndView getLeavingMsgAndCommentsModel(HttpServletRequest request
+			,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response, "agentdetailmanage/showCommentsAndMsg");
+		model.addObject("agentId", request.getParameter("agentId"));
+		return model;
+	}
+	/**
+	 * 查询所有经纪人信息
+	 * @Title: queryAllAgentInfoPages
+	 * @author: zuoyuntao  
+	 * @Description:查询所有经纪人信息
+	 * @param showedRdCnt 近30天带看记录
+	 * @param hotAgentFlag 热门经纪人
+	 * @param syncFlag 外网同步
+	 * @param deptId 部门ID
+	 * @param companyId 公司ID
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryAllAgentInfoPages")
+	@ResponseBody
+	public Object queryAllAgentInfoPages(String showedRdCnt,String hotAgentFlag
+			,String syncFlag,String deptId,String companyId,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("showedRdCnt", showedRdCnt);
+		paraMap.put("hotAgentFlag", hotAgentFlag);
+		paraMap.put("syncFlag", syncFlag);
+		paraMap.put("deptId", deptId);
+		paraMap.put("companyId", companyId);
+		Page<Map<String,Object>> pageObj = mIAgentLeavingMsgAndCommentsService
+				.queryAllAgentInfoPages(paraMap, page, limit);
+		return getPageResult(pageObj);
+	}
+	/**
+	 * 获取经纪人所有留言数据
+	 * @Title: queryAllCustomerLeavingMsg
+	 * @author: zuoyuntao  
+	 * @Description:获取经纪人所有留言数据
+	 * @param jsonData 查询控件数据
+	 * @param agentId 经纪人ID
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryAllCustomerLeavingMsg")
+	@ResponseBody
+	public Object queryAllCustomerLeavingMsg(String messageType,String isRead,String agentId
+			,String mobile,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("messageTypeId", messageType);
+		paraMap.put("isRead", isRead);
+		paraMap.put("mobile", mobile);
+		paraMap.put("agentId", agentId);
+		Page<Map<String,Object>> pageObj = mIAgentLeavingMsgAndCommentsService
+				.queryAllCustomerLeavingMsg(paraMap, page, limit);
+		return getPageResult(pageObj);
+	}
+	/**
+	 * 获取经纪人所有评价数据
+	 * @Title: queryAllCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:获取经纪人所有评价数据
+	 * @param jsonData 查询控件数据
+	 * @param agentId 经纪人ID
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryAllCustomerComments")
+	@ResponseBody
+	public Object queryAllCustomerComments(String checkStatus,String custName
+			,String agentId,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("custName", custName);
+		paraMap.put("examineStatus", checkStatus);
+		paraMap.put("agentId", agentId);
+		Page<Map<String,Object>> pageObj = mIAgentLeavingMsgAndCommentsService
+				.queryAllCustomerComments(paraMap, page, limit);
+		return this.getPageResult(pageObj);
+	}
+	/**
+	 * 审核客户对经纪人的评价
+	 * @Title: checkCustmerComments
+	 * @author: zuoyuntao  
+	 * @Description:审核客户对经纪人的评价   
+	 * @param id 评价ID
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="checkCustmerComments")
+	@ResponseBody
+	public BashijuResult checkCustmerComments(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("参数错误");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("examineStatus", "1");
+		paraMap.put("id", id);;
+		
+		mIAgentLeavingMsgAndCommentsService.checkCustmerComments(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 删除客户评价
+	 * @Title: deleteCustmerComments
+	 * @author: zuoyuntao  
+	 * @Description:删除客户评价
+	 * @param id 评价ID
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="deleteCustmerComments")
+	@ResponseBody
+	public BashijuResult deleteCustmerComments(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("参数传递错误");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id", id);
+		mIAgentLeavingMsgAndCommentsService.deleteCustmerComments(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 删除客户留言
+	 * @Title: deleteCustmerLeavingMsg
+	 * @author: zuoyuntao  
+	 * @Description:删除客户留言 
+	 * @param id 评价ID
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="deleteCustmerLeavingMsg")
+	@ResponseBody
+	public BashijuResult deleteCustmerLeavingMsg(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("参数传递错误");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id", id);
+		mIAgentLeavingMsgAndCommentsService.deleteCustmerLeavingMsg(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 标记客户评价为已读
+	 * @Title: markCustomerCommentsReaded
+	 * @author: zuoyuntao  
+	 * @Description:标记客户评价为已读
+	 * @param id 评价ID
+	 * @return      
+	 * BashijuResult JSON 格式为：
+	 */
+	@RequestMapping(value="markCustomerCommentsReaded")
+	@ResponseBody
+	public BashijuResult markCustomerCommentsReaded(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("参数传递错误");
+		}
+		mIAgentLeavingMsgAndCommentsService.markInfoReaded(id, "1");
+		return BashijuResult.ok();
+	}
+	/**
+	 * 标记客户留言为已读
+	 * @Title: markCustomerLeavingMsgReaded
+	 * @author: zuoyuntao  
+	 * @Description:标记客户留言为已读  
+	 * @param id 评价ID
+	 * @return      
+	 * BashijuResult JSON 格式为：
+	 */
+	@RequestMapping(value="markCustomerLeavingMsgReaded")
+	@ResponseBody
+	public BashijuResult markCustomerLeavingMsgReaded(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("参数传递错误");
+		}
+		mIAgentLeavingMsgAndCommentsService.markInfoReaded(id, "2");
+		return BashijuResult.ok();
+	}
+}

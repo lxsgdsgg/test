@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.IMetroStationManageMapper">
+	<select id="queryAllMetroStationInfo" resultType="map">
+		SELECT a.id,a.metroId,a.metroName,a.stationName,a.rgCode,a.isValid,a.lontitude,a.latitude
+		,a.operator,a.operatorId,a.permissionArea,a.addTime,a.updateTime,a.updateOperator,a.sortNo,a.ukId
+		from sys_metro_station a where isValid=1
+
+		<if test="null != metroName and metroName != ''">
+			and a.metroName like '%${metroName}%'
+		</if>
+		<if test="null != rgCode and rgCode != ''">
+			and a.rgCode like '%${rgCode}%'
+		</if>
+		<if test="null != stationName and stationName != ''">
+			and a.stationName like '%${stationName}%'
+		</if>
+		order by a.metroName,sortNo
+	</select>
+	<select id="queryMetroDataByCondition" resultType="map">
+		SELECT a.id,a.metroId,a.metroName,a.stationName,a.rgCode,a.isValid,a.lontitude,
+		a.latitude,a.operator,a.operatorId,a.permissionArea,a.addTime,a.updateTime,
+		a.updateOperator,a.sortNo,a.ukId from sys_metro_station a
+		where isValid = 1
+		<if test="null != condition and condition != ''">
+			and ${condition}
+		</if>
+	</select>
+	<select id="getStationCommunityPageObj" resultType="map">
+		SELECT a.id,a.communityName,a.communityRemark,a.stationId,a.communityId,a.isValid,a.operator,a.addTime,
+		a.updateOperator,a.updateTime,a.permissionArea,a.operatorId,a.metroDistance FROM sys_station_block_community AS a
+		WHERE a.isValid = 1 and stationId = #{stationId}
+	</select>
+	
+	<update id="creatTempTable">
+		create TEMPORARY table sys_metro_station_temp as 
+			select * from sys_metro_station; 
+	</update>
+	<insert id="saveMetroStationDataFromTempTable">
+		insert into sys_metro_station(metroId,metroName,stationName,rgCode,
+		isValid,lontitude,latitude,operator,operatorId,permissionArea,
+		addTime,updateTime,updateOperator,sortNo,ukId)
+		select metroId,metroName,stationName,rgCode,
+		isValid,lontitude,latitude,operator,operatorId,permissionArea,
+		addTime,updateTime,updateOperator,sortNo,ukId from sys_metro_station_temp where ukId not in(
+		select ukId from sys_metro_station) and stationName not in(select stationName from sys_metro_station)
+	</insert>
+	<update id="updateMetroStationDataFromTempTable">
+		update sys_metro_station a ,sys_metro_station_temp b set a.stationName=b.stationName,
+		a.lontitude =b.lontitude,a.latitude=b.latitude  where a.ukId = b.ukId and a.rgCode=b.rgCode
+	</update>
+	<update id="dropTempTable">
+		drop table sys_metro_station_temp 
+	</update>
+</mapper>

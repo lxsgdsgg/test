@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.ContentmanageMapper">
+  
+  	<select id="queryArticleList" resultType="map">
+  		select a.*,b.name as typeName from sys_article a INNER JOIN sys_article_classes b where b.type=#{type} and a.classesId = b.id and a.isValid=1
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		<if test="classesname!=null and classesname!='' ">
+			and b.name =#{classesname}
+		</if>
+		<if test="author!=null and author!='' ">
+			and a.author =#{author}
+		</if>
+		<if test="sources!=null and sources!='' ">
+			and a.sources =#{sources}
+		</if>
+		order by a.id desc
+  	</select>
+  	<select id="queryArticleById" resultType="map">
+  		select cover as path from sys_article  where id=#{id}
+  	</select>
+  	<select id="queryProtocol" resultType="map">
+  		select id,title,typeId,typeName,content,browseCnt,updateTime from sys_protocol where isValid=1
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		<if test="typeId!=null and typeId!='' ">
+			and typeId =#{typeId}
+		</if>
+		order by id desc
+  	</select>
+  	
+  	<select id="queryOurselvesList" resultType="map">
+  		select a.* from sys_article a where a.classesId in
+  		 <foreach item="item" index="index" collection="types"   open="(" separator="," close=")">
+		 	#{item}
+		 </foreach>
+  		 and a.isValid=1
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		
+  	</select>
+
+  	<select id="queryExamineList" resultType="map">
+  		select a.*,b.name as typeName,b.type from sys_article a INNER JOIN sys_article_classes b where a.classesId = b.id and a.isValid=1
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		<if test="classesname!=null and classesname!='' ">
+			and b.name =#{classesname}
+		</if>
+		<if test="author!=null and author!='' ">
+			and a.author =#{author}
+		</if>
+		<if test="sources!=null and sources!='' ">
+			and a.sources =#{sources}
+		</if>
+		order by a.id desc
+  	</select>
+  	
+  	<select id="queryCityByAdmin" resultType="map">
+  		select cityCode,cityName from sys_cityOpenInfo where isvalid=1
+  	</select>
+  	<select id="queryCityByUser" resultType="map">
+  		select a.cityCode,b.name as cityName from sys_city_responsibility a INNER JOIN sys_area b where a.userId=#{userId} and a.cityCode = b.code and a.isvalid=1
+  	</select>
+  	<select id="queryCityByRole" resultType="map">
+  		select a.cityCode,c.name as cityName from sys_city_responsibility a INNER JOIN sys_user b INNER JOIN sys_area c where b.id =#{userId} and a.roleId=b.roleId and a.cityCode=c.`code` and a.isvalid=1
+  	</select>
+  	<select id="queryCityName" resultType="string">
+  		select name from sys_area where code = #{cityCode} and isvalid=1
+  	</select>
+  	<select id="queryCustTipoffk" resultType="map">
+  		select a.id,a.sourceType,a.tipOffTypeId,a.tipOffType,a.content,a.addTime,a.status, b.realName,a.handleTime ,a.handleContent from cust_housetipoff a left JOIN sys_user b on a.userId = b.id 
+  		<if test="status!=null and status!='' ">
+  			where a.status = #{status}
+  		</if>
+  		order by a.id desc
+  	</select>
+  	<select id="queryCustFeedback" resultType="map">
+  		select a.id,a.content,a.contact,a.addTime,a.status,b.realName,a.handleTime,a.handleContent from cust_feedback a left JOIN sys_user b on a.userId = b.id
+  		<if test="status!=null and status!='' ">
+  			where a.status = #{status}
+  		</if>
+  		order by a.id desc
+  	</select>
+  </mapper>
+  
+   

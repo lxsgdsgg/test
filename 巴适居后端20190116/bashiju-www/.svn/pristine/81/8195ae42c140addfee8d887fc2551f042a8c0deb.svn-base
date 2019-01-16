@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CommunityMapper">
+	
+	<resultMap type="com.bashiju.www.pojo.service.community.Community" id="resultMap">
+		<id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="buildYear" column="buildYear"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="regionCode" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="imageUrl" column="imageUrl"/>
+        <result property="address" column="address"/>
+        <result property="salePrice" column="salePrice"/>
+        <result property="onSaleCnt" column="onSaleCnt"/>
+        <result property="leaseCnt" column="leaseCnt"/>
+        <result property="dealCnt" column="dealCnt"/>
+        <result property="subwayLabel" column="subwayLabel"/>
+        <result property="schoolLabel" column="schoolLabel"/>
+     </resultMap>
+	
+	<select id="queryCommunitys" parameterType="com.bashiju.www.pojo.service.community.CommunityQueryParams" resultMap="resultMap">
+		select a.id,a.name,a.buildYear,a.areaCode,b.name as areaName,a.regionId,c.name as regionName,max(g.url) as imageUrl,
+		a.address,format(a.salePrice/100,2)as salePrice ,ifnull(d.onSaleCnt,0)onSaleCnt,ifnull(d.leaseCnt,0) leaseCnt,ifnull(d.dealCnt,0) dealCnt
+		,GROUP_CONCAT(concat('距离地铁',f.metroName,f.stationName,metroDistance) order by e.communityId) subwayLabel
+		 ,(select group_concat(b.schoolName) 
+		from school_block_community dd 
+		left join school_info b on dd.schoolId = b.id
+		where dd.isValid=1 and dd.communityId=a.id )schoolName
+		#,group_concat(h.schoolName)
+		from sys_community a 
+		left join sys_area b on a.areaCode = b.code and b.isValid=1
+		left join sys_region c on a.regionId = c.id and c.isValid=1 
+		left join sys_community_statistics d on a.id = d.communityId  and d.isValid=1
+		left join station_block_community e on a.id = e.communityId and e.isValid=1
+		left join metro_station_manage f on e.stationId = f.id  and f.isValid=1
+		left join sys_communityimage g on a.id = g.communityId
+		where a.isValid=1 and b.parentCode = #{cityCode} 
+		<if test="areaCode != null and areaCode != '' "> and a.areaCode = #{areaCode} </if>
+		<if test="regionCode != null and regionCode != '' "> and a.regionId = #{regionCode} </if>
+		<if test="metroName != null and metroName != '' "> and f.metroName = #{metroName} </if>
+		<if test="stationCode != null and stationCode != '' "> and f.stationId = #{stationCode} </if>
+		<if test="minPrice != null"> and a.salePrice &gt;= #{minPrice} </if>
+		<if test="maxPrice != null"> and a.salePrice &lt;= #{maxPrice} </if>
+		group by a.id 
+	</select>
+	
+	<select id="queryHotCommunitys" parameterType="com.bashiju.www.pojo.service.community.HotCommunity" resultType="com.bashiju.www.pojo.service.community.HotCommunity">
+		select a.id,a.name,format(a.salePrice/100,2)as salePrice ,ifnull(d.onSaleCnt,0)onSaleCnt 
+		from sys_community a 
+		left join sys_area b on a.areaCode = b.code and b.isValid=1
+		left join sys_community_statistics d on a.id = d.communityId  and d.isValid=1
+		where a.isValid=1 and b.parentCode = #{cityCode} order by browseCnt desc limit 0,10
+	</select>
+	
+	
+	<select id="getCommunityDetail"  resultType="com.bashiju.www.pojo.service.community.CommunityDetail" parameterType="com.bashiju.www.pojo.service.community.CommunityDetail">
+				SELECT sc.communityProfile as communityDescribe , scs.leaseCnt,scs.onSaleCnt, scs.saleRoom1 ,scs.saleRoom2,scs.saleRoom3,scs.saleRoom4,scs.leaseRoom1,scs.leaseRoom2,scs.leaseRoom3,scs.leaseRoom4,sc.id,sc.`name`,sc.address,sc.salePrice,sc.isHot,sc.houseCount,sc.estateType,sc.buildYear,
+				sc.greenRate,sc.groundParkingCount,sc.developers,sc.capacityRatio,sc.propertyFees,sc.propertyName
+				 FROM sys_community AS sc
+				left join sys_community_statistics scs on scs.communityId=sc.id 
+			 	 where sc.id=#{communityId}
+			 	 <!-- 未完成的：1.地铁标签 ，2.学校标签标签-->
+	</select>
+	
+	<select id="queryCommunityImages" resultType="String">
+		SELECT url FROM sys_communityimage where communityId=#{communityId}
+	</select>
+	
+	<select id="querySealHousingByCommunityId" parameterType="com.bashiju.www.pojo.service.out.house.HouseListResult" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		select hsh.id, hsh.room,hsh.hall,hsh.toilet,hsh.buildSpace,hbs.floorDes,hsh.orientation,
+		hsh.labeld,hsh.sellingPrice,
+		hbs.totalLayers as totalFloor,ifnull(hha.path,(select min(path) from hs_houseattachment where shhId = hsh.id)) as imageUrl,hsh.sellingPrice/hsh.buildSpace/100 as averagePrice  from hs_secondhandhouse hsh
+		left join hs_houseattachment hha on hha.shhId = hsh.id and hha.isCover=1  and hha.attachType =01
+		left join hs_housebaseinfo hbs on hbs.id = hsh.houseId
+		where hbs.communityId =#{communityId} and hsh.isValid =1 and  hsh.transactionTypeId in(1,3) and  hsh.statusId=1   
+		and hsh.examineStatus=1 and hsh.isSynchron=1  and hsh.isPriority=1
+	</select>
+
+	<select id="queryLeaseHousingByCommunityId" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult" parameterType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+			select hsh.id, hsh.room,hsh.hall,hsh.toilet,hsh.buildSpace,hsh.rentPrice,hbs.floorDes,
+		hbs.totalLayers as totalFloor,ifnull(hha.path,(select min(path) from hs_houseattachment where shhId = hsh.id)) as imageUrl  from hs_secondhandhouse hsh
+		left join hs_houseattachment hha on hha.shhId = hsh.id and hha.isCover=1  and hha.attachType =01
+		left join hs_housebaseinfo hbs on hbs.id = hsh.houseId
+		where hbs.communityId =#{communityId} and hsh.isValid =1 and  hsh.transactionTypeId in(2,3) and  hsh.statusId=1   
+		and hsh.examineStatus=1 and hsh.isSynchron=1  and hsh.isPriority=1
+	</select>
+	
+	<select id="queryNearbyCommunity" resultType="com.bashiju.www.pojo.service.community.Community" parameterType="com.bashiju.www.pojo.service.community.Community">
+		SELECT sm.id, ifnull(scs.onSaleCnt,0)onSaleCnt,sm.name,sm.address,sm.salePrice/100 as salePrice,sci.url as imageUrl
+		FROM sys_community AS sm
+		inner join (select regionId from sys_community where id =#{communityId}) a on a.regionId = sm.regionId
+		left join sys_community_statistics scs on scs.communityId=sm.id
+		left join sys_communityimage sci on sci.communityId = sm.id 
+		where sm.id &lt;&gt; #{communityId} LIMIT 4
+	</select>
+	
+</mapper>

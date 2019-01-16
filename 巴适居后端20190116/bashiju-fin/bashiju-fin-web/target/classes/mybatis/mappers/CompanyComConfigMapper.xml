@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.CompanyComConfigMapper">
+
+	<select id="queryCompanyComConfig" resultType="map">
+		select a.id,a.companyId,a.companyName,a.deptId,b.name as deptName,a.months,a.commissionPrice,a.commissionRate
+		,a.isCalculate,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid 
+		from finance_companyComConfigurate a
+		left join sys_dept b on a.deptId = b.id
+		where a.isvalid=1 
+		<if test="deptId != null and deptId !='' ">
+			and a.deptId =#{deptId}
+		</if>
+		<if test="months != null and months !='' ">
+			and a.months =#{months}
+		</if>
+		<if test="isCalculate != null and isCalculate !='' ">
+			and a.isCalculate =#{isCalculate}
+		</if>
+		order by a.id desc
+	</select>
+	
+	<select id="getCompanyConmConfig" resultType="map">
+		select id,companyId,companyName,deptId,months,commissionPrice,commissionRate,isCalculate
+		,permissionArea,operatorId,operator,addTime,updateTime,isvalid 
+		from finance_companyComConfigurate where id=#{configId}
+	</select>
+	
+	<select id="getDept" resultType="map">
+		select a.id,a.name from sys_dept a inner join sys_dept_type b on a.deptTypeId = b.id where b.`name`='店'
+		<if test="companyId != null and companyId !='' ">
+			and a.companyId =#{companyId}
+		</if>
+	</select>
+	
+</mapper>

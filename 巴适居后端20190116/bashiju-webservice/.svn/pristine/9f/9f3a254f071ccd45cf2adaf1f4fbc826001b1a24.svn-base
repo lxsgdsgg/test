@@ -1,0 +1,18 @@
+log4j.properties
+log4j.rootLogger=INFO,stdout
+            
+log4j.logger.org.springframework.web.servlet=INFO,db
+
+log4j.logger.org.springframework.beans.factory.xml=INFO
+log4j.logger.com.neam.stum.user=INFO,db
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %p [%c] - - <%m>%n
+
+log4j.appender.logfile=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.logfile.File=${webapp.root}/WEB-INF/logs/exppower.log
+log4j.appender.logfile.DatePattern=.yyyy-MM-dd
+log4j.appender.logfile.layout=org.apache.log4j.PatternLayout
+log4j.appender.logfile.layout.ConversionPattern=%d %p [%c] wang- <%m>%n
+

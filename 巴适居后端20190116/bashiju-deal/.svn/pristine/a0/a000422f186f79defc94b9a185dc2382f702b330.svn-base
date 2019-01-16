@@ -1,0 +1,150 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealServiceApiImpl.java   
+ * @Package com.bashiju.deal.api   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月15日 下午5:04:02   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.api;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.bashiju.api.DealServiceApi;
+import com.bashiju.enums.CommissionProjEnum;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**   
+ * @ClassName:  DealServiceApiImpl   
+ * @Description:成交管理对外服务   
+ * @author: yangz
+ * @date:   2018年6月15日 下午5:04:02   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class DealServiceApiImpl extends CommonSqlServie implements DealServiceApi{
+
+	/**
+	 * @Description: 保存成交信息   
+	 * @param deal 要成交的信息
+	 * @param commissions 佣金记录信息
+	 * @return   
+	 * @see com.bashiju.api.DealServiceApi#saveDealInfo(java.util.Map)   
+	 */
+	@Override
+	public boolean saveDealInfo(Map<Object, Object> deal,List<Map<String,Object>> commissions) {
+		deal = validateDeal(deal);
+		String dealId = DealCodeTool.createDealCode(deal.get("dealType").toString());
+		deal.put("id", dealId);
+		commissions = validateCommission(dealId,commissions);
+		this.idCustomOperationDatabase(deal, "deal_transactionInfo", false);
+		this.batchCommonOperationDatabase(commissions, "deal_commissionRecord", false);
+		return true;
+	}
+	
+	
+	/**     
+	 * @Description: 验证该佣金记录信息是否正确   
+	 * @param dealId 成交编号
+	 * @param commissions 佣金记录信息
+	 * @return: List<Map<Object,Object>>      
+	 */ 
+	private List<Map<String, Object>> validateCommission(String dealId,List<Map<String, Object>> commissions) {
+		if(commissions==null || commissions.size()<=0 )
+			return commissions;
+		for(Map<String,Object> map : commissions) {
+			if(map==null)
+				throw new BusinessException("佣金信息不允许为空");
+			map.put("dealId", dealId);//将成交编号赋值
+			//费用类型：0--中介类费用,1--金融类费用
+			if(!map.containsKey("moneyType") || StringUtils.isEmpty(map.get("moneyType")))
+				throw new BusinessException("费用类型不允许为空");
+			else if(!"0".equals(map.get("moneyType")) && !"1".equals(map.get("moneyType")))
+				throw new BusinessException("费用类型不正确");
+			if(!map.containsKey("moneyProj") || StringUtils.isEmpty(map.get("moneyProj")) || 
+					!CommissionProjEnum.enumMap.containsKey(map.get("moneyProj")))
+				throw new BusinessException("费用项目为空或者格式不正确");
+			if(!map.containsKey("payerType") || StringUtils.isEmpty(map.get("payerType")))
+				throw new BusinessException("缴费人类型不允许为空");
+			else if(!"0".equals(map.get("payerType")) && !"1".equals(map.get("payerType")))
+				throw new BusinessException("缴费人类型不正确");
+			if(!map.containsKey("price") || StringUtils.isEmpty(map.get("price")))
+				throw new BusinessException("缴费金额不允许为空");
+			else {
+				try {
+					int price = (int) map.get("price");
+					if(price<=0)
+						throw new RuntimeException("缴费金额必须为正整数");
+				} catch (Exception e) {
+					throw new BusinessException("缴费金额必须为正整数");
+				}
+			}
+			if(!map.containsKey("permissionArea") || StringUtils.isEmpty(map.get("permissionArea")))
+				throw new BusinessException("权限域不允许为空");
+			if(!map.containsKey("operatorId") || StringUtils.isEmpty(map.get("operatorId")))
+				throw new BusinessException("操作人id不允许为空");
+			if(!map.containsKey("isValid") || StringUtils.isEmpty(map.get("isValid")))
+				map.put("isValid", "0");
+		}
+		return commissions;
+	}
+
+
+
+	/**
+	 * @Description: 验证该成交信息是否正确   
+	 * @param deal 待验证的成交信息
+	 * @return: Map<String,Object> 验证后的成交信息
+	 */
+	private Map<Object,Object> validateDeal(Map<Object,Object> deal) {
+		if(deal==null)
+			throw new BusinessException("成交信息不允许为空");
+		if(!deal.containsKey("dealType") || StringUtils.isEmpty(deal.get("dealType")) || 
+				!DealTypeEnum.enumMap.containsKey(deal.get("dealType")))
+			throw new BusinessException("成交类型为空或者格式不正确");
+		if(!deal.containsKey("agreementId") || StringUtils.isEmpty(deal.get("agreementId")))
+			throw new BusinessException("合同编号不允许为空");
+		if(!deal.containsKey("demandId") || StringUtils.isEmpty(deal.get("demandId")))
+			throw new BusinessException("需求编号不允许为空");
+		if(!deal.containsKey("houseId") || StringUtils.isEmpty(deal.get("houseId")))
+			throw new BusinessException("房源编号不允许为空");
+		if(!deal.containsKey("shhid") || StringUtils.isEmpty(deal.get("shhid")))
+			throw new BusinessException("二手房源或一手房源编号不允许为空");
+		if(!deal.containsKey("companyId") || StringUtils.isEmpty(deal.get("companyId")))
+			throw new BusinessException("公司编号不允许为空");
+		if(!deal.containsKey("companyId") || StringUtils.isEmpty(deal.get("companyId")))
+			throw new BusinessException("公司编号不允许为空");
+		if(!deal.containsKey("traderId") || StringUtils.isEmpty(deal.get("traderId")))
+			throw new BusinessException("成交人不允许为空");
+		if(!deal.containsKey("price") || StringUtils.isEmpty(deal.get("price")))
+			throw new BusinessException("成交金额不允许为空");
+		else {
+			try {
+				int price = (int) deal.get("price");
+				if(price<=0)
+					throw new RuntimeException("成交金额必须为正整数");
+			} catch (Exception e) {
+				throw new BusinessException("成交金额必须为正整数");
+			}
+		}
+		if(!deal.containsKey("permissionArea") || StringUtils.isEmpty(deal.get("permissionArea")))
+			throw new BusinessException("权限域不允许为空");
+		if(!deal.containsKey("operatorId") || StringUtils.isEmpty(deal.get("operatorId")))
+			throw new BusinessException("操作人id不允许为空");
+		if(!deal.containsKey("isValid") || StringUtils.isEmpty(deal.get("isValid")))
+			deal.put("isValid", "0");
+			
+		return deal;
+	}
+
+}

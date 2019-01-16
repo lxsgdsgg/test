@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CommMapper">
+	<select id="queryAllCity" resultType="map">
+		<![CDATA[SELECT code,name,parentCode,level from sys_area WHERE level<3]]>	
+	</select>
+	<select id="queryOpenCity" resultType="map">
+		SELECT code,name,parentCode,`level` FROM sys_area WHERE level=1
+		UNION
+		SELECT cityCode AS code,cityName AS name,provinceCode AS parentCode, 2 AS level FROM sys_cityOpenInfo WHERE isValid=1	
+	</select>
+	<select id="queryOpenCityCounty" resultType="map">
+		SELECT code,name,parentCode,`level` FROM sys_area WHERE level=1
+		UNION
+		SELECT cityCode AS code,cityName AS name,provinceCode AS parentCode, 2 AS level FROM sys_cityOpenInfo WHERE isValid=1
+		UNION
+		SELECT a.code,a.name,a.parentCode,a.`level` FROM sys_area AS a INNER JOIN sys_cityOpenInfo AS c ON c.cityCode=a.parentCode AND c.isValid=1	
+	</select>
+</mapper>

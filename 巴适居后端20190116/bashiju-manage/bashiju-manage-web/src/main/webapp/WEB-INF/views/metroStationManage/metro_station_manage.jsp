@@ -1,0 +1,635 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>地铁线路管理</title>
+		<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/manage-platform/css/MultiSelection.css" media="all">	
+		<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/frame/layui/css/layui.css" media="all">
+		<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/manage-platform/css/AreaSelect.css" media="all">
+	</head>
+	<body>
+		<!-- 查询模块定义 -->
+		<div class="">
+			<div class="layui-row">
+				<div class="toolBar" id="searchArea">
+					选择城市
+					<div class="layui-inline">
+						<input type="hidden" id="rgCode" name="rgCode">
+						<input type="text" name="cityName" id="cityName" placeholder="模糊查询" autocomplete="off" class="layui-input">
+					</div>
+					线路名称
+					<div class="layui-inline">
+						<input type="text" name="metroName" id="metroName" placeholder="输入地铁线路" autocomplete="off" class="layui-input">
+					</div>
+					站点名称
+					<div class="layui-inline">
+						<input type="text" name="stationName" id="stationName" placeholder="输入站点线路" autocomplete="off" class="layui-input">
+					</div>
+					<div class="layui-inline">
+						<c:if test="${onlyBtnMenus.searchBtn!='' && onlyBtnMenus.searchBtn!=null}">
+					  		<button class="layui-btn" name="searchBtn" onclick="searchData()" id="searchBtn">查询</button>
+					  	</c:if>
+					  	<c:if test="${onlyBtnMenus.clearBtn!='' && onlyBtnMenus.clearBtn!=null}">
+					  		<button class="layui-btn layui-btn-normal" name="clearBtn" onclick="clearData()">清空条件</button>
+					  	</c:if>
+					  	<c:if test="${onlyBtnMenus.addMetroBtn!='' && onlyBtnMenus.addMetroBtn!=null}">
+					  		<button class="layui-btn" name="addMetroBtn" onclick="selectCity()">新增</button>
+					  	</c:if>
+				  	</div>
+				</div>
+				<div class="layui-col-md6">
+					<div class="layui-field-box">
+						<!--地铁站信息列表 -->
+						<table class="layui-table" id="t_metro_station" lay-filter="t_metro_station"></table>
+					</div>
+				</div>
+				<div class="layui-col-md6">
+					<div class="layui-field-box">
+						<!--周边小区表格对象 -->
+						<table class="layui-table" id="t_communit_mgr" lay-filter="t_communit_mgr"></table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--  站点信息编辑弹窗代码 -->
+		<div id="metroMgrForm" class="layui-hide" style="margin-top:10px;">
+			<input id="rgCode" name="rgCode" type="hidden">
+			<p><span style="color:red;font-size:14px;font-weight:700;margin-left:10px;">注意：线路名称请完整填写，数字代表公交线路</span></p>
+			<div class="layui-form">
+				<div class="layui-row">
+					<div class="layui-col-md3">
+						<div class="layui-field-box">
+							<input type="hidden" value="" name="id">
+							<div class="layui-inline" style="width:120px;">
+								<select id="lineName" name="metroName">
+									<option value="">--请选择线路--</option>
+									<c:if test="${areaList != null}">
+										<c:forEach var="oneLine" items="${rgList}">
+											<option value="${oneLine.id}">${oneLine.name}</option>
+										</c:forEach>	
+									</c:if>
+								</select>
+							</div>
+				  			<button id="searchStation" onclick="searchStaionInfo()" class="layui-btn">查询</button>
+							<div id="stationInfo" name="stationInfo"></div>
+						</div>
+					</div>
+					<div class="layui-col-md9">
+						<div class="layui-field-box">
+							<div id="mapArea" style="height:600px;width:100%;"></div>
+						</div>
+					</div>
+					<button class="layui-btn" name="saveBtn" id="saveBtn"
+						 onClick="saveMetroStation()" style="margin-left:10px;margin-bottom:10px">保存</button>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 新增小区表单定义 -->
+		<form id="communityForm" class="layui-form layui-hide" action="" style="margin-top:20px;">
+			<input type="hidden" id="stationId" value="" name="stationId">
+			<div id="areaDiv">
+				<div class="layui-form-item">
+					<label class="layui-form-label" ><span style="color:red;">*</span>选择小区</label>
+					<div class="layui-input-inline">
+						<input type="hidden" id="communityId" name ="communityId">
+						<input id="communityName" type="text" name="communityName" class="layui-input"
+							readonly="readonly" lay-verify="required" autocomplete="off" style="width:230px"/>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">站点距离</label>
+					<div class="layui-input-inline">
+						<input id="metroDistance" type="number" min="0" name="metroDistance" class="layui-input"
+							autocomplete="off" style="width:230px"/>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">备注说明</label>
+					<div class="layui-input-inline">
+						<input id="communityRemark" type="text" name="communityRemark" class="layui-input"
+							autocomplete="off" style="width:230px"/>
+					</div>
+				</div>
+				
+				<div class="layui-form-item">
+					<div class="layui-input-block">
+				      	<button class="layui-btn" id="communityForm" lay-filter="communityForm" lay-submit>保存</button>
+				      	<button class="layui-btn layui-btn-primary" type="reset">重置</button>
+				    </div>
+				</div>
+			</div>
+		</form>
+		<!-- 选择城市 -->
+		<div id="selectCityDiv" class="layui-form layui-hide" style="margin-top: 20px;">
+			<div class="layui-form-item">
+			<label class="layui-form-label"><span style="color: red;">*</span>选择城市</label>
+			<div class="layui-input-inline" style="width: 200px;">
+				<input type="hidden" id="areaCode" name="areaCode"> 
+				<input class="layui-input" id="areaName" name="areaName"
+					placeholder="请选择城市" autocomplete="off" required lay-verify="required">
+			</div>
+			</div>
+			<div class="layui-form-item">
+			<div class="layui-input-block" style="margin-top: 20px;">
+				<button id="selectCityBtn" class="layui-btn">确定</button>
+				<button id="cancelBtn" class="layui-btn">取消</button>
+			</div>
+			</div>
+		</div>
+		<script type="text/html" id="operationBarOne">
+			{{# if(d.communityAdd !='' && d.communityAdd!=null){ }}
+  				<a class="layui-btn layui-btn-xs" name="communityAdd" lay-event="communityAdd">新增周边小区</a>
+			{{# } }}
+		</script>
+		
+		<script type="text/html" id="operationBarTwo">
+			{{# if(d.communitDel !='' && d.communitDel!=null){ }}
+ 				 <a class="layui-btn layui-btn-danger layui-btn-xs" name="communitDel" lay-event="communitDel">删除</a>
+			{{# } }}
+		</script>
+		
+		<%@include file="/common/common.jsp" %>
+		<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/manage-platform/js/AreaSelect.js"></script> 
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=Tg1lQwb6XKbE8wgAflqsNimxI3myaCzD"></script>
+		<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/manage-platform/js/MultiSelection.js"></script>
+		<script>
+			var form;
+			var table;
+			var map;//地图对象全局变量
+			var busline;
+			var referResult;
+			//行政区划数据对象
+			var cityList = JSON.parse('${cityList}');
+			var areaList=JSON.parse('${areaList}');
+			var a= new AreaObject(areaList,function(code,name){
+				console.log(a);
+				$("#communityName").val(name);
+				if(code.length==6){
+					code=code.substring(0,4);
+				}
+				$("#communityId").val(code);
+			},3,$("#communityName"));
+			$("#communityName").on("change",function(){
+				if($(this).val()==""){
+					$("#communityId").val("");
+				}
+			});
+			
+			//适用城市控件
+			var rgCode = new MultiSelection (cityList,function(code,name,level){
+				$("#cityName").val(name);
+				$("#rgCode").val(code);
+				rgCode.hidden();
+			},3,$("#cityName"),false);
+			
+			//选择城市
+			var city = new MultiSelection (cityList,function(code,name,level){
+				$("#areaName").val(name);
+				$("#areaCode").val(code);
+				city.hidden();
+			},3,$("#areaName"),false);
+			
+			
+			layui.use(['jquery','table','form'], function() {
+				table = layui.table;
+				form = layui.form;
+				var $ = layui.$;
+				//第一个实例
+				table.render({
+					id: 't_metro_station'
+					,elem : '#t_metro_station'
+					,height: 'full-100'
+					,url: 'queryAllMetroStationInfo'
+					,method : 'post'
+					,page : true 	//开启分页
+					,cols : [[ 		//表格列定义
+					{
+						field : 'id'
+						,title : 'ID'
+						,width : 50
+						,sort  : true
+						,fixed : 'left' 
+					}, {
+						field : 'metroName'
+						,title : '线路名称'
+						,sort  : true
+					}, {
+						field : 'stationName'
+						,title : '站点名称'
+						,sort  : true
+						,templet:function(d){
+		    			  	return '<span lay-event="showDetail" style="color:#01AAED;cursor:pointer;">'+d.stationName+'</span>';
+			    		} 
+					},{
+						field : 'lontitude'
+						,title : '站点经度'
+						,sort  : true
+					}, {
+						field : 'latitude'
+						,title : '站点纬度'
+						,sort  : true
+					}, {
+						field : 'sortNo'
+						,title : '排序号'
+						,sort  : true
+					},{
+						fixed: 'right'
+						, title: '操作区域'
+						, width: 120
+						, align:'center'
+						, toolbar: '#operationBarOne'
+					}]],done: function(res, curr, count){
+				    	if(count>0){
+				    		showCommunitInfo(res.data[0].id);
+						}else{
+							showCommunitInfo("");
+						}	    	
+				  	}
+				});
+				// 注：tool是工具条事件名
+				table.on('tool(t_metro_station)', function(obj) {
+					//获得当前行数据
+					var data = obj.data;
+					//获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var layEvent = obj.event; 
+					//获得当前行 tr的DOM对象
+					var tr = obj.tr; 
+					var stationId = data.id;
+					//删除事件
+					if (layEvent === 'schoolDel') {
+						layer.confirm('确定要删除该站点信息吗？', function(index) {
+							$.ajax({
+								type : "post",
+								url  : "delMetroStatrionData",
+								dataType : "json",
+								data : {
+									stationId : stationId
+								},
+								success : function(data) {
+									if (data.success) {
+										layer.msg(data.msg);
+					    				obj.del();
+									} else {
+										layer.msg(data.msg);
+									}
+								},
+								error : function(a, b, c) {
+									layer.msg("操作异常，请稍后重试");
+								}
+							});
+						});
+					}  else if(layEvent === 'communityAdd'){//添加周边小区
+						addOrEditCommunityInfo('新增周边小区信息',data,stationId);
+					}else if(layEvent === 'showDetail'){//点击显示右侧列表数据
+						showCommunitInfo(stationId);
+					}
+				});
+			});
+			//展示右侧区域表格
+			function showCommunitInfo(stationId){
+				//第二个实例
+				table.render({
+					id: 't_communit_mgr'
+					,elem : '#t_communit_mgr'
+					,height: 'full-100'
+					,url  : 'getCommunityPageObj?stationId='+stationId
+					,method : 'post'
+					,page: true 	//开启分页
+					,cols : [[ 		//表格列定义
+					{
+						field : 'id'
+						,title : 'ID'
+						,width : 50
+						,sort  : true
+						,fixed : 'left' 
+					}, {
+						field : 'communityName'
+						,title : '小区名称'
+						,sort  : true
+					},{
+						field : 'metroDistance'
+						,title : '站点距离'
+						,sort  : true
+					}, {
+						field : 'communityRemark'
+						,title : '备注说明'
+						,sort  : true
+					}, {
+						field : 'operator'
+						,title : '创建用户'
+						,sort  : true
+					}, {
+						fixed: 'right'
+						, title: '操作区域'
+						, width: 200
+						, align:'center'
+						, toolbar: '#operationBarTwo'
+					}]]
+				});
+				
+				// 监听第二个表格工具条
+				table.on('tool(t_communit_mgr)', function(obj) {
+					//获得当前行数据
+					var data = obj.data;
+					//获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var layEvent = obj.event; 
+					//获得当前行 tr的DOM对象
+					var tr = obj.tr; 
+					var id = data.id;
+					//删除事件
+					if (layEvent === 'communitDel') {
+						layer.confirm('确定要删除该小区信息吗？', function(index) {
+							$.ajax({
+								type : "post",
+								url  : "deleteStationCommunityData",
+								dataType : "json",
+								data : {
+									communityId : id
+								},
+								success : function(data) {
+									if (data.success) {
+										layer.msg(data.msg);
+					    				obj.del();
+									} else {
+										layer.msg(data.msg);
+									}
+								},
+								error : function(a, b, c) {
+									layer.msg("操作异常，请稍后重试");
+								}
+							});
+						});
+					}
+				});
+			}
+			
+			//添加地铁线路
+			function addMetro(cityCode){
+				$("#lineName").val("");
+				$("#stationInfo").html("");
+				$("#rgCode").val(cityCode);
+				var title = '<span style="font-size=20px;color: #1E9FFF;font-weight:700">地铁线路维护</span>';
+				$("#metroMgrForm").removeClass("layui-hide");
+				layerId = layer.open({
+				  	title: title
+				  	,type: 1
+				  	,area:['1000px','747px']
+					,resize: true
+				  	,content: $("#metroMgrForm")
+				  	,end: function(index, layero){ 
+						$('#metroMgrForm').addClass("layui-hide");
+					}
+				});
+				showMap();
+			}
+			/*******
+			 * 展示地图区域  并定位到当前城市
+			 */
+			function showMap(){
+				// 创建地图实例 
+				map = new BMap.Map("mapArea");
+				//开启鼠标滚轮缩放
+				//map.enableScrollWheelZoom(true);  
+				//此处固定的经纬度只是临时为了初始化地图对象,最后会通过浏览器定位到当前位置
+				var point = new BMap.Point(116.331398,39.897445);
+				map.centerAndZoom(point,12);
+				var geolocation = new BMap.Geolocation();
+				geolocation.getCurrentPosition(function(r){
+					if(this.getStatus() == BMAP_STATUS_SUCCESS){
+						map.panTo(r.point);
+					}else {
+						alert('failed' + this.getStatus());
+					}        
+				},{enableHighAccuracy: true});
+				//初始化地铁线路对象
+				busline = new BMap.BusLineSearch(map,{
+					renderOptions:{map:map,panel:"stationInfo"},
+					onGetBusListComplete: function(result){
+						if(result) {
+						 	var fstLine = result.getBusListItem(0);//获取第一个公交列表显示到map上
+						 	busline.getBusLine(fstLine);
+						 	console.log(result);
+							referResult = result;
+					   	}
+					}
+				});
+			}
+			//注册搜索事件
+			function searchStaionInfo(){
+				var lineName = $("#lineName option:selected").text();
+				if(lineName == ""){
+					layer.msg("请先输入地铁线路");
+					return;
+				}
+				busline.getBusList(lineName);
+			};
+			
+			/**
+			 * 保存地铁线路站点信息
+			 */
+			function saveMetroStation(title,data){
+				$.ajax({
+					type: 'post'
+					,url: 'saveMetroStationInfo'
+					,dataType: 'json'
+					,data:{
+						jsonData: JSON.stringify(referResult),
+						metroName: $("#lineName option:selected").text(),
+						metroId:  $("#lineName").val()
+					},
+					success: function(data){
+						if(data.success){
+							layer.alert(data.msg,function(index){
+				    			layer.closeAll();
+				    			location.reload();
+		    				});
+						}else{
+							layer.msg(data.msg);
+						}
+					}
+				});
+			}
+			
+			/**
+			 * 添加或修改小区信息
+			 */
+			function addOrEditCommunityInfo(title,data,stationId){
+				
+// 				var distance = getDistance();
+				//显示隐藏表单
+			 	$('#communityForm').removeClass("layui-hide");
+				//将输入框值置为空
+				$("#communityForm input").each(function (index, domEle) { 
+					$(this).val("");
+					if ($(this).attr("lay-verify") != null
+							&& "number" == $(this).attr("lay-verify")) {
+						$(this).val("0");
+					}
+					var attr = $(this).attr("name");
+					if (data[attr] != null) {
+						$(this).val(data[attr]);
+					}
+				});
+				layerId = layer.open({
+				  	title: title
+				  	,type: 1
+				  	,area:['400px','280px']
+					,resize: false
+				  	,content: $("#communityForm")
+				  	,end: function(index, layero){ 
+						$('#communityForm').addClass("layui-hide");
+					}
+				});
+				//表单提交
+				form.on('submit(communityForm)',function(data){
+					$.ajax({
+						type: 'post'
+						,url: 'saveStationCommunityInfo'
+						,dataType: 'json'
+						,data:{
+							jsonData: JSON.stringify(data.field)
+						},
+						success: function(data){
+							if(data.success){
+								layer.alert(data.msg,function(index){
+					    			layer.closeAll();
+					    			location.reload();
+			    				});
+							}else{
+								layer.msg(data.msg);
+							}
+						}
+					});
+					return false;
+				});
+				
+				//设置表单内容值
+				$("#communityForm input").each(
+					function(index, domEle) {
+						$(this).val("");
+						if ($(this).attr("lay-verify") != null
+								&& "number" == $(this).attr("lay-verify")) {
+							$(this).val("0");
+						}
+						var attr = $(this).attr("name");
+						if (data[attr] != null && data[attr] != "") {
+							$(this).val(data[attr]);
+							form.render();
+						}
+					}
+				);
+				$("#stationId").val(stationId);
+				$("#comId").val(id);
+			}
+			
+			/**
+			 * 查询页面数据函数
+			 */
+			function searchData() {
+				var metroName = $("#metroName").val();
+				var stationName = $("#stationName").val();
+				var cityName = $("#cityName").val();
+				var rgCode = $("#rgCode").val();
+				var cityName = $("#cityName").val();
+				if(cityName == ''){
+					rgCode = "";
+				}
+				//执行重载
+				table.reload('t_metro_station', {
+					page : {
+						//重新从第 1 页开始
+						curr : 1
+					},
+					where : {
+						metroName : metroName,
+						stationName : stationName,
+						rgCode: rgCode
+					}
+				});
+			}
+			$("#selectCityBtn").click(function(){
+				var rgCode = $("#areaCode").val();
+				if(rgCode == ''){
+					layer.msg("请先选择城市!");
+					return;
+				}
+// 				else{
+// 					$.ajax({
+// 						type: 'post'
+// 						,url: 'queryMetroLineInfoForSelect'
+// 						,data: rgCode
+// 						,success: function(result){
+// 							if(result.success){
+// 								console.log(result);
+// 								areaList = result.data;
+// 							}else{
+// 								layer.msg(result.msg);
+// 							}
+// 						}
+// 						,error: function(a,b,c){
+// 							layer.msg("系统操作异常");
+// 						}
+// 					});
+// 				}
+				$('#selectCityDiv').addClass("layui-hide");
+				layer.closeAll();
+				addMetro($("#areaCode").val());
+			});
+			$("#cancelBtn").click(function(){
+				layer.closeAll();
+			});
+			//先选择城市
+			function selectCity(){
+				//显示隐藏表单
+				$('#selectCityDiv').removeClass("layui-hide");
+				$("#areaName").val('');
+				$("#areaCode").val('');
+				$("#rgCode").val('');
+				layerId = layer.open({
+				  	title: "选择城市"
+				  	,type: 1
+				  	,area:['400px','200px']
+					,resize: false
+				  	,content: $("#selectCityDiv")
+				  	,end: function(index, layero){ 
+						$('#selectCityDiv').addClass("layui-hide");
+					}
+				});
+			}
+			/**
+		     * 计算两点间的距离
+		     * pt1 {lng:"12.34",lat:"3423"}第一个点的经纬度
+		     * pt2 {lng:"12.34",lat:"3423"}第二个点的经纬度
+		     * */
+		    function getDistance(srcPoint,destPoint){
+// 		        var map = new BMap.Map("container");
+		        var point1 = new BMap.Point(srcPoint.lng,srcPoint.lat);
+		        var point2 = new BMap.Point(destPoint.lng,destPoint.lat);
+		        var distance = map.getDistance(point1,point2);
+		        return distance;
+		    }
+			//清空按钮事件
+			function clearData(){
+				$("#searchArea input").each(function (index, domEle) { 
+					$(this).val("");
+						if($(this).attr("lay-verify")!=null&&"number"==$(this).attr("lay-verify")){
+							$(this).val("0");
+					 	}			
+					});
+				$("#searchArea select").each(function (index, domEle) { 
+					$(this).val("");
+					if($(this).attr("lay-verify")!=null&&"number"==$(this).attr("lay-verify")){
+						$(this).val('');
+				 	}
+				});
+			}
+		</script>
+	</body>
+</html>

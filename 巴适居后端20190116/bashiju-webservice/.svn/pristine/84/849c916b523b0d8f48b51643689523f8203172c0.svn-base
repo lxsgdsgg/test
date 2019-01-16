@@ -1,0 +1,129 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerTest.java   
+ * @Package com.bashiju.www.test   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月6日 下午3:38:57   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.test;
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.wapi.IHomePageServiceApi;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.www.pojo.service.reservation.ReservationParam;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+import com.bashiju.www.service.FootPrint.FootPrintService;
+import com.bashiju.www.service.agent.AgentService;
+import com.bashiju.www.service.navigationbar.NavigationBarService;
+import com.bashiju.www.service.user.CustCustomerService;
+import com.bashiju.www.service.user.ICustomerPersonalCentralService; 
+
+public class CustomerTest extends BaseServiceTest {
+	
+	
+	@Autowired
+	private ICustomerPersonalCentralService customerPersonalCentralService;
+	
+	
+    @Autowired	
+    private CustCustomerService custCustomerService;
+    
+    @Autowired
+    private  NavigationBarService navigationBarService;
+    @Autowired
+    private FootPrintService footPrintService;
+    @Autowired
+    private ICacheService cacheService;
+    @Autowired
+    private AgentService agentService;
+    @Autowired
+	private RedisGetIdServiceApi redisGetIdServiceApi;
+	@Autowired(required=false) 
+	MockHttpServletRequest request;
+	
+	@Autowired(required=false) 
+	MockHttpServletResponse response;
+	
+	@Autowired
+	IHomePageServiceApi homePageServiceApi;
+//	@Test
+//	public void checkImg() {
+//		String ss = custCustomerService.imageCheck(request, response);
+//		System.out.println("**********"+ss);
+//	}
+	
+//	@Test
+//	public void userLoginTest() {
+//		String mobile ="18302392883";
+////		String password = "123456"; 
+////		String user = custCustomerService.customerLogin(mobile, password, "123123");
+//		String user = cacheService.getCache("8adc0127087d34653f1a9d28f7f417f6");
+//		System.out.println(user);
+//	}
+
+//	@Test
+	public void msgTest() {
+		String mobile ="15696703407";
+//		String user = custCustomerService.sendMobileMsgVerfyCode(mobile);
+		String user = homePageServiceApi.sendMobileMsgVerfyCode(mobile);
+		System.out.println(user);
+	}
+//	@Test
+	public void Test() {
+		CustCustomerParam custCustomerParam = new CustCustomerParam();
+		custCustomerParam.setMobile("18302392883");
+		custCustomerParam.setName("waper97");
+		custCustomerParam.setPassword("123456");
+		custCustomerParam.setSolt("178248");
+		homePageServiceApi.saveCustCustomer(custCustomerParam);
+	}
+//		@Test
+		public void test() {
+			String mobile = "18302392783";
+			boolean result = homePageServiceApi.checkMobileIsExist(mobile);
+			System.out.println(result);
+		}
+		
+//		@Test
+		public void test1() {
+			String mobile = "15696703407";
+			boolean result = homePageServiceApi.mobileMsgCheck(mobile, "198255");
+			System.out.println(result);
+		}
+	
+		@Test
+		public void test3() {
+			String mobile = "15696703407";
+			boolean result = homePageServiceApi.updateCustomerPwdByMobile(mobile, "wangpeng");
+			System.out.println(result);
+		}
+		
+
+	
+//	@Test
+	public void queryAgentAbilityByAgentId() {
+		ReservationParam reservationParam = new ReservationParam();
+		reservationParam.setCustId("1");
+		reservationParam.setMaintainId("1");
+		reservationParam.setMobile("15696703407");
+		reservationParam.setMsg("963237");
+		reservationParam.setName("waper");
+		reservationParam.setRemark("test");
+		reservationParam.setReservationDate(new Date());
+		reservationParam.setReservationTime("1");
+		reservationParam.setShhId("1");
+		customerPersonalCentralService.saveReservationWatchHouse(reservationParam);
+	}
+	
+	
+}

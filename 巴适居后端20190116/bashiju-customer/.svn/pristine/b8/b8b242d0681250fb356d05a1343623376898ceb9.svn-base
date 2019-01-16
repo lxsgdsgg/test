@@ -1,0 +1,1956 @@
+﻿<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<% request.setAttribute("staticfile_url", "/src");%>
+<!DOCTYPE html >
+<html>
+	<head>
+	<title><%=application.getInitParameter("systemtitle")%></title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/css/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/layui/css/layui.css">
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/housing-platform/css/houseshow.css">
+	<%-- <link rel="stylesheet" type="text/css" href="${staticfile_url}/housing-platform/css/deptSelect.css"> --%>
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/manage-platform/css/MultiSelection.css" >
+	<script type="text/javascript" src="${staticfile_url}/common/js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="${staticfile_url}/common/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="${staticfile_url}/common/js/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="${staticfile_url}/common/frame/layui/layui.js"></script>
+	<%-- <script type="text/javascript" src="${staticfile_url}/housing-platform/js/deptSelect.js"></script> --%>
+	<script type="text/javascript" charset="utf-8" src="${staticfile_url}/manage-platform/js/MultiSelection.js"></script> 
+	</head>
+	
+	<style>
+		.btn{
+			
+		}
+		.hasStore{
+			color:red;
+		}
+		
+	</style>
+	<script type="text/javascript">
+	
+	
+	
+		
+	
+			
+			
+			
+			
+	</script>
+	<body class="">
+			<div class="layui-container">
+				<div class="layui-row">
+					<div class="layui-col-md12 op-btn" style="border:1px solid #eee;">
+						<div class="btn updatehouse-btn updatehouseinfo" name="updateInfo">修改信息</div>
+						<div class="btn taobao" name="fromTaobao">淘宝</div>
+						<div class="btn ">
+							<div class="changestatus" name="changeStatus">变更状态</div>
+							<div class="totaobao" onclick="changeStatus('toTaobao');">进入淘宝</div>
+                        </div>
+						<div class="btn sipang-btn" onclick="changeStatus('setPrivatedisc');">收为私客</div>
+						<div class="btn sipang-btn" onclick="changeStatus('setPublicdisc');">放入公客</div>
+						<div class="btn writefollow-btn">写跟进</div>
+						<div class="btn writetip-btn">写提醒</div>
+						<div class="btn writelook-btn">写带看</div>
+						<div class="btn givedeposit">下定</div>
+						<div class="btn fengpang-btn customerclose">申请封盘</div>
+						<div class="btn prev-btn">上一条</div>
+						<div class="btn next-btn">下一条</div>
+						<div class="btn exchangeneed">租售转换</div>
+					</div>
+					
+				</div>
+				<div class="layui-row">
+					<div class="layui-col-md12" style="border:1px solid #eee;">
+						<div class="layui-tab" lay-filter="myTab">
+							<ul class="layui-tab-title">
+								<li class="icon-ex layui-this">基本信息</li>
+								<li class="icon-ex">匹配房源</li>
+								<li class="icon-ex showfollowrecord">跟进记录</li>
+								<li class="icon-ex houseLookRecord">带看记录</li>
+								<li class="icon-ex">日志</li>
+							</ul>
+							<div class="layui-tab-content">
+								<div class="layui-tab-item layui-show">
+									<div class="layui-row">
+										<div class="layui-col-md7 houseinfo-left">
+											<div class="houseinfo-box">
+												<div class="layui-row general">
+													<div class="layui-col-md8">
+														<div class="rowdiv1">
+															<div class="show-line houseId">客源编号</div>
+															<div class="show-line titles">房源名称</div>
+															<div class="show-line housetag"></div>
+														</div>
+														<div class="rowdiv1">
+															<span class="icon2 icon2-1 houseUses">住宅</span>
+															<span class="icon2 icon2-3 status">有效</span>
+															<span class="icon2 icon2-4 discStatus">公盘</span>
+															<span class="icon2 icon2-5"><span class="levelType"></span>类客源</span>
+															<span class="icon2 icon2-8 store" onclick="setStore();">收藏</span>
+														</div>
+														<div class="rowdiv1">
+															<div class="show-line"><span class="">需求区域</span><span class=""></span></div>
+														</div>
+														<div class="rowdiv1">
+															<div class="show-line"><span class="">需求价格</span><span class=""></span></div>
+														</div>
+														<div class="rowdiv1">
+															<div class="show-line"><span class="">需求面积</span><span class=""></span></div>
+														</div>
+														<div class="rowdiv1">
+															<div class="show-line"><span class="">需求户型</span><span class=""></span></div>
+														</div>
+													</div>
+													<div class="layui-col-md4">
+														<div class="show-line">
+															二维码
+														</div>
+													</div>
+												</div>
+												<div class="layui-row detail">
+													<div class="layui-col-md12">
+														<div class="layui-row detail-box detail-box1">
+															<div class="layui-col-md6">
+																<div>楼层：<span class="floorCount"></span></div>
+																<div>房龄：<span class="elevatorroomcount"></span></div>
+																<div>配套：<span class="matching"></span></div>
+																<div>备注：<span class=""></span></div>
+																<div>推荐标签：<span class="payType"></span></div>
+															</div>
+															<div class="layui-col-md6">
+																<div>朝向：<span class="orientation"></span></div>
+																<div>装修：<span class="decoration"></span></div>
+																<div>房屋类型：<span class="houseType"></span></div>
+																<div>需求原因：<span class=""></span></div>
+															</div>
+														</div>
+														<div class="layui-row detail-box detail-box2">
+															<div class="layui-col-md6">
+																<div>客户姓名：<span class="resourceType"></span></div>
+																<div>来源：<span class="resourceType"></span></div>
+																<div>消防理念：<span class="viewingType"></span></div>
+																<div>国籍：<span class="keyCode" id=""></span></div>
+																<div>证件号码：<span class="deptname"></span></div>
+																<div>QQ：<span class="deptname"></span></div>
+																<div>交通工具：<span class="deptname"></span></div>
+															</div>
+															<div class="layui-col-md6">
+																<div>客户等级：<span class="entrustCode"></span></div>
+																<div>沟通阶段：<span class=""></span></div>
+																<div>民族：<span class="receipt"></span></div>
+																<div>邮箱：<span class="keystatus"></span></div>
+																<div>微信：<span class="keystatus"></span></div>
+																<div>车型：<span class="keystatus"></span></div>
+															</div>
+														</div>
+														
+														<div class="layui-row detail-box detail-box4">
+															<div class="layui-col-md6">
+																<div class="customfield">
+																	
+																
+																</div>
+															</div>
+															<div class="layui-col-md6">
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="followinfo-box">
+												<div class="followinfo-div1"><span class="follow-label">跟进</span><span class="follow-more">更多</span></div>
+												<div>
+													<ul class="layui-timeline followinfo-ul">
+													  <!-- <li class="layui-timeline-item">
+													    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+													    <div class="layui-timeline-content layui-text">
+													      <h3 class="layui-timeline-title">8月18日</h3>
+													      <div>跟进1</div>
+													    </div>
+													  </li>
+													  <li class="layui-timeline-item">
+													    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+													    <div class="layui-timeline-content layui-text">
+													      <h3 class="layui-timeline-title">8月16日</h3>
+													      
+													    </div>
+													  </li>
+													  <li class="layui-timeline-item">
+													    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+													    <div class="layui-timeline-content layui-text">
+													      <h3 class="layui-timeline-title">8月15日</h3>
+													      <div>跟进2</div>
+													    </div>
+													  </li>
+													  <li class="layui-timeline-item">
+													    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+													    <div class="layui-timeline-content layui-text">
+													      <div class="layui-timeline-title">8月12日</div>
+													      <div>跟进3</div>
+													    </div>
+													  </li> -->
+													</ul>
+												</div>
+												<div>
+													<span class="writefollow" style="color:red;">写跟进</span>
+												</div>
+											
+											</div>
+										
+										</div>
+										<div class="layui-col-md5 houseinfo-right">
+											<div class="rowdiv2 right-div1">
+												<div><span>最近7天</span></div>
+												<div><span class="">0次浏览</span><span class="">0次带看</span></div>
+											</div>
+											<div class="rowdiv2">
+												<div class="layui-row ownerinfo">
+													<div class="layui-col-md7">
+														<div><span>客户：</span><span class="owner">李雯</span><span class="nameTitle"></span><span style="margin-left:10px;color:red;" class="updateowner">修改</span></div>
+														<div>
+															<div>电话：</div>
+															<div class="phonelist"></div>
+														</div>
+														<div class="addphone" style="color:red;">新增电话</div>
+													</div>
+													<div class="layui-col-md5">
+														<div class="showPricedetail">在线日历</div>
+														<div class="showPricedetail">看房轨迹</div>
+														<div class="showArchives">客户档案</div>
+													</div>
+												</div>
+											</div>	
+											<div class="rowdiv2">
+												<div class="show-btn showphone-btn">查看电话</div>
+											</div>
+											
+											<div class="rowdiv2" style="">
+												相关经纪人
+												<div class="relateagent-box">
+													<div class="layui-row zr-row">
+														<div class="layui-col-md2 typeName">录入人</div>
+														<div class="layui-col-md5 agentinfo"><div><span class="agentdeptname"></span><span class="realname" ></span><span></span></div><div>电话：<span class="agentphone"></span></div><div class="agenttime"></div></div>
+														<div class="layui-col-md5 agentset setzr" id="" style="color:red;"></div>
+													</div>
+													
+													<div class="layui-row wh-row">
+														<div class="layui-col-md2 typeName">维护人</div>
+														<div class="layui-col-md5 agentinfo"><div><span class="agentdeptname"></span><span class="realname" ></span><span></span></div><div>电话：<span class="agentphone"></span></div><div class="agenttime"></div></div>
+														<div class="layui-col-md5 agentset updatewh" name="" id="" style="color:red;">变更维护人</div>
+													</div>
+													
+													<div class="layui-row wt-row">
+														<div class="layui-col-md2 typeName">封盘人</div>
+														<div class="layui-col-md5 agentinfo"><div><span class="agentdeptname"></span><span class="realname" ></span><span></span></div><div>电话：<span class="agentphone"></span></div><div class="agenttime"></div></div>
+														<div class="layui-col-md5 agentset setwt" id="" style="color:red;"></div>
+													</div>
+												</div>
+											</div>
+											
+										</div>
+										
+									</div>
+								</div>
+								
+								<div class="layui-tab-item">
+									
+								</div>
+								<div class="layui-tab-item">
+									
+								</div>
+								<div class="layui-tab-item">
+									
+								</div>
+								<div class="layui-tab-item">
+									<table id="followrecord" lay-filter="" ></table>
+								</div>
+								
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				
+			</div>
+			
+		<script>
+		
+		$(function(){
+			
+			
+			var depDatas = JSON.parse('${depts}');
+			
+			//选封盘人
+			var ms=new MultiSelection (depDatas,function(code,name,level){
+				if(code!="0"){
+					$("#fpdepartment").val(name);
+					$("#fpdepartmentcode").val(code);
+				}	
+				ms.hidden();
+			},6,$("#fpdepartment"),true);
+			
+			//选提醒人
+			var ms=new MultiSelection (depDatas,function(code,name,level){
+				if(code!="0"){
+					$("#tsdepartment").val(name);
+					$("#tsdepartmentcode").val(code);
+				}	
+				ms.hidden();
+			},6,$("#tsdepartment"),true);
+			
+			//选维护人
+			var ms=new MultiSelection (depDatas,function(code,name,level){
+				if(code!="0"){
+					$("#whdepartment").val(name);
+					$("#whdepartmentcode").val(code);
+				}	
+				ms.hidden();
+			},6,$("#whdepartment"),true);
+			
+			
+			
+			info=JSON.parse('${info}');
+			
+			 for(var key in info){
+				 var data = info[key];
+				 console.log(key);
+				 console.log(data);
+				 //基本信息
+				 if(key=="houseInfo"){
+					 elevatorroomcount = "";
+					 for(var key2 in data){
+						 
+						 $("."+key2).text(data[key2]);
+						 if(key2=='elevatorCount')
+							 elevatorroomcount =  data[key2]+"梯";
+					     if(key2=='householdCount')
+					    	 elevatorroomcount = elevatorroomcount + data[key2]+"户";
+					     
+					     if(key2=='ysRecordId')
+					    	 $(".keyCode").attr("id",data[key2]);
+					     //业主姓名类型id
+					     if(key2=='nameType')
+							 $(".nameTitle").attr("nametype",data[key2]);
+					     
+					     //标签显示
+					     if(key2=='isSetTop' && data.isSetTop==1){//置顶
+					    	var housetag = $(".housetag").text();
+					    	housetag = housetag==""?"顶":housetag+",顶";
+					    	$(".housetag").text(housetag);
+					     }
+						if(key2=='isGood' && data.isGood==1){//靓房
+							var housetag = $(".housetag").text();
+					    	housetag = housetag==""?"靓":housetag+",靓";
+					    	$(".housetag").text(housetag);
+					     }
+						if(key2=='isUnique' && data.isUnique==1){//独家
+							var housetag = $(".housetag").text();
+					    	housetag = housetag==""?"独":housetag+",独";
+					    	$(".housetag").text(housetag);
+						}
+						if(key2=='isSchoolRoom' && data.isSchoolRoom==1){//学期房
+							var housetag = $(".housetag").text();
+					    	housetag = housetag==""?"学":housetag+",学";
+					    	$(".housetag").text(housetag);
+						}
+						
+					    if(key2=='isStore' && data.isStore==1){
+					    	$(".store").addClass("hasStore");
+					    }
+					 }
+					 $(".elevatorroomcount").text(elevatorroomcount);
+				 }
+				 //跟进记录
+				 if(key=="followInfo"){
+					 $(".followinfo-ul").empty();
+					 for(var i=0;i<data.length;i++){
+						 var li = '<li class="layui-timeline-item">'
+					          +'<i class="layui-icon layui-timeline-axis">&#xe63f;</i>'
+					          +'<div class="layui-timeline-content layui-text">'
+					          +' <h3 class="layui-timeline-title">'+data[i].addTime+'</h3>'
+					          +'<div><div>'+data[i].content+'</div><div><span>'+data[i].operator+'</span><span></span><span>'+data[i].addTime+'</span></div></div>'
+					          +'</div>'
+					          +'</li>';
+					          $(".followinfo-ul").append(li);  
+					 }
+					 
+					 
+				 }
+				 //业主电话
+				 /* if(key=='ownerInfo'){
+					 $(".phonelist").empty();
+					 for(var i=0;i<data.length;i++){
+						var div = '<div><span class="phone" style="margin-right:10px;">'+data[i].phone+'</span><span class="relateName" style="margin-right:10px;">'+data[i].remark+'</span><span tag="'+data[i].id+'" onclick="delPhone(this);" style="margin-right:10px;color:red;">删除</span><span class="updatephone" tag="'+data[i].id+'" style="margin-right:10px;color:red;">修改</span></div>';
+						$(".phonelist").append(div);
+					 }
+					 
+				 } */
+				 
+				 //经纪人信息
+				 if(key=="relateagentInfo"){
+					// $(".relateagent-box").empty();
+					// <div class="layui-col-md5 agentinfo"><div><span class="agentdeptname"></span><span class="realname" ></span><span></span></div><div>电话：<span class="agentphone"></span></div><div class="agenttime"></div></div>
+					 for(var i=0;i<data.length;i++){
+						 var id = data[i].id;
+						 var deptname = data[i].deptname;
+						 var realName = data[i].realName;
+						 var telPhone = data[i].telPhone;
+						 var addTime = data[i].addTime;
+								
+						 if(data[i].agentTypeName=='录入人'){
+							//var div2 = '<div class="layui-col-md5 agentset"></div></div>';
+							$(".zr-row").find(".agentset").addClass("setzr");
+							$(".zr-row").find(".agentset").attr("id",id);
+							$(".zr-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".zr-row").find(".agentinfo").find(".realname").text(realName);
+							$(".zr-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".zr-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+						 if(data[i].agentTypeName=='开盘人'){
+							//var div2 = '<div class="layui-col-md5 agentset"></div></div>';
+							$(".kp-row").find(".agentset").addClass("setkp");
+							$(".kp-row").find(".agentset").attr("id",id);
+							$(".kp-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".kp-row").find(".agentinfo").find(".realname").text(realName);
+							$(".kp-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".kp-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+					 	 if(data[i].agentTypeName=='维护人'){
+					 		//var div2 = '<div class="layui-col-md5 updatewh" id="'+data[i].id+'" style="color:red;">变更维护人</div></div>';
+					 		$(".wh-row").find(".agentset").addClass("updatewh");
+					 		$(".wh-row").find(".agentset").attr("id",id);
+					 		$(".wh-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".wh-row").find(".agentinfo").find(".realname").text(realName);
+							$(".wh-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".wh-row").find(".agentinfo").find(".agenttime").text(addTime);
+					 		
+						 }
+					 	 if(data[i].agentTypeName=='拿钥匙人'){
+							//var div2 = '<div class="layui-col-md5 setys" id="'+data[i].id+'" style="color:red;">设置钥匙</div></div>';
+					 		$(".ys-row").find(".agentset").addClass("setys");
+					 		$(".ys-row").find(".agentset").attr("id",id);
+					 		$(".ys-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".ys-row").find(".agentinfo").find(".realname").text(realName);
+							$(".ys-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".ys-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+					 	 if(data[i].agentTypeName=='图片人'){
+							//var div2 = '<div class="layui-col-md5 setimg" id="'+data[i].id+'" style="color:red;">设置图片人</div></div>';
+					 		$(".img-row").find(".agentset").addClass("setimg");
+					 		$(".img-row").find(".agentset").attr("id",id);
+					 		$(".img-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".img-row").find(".agentinfo").find(".realname").text(realName);
+							$(".img-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".img-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+					  	 if(data[i].agentTypeName=='独家信息'){
+							//var div2 = '<div class="layui-col-md5 setdj" id="'+data[i].id+'" style="color:red;">设置独家</div></div>';
+					  		$(".dj-row").find(".agentset").addClass("setdj");
+					 		$(".dj-row").find(".agentset").attr("id",id);
+					 		$(".dj-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".dj-row").find(".agentinfo").find(".realname").text(realName);
+							$(".dj-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".dj-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+					 	 if(data[i].agentTypeName=='委托信息'){
+							//var div2 = '<div class="layui-col-md5 setwt" id="'+data[i].id+'" style="color:red;">设置委托</div></div>';
+					 		$(".wt-row").find(".agentset").addClass("setwt");
+					 		$(".wt-row").find(".agentset").attr("id",id);
+					 		$(".wt-row").find(".agentinfo").find(".agentdeptname").text(deptname);
+							$(".wt-row").find(".agentinfo").find(".realname").text(realName);
+							$(".wt-row").find(".agentinfo").find(".agentphone").text(telPhone);
+							$(".wt-row").find(".agentinfo").find(".agenttime").text(addTime);
+						 }
+								
+						//$(".relateagent-box").append(div1+div2);
+					 }
+					
+				 }
+				 //字定义字段
+				 
+				 if(key=="customInfo"){
+					 $(".customfield").empty();
+					 
+					 for(var i=0;i<data.customField.length;i++){
+						 var div = '<div class="show-line" style="margin-right:6px;"><span>'+data.customField[i].title+'：</span><span class="customvalue '+data.customField[i].field+'">'+data.customValue[data.customField[i].field]+'</span></div>';
+						 $(".customfield").append(div); 
+					 }
+					 
+				 }
+				 
+			 }
+			
+			
+			//查看电话
+			$(".showphone-btn").click(function(){
+				var shhId = '${houseId}';//房源主键ID
+				$.post("<%=request.getContextPath()%>/house/queryHousePrivateInfo",{houseId:shhId,type:2},function(d){
+					$(".phonelist").empty();
+					 for(var i=0;i<d.data.length;i++){
+						var div = '<div><span class="phone" style="margin-right:10px;">'+d.data[i].phone+'</span><span class="relateName" style="margin-right:10px;">'+d.data[i].remark+'</span><span tag="'+d.data[i].id+'" onclick="delPhone(this);" style="margin-right:10px;color:red;">删除</span><span class="updatephone" tag="'+d.data[i].id+'" style="margin-right:10px;color:red;">修改</span></div>';
+						$(".phonelist").append(div);
+					 }
+					
+				})
+			})
+		})
+		
+		
+		
+		layui.use(['element','form','table','layer','laydate','upload'], function(){
+			  var element = layui.element;
+			  form = layui.form;
+			  var table = layui.table;
+			  layer = layui.layer;
+			  laydate = layui.laydate; 
+			  upload=layui.upload;
+			 
+			  
+			  var pictureType = $("select[name='pictureType']").val();
+			  var options = $("select[name='pictureType']").find("option");
+			  for(var i=0;i<options.length;i++){
+				 var val = $(options[i]).attr("value");
+				 if(pictureType == val)
+					 var pictureName = $(options[i]).text();
+			  }
+			  var shhId = '${houseId}';//房源主键ID
+			  var houseId = info.houseInfo.houseId;//房源编号
+			  var filedata = {
+					  shhId:shhId,
+					  houseId:houseId,
+					  pictureType:pictureType,
+					  pictureName:encodeURIComponent(pictureName)
+			  }
+			  //上传图片
+			  upload.render({
+				  elem: '#uploadimg'
+				  ,url: '<%=request.getContextPath()%>/house/uploadFile/'
+				  ,auto: false //选择文件后不自动上传
+				  ,bindAction: '.houseimgSureUpload' //指向一个按钮触发上传
+				  ,accept:'images'
+				  ,multiple:false
+				  ,data:filedata
+				  ,choose: function(obj){
+				    //将每次选择的文件追加到文件队列
+				    var files = obj.pushFile();
+				    
+				    //预读本地文件，如果是多文件，则会遍历。(不支持ie8/9)
+				    obj.preview(function(index, file, result){
+				      console.log(index); //得到文件索引
+				      console.log(file); //得到文件对象
+				      console.log(result); //得到文件base64编码，比如图片
+				      
+				      //这里还可以做一些 append 文件列表 DOM 的操作
+				      
+				      //obj.upload(index, file); //对上传失败的单个文件重新上传，一般在某个事件中使用
+				      //delete files[index]; //删除列表中对应的文件，一般在某个事件中使用
+				    });
+				  }
+				  ,done: function(result){
+				      //上传完毕回调
+					  if(result.success){
+		            		alert("成功！");
+		            		 
+		            	}else{
+		            		alert(result.msg);
+		            	}
+				   }
+			});      
+			  
+			 //下载
+			 $(".download").click(function(){
+				 var houseId = '${houseId}';//房源主键ID
+				 var imageIds = $(".houseimg").attr("code");
+				 window.open("<%=request.getContextPath()%>/house/downloadImages?houseId="+houseId+"&imageIds="+imageIds);
+			 })
+			 
+			  //显示图片
+			 $(".showhouseimg").click(function(){
+				 var shhId = '${houseId}';//房源主键ID
+         		$.post("<%=request.getContextPath()%>/house/getFile",{shhId:shhId,attachType:"01"},function(d){
+         			$(".img-show").empty();
+         			for(var i=0;i<d.data.length;i++){
+         				var div = '<div style="margin:10px;">'
+         						+'<div>'+d.data[i].pictureName+'</div>'
+         						+'<div><img class="houseimg" id="'+d.data[i].id+'" code="'+d.data[i].code+'" src="'+d.data[i].path+'"></div>'
+         						+'<div class="layui-form-item">'
+         						+'<label class="layui-form-label">图片类型</label>'
+         					    +'<div class="layui-input-block">'
+         					    	+'<select name="myPictureType" lay-filter="">'
+         					        	+'<option value="1">房型图</option>'
+         						  		+'<option value="2">卧室</option>'
+         						  		+'<option value="3">客厅</option>'
+         						  		+'<option value="4">阳台</option>'
+         					        +'</select>'
+         					    +'</div>'
+         					    +'</div>'
+         				         +'</div>'
+         				$(".img-show").append(div);
+         			}
+         		})
+			 })
+			 
+			  
+			  $(".openHouseimgUpload").click(function(){
+				  openModel("上传房源图片",'500px','460px',$(".uploadImgModel"))
+			  })
+			  
+			  
+			  $(".changestatus").click(function(){
+				  var houseStatus = $(".status").text();
+				  var param = {
+						  houseStatus:houseStatus  
+				  }
+				 <%--  $.post("<%=request.getContextPath()%>/house/getHouseStatusType",{},function(){
+					  
+				  }) --%>
+				  openModel("变更状态",'500px','260px',$(".changestatusModel"),param)
+			  });
+			  
+			  $(".houseclose").click(function(){
+				  openModel("申请封盘",'500px','460px',$(".houseCloseModel"))
+			  });
+			  
+			  
+			  $(".updateusage-btn").click(function(){
+				  openModel("变更用途",'500px','260px',$(".changeUsageModel"))
+			  });
+			  
+			  $(".writefollow").click(function(){
+				  openModel("写跟进",'800px','700px',$(".followModel"))
+			  });
+			  
+			  $(".writelook-btn").click(function(){
+				  openModel("写带看",'600px','400px',$(".lookHouseModel"))
+			  });
+			  
+			  $(".updateowner").click(function(){
+				 // var ownerid = $(".updateowner").attr("id");
+				  var ownername = $(".owner").text();
+				  var nametype = $(".nameTitle").attr("nametype");
+				  //var nametitle = $(".nameTitle").text();
+				  //var relatetype = $(".relateName").attr("relatetype");
+				  var param = {
+						  ownername:ownername,
+						  nametype:nametype
+				  }
+				  openModel("修改业主",'500px','260px',$(".updateOwnerModel"),param)
+			  });
+			  $(".addphone").click(function(){
+				  openModel("新增电话",'500px','260px',$(".addphoneModel"))
+			  });
+			  
+			  $(".updatephone").click(function(){
+				  var phone = $(this).parent().find(".phone").text();
+				  var relateName = $(this).parent().find(".relateName").text();
+				  var param = {
+						  phone:phone,  
+						  relateName:relateName
+				  }
+				  openModel("修改电话",'500px','260px',$(".updatephoneModel"),param)
+			  });
+			  
+			  $(".changeowner").click(function(){
+				  openModel("变更业主",'500px','460px',$(".changeOwnerModel"))
+			  });
+			  
+			  $(".updateprice").click(function(){
+				  var rminSellingPrice = $(".minSellingPrice").text();
+				  var rminRentPrice = $(".minRentPrice").text(); 
+				  var param = {
+						  rminSellingPrice:rminSellingPrice,
+						  rminRentPrice:rminRentPrice
+				  }
+				  openModel("修改低价",'500px','260px',$(".updatepriceModel"),param)
+			  });
+			  
+			  $(".updatewh").click(function(){
+				 var realname =  $(this).prev().find(".realname").text();
+				 var param = {
+						 realname:realname
+				  }
+				  openModel("变更维护人",'500px','260px',$(".updateOperatorModel"),param)
+			  });
+			  
+			  $(".setys").click(function(){
+				  var yscode = $(".keyCode").text(); 
+				  var param = {
+						  yscode:yscode
+				  }
+				  openModel("设置钥匙",'500px','460px',$(".setysModel"),param)
+			  });
+			  
+			  $(".setimg").click(function(){
+				  openModel("设置图片人",'500px','260px',$(".setimgModel"))
+			  });
+			  
+			  $(".setdj").click(function(){
+				  openModel("设置独家",'500px','460px',$(".setdjModel"))
+			  });
+			  $(".setwt").click(function(){
+				  openModel("设置委托",'500px','460px',$(".setwtModel"))
+			  });
+			  
+			  $(".showPricedetail").click(function(){
+				  var shhId = '${houseId}';
+				  
+				  var cols = [
+				  		 {field:"price",title:"当前价格",width:'100'},
+				 		 {field:"floatPrice",title:"浮动金额",width:'100'},
+				 		 {field:"operator",title:"操作人",width:'100'},
+				 		 {field:"changeType",title:"类型"}
+				 		 
+				  		];
+			  
+				  table.render({
+				    elem: '#pricedetail'
+				    ,height: 500
+				    ,url:"<%=request.getContextPath()%>/house/getPricedetail/?shhId="+shhId //数据接口
+				    ,page: true //开启分页
+				    ,cols: [cols]
+			  		,method:'post'
+			  		,done: function(res, curr, count){
+			  			
+			  		}
+				  }); 
+				  
+				  <%-- $.post("<%=request.getContextPath()%>/house/getPricedetail",{shhId:shhId},function(d){
+					  
+				  }) --%>
+				  
+				  openModel("改价历史",'500px','460px',$(".priceDetailModel"));
+			  });
+			  
+			  
+			  $(".showArchives").click(function(){
+				  var shhId = '${houseId}';
+				  
+				  var cols = [
+				  		 {field:"transactionType",title:"类型",width:'80'},
+				 		 {field:"status",title:"状态",width:'80'},
+				 		 {field:"houseId",title:"房源编号",width:'100'},
+				 		 {field:"communityName",title:"小区"},
+				 		 {field:"buildingsName",title:"坐栋"},
+				 		 {field:"buildingHouseName",title:"房号"},
+				 		{field:"floorCount",title:"楼层"},
+				 		{field:"room",title:"房型"},
+				 		{field:"buildSpace",title:"面积"},
+				 		{field:"sellingPrice",title:"售价"},
+				 		{field:"rentPrice",title:"租价"},
+				 		{field:"operator",title:"维护人"}
+				  		];
+			  
+				  table.render({
+				    elem: '#customerarchives'
+				    ,height: 500
+				    ,url:"<%=request.getContextPath()%>/house/getCustomerHouse/?shhId="+shhId //数据接口
+				    ,page: true //开启分页
+				    ,cols: [cols]
+			  		,method:'post'
+			  		,done: function(res, curr, count){
+			  			
+			  		}
+				  }); 
+				  
+				  openModel("客户档案",'650px','460px',$(".customerArchivesModel"));
+			  });
+			  
+			  
+			  laydate.render({
+				    elem: '.remindtime' //指定元素
+				  });
+			  
+			  laydate.render({
+				    elem: '.ystime' //指定元素
+				  });
+			  laydate.render({
+				    elem: '.djtime' //指定元素
+				  });
+			  laydate.render({
+				    elem: '.wttime' //指定元素
+				  });
+			  laydate.render({
+				    elem: '.fptime' //指定元素
+				  });
+			  
+			  
+			  //查看房源带看
+			  $(".houseLookRecord").click(function(){
+				  var shhId = '${houseId}';
+				  var cols = [
+				  		 {field:"companyName",title:"公司",width:'120'},
+				 		 {field:"operator",title:"带看人",width:'120'},
+				 		 {field:"deptname",title:"所在部门",width:'120'},
+				 		 {field:"content",title:"带看内容",width:'200'},
+				 		 {field:"addTime",title:"带看时间"}
+				 		 
+				  		];
+			  
+				  table.render({
+				    elem: '#lookhouse'
+				    ,height: 500
+				    ,url:"<%=request.getContextPath()%>/house/getLookHouse/?shhId="+shhId //数据接口
+				    ,page: true //开启分页
+				    ,cols: [cols]
+			  		,method:'post'
+			  		,done: function(res, curr, count){
+			  			
+			  		}
+				  }); 
+			  })
+			  
+			  //查看房源跟进
+			  $(".showfollowrecord").click(function(){
+				  var shhId = '${houseId}';
+				  var cols = [
+				  		 {field:"companyName",title:"公司",width:'120'},
+				 		 {field:"operator",title:"跟进人",width:'120'},
+				 		 {field:"deptname",title:"所在部门",width:'120'},
+				 		 {field:"content",title:"跟进内容",width:'200'},
+				 		 {field:"addTime",title:"跟进时间",width:'120'},
+				 		{field:"followTypeName",title:"跟进方式"}
+				  		];
+			  
+				  table.render({
+				    elem: '#followrecord'
+				    ,height: 500
+				    ,url:"<%=request.getContextPath()%>/house/getFollowRecord/?shhId="+shhId //数据接口
+				    ,page: true //开启分页
+				    ,cols: [cols]
+			  		,method:'post'
+			  		,done: function(res, curr, count){
+			  			
+			  		}
+				  }); 
+			  })
+			  
+			    //查看房源描述
+			 $(".houseDescription").click(function(){
+				  var shhId = '${houseId}';
+				  var cols = [
+				  		 {field:"companyName",title:"公司",width:'120'},
+				 		 {field:"operator",title:"跟进人",width:'120'},
+				 		 {field:"deptname",title:"所在部门",width:'120'},
+				 		 {field:"addTime",title:"跟进时间",width:'120'},
+				  		];
+			  
+				  table.render({
+				    elem: '#lookDescription'
+				    ,height: 500
+				    ,url:"<%=request.getContextPath()%>/house/getHouseDescription/?shhId="+shhId //数据接口
+				    ,page: true //开启分页
+				    ,cols: [cols]
+			  		,method:'post'
+			  		,done: function(res, curr, count){
+			  			
+			  		}
+				  }); 
+			  })
+			  
+			  
+			  //修改房源信息
+			  $(".updatehouseinfo").click(function(){
+				  var shhId = '${houseId}';
+				  window.location="<%=request.getContextPath()%>/house/editHouse?houseId="+shhId+"&formName="+info.houseInfo.houseUsesId;
+
+			  });
+			  
+			  form.on('checkbox(cancelorder)', function(data){
+				  if(data.elem.checked){//是否被选中，true或者false
+					  $(".cancelorder").attr("checked",true);
+				  }
+				});   
+			  
+		});
+		
+		
+		
+		/*弹出框*/
+		function openModel(title,width,height,divModel,param,myEvent) {
+			if(title=='变更状态'){
+				$("input[name='ystatus']").val(param.houseStatus);
+			}
+			if(title=='修改业主'){
+				//$("input[name='ownerid']").val(param.ownerid);
+				$("input[name='ownerName']").val(param.ownername);
+				$("select[name='nameTitle']").val(param.nametype);
+				form.render('select');
+			}
+			if(title=='修改电话'){
+				$("input[name='upownerphone']").val(param.phone);
+				$("input[name='upownerremark']").val(param.relateName);
+			}
+			if(title=='修改低价'){
+				$("input[name='minSellingPrice']").val(param.rminSellingPrice);
+				$("input[name='minRentPrice']").val(param.rminRentPrice);
+			}
+			
+			if(title=="变更维护人"){
+				$("input[name='ywh']").val(param.realname);
+			}
+			if(title=='设置钥匙'){
+				$("input[name='yscode']").val(param.yscode);
+			}
+			layer.open({
+				type: 1,
+				title:title ,
+				shade: [0],
+				area: [width, height],
+				offset: 'auto', //弹出位置
+				btnAlign: 'r',
+				content:divModel  //显示的url，no代表不显示滚动条
+				
+			});
+		}
+		
+		
+		
+		//更改房源图片信息
+		function updateHouseImg(){
+			var shhId = '${houseId}';
+			var id = $(".houseimg").attr("id");
+			var pictureType = $("select[name='myPictureType']").val();
+			  var options = $("select[name='myPictureType']").find("option");
+			  for(var i=0;i<options.length;i++){
+				 var val = $(options[i]).attr("value");
+				 if(pictureType == val)
+					 var pictureName = $(options[i]).text();
+			  }
+			//选中的图片的信息
+			var imgInfos = [];
+			var imgInfo = {
+					id:id,
+					isCover:1,
+					pictureType:pictureType,
+					pictureName:pictureName
+			}
+			imgInfos.push(imgInfo);
+			var data = {
+					shhId:shhId,	
+					imgInfos:imgInfos
+			}
+			 $.ajax({
+		            type: "POST",//方法类型
+		            dataType: "json",//预期服务器返回的数据类型
+		            contentType: 'application/json',
+		            data:JSON.stringify(data),
+		            url: "<%=request.getContextPath()%>/house/updateAttachment" ,//url	                
+		            success: function (result) {
+		            	if(result.success){
+		            		alert("成功！");
+		            	}else{
+		            		alert(result.msg);
+		            	}
+		            },
+		            error : function() {
+		            	
+		            },
+		            beforeSend : function() {
+		            	
+		            }
+		       }); 
+		} 
+		
+		
+		//变更审核
+		function changeExamine(type){
+			//var sourceCode = $(".houseId").text();
+			var sourceId = '${houseId}';
+			
+			var examineInfo = {
+					shhId:sourceId
+			 }
+			
+			if(type=='changestatus'){
+				
+				var newStateId = $("select[name='xstatus']").val();
+				var options = $("select[name='xstatus']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(newStateId == val)
+						 var newStateName = $(options[i]).text();
+				 }
+				 var reason = $("input[name='reason']").val();
+				
+				// examineInfo.auditTtypeId=1;
+				// examineInfo.auditTtypeName='修改状态';
+				 
+				 var remark = {
+						 statusId:newStateId,
+						 statusName:newStateName
+				 }
+				 examineInfo.remark = remark;
+				 examineInfo.content = reason;
+				 
+			}
+			
+			if(type=="houseclose"){
+				//examineInfo.auditTtypeId=6;
+				//examineInfo.auditTtypeName='房源封盘';
+				
+				//var peopleid = $("#fpdepartmentcode").val();
+				//var peoplename = $("#fpdepartment").val();
+				//examineInfo.applicantId = peopleid;
+				
+				var fptypeid = $("select[name='fptype']").val();
+				var options = $("select[name='fptype']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(fptypeid == val)
+						 var fptype = $(options[i]).text();
+				 }
+				
+				var fptime = $(".fptime").val();
+				var remark = {
+						closeHouseTypeId:fptypeid,
+						closeHouseType:fptype,
+						closeHouseEndTime:fptime
+				}
+				examineInfo.remark = remark;
+				var reason = $(".fpreason").val();
+				examineInfo.content = reason;
+				
+			}
+			 
+			if(type=="houseopen"){
+				//examineInfo.auditTtypeId=5;
+				//examineInfo.auditTtypeName='开盘';
+				var statusId = info.houseInfo.statusId;
+				var entryRecordid = $(".setzr").attr("id");
+				var opendiscRecordid = $(".setkp").attr("id");
+				var mainterRecordid = $(".updatewh").attr("id");
+				var transactionTypeId = $("select[name='transactionType']").val();
+				var options = $("select[name='transactionType']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(transactionTypeId == val)
+						 var transactionType = $(options[i]).text();
+				 }
+				var sellingPrice = $("input[name='sellprice']").val();
+				//alert(sellingPrice)
+				var rentPrice = $("input[name='rentprice']").val();
+				var rentPriceTypeId = $("select[name='rentpriceunit']").val();
+				var options = $("select[name='rentpriceunit']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(rentPriceTypeId == val)
+						 var rentPriceTypeName = $(options[i]).text();
+				 }
+				
+				var remark = {
+						transactionTypeId:transactionTypeId,
+						transactionType:transactionType,
+						sellingPrice:sellingPrice,
+						rentPrice:rentPrice,
+						rentPriceTypeId:rentPriceTypeId,
+						rentPriceTypeName:rentPriceTypeName,
+						statusId:statusId,
+						entryRecordid:entryRecordid,
+						opendiscRecordid:opendiscRecordid,
+						mainterRecordid:mainterRecordid
+				}
+				examineInfo.remark = remark;
+				examineInfo.content = "开盘";
+			}
+			
+			if(type=="tipoff"){
+				//examineInfo.auditTtypeId=3;
+				//examineInfo.auditTtypeName='房源举报';
+				var mainterRecordid = $(".updatewh").attr("id");
+				var tipoffid = $("select[name='tipoffType']").val();
+				var options = $("select[name='tipoffType']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(tipoffid == val)
+						 var tipoffName = $(options[i]).text();
+				 }
+				//examineInfo.handleType = tipoffid;
+				 var reason = $(".tipoffreason").val();
+				 examineInfo.content = reason;
+				 var remark = {
+						 mainterRecordid:mainterRecordid,
+						 accusationTypeId:tipoffid,
+						 accusationType:tipoffName,
+						 accusationReason:reason
+				 }
+				examineInfo.remark = remark;
+			}
+			
+			if(type=='fromtaobao'){
+				var mainterRecordid = $(".updatewh").attr("id");
+				var remark = {
+					mainterRecordid:mainterRecordid,
+			   }
+			   examineInfo.remark = remark;
+			}
+			var data = {
+					type:type,
+					examineInfo:examineInfo
+			}
+			 $.ajax({
+		            type: "POST",//方法类型
+		            dataType: "json",//预期服务器返回的数据类型
+		            contentType: 'application/json',
+		            data:JSON.stringify(data),
+		            url: "<%=request.getContextPath()%>/house/changeExamine" ,//url	                
+		            success: function (result) {
+		            	if(result.success){
+		            		alert("成功！");
+		            	}else{
+		            		alert(result.msg);
+		            	}
+		            },
+		            error : function() {
+		            	
+		            },
+		            beforeSend : function() {
+		            	
+		            }
+		        }); 
+		}
+		
+		
+		//改变一些状态信息
+		function changeStatus(type){
+			var id = '${houseId}';
+			//进淘宝池
+			if(type=="toTaobao"){
+				//var statusId = 1;
+				//var status = '淘宝池';
+				var statusInfo = {
+						id:id,
+						//taobaoStatusId:statusId,
+						//taobaoStatus:status,
+				}
+			}
+			//改变用途
+			if(type=="changeUsage"){
+				var statusId = $("select[name='xusage']").val();
+				var options = $("select[name='xusage']").find("option");
+				for(var i=0;i<options.length;i++){
+					 var val = $(options[i]).attr("value");
+					 if(statusId == val)
+						 var status = $(options[i]).text();
+				 }	
+				var statusInfo = {
+						id:id,
+						houseUsesId:statusId,
+						houseUses:status,
+				}
+			}
+			//收为私盘
+			if(type=="setPrivatedisc"){
+				//var statusId = 1;
+				//var status = '私盘';
+				var recordid = $(".updatewh").attr("id");
+				var statusInfo = {
+						id:id,
+						recordid:recordid
+						//discStatusId:statusId,
+						//discStatus:status,
+				}
+			}
+			var data = {
+					type:type,
+					statusInfo:statusInfo
+			}
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/changeSomeStatus" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+		}
+		
+		
+		
+		//设置置顶
+		function setTop(){
+			var shhId = '${houseId}';
+			$.post("<%=request.getContextPath()%>/house/updateTag",{shhId:shhId,type:"top",status:1},function(d){
+				if(d.success){
+					 alert("成功！");
+				 }else{
+					 alert(data.msg); 
+				 }
+			})
+		}
+		
+		//取消置顶
+		function cancelTop(){
+			var shhId = '${houseId}';
+			$.post("<%=request.getContextPath()%>/house/updateTag",{shhId:shhId,type:"top",status:0},function(d){
+				if(d.success){
+					 alert("成功！");
+				 }else{
+					 alert(data.msg); 
+				 }
+			})
+		}
+		
+		//设置和取消收藏
+		function setStore(){
+			var shhId = '${houseId}';
+			if($(".store").hasClass("hasStore")){
+				$(".store").removeClass("hasStore");
+				var status = 0;
+			}else{
+				$(".store").addClass("hasStore");
+				var status = 1;
+			}
+			$.post("<%=request.getContextPath()%>/house/updateTag",{shhId:shhId,type:"store",status:status},function(d){
+				if(d.success){
+					 alert("成功！");
+				 }else{
+					 alert(data.msg); 
+				 }
+			})
+		}
+		
+		//取消靓房
+		function cancelGood(){
+			var shhId = '${houseId}';
+			$.post("<%=request.getContextPath()%>/house/updateTag",{shhId:shhId,type:"good",status:0},function(d){
+				if(d.success){
+					 alert("成功！");
+				 }else{
+					 alert(data.msg); 
+				 }
+			})
+		}
+		
+		//保存跟进
+		function saveFollow(){
+			var id = info.customerInfo.id;
+			//跟进
+			var followtypeid = $("select[name='followtype']").val();
+			var options = $("select[name='followtype']").find("option");
+			 for(var i=0;i<options.length;i++){
+				 var val = $(options[i]).attr("value");
+				 if(followtypeid == val)
+					 var followtype = $(options[i]).text();
+			 }
+			var followcontent = $(".followcontent").val();
+			//提醒
+			var remindpeopleid = $("#tsdepartmentcode").val();
+			var remindpeople = $("#tsdepartment").val();
+			var remindtime = $(".remindtime").val();
+			var remindcontent = $(".remindcontent").val();
+			
+			var followInfo = {
+					custId:id,
+					followType:followtypeid,
+					followTypeName:followtype,
+					content:followcontent
+			}
+			var remindInfo = {
+					receivePeopleId:remindpeopleid,
+					receivePeopleName:remindpeople,
+					remindTime:remindtime,
+					remindContent:remindcontent
+			}
+			
+			var data = {
+					followInfo:followInfo,
+					remindInfo:remindInfo,
+					cancelOrder:1
+			}
+			
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/saveCustomerFollowAndRemind" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("保存成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+		}
+		
+		
+		//修改业主
+		function updateOwner(){
+			// var ownerid = $(".updateowner").attr("id");
+			 var ownername = $("input[name='ownerName']").val();
+			 var nametype = $("select[name='nameTitle']").val();
+			 var options = $("select[name='nameTitle']").find("option");
+			 for(var i=0;i<options.length;i++){
+				 var val = $(options[i]).attr("value");
+				 if(nametype == val)
+					 var nametitle = $(options[i]).text();
+			 }
+			 var shhId = '${houseId}';
+			 var data = {
+					 id:shhId,
+					 owner:ownername,
+					 nameType:nametype,
+					 nameTitle:nametitle
+			 }
+			 
+			 $.ajax({
+		            type: "POST",//方法类型
+		            dataType: "json",//预期服务器返回的数据类型
+		            contentType: 'application/json',
+		            data:JSON.stringify(data),
+		            url: "<%=request.getContextPath()%>/house/UpdateHouseOwner" ,//url	                
+		            success: function (result) {
+		            	if(result.success){
+		            		alert("保存成功！");
+		            	}else{
+		            		alert(result.msg);
+		            	}
+		            },
+		            error : function() {
+		            	
+		            },
+		            beforeSend : function() {
+		            	
+		            }
+		        });  
+		}
+		//新增业主电话
+		function addPhone(){
+			var shhId = '${houseId}';
+			var ownerphone = $("input[name='ownerphone']").val();
+			var ownerremark = $("input[name='ownerremark']").val();
+			var data={
+				shhId:shhId,
+				phone:ownerphone,
+				remark:ownerremark
+			}
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/saveOwnerPhone" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("保存成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+			
+		}
+		
+		//删除业主电话
+		function delPhone(obj){
+			var phonerecordid = $(obj).attr("tag");
+			$.post("<%=request.getContextPath()%>/house/delOwnerPhone",{id:phonerecordid},function(d){
+				if(d.success){
+            		alert("成功！");
+            	}else{
+            		alert(d.msg);
+            	}
+			});
+		}
+		//修改业主电话
+		function updatePhone(){
+			var phonerecordid = $(".updatephone").attr("tag");
+			var ownerphone = $("input[name='upownerphone']").val();
+			var ownerremark = $("input[name='upownerremark']").val();
+			var data={
+					id:phonerecordid,
+					phone:ownerphone,
+					remark:ownerremark
+				}
+				$.ajax({
+		            type: "POST",//方法类型
+		            dataType: "json",//预期服务器返回的数据类型
+		            contentType: 'application/json',
+		            data:JSON.stringify(data),
+		            url: "<%=request.getContextPath()%>/house/updateOwnerPhone" ,//url	                
+		            success: function (result) {
+		            	if(result.success){
+		            		alert("保存成功！");
+		            	}else{
+		            		alert(result.msg);
+		            	}
+		            },
+		            error : function() {
+		            	
+		            },
+		            beforeSend : function() {
+		            	
+		            }
+		        });  
+		}
+		
+		//变更业主
+		function saveNewOwner(){
+			var ownername = $("input[name='newowner']").val();
+			var nametype = $("select[name='newnameTitle']").val();
+			
+			 var options = $("select[name='newnameTitle']").find("option");
+			 for(var i=0;i<options.length;i++){
+				 
+				 var val = $(options[i]).attr("value");
+				 if(nametype == val)
+					 var nametitle = $(options[i]).text();
+			 }
+			 var phone = $("input[name='newphone']").val();
+			 var remark = $("input[name='newremark']").val();
+			 var shhId = '${houseId}';
+			 var owner = {
+					 id:shhId,
+					 owner:ownername,
+					 nameType:nametype,
+					 nameTitle:nametitle
+			 }
+			 
+			 var ownerphone = {
+					 shhId:shhId,
+					 phone:phone,
+					 remark:remark
+			 }
+			 var data = {
+					 houseId:shhId,
+					 owner:owner,
+					 ownerphone:ownerphone
+			 }
+			 
+			 $.ajax({
+		            type: "POST",//方法类型
+		            dataType: "json",//预期服务器返回的数据类型
+		            contentType: 'application/json',
+		            data:JSON.stringify(data),
+		            url: "<%=request.getContextPath()%>/house/changeHouseOwner" ,//url	                
+		            success: function (result) {
+		            	if(result.success){
+		            		alert("保存成功！");
+		            	}else{
+		            		alert(result.msg);
+		            	}
+		            },
+		            error : function() {
+		            	
+		            },
+		            beforeSend : function() {
+		            	
+		            }
+		        });  
+		}
+		
+		
+		
+		//变更维护人
+		function updateWh(){
+			var shhId = '${houseId}';
+			var yrecordid = $(".updatewh").attr("id");
+			var xwhid = $("#whdepartmentcode").val();
+			var xwh = $("#whdepartment").val();
+			
+			<%-- $.post("<%=request.getContextPath()%>/house/updateMaintenance",{shhId:shhId,yrecordid:yrecordid,xwhid:xwhid,xwh:xwh},function(data){
+				
+			}) --%>
+			var data = {
+					shhId:shhId,
+					recordid:yrecordid,
+					peopleid:xwhid,
+					people:xwh,
+					type:"wh"
+			}
+			
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/updateAgent" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("保存成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+			
+		}
+		
+		//设置图片人
+		function updateImg(){
+			var shhId = '${houseId}';
+			var imgrecordid = $(".setimg").attr("id");
+			var imgpeopleid = $("#imgdepartmentcode").val();
+			var imgpeople = $("#imgdepartment").val();
+			<%-- $.post("<%=request.getContextPath()%>/house/updateImgPeople",{shhId:shhId,imgrecordid:imgrecordid,imgpeopleid:imgpeopleid},function(result){
+				if(result.success){
+            		alert("保存成功！");
+            	}else{
+            		alert(result.msg);
+            	}
+			}); --%>
+			var data = {
+					shhId:shhId,	
+					recordid:imgrecordid,
+					peopleid:imgpeopleid,
+					people:imgpeople,
+					type:"img"
+			}
+			
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/updateAgent" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("保存成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+		}
+		
+		
+		
+		//保存房源描述
+		function saveHouseDescription(){
+			var shhId = '${houseId}';
+			var housedescription = $(".housedescription").val();
+			var houseremark = $(".houseremark").val();
+			var data = {
+					shhId:shhId,
+					description:housedescription,
+					remark:houseremark
+			}
+			$.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            contentType: 'application/json',
+	            data:JSON.stringify(data),
+	            url: "<%=request.getContextPath()%>/house/saveHouseDescription" ,//url	                
+	            success: function (result) {
+	            	if(result.success){
+	            		alert("保存成功！");
+	            	}else{
+	            		alert(result.msg);
+	            	}
+	            },
+	            error : function() {
+	            	
+	            },
+	            beforeSend : function() {
+	            	
+	            }
+	        });  
+			
+		}
+		</script>
+				
+	</body>
+	
+	
+	<!-- 变更状态 -->
+	<div class="changestatusModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">原状态</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="ystatus" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">现状态</label>
+			    <div class="layui-input-block ">
+			      <select name="xstatus" lay-filter="xstatus">
+			        <option value="4">他租</option>
+			        <option value="5">他售</option>
+			        <option value="6">暂缓</option>
+			        <option value="1">有效</option>
+			      </select>
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">变更理由</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="reason" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="changeExamine('changestatus');">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 申请封盘 -->
+	<div class="houseCloseModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			
+			<div class="layui-form-item">
+				<label class="layui-form-label">封盘类型</label>
+			    <div class="layui-input-block ">
+			      <input type="text" name="fptype" class="layui-input" value="封电话">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">到期日期</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="fptime" class="layui-input fptime">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">封盘原因</label>
+			    <div class="layui-input-block ">
+			      <textarea placeholder="请输入内容" name="fpreason" class="layui-textarea fpreason"></textarea>
+			    </div>
+			</div>
+			
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="changeExamine('houseclose');">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 改变用途 -->
+	<div class="changeUsageModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">房屋用途</label>
+			    <div class="layui-input-block ">
+			      <select name="xusage" lay-filter="xusage">
+			        <option value="1">住宅</option>
+			        <option value="2">别墅</option>
+			      </select>
+			    </div>
+			</div>
+			
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="changeStatus('changeUsage');">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+
+	
+	<!-- 弹出填写跟进 -->
+	<div class="followModel" style="display:none;">
+		<div class="layui-row">
+			<div class="layui-col-md8">
+				<form class="layui-form">
+					<div class="layui-row">
+						<div class="layui-col-md6">
+							<div class="layui-form-item" >
+							    <label class="layui-form-label">跟进方式</label>
+							    <div class="layui-input-block">
+							      <select name="followtype" lay-filter="followtype">
+							        <option value="1">实勘</option>
+							         <option value="2">谈委托</option>
+							         <option value="3">店面面谈</option>
+							          <option value="4">派单</option>
+							      </select>
+							    </div>
+						  	</div>
+						</div>
+						<div class="layui-col-md6">
+							<div class="layui-form-item">
+							    <div class="layui-input-block ">
+							      <input type="checkbox" name="" title="通知撤单" value="" class="cancelorder" lay-filter="cancelorder">
+							    </div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="layui-form-item">
+					    <label class="layui-form-label">跟进内容</label>
+					    <div class="layui-input-block ">
+					      <textarea placeholder="请输入内容" name="followcontent" class="layui-textarea followcontent"></textarea>
+					    </div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">提醒人</label>
+					    <div class="layui-input-block ">
+					      <input type="hidden" name=""  id="tsdepartmentcode" value="" class="layui-input">
+					      <input type="text" name=""  id="tsdepartment" value="" class="layui-input">
+					    </div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">提醒时间</label>
+					    <div class="layui-input-block ">
+					      <input type="text" name=""  value="" class="layui-input remindtime">
+					    </div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">提醒内容</label>
+					    <div class="layui-input-block ">
+					      <textarea placeholder="请输入内容" name="" class="layui-textarea remindcontent"></textarea>
+					    </div>
+					</div>
+					<div class="layui-form-item">
+					    <div class="layui-input-block">
+					      <button type="button" class="layui-btn "  lay-filter="*" onclick="saveFollow();">保存</button>
+					      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+					      
+					    </div>
+					 </div>
+				</form>
+			</div>
+			<div class="layui-col-md4">
+				二维码
+			</div>
+		</div>
+		
+	</div>
+
+	
+	<!-- 弹出修改业主-->
+	<div class="updateOwnerModel" style="display:none;">
+		<div class="layui-form" style="padding:10px">
+			<input type="hidden" name="ownerid">
+			<div class="layui-form-item">
+				<label class="layui-form-label">业主</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="ownerName" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">性别</label>
+			    <div class="layui-input-block">
+			      <select name="nameTitle" lay-filter="aihao">
+			        <option value="1">先生</option>
+				  	<option value="2">女士</option>
+				  	<option value="3">公司</option>
+			      </select>
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="updateOwner();">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 弹出新增电话-->
+	<div class="addphoneModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">电话</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="ownerphone" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">备注</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="ownerremark" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="addPhone();">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 弹出修改电话-->
+	<div class="updatephoneModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">电话</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="upownerphone" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">备注</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="upownerremark" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="updatePhone();">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 变更业主-->
+	<div class="changeOwnerModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">业主姓名</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="newowner" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">业主性别</label>
+			    <div class="layui-input-block">
+			      <select name="newnameTitle" lay-filter="">
+			        <option value="1">先生</option>
+				  	<option value="2">女士</option>
+				  	<option value="3">公司</option>
+			      </select>
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">电话</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="newphone" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">备注</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="newremark" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="saveNewOwner();">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+
+	<!--变更维护人-->
+	<div class="updateOperatorModel" style="display:none;">
+		<div class="layui-form" style="padding:10px;">
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">原维护人</label>
+			    <div class="layui-input-block ">
+			      <input type="text" placeholder="请输入内容" name="ywh" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">现维护人</label>
+			    <div class="layui-input-block ">
+			      <input type="hidden" id="whdepartmentcode" class="layui-input">
+			      <input type="text" placeholder="请输入内容" name="xwh" id="whdepartment" class="layui-input">
+			    </div>
+			</div>
+			<div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <button type="button" class="layui-btn "  lay-filter="*" onclick="updateWh();">保存</button>
+			      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+			      
+			    </div>
+			</div>
+		</div>
+	</div>
+	
+	
+	
+	
+	
+	<!--改价历史-->
+	<div class="priceDetailModel" style="display:none;">
+		<table id="pricedetail" lay-filter="" ></table>
+	</div>
+	<!--客户档案-->
+	<div class="customerArchivesModel" style="display:none;">
+		<table id="customerarchives" lay-filter="" ></table>
+	</div>
+	<!--上传房源图片-->
+	<div class="uploadImgModel" style="display:none;">
+		<div class="layui-form">
+			<div class="layui-form-item">
+				<label class="layui-form-label">图片类型</label>
+			    <div class="layui-input-block">
+			      <select name="pictureType" lay-filter="">
+			        <option value="1">房型图</option>
+				  	<option value="2">卧室</option>
+				  	<option value="3">客厅</option>
+				  	<option value="4">阳台</option>
+			      </select>
+			    </div>
+			</div>
+			<div>
+				<button type="button" class="layui-btn" id="uploadimg">
+				  <i class="layui-icon">&#xe67c;</i>选择图片
+				</button>
+				<input class="layui-upload-file" type="file" name="file" multiple="false">
+				<button type="button" class="layui-btn houseimgSureUpload" >
+				  <i class="layui-icon"></i>上传
+				</button>
+			</div>
+		</div>
+		
+	</div>
+</html>

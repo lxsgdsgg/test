@@ -1,0 +1,146 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityServiceImpl.java   
+ * @Package com.bashiju.www.service.community.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月24日 下午4:43:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.service.community.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.www.mapper.CommunityMapper;
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.community.CommunityDetail;
+import com.bashiju.www.pojo.service.community.CommunityQueryParams;
+import com.bashiju.www.pojo.service.community.HotCommunity;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.service.community.CommunityService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+import javassist.expr.NewArray;
+
+/**   
+ * @ClassName:  CommunityServiceImpl   
+ * @Description:小区信息服务   
+ * @author: yangz
+ * @date:   2018年7月24日 下午4:43:49   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CommunityServiceImpl implements CommunityService {
+
+	@Autowired
+	private CommunityMapper communityMapper;
+	
+	
+	/**
+	 * @Description: 条件查询小区信息   
+	 * @param params 查询参数
+	 * @return: Page<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryCommunitys(com.bashiju.www.pojo.service.out.comm.CommunityQueryParams)   
+	 */
+	@Override
+	public Page<Community> queryCommunitys(CommunityQueryParams params) {
+		if(params==null)
+			throw new BusinessException("查询条件不允许为空");
+		if(StringUtils.isEmpty(params.getCityCode()))
+			throw new BusinessException("城市代码不允许为空");
+		//当每页显示的条数超过60条，则默认只显示30条
+		PageHelper.startPage(params.getPageNum(), params.getPageSize());
+		Page<Community> page = (Page<Community>) this.communityMapper.queryCommunitys(params);
+		return page;
+	}
+
+
+	/**
+	 * @Description: 查询城市下的热门小区  
+	 * @param cityCode 城市代码
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#queryHotCommunitys(java.lang.String)   
+	 */
+	@Override
+	public List<HotCommunity> queryHotCommunitys(String cityCode) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市代码不允许为空");
+		return communityMapper.queryHotCommunitys(cityCode);
+	}
+
+
+	
+	/**
+	 * @Description: 条件查询小区详情
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#getCommunityDetail(java.lang.String)   
+	 */
+	
+	@Override
+	public CommunityDetail getCommunityDetail(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		//1.先查询小区的详细信息
+		CommunityDetail communityDetail = communityMapper.getCommunityDetail(communityId);
+		//2.查询小区图片列表，将图片列表封装到小区详情中
+		List<String> communityImges = communityMapper.queryCommunityImages(communityId);
+		communityDetail.setPictures(communityImges);
+		return communityDetail;
+	}
+
+
+	
+	/**
+	 * @Description: 条件查询出售房源
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#querySealHousingByCommunityId(java.lang.String)   
+	 */
+	@Override
+	public List<HouseListResult> querySealHousingByCommunityId(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		List<HouseListResult> selllHousing = communityMapper.querySealHousingByCommunityId(communityId);
+		return selllHousing;
+	}
+
+
+	/**
+	 * @Description: 条件查询出租房源
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#queryLeaseHousingByCommunityId(java.lang.String)
+	 */
+	@Override
+	public List<HouseListResult> queryLeaseHousingByCommunityId(String communityId) {
+		 if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		 List<HouseListResult> leaseHousing =	communityMapper.queryLeaseHousingByCommunityId(communityId);
+		 return leaseHousing;
+	}
+
+
+	/**
+	 * @Description: 条件查询附近小区
+	 * @param regionId 片区id
+	 * @return: List<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryNearbyCommunityIdByRegionId(java.lang.String) 
+	 */
+	@Override
+	public List<Community> queryNearbyCommunityIdByRegionId(String regionId) {
+		if(StringUtils.isEmpty(regionId))
+			throw new BusinessException("片区id不能为空");
+		List<Community> earbyCommunity 	=	communityMapper.queryNearbyCommunityIdByRegionId(regionId);
+		return earbyCommunity;
+	}
+
+}

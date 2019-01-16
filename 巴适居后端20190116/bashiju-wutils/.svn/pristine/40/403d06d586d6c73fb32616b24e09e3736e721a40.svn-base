@@ -1,0 +1,39 @@
+package com.bashiju.www.pojo.service.out.newhouse;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   新房楼盘户型信息
+ * @ClassName:  NewHouseTypeList   
+ * @Description:  新房楼盘户型信息
+ * @author: liwen
+ * @date:   2018年8月18日 下午17:05:02       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class NewHouseTypeList implements Serializable{
+	
+	private static final long serialVersionUID = 2593752829256238125L;
+	/**户型数量**/
+	private int count;
+	/**名称**/
+	private String name;
+	/**面积**/
+	private double buildingArea;
+	/**价格**/
+	private int totalPrice;
+	/**室**/
+	private String room;
+	/**厅**/
+	private int hall;
+	/**卫**/
+	private int toilet;
+	/**特色描述**/
+	private String characteristicName;
+	/**图片**/
+	private String url;
+}

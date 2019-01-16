@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.BuildingMapper">
+
+	<select id="queryBuildingsByCommunity" resultType="map">
+		SELECT id,name,buildYear,buildingUnitCount,floorTotal,buildUnitAlias FROM sys_buildings WHERE communityId=#{cid}
+	</select>
+	
+	<select id="queryBuildingUnitsByBuild" resultType="map" >
+		SELECT id,`name`,unitAlias,unitElevatorCount,unitHouseCount,floorTotal,houseStartNumber FROM sys_bulidingunit WHERE buildingId=#{bid}
+	</select>
+	
+	<select id="queryHouseByUnit" resultType="map" >
+		SELECT id,houseNumber,floor,code FROM sys_buildinghouse WHERE buildingUnitId=#{buid}
+	</select>
+	
+	<select id="queryBuildingsById" resultType="map" >
+		SELECT * from sys_buildings WHERE id=#{id}
+	</select>
+	
+	<select id="queryBuildingUnitsById" resultType="map" >
+		SELECT * from sys_bulidingunit WHERE id=#{id}
+	</select>
+	
+	<select id="countBuildingsByName" resultType="long" >
+		SELECT count(*) from sys_buildings WHERE name =#{name} and communityId=#{communityId}
+	</select>
+	
+	<select id="countBuildingUnitsByName" resultType="long" >
+		SELECT count(*) from sys_bulidingunit WHERE name =#{name} and buildingId=#{buildingId}
+	</select>
+	
+	<select id="getRegionList" resultType="map" >
+		<![CDATA[select * from(select code,name,parentCode,'1' as level from sys_area where parentCode = #{rgCode} and isvalid = 1 
+		union all select id as code,name as name,areacode as parentCode,'2' as level from sys_region 
+		where areacode in(select code from sys_area where parentCode = #{rgCode} and isvalid = 1)
+		union all select id as code,name,regionId as parentCode,'3' as level from sys_community where isValid =1 
+		and regionId in(select id from sys_region where areacode in(select code from sys_area where parentCode = #{rgCode} 
+		and isvalid = 1)))aa order by level ]]>
+	</select>
+</mapper>

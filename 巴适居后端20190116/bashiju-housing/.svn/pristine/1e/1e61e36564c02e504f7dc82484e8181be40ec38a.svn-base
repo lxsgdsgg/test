@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.ErHousingMapper">
+	<select id="queryDataList" resultType="java.util.LinkedHashMap">
+		select * from error_log
+	</select>
+	<select id="queryDept" resultType="map">
+		select (select max(FORMAT((length(id)-length(companyId))/2,0)+1) as maxLevel from sys_dept where isvalid = 1) 
+			as maxLevel,id as code,name,parentId as parentCode,FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			union all
+			select (select max(FORMAT((length(id)-length(companyId))/2,0) +1)  from sys_dept where isvalid=1) as maxLevel,
+			a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+1)  
+			from sys_dept where isvalid=1) as level from sys_user a left join sys_dept b on 
+			a.deptId = b.id where a.isValid = 1 and b.isvalid = 1
+
+	</select>
+	<select id="queryMainter" resultType="map">
+		select maintainId,maintainer from hs_secondhandhouse where id=#{houseId} and isValid = 1
+	</select>
+	<select id="queryHouseByMainter" resultType="int">
+		select count(0) from hs_secondhandhouse where discStatusId=1 and maintainId=#{maintainId} and isValid = 1
+	</select>
+	<!-- 算经纪人业绩用 -->
+	<select id="querySomeInfoByhouseId" resultType="map">
+		select a.companyId,a.companyName,a.houseUsesId,a.transactionTypeId,a.sellingPrice,a.rentPrice,b.cityCode from hs_secondHandHouse a INNER JOIN hs_houseBaseInfo b on a.id=#{houseId} and a.houseId = b.id
+	</select>
+	<select id="queryAchievementRate" resultType="int">
+		select commisionRate from performance_type_config_detail where companyId=#{companyId} and rgCode=#{cityCode} and commisionType=#{achievementType} and isValid = 1
+	</select>
+	<select id="queryPricedetail" resultType="map">
+		select a.*,b.name as deptName from hs_changepricerecord a INNER JOIN sys_dept b on a.shhId = #{houseId} and a.isvalid = 1 and a.deptId = b.id
+	</select>
+	<select id="queryCustomerHouse" resultType="map">
+		SELECT c.transactionType,c.status,c.houseId,c.room,c.hall,c.toilet,c.kitchen,c.balcony,c.buildSpace,c.sellingPrice,c.rentPrice,c.maintainer,d.communityName,d.buildingsName,d.buildingHouseName,d.floorCount from hs_secondhandhouse c inner join hs_housebaseinfo d on c.id in(select DISTINCT b.shhId from hs_houseownerrelate b where b.phone in(select a.phone from hs_houseownerrelate a WHERE a.shhId=#{houseId} and a.isValid=1) and b.isValid=1 and b.companyId=#{companyId}) and c.houseId = d.id
+	</select>
+	<select id="queryCustomerDemand" resultType="map">
+		SELECT c.id as demandId, c.status,c.discStatus,c.areaNames,c.minSpace,c.maxSpace,c.minPrice,c.maxPrice,c.minRoom,c.maxRoom,c.orientation,c.minFloorCount,c.maxFloorCount,c.maintainer from demand_customerbusinessinfo c where c.id in(select DISTINCT b.demandId from demand_custrelaterphone b WHERE b.phone in(select a.phone from hs_houseownerrelate a where a.shhId=#{houseId} and a.isValid=1 ) and b.isValid=1 and b.companyId=#{companyId}) and c.transactionTypeId=#{transactionTypeId}
+	</select>
+	<select id="queryLookHouse" resultType="map">
+		select a.*,b.name as deptName from demand_showedrecord a INNER JOIN sys_dept b on a.sourceId=#{shhId} and a.houseType=#{houseType} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryFollowRecord" resultType="map">
+		select a.*,b.name as deptname from hs_followrecord a INNER JOIN sys_dept b on a.shhId = #{houseId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryStore" resultType="map">
+		select * from hs_mycollection where shhId=#{houseId} and operatorId = #{userId}
+	</select>
+	
+	<select id="queryDeptName" resultType="map">
+		select a.companyId,a.deptId,a.realName,b.name as deptName,c.name as companyName from sys_user a INNER JOIN sys_dept b on a.id=#{id} and a.deptId = b.id INNER JOIN sys_company c on a.companyId = c.id
+	</select>
+	
+	<!-- <select id="queryHouseInfo" resultType="map">
+		select a.id,a.houseId,a.companyId,a.companyName,a.titles,a.transactionTypeId,a.transactionType,a.contractEndDate,a.statusId,a.status,a.examineStatus,a.discStatusId,a.discStatus,a.taobaoStatusId,
+		a.taobaoStatus,a.houseUsesId,a.houseUses,a.useSpace,a.buildSpace,a.orientationId,a.orientation,a.decorationId,a.decoration,
+		a.matchingIds,a.matching,a.resourceTypeId,a.resourceType,a.buildDates,a.propertyTypeId,a.propertyType,a.certificateDate,
+		a.sellingPrice,a.rentPrice,a.rentPriceTypeId,a.rentPriceTypeName,a.levelType,a.remark,a.addTime,a.allFollowTime,a.permissionArea,a.operatorId,
+		a.operator,a.mainterDept,a.mainterFllowTime,a.isSynchron,a.isSatisfyTwoYear,a.isOnly,a.isUrgent,a.isFullAmount,a.changePriceFlg,a.isKeys,
+		a.isUnique,a.isIntrust,a.closeDiscFlg,a.isCancelNotice,a.isSetTop,a.isGood,a.labeld,a.ownerId,a.owner,a.nameType,a.nameTitle,a.structureId,
+		a.structure,a.room,a.hall,a.toilet,a.kitchen,a.balcony,a.panorama,a.propRightsLenId,a.propRightsLen,a.houseTypeId,a.houseType,a.rentPriceUnitId,
+		a.rentPriceUnit,a.taxpayerId,a.taxpayer,a.viewingTypeId,a.viewingType,a.isPicture,a.isVideo,a.officeBuildLevel,a.isDeposit,a.viewingCount,
+		a.officeBuildLevelId,a.officeBuildRate,a.floorHeight,a.positionId,a.position,a.industryId,a.industry,a.actualityId,a.actuality,
+		a.planTypeId,a.planType,a.situationId,a.situation,a.entrustCode,a.keyCode,a.percentage,a.payTypeId,a.payType,a.openPlateDate,a.lastShowedTime,a.lastAllShowedTime,
+		a.verificationCode,a.lastTradingTime,a.mortgageId,a.mortgageName,a.isUploadCertificate,a.heatingModeId,a.heatingModeName,a.tradingRightsId,a.tradingRightsName,a.housingYears,a.housingYearsId,
+		b.id as houseCode,b.cityCode,b.areaCode,b.areaName,b.regionId,b.regionName,b.communityId,b.communityName,b.buildingsId,b.buildingsName,b.bulidingUnitId,b.buildingsUnitName,
+		b.buildingHouseId,b.elevatorCount,b.householdCount,b.floorCount,b.totalLayers,b.isSchoolRoom,c.receipt,c.id as ysRecordId,c.status as keystatus,d.name as deptname,e.isValid as isStore,f.address from hs_secondhandhouse a inner join hs_housebaseinfo b on a.id = #{id} and a.houseId=b.id left join hs_key c on a.id=c.shhId and c.isValid=1 left JOIN sys_dept d on c.deptId = d.id left JOIN hs_mycollection e on a.id=e.shhId and e.operatorId=#{userid} inner join sys_community f on f.id = b.communityId 
+	</select> -->
+	<select id="queryHouseInfo" resultType="map">
+		select a.*,b.id as houseCode,b.cityCode,b.areaCode,b.areaName,b.regionId,b.regionName,b.communityId,b.communityName,b.buildingsId,b.buildingsName,b.bulidingUnitId,b.buildingsUnitName,
+		b.buildingHouseId,b.elevatorCount,b.householdCount,b.floorCount,b.totalLayers,b.isSchoolRoom,c.receipt,c.id as ysRecordId,c.status as keystatus,d.name as deptname,e.isValid as isStore,f.address,f.longitude,f.latitude
+		from hs_secondhandhouse a inner join hs_housebaseinfo b on a.id = #{id} and a.houseId=b.id left join hs_key c on a.id=c.shhId and c.isValid=1 left JOIN sys_dept d on c.deptId = d.id 
+		left JOIN hs_mycollection e on a.id=e.shhId and e.operatorId=#{userid} inner join sys_community f on f.id = b.communityId 
+	</select>
+	
+	<select id="queryHouseLable" resultType="map">
+		SELECT id as labelId,name as labelName,code FROM sys_labeld  WHERE isValid=1 AND type=0 AND sourceId=#{shhId}
+	</select>
+	
+	<select id="queryFollowInfo" resultType="map">
+		select * from hs_followrecord where shhId = #{houseId} and isValid=1 order by addTime desc limit 6
+	</select>
+	
+	<select id="queryOwnerInfo" resultType="map">
+		select * from hs_houseownerrelate where shhId = #{houseId} and isValid=1
+	</select>
+	
+	<select id="queryRelateagentInfo" resultType="map">
+		<if test="hasPhone==true">
+			select a.*,b.mobile from hs_houserelateagent a INNER JOIN sys_user b on a.shhId = #{houseId} and a.agentId = b.id and a.isValid=1
+		</if>
+		<if test="hasPhone==false">
+			select a.* from hs_houserelateagent a where a.shhId = #{houseId} and a.isValid=1
+		</if>
+		
+	</select>
+	
+	<select id="queryCustomValue" resultType="map">
+		select id,
+		<foreach item="value" index="key" collection="customField"   open=" " separator="," close=" ">
+		 	${key}
+		 </foreach>
+		 from sys_custom_column_value where formName = #{formName} and keyId = #{keyId}
+	</select>
+	
+	<select id="queryAgreement" resultType="map">
+		SELECT * FROM oa_agreement where shhId=#{houseId} AND isValid=1
+	</select>
+	
+	<select id="queryFileByIds" resultType="map">
+		SELECT path FROM hs_houseattachment where isValid=1 and id in
+		<foreach item="item" index="index" collection="fileids"   open="(" separator="," close=")">
+		 	${item}
+		 </foreach>
+	</select> 
+	
+	<select id="queryFileById" resultType="String">
+		SELECT path FROM hs_houseattachment where isValid=1 and id = #{imgId}
+	</select>
+	
+	<select id="queryFile" resultType="map">
+		SELECT id,pictureName,pictureType,isCover,applyer,applyTime,path FROM hs_houseattachment where shhId = #{houseId} and examineStatus='1' and attachType= #{attachType} and isValid=1
+	</select>
+	
+	<select id="queryHouseDescription" resultType="map">
+		SELECT a.id,a.typeId,a.typeName,a.description,a.operator,a.addTime,c.name as deptName,d.name as companyName FROM hs_house_description a INNER JOIN sys_user b on a.shhId=#{houseId} and a.operatorId = b.id and a.isValid=1 INNER JOIN sys_dept c on b.deptId = c.id INNER JOIN sys_company d on b.companyId = d.id 
+	</select>
+	
+	<select id="queryTaobaoTime" resultType="map">
+		select taobaoTime from hs_secondhandhouse where id=#{id} and isValid=1
+	</select>
+	
+	<select id="getErHousingCode" resultType="map">
+		SELECT id FROM hs_houseBaseInfo AS info WHERE info.buildingHouseId=#{buildingHouseId} AND info.isValid=1
+	</select>
+	<select id="getmaxHouseCount" resultType="int">
+		SELECT maxHouseCount FROM sys_area AS sa WHERE sa.code=#{code} for update
+	</select>
+	
+	<select id="getBuildingInfo" resultType="map">
+		SELECT h.floor,u.floorTotal,u.unitElevatorCount,u.unitHouseCount  FROM sys_buildingHouse AS h INNER JOIN sys_bulidingUnit AS u ON h.id=#{hid} AND h.buildingUnitId=u.id
+	</select>
+	<select id="getAreaInfo" resultType="map">
+		SELECT  c.id AS communityId ,c.`name` AS communityName,c.regionId,r.`name` AS regionName,c.areaCode,a.`name` AS areaName  FROM sys_community AS c 
+		INNER JOIN sys_region AS r ON c.id=#{cid} AND c.regionId=r.id
+		INNER JOIN sys_area AS a ON a.`code`=c.areaCode
+	</select>
+	
+	<select id="getRowInfo" resultType="map" >
+		select  ${columns} from ${tableName} where ${key} = #{value} and isValid=1
+	</select>
+	
+	<select id="searchHouseList" resultType="map">
+		<![CDATA[ ${sql} ]]>
+	</select>
+	
+	<select id="searchCommunity" resultType="map">
+		SELECT `code`,`name`,parentCode,1 AS`level`  FROM sys_area  WHERE parentCode = '${cityCode}00'
+		UNION
+		SELECT id AS code,`name`,areaCode AS parentCode,2 AS level FROM sys_region  WHERE isValid=1 AND areaCode LIKE '${cityCode}%'
+		UNION
+		SELECT id AS code,`name`,regionId AS parentCode,3 AS level FROM sys_community WHERE isValid=1 AND areaCode LIKE '${cityCode}%'
+	</select>
+	
+	<select id="queryHouseListByUnitId" resultType="map">
+		SELECT sh.transactionType,sh.transactionTypeId,sh.`status`,sh.statusId,sh.id,sh.houseId,sh.buildSpace,sh.sellingPrice,sh.rentPrice,sh.room,sh.hall,sh.toilet,sh.kitchen,sh.balcony,hb.floorCount,hb.buildingHouseName,hb.buildingHouseId 
+		FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND hb.bulidingUnitId=#{buildIngUnitId} 
+	</select>
+	<select id="queryHouseName" resultType="map">
+		SELECT hb.buildingsId,hb.buildingsName,hb.bulidingUnitId,hb.buildingsUnitName,hb.buildingHouseId,hb.buildingHouseName FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id and sh.isValid=1 AND sh.id=#{houseId}
+	</select>
+	
+	<select id="queryHousePrice" resultType="map">
+		SELECT FLOOR(sh.minSellingPrice/1000000) as minSellingPrice,FLOOR(sh.minRentPrice/100) as minRentPrice FROM hs_secondhandhouse AS sh WHERE sh.isValid=1 AND sh.id=#{houseId}
+	</select>
+	
+	<select id="queryHousePhone" resultType="map">
+		SELECT ho.id,ho.phone,ho.remark,ho.isMainFlag FROM hs_houseOwnerRelate AS ho WHERE ho.isValid=1 AND ho.shhId=#{houseId}
+	</select>
+	<select id="querySchoolTable" resultType="map">
+		SELECT id,schoolName,schoolAddress from school_info WHERE isValid=1 AND rgCode LIKE '${cityCode}%'
+		<if test="name!=null">
+			and schoolName like '%${name}%'
+		</if>
+	</select>
+	
+	<select id="matchingCustomer" resultType="map">
+		SELECT CASE WHEN cbi.taobaoStatusId=1 THEN cbi.taobaoStatus ELSE cbi.`status` END AS `status`
+		,cbi.id,CONCAT(cbi.areaNames,cbi.regionNames,cbi.communityNames) AS areas ,cbi.minSpace,cbi.maxSpace
+		,cbi.minPrice,cbi.maxPrice,cbi.minRoom,cbi.maxRoom,cbi.minFloorCount,cbi.maxFloorCount,cbi.maintainer,cbi.permissionArea,cbi.operatorId
+		 from demand_customerBusinessInfo AS cbi WHERE cbi.isValid=1 and cbi.statusId='1' 
+		 <if test="transactionTypeId==1">
+			and	cbi.transactionTypeId=4
+		</if>
+		<if test="transactionTypeId ==2">
+			and cbi.transactionTypeId =5
+		</if>
+		 <if test="areas!=null and areas.size>0">
+		 	and 
+			<foreach collection="areas" item="item" open="(" separator="or" close=")">  
+	         <choose>
+	         	<when test="item.type==1">
+	         		FIND_IN_SET(#{item.value},cbi.areaCodes)
+	         	</when>
+	         	<when test="item.type==2">
+	         		FIND_IN_SET(#{item.value},cbi.regionIds)
+				</when>
+	         	<otherwise>
+	         		FIND_IN_SET(#{item.value},cbi.communityIds)
+	         	</otherwise>
+	         </choose>        
+	     	</foreach>  
+     	</if>
+     	<if test="minSpace!=null and minSpace!='' ">
+     	 and cbi.minSpace &lt;= #{minSpace}
+     	</if>
+     	<if test="maxSpace!=null and maxSpace!='' ">
+     	 and cbi.maxSpace &gt;= #{maxSpace}
+     	</if>
+     	<if test="minSellingPrice!=null and minSellingPrice!='' ">
+     	 and FLOOR(cbi.minPrice/1000000) &lt;= #{minSellingPrice}
+     	</if>
+     	<if test="maxSellingPrice!=null and maxSellingPrice!='' ">
+     	 and FLOOR(cbi.maxPrice/1000000) &gt;=#{maxSellingPrice}
+     	</if>
+     	<if test="minRentPrice!=null and minRentPrice!='' ">
+     	 and FLOOR(cbi.minPrice/100)  &lt;= #{minRentPrice}
+     	</if>
+     	<if test="maxRentPrice!=null and maxRentPrice!='' ">
+     	 and FLOOR(cbi.maxPrice/100) &gt;=#{maxRentPrice}
+     	</if>
+     	<if test="minRoom!=null and minRoom!='' ">
+     	 and cbi.minRoom &lt;= #{minRoom}
+     	</if>
+     	<if test="maxRoom!=null and maxRoom!='' ">
+     	 and cbi.maxRoom  &gt;= #{maxRoom}
+     	</if>
+     	<if test="minFloor!=null and minFloor!='' ">
+     	 and cbi.minFloorCount &lt;= #{minFloor}
+     	</if>
+     	<if test="maxFloor!=null and maxFloor!='' ">
+     	 and cbi.maxFloorCount &gt;= #{maxFloor}
+     	</if>
+	</select>
+	<select id="queryHouseDealInfoByHouseId" resultType="map">
+		SELECT hb.cityCode,sh.houseId,hb.areaName,hb.areaCode,hb.regionId,hb.regionName,hb.communityId,hb.communityName,
+		hb.buildingsId,hb.buildingsName,hb.bulidingUnitId,hb.buildingsUnitName,hb.buildingHouseId,hb.buildingHouseName,hb.elevatorCount,
+		hb.householdCount,hb.floorCount,hb.totalLayers,sh.room,sh.hall,sh.toilet,sh.kitchen,sh.balcony,sh.buildSpace,sh.orientationId,
+		sh.orientation,sh.buildDates,sh.houseUsesId,sh.houseUses,sh.propertyType,sh.propertyTypeId
+		FROM hs_housebaseinfo AS hb
+		INNER JOIN hs_secondhandhouse AS sh ON hb.id = sh.houseId AND sh.id = #{houseId}
+	</select>
+	<select id="queryCrawlerList" resultType="map">
+  		SELECT hc.id,hc.cityCode,hc.sourceId,hc.sourceName,hc.areaCode,hc.areaName,hc.transactionTypeId,hc.transactionType,hc.title,
+		hc.houseUrl,hc.regionId,hc.regionName,hc.communityName,hc.floor,hc.buildSpace,hc.orientation,hc.decoration,hc.price,hc.recordTime,
+		hc.room,hc.houseType,hc.phone,hc.lookStatus,hc.inputStatus,hc.checkStatus FROM hs_housecrawler AS hc WHERE hc.isvalid = 1
+  		<if test="transactionTypeId!=null"> and hc.transactionTypeId=#{transactionTypeId}</if>
+  		<if test="communityName!=null"> and hc.communityName like '%${communityName}%'</if>
+  		<if test="minPrice!=null"> and hc.price &gt;=#{minPrice}</if>
+  		<if test="maxPrice!=null"> and hc.price &lt;=#{maxPrice}</if>
+  		<if test="minSpace!=null"> and hc.buildSpace &gt;=#{minSpace}</if>
+  		<if test="maxSpace!=null"> and hc.buildSpace &lt;=#{maxSpace}</if>
+  		<if test="lookStatus!=null"> and hc.lookStatus=#{lookStatus}</if>
+  		<if test="inputStatus!=null"> and hc.inputStatus=#{inputStatus}</if>
+  		<if test="checkStatus!=null"> and hc.checkStatus=#{checkStatus}</if>
+  		ORDER BY hc.id DESC
+  	</select>
+
+  	<select id="queryHouseByphone" resultType="map">
+  		SELECT sh.id,sh.houseId,sh.transactionType,sh.`status`,FLOOR(sh.sellingPrice/1000000) AS sellingPrice,FLOOR(sh.rentPrice/100) AS rentPrice,sh.recordTime,sh.maintainer
+		FROM hs_secondhandhouse AS sh
+		INNER JOIN hs_housebaseinfo AS hb ON hb.id = sh.houseId AND sh.isValid = 1 AND hb.communityId = #{communityId}
+		INNER JOIN hs_houseownerrelate AS hor ON hor.shhId = sh.id AND hor.isValid = 1 AND hor.phone = #{phone}
+  	</select>
+  	<select id="queryCountPrivateDisc" resultType="int">
+  		SELECT Count(*) FROM hs_secondhandhouse WHERE isValid = 1 AND discStatusId = 1 AND maintainId = #{userId}
+  	</select>
+  	<select id="queryCountHouseByHouseId" resultType="int">
+  		SELECT COUNT(*) FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id  AND sh.isValid = 1 AND sh.companyId=#{companyId} AND hb.buildingHouseId=#{houseId}
+  	</select>
+  	<select id="queryHouseSalesStatus" resultType="map">
+  		SELECT bh.id AS houseNO,bh.houseNumber,bh.floor,bh.`code`,sh.id AS hid,sh.houseId,sh.transactionType,sh.`status`,sh.sellingPrice,sh.buildSpace,sh.room,sh.hall,sh.kitchen,sh.toilet,sh.balcony FROM sys_buildinghouse AS bh 
+		INNER JOIN sys_bulidingunit AS bu ON bh.buildingUnitId=bu.id AND bu.id=#{buildingUnitId}
+		LEFT JOIN hs_housebaseinfo AS hb ON bh.id=hb.buildingHouseId  AND hb.isValid=1 
+		LEFT JOIN hs_secondhandhouse AS sh ON sh.houseId=hb.id AND sh.isValid=1 AND sh.companyId=#{companyId} 		
+  	</select>
+  	<select id="queryBulidingunitInfo" resultType="map">
+  		SELECT bu.floorTotal,bu.houseStartNumber,bu.floorStartNumber,bu.unitHouseCount FROM sys_bulidingunit AS bu WHERE bu.id=#{buildingUnitId}
+  	</select>
+  	<select id="queryIsMetroRoom" resultType="int">
+  		SELECT COUNT(*) FROM station_block_community where isValid=1 AND communityId=#{communityId}
+  	</select>
+
+  	<select id="queryAgentFeedback" resultType="map">
+  		select a.id,a.content,a.lastTime,a.showedCnt,a.usefulCnt,a.addTime,b.realName as agentName,b.mobile as agentPhone from hs_agentEvaluateHouse a INNER JOIN sys_user b on a.shhId =#{shhId} and a.userId = b.id and a.isValid=1 
+  	</select>
+  	<select id="queryLookHouseByAgent" resultType="int"> 
+		select count(0) from demand_showedrecord where sourceId=#{houseId} and houseType=0 and isValid = 1 and leaderId=#{agentId}
+	</select>
+	
+  	<select id="queryHouseOwerPhone" resultType="String">
+  		SELECT phone FROM hs_houseownerrelate WHERE isValid=1 AND isMainFlag=1 AND shhId=#{houseId}
+  	</select>
+
+	<select id="queryLabel" resultType="map">
+  		select id,name,code,color from sys_labeldManage where type =#{type} and isValid=1 
+  	</select>
+  	<select id="queryBuild" resultType="map">
+  		select id,name from sys_buildings where communityId =#{communityId} and isValid=1 
+  	</select>
+  	<select id="queryUnit" resultType="map">
+  		select id,name from sys_bulidingUnit where buildingId =#{buildingId} and isValid=1 
+  	</select>
+
+  	
+  	<insert id="houseSynchron" parameterType="String">
+  		call statices_houseSaleSynchron(#{houseIds})
+  	</insert>
+
+	<select id="queryShowHouseListByHouseCode" resultType="map">
+  		SELECT id,isPriority FROM hs_secondhandhouse WHERE  isValid=1 AND statusId=1 AND examineStatus=1 AND isSynchron=1 
+  		AND houseId=#{houseId} ORDER BY openPlateDate 
+  	</select>
+  	<select id="queryHouseCodeById" resultType="String">
+  		SELECT houseId FROM hs_secondhandhouse WHERE id=#{houseId}
+  	</select>
+</mapper>

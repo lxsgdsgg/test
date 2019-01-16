@@ -1,0 +1,77 @@
+package com.bashiju.www.test;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Date;
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.service.house.IHouseService;
+import com.github.pagehelper.Page;
+
+public class HouseServiceTest extends BaseServiceTest{
+	@Autowired
+	IHouseService service;
+	
+	/*@Test
+	public void queryHouseInfo() {
+		HouseInfoResult house= service.queryHouseInfo(1);
+		System.out.println(house.toString());
+		assertNotNull(house);
+	}
+	@Test
+	public void queryShowedAgents() {
+		List<AgentResult> list=service.queryShowedAgents(1);
+		System.out.println(list.toString());
+		assertNotNull(list);
+	}
+	@Test
+	public void queryShowedRecordByHouseId() {
+		List<ShowedRecordResult> list=service.queryShowedRecordByHouseId(1);
+		System.out.println(list.toString());
+		assertNotNull(list);
+	}*/
+	
+	/*@Test
+	public void querySameHouseInfo() {
+		HouseSameParam param = new HouseSameParam();
+		param.setCommunityId(3);
+		param.setRoom(3);
+		param.setSellPrice(200);
+		param.setTransactionTypeId(1);
+		List<HouseListResult> house= service.querySameHouseList(param);
+		for(HouseListResult h : house) {
+			String title = h.getTitle();
+		}
+		assertNotNull(house);
+	}*/
+	
+	/*@Test
+	public void addHouseTipOff() {
+		HouseTipOffParam param = new HouseTipOffParam();
+		param.setAddTime(new Date());
+		param.setContent("111111111111");
+		param.setCustId(2);
+		param.setHouseId(3);
+		param.setTipOffType("哈哈");
+		param.setTipOffTypeId(1);
+		boolean res = service.addHouseTipOff(param);
+		
+		assertNotNull(res);
+	}*/
+	@Test
+	public void queryHouseByCoummunity() {
+		
+		Page<HouseListResult> res = service.queryHouseByCoummunityId("置信", 1, 0, 10);
+		
+		assertNotNull(res);
+	}
+}

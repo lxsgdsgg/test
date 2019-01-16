@@ -1,0 +1,57 @@
+package com.bashiju.www.test;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.input.house.RentHouseParam;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.service.house.IRentHouseService;
+
+/**
+ * 
+ *  租房接口测试
+ * @ClassName:  RentHouseServiceTest   
+ * @Description:   租房接口测试
+ * @author: wangkaifa
+ * @date:   2018年8月13日 下午3:11:31       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class RentHouseServiceTest extends BaseServiceTest {
+	@Autowired
+	IRentHouseService rentHouseService;
+	
+	@Test
+	public void queryRentHouseByArea() {
+		RentHouseParam param=new RentHouseParam();
+		param.setCityCode("530100");
+		WebPage<HouseListResult> result=rentHouseService.queryRentHouseByArea(param,1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentHouseByMetro() {
+		RentHouseParam param=new RentHouseParam();
+		param.setCityCode("530100");
+		param.setMetroName("1号线");
+		WebPage<HouseListResult> result=rentHouseService.queryRentHouseByMetro(param,1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentMapHouseArea() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseArea(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+}

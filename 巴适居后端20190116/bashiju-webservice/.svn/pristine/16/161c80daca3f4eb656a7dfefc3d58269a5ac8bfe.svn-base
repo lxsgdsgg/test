@@ -1,0 +1,288 @@
+package com.bashiju.wutils.util;
+
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.exception.ErrorCodeEnum;
+
+/**
+ * 文件上传下载工具类
+ * @ClassName  FtpUtil   
+ * @Description 
+ * @author zhaobin
+ * @date   2018年5月29日 上午11:56:06   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class FtpUtil {
+
+	private final static String host="file.bashiju.com";
+	private final static int port=21;
+	private final static String username="bashiju";
+	private final static String password="123456";
+	private final static String fileUrl="http://file.bashiju.com";
+
+	/**
+	 * 向FTP服务器上传文件
+	 * @Title uploadFile   
+	 * @Description TODO(这里用一句话描述这个方法的作用)   
+	 * @param  file 文件流
+	 * @param  isShuiYin 是否需要添加水印
+	 * @param  type 1=图片;2=文本;3=音频;4=视频; 5=其他 
+	 * @return String
+	 * @throws Exception 
+	 */
+	
+	public static String uploadFile(MultipartFile file,int type,boolean isShuiYin) throws Exception {
+			String prefix = "";
+				prefix = validateFile(file,type);//验证图片格式和尺寸
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+			String filePath = sdf.format(new Date())+"/";
+			String basePath="Cuser";//从线程中获取用户手机号码
+	        FTPClient ftp = new FTPClient();
+	        String result =null;		       
+	        switch (type) {
+			case 1:
+				basePath+="/pic"; 
+				break;
+			case 2:
+				basePath+="/doc"; 
+				break;
+			case 3:
+				basePath+="/audio"; 
+				break;
+			case 4:
+				basePath+="/video"; 
+				break;
+			default:
+				basePath+="/other"; 
+				break;
+			}
+		    	  	
+				String  updateFileName=new Date().getTime()+"."+prefix;
+				try { 
+					InputStream inputStream=file.getInputStream(); 
+					if(isShuiYin) {
+						inputStream=addShuiYin(inputStream);
+					}
+					
+		            int reply;
+		            ftp.connect(host, port);// 连接FTP服务器
+		            // 如果采用默认端口，可以使用ftp.connect(host)的方式直接连接FTP服务器
+		            ftp.login(username, password);// 登录
+		            reply = ftp.getReplyCode();
+		            if (!FTPReply.isPositiveCompletion(reply)) {
+		                ftp.disconnect();
+		                throw new BusinessException(ErrorCodeEnum.UPDATEFILE_ERROR);
+		            }
+		            //切换到上传目录
+		            if (!ftp.changeWorkingDirectory(basePath+filePath)) {
+		                //如果目录不存在创建目录
+		                String[] dirs = filePath.split("/");
+		                String tempPath = basePath;
+		                for (String dir : dirs) {
+		                    if (null == dir || "".equals(dir)) continue;
+		                    tempPath += "/" + dir;
+		                    if (!ftp.changeWorkingDirectory(tempPath)) {
+		                        if (!ftp.makeDirectory(tempPath)) {
+		                        	 throw new BusinessException(ErrorCodeEnum.UPDATEFILE_ERROR);
+		                        } else {
+		                            ftp.changeWorkingDirectory(tempPath);
+		                        }
+		                    }
+		                }
+		            }
+		            //设置上传文件的类型为二进制类型
+		            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+		            //上传文件
+		            if (!ftp.storeFile(updateFileName, inputStream)) {
+		            	 throw new BusinessException(ErrorCodeEnum.UPDATEFILE_ERROR);
+		            }
+		            inputStream.close();
+		            ftp.logout();
+		            result = fileUrl+"/"+basePath+"/"+filePath+updateFileName;
+		    		} catch (Exception e) {
+			      e.printStackTrace();
+			    } finally{
+			      if(ftp.isConnected()){
+			        try {
+			        	ftp.disconnect();
+			        } catch (IOException e) {
+			          e.printStackTrace();
+			        }
+			      }
+			    }
+        return result;
+    }
+	/**
+	 * 是否添加水印
+	 * @param input
+	 * @return
+	 * @throws Exception
+	 */
+	  static InputStream addShuiYin(InputStream input) throws Exception {
+
+		Image srcImg = ImageIO.read(input);
+		int width=srcImg.getWidth(null);
+		if(width==-1) {
+			width=300;
+		}
+		int height=srcImg.getHeight(null);
+		if(height==-1) {
+			height=200;
+		}
+		BufferedImage buffImg = new BufferedImage(width,height, BufferedImage.TYPE_INT_RGB);
+		// 2、得到画笔对象
+        Graphics2D g = buffImg.createGraphics();
+        // 3、设置对线段的锯齿状边缘处理
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(srcImg, 0, 0, null);
+     // 5、设置水印文字颜色
+        g.setColor(Color.red);
+        // 6、设置水印文字Font
+        g.setFont(new java.awt.Font("宋体", java.awt.Font.BOLD, 60));
+        // 7、设置水印文字透明度
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.55f));
+        // 8、第一参数->设置的内容，后面两个参数->文字在图片上的坐标位置(x,y)
+        g.drawString("巴适居",  buffImg.getWidth()/2 , buffImg.getHeight()/2);
+        
+
+        //输出图片
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(buffImg, "jpg", out);
+        InputStream file=new ByteArrayInputStream(out.toByteArray());
+        return file;
+	}
+	  
+	  /**
+	 * @throws Exception 
+	 * @throws  
+	 * @throws Exception 
+	   * 
+	   */
+		 static String validateFile(MultipartFile file,int type) throws Exception {
+	        String loacalFileName=file.getOriginalFilename();
+	        String[]  name=splitFileName(loacalFileName);
+	        String prefix=name[1];
+	        int size=0;
+	        boolean flag=false;
+	        String types=null;
+	    		Resource resource = new ClassPathResource("properties/resource.properties");
+		    	Properties props = PropertiesLoaderUtils.loadProperties(resource);
+		        switch (type) {
+		  			case 1:
+				    	types =(String)props.get("imageTypes");
+				    	size=Integer.parseInt(props.get("imagesize").toString());
+		  				break;
+		  			default:
+				    	types =(String)props.get("fileTypes");
+				    	size=Integer.parseInt(props.get("filesize").toString());
+		  				break;
+		        } 
+		        if(file.getSize()>size*1048576) {
+		        	throw new BusinessException("附件尺寸超出限制:"+size+"MB");
+		        }
+		    	String[] typesStr = types.split("\\|");
+		    	for(String typeStr :typesStr){
+		    		if(typeStr.equals(prefix)){
+		    			flag=true;
+		    			break;
+		    		}
+		    	}
+		    	if(!flag) {
+		    		throw new BusinessException("文件只能上传格式:"+types);
+		    	}
+	    	 return prefix;	    	
+		}
+	  
+
+		/**
+		 * 取得文件名及文件后缀名 [0]为文件名  [1]为文件后缀
+		 * @param fileName
+		 * @return
+		 */
+		public static String[] splitFileName(String fileName){
+			String fileAndExt[] ={fileName.substring(0,fileName.lastIndexOf(".")),
+					fileName.substring(fileName.lastIndexOf(".")+1).toLowerCase()};
+			return fileAndExt;
+		}
+    
+    /** 
+     * Description: 从FTP服务器下载文件 
+     * @param host FTP服务器hostname 
+     * @param port FTP服务器端口 
+     * @param username FTP登录账号 
+     * @param password FTP登录密码 
+     * @param remotePath FTP服务器上的相对路径 
+     * @param fileName 要下载的文件名 
+     * @param localPath 下载后保存到本地的路径 
+     * @return 
+     */  
+    private static boolean downloadFile(String remotePath,
+            String fileName, String localPath) {
+        boolean result = false; 
+
+        FTPClient ftp = new FTPClient();
+        try {
+            int reply;
+            ftp.connect(host, port);
+            // 如果采用默认端口，可以使用ftp.connect(host)的方式直接连接FTP服务器
+            ftp.login(username, password);// 登录
+            reply = ftp.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(reply)) {
+                ftp.disconnect();
+                return result;
+            }
+            ftp.changeWorkingDirectory(remotePath);// 转移到FTP服务器目录
+            FTPFile[] fs = ftp.listFiles();
+            for (FTPFile ff : fs) {
+                if (ff.getName().equals(fileName)) {
+                    File localFile = new File(localPath + "/" + ff.getName());
+                    OutputStream is = new FileOutputStream(localFile);
+                    ftp.retrieveFile(ff.getName(), is);
+                    is.close();
+                }
+            }
+
+            ftp.logout();
+            result = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (ftp.isConnected()) {
+                try {
+                    ftp.disconnect();
+                } catch (IOException ioe) {
+                }
+            }
+        }
+        return result;
+    }
+}

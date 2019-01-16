@@ -1,0 +1,243 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd
+	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	
+	 	<!-- 使用spring自带的占位符替换功能 -->
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<!-- 允许JVM参数覆盖 -->
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<!-- 忽略没有找到的资源文件 -->
+		<property name="ignoreResourceNotFound" value="true" />
+		<!-- 配置资源文件 -->
+		<property name="locations">
+			<list>
+				<value>classpath*:properties/*.properties</value>
+			</list>
+		</property>
+	</bean>
+	 
+<!-- 	<bean id="propertyConfigurer" class="com.bashiju.wutils.properties.PropertyConfigurer">
+	  <property name="ignoreUnresolvablePlaceholders" value="true"/>
+	  <property name="ignoreResourceNotFound" value="true"/>
+	  <property name="locations">
+	    <list>
+	     <value>classpath:properties/*.properties</value>
+	    </list>
+	  </property>
+	</bean> -->
+	
+    
+	<!-- 扫描包 -->
+	<context:component-scan base-package="com.bashiju"/>
+	
+		<!-- !!!!最重要:::下面这话只能只能放在这里中，否则无法记录日志-->
+	<aop:aspectj-autoproxy proxy-target-class="true" />	
+		<!-- 注解驱动 -->
+		<mvc:annotation-driven>
+			<mvc:message-converters register-defaults="true">
+				<bean class="com.bashiju.wutils.spring.exetend.converter.json.CallbackMappingJackson2HttpMessageConverter">
+					<property name="callbackName" value="callback"/>
+				</bean>
+			</mvc:message-converters>
+		</mvc:annotation-driven>
+		
+	<!-- 框架异常统一处理Handler -->
+	<bean id="exceptionResolver" class="com.bashiju.wutils.exception.BashijuExceptionResolver"></bean>
+		
+		<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+		      <!-- 指定扫描的 包名 如果需要扫描多个包，中间用半角逗号隔开-->  
+		      <property name="basePackage" value="com.bashiju.pojo"/>  
+		      <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>  
+		</bean>
+		
+	    
+    <!-- 慢SQL记录  下面的数据库连接池用-->
+    <bean id="statfilter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <!-- 开启合并sql -->
+        <property name="mergeSql" value="true" />
+        <!-- 开启慢查询语句,200毫秒 -->
+        <property name="slowSqlMillis" value="200" />
+        <property name="logSlowSql" value="true" />
+    </bean>  
+    <bean id="logFilter" class="com.alibaba.druid.filter.logging.Log4jFilter">
+        <property name="resultSetLogEnabled" value="false" />
+        <property name="statementExecutableSqlLogEnable" value="true" />
+    </bean>
+    
+    <!-- 允许批量插入或者更新的下面两个bean   -->
+	<bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter">
+		<property name="config" ref="wall-config" />
+	</bean>	
+	<bean id="wall-config" class="com.alibaba.druid.wall.WallConfig">
+		<property name="multiStatementAllow" value="true" />
+	</bean>
+		
+		  
+		<!-- 主数据库连接池配置 -->
+	<bean id="masterDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">       
+		<!-- 映射慢sql 批量更新或者插入需要 -->
+        <property name="proxyFilters">
+            <list>
+                <ref bean="wall-filter"/>
+                <ref bean="statfilter"/>
+                <ref bean="logFilter"/>
+            </list>
+        </property>
+		<property name="url" value="${jdbc.master.url}" />
+		<property name="username" value="${jdbc.master.username}" />
+		<property name="password" value="${jdbc.master.password}" />
+		<property name="driverClassName" value="${jdbc.master.driver}" />
+		<property name="dbType" value = "mysql" /><!-- 指定数据库类型。这个问题找了好久才找到，记得如果是连mysql数据库一定要写mysql -->  
+ 		<!-- 配置初始化大小、最小、最大 --> 
+        <property name="initialSize" value="0" />
+        <property name="minIdle" value="0" />
+        <property name="maxActive" value="20" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 这里建议配置为TRUE，防止取到的连接不可用。获取链接的时候，不校验是否可用，开启会有损性能--> 
+        <property name="testOnBorrow" value="true" />
+        <!-- 归还链接到连接池的时候校验链接是否可用 -->
+        <property name="testOnReturn" value="false" />
+        <!-- 此项配置为true即可，不影响性能，并且保证安全性。意义为：申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <!-- 链接使用超过时间限制是否回收 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 超过时间限制时间（单位秒），目前为5分钟，如果有业务处理时间超过5分钟，可以适当调整。 -->
+        <property name="removeAbandonedTimeout" value="300" />
+        <!-- #链接回收的时候控制台打印信息，测试环境可以加上true，线上环境false。会影响性能。 -->
+        <property name="logAbandoned" value="true" />
+        <!-- 验证连接有效与否的SQL，不同的数据配置不同 --> 
+          <property name="validationQuery" value="select 1 " />
+          <!-- 配置监控统计拦截的filters，用于在界面中统计sql和开启druid防火墙。注意： -->
+        <!-- 监控中有jdbcSqlStat，原因是：com.alibaba.druid.statJdbcDataSourceStat中的createSqlStat方法中，
+           	 用了一个map来存放所有的sql语句，这样会导致线上触发FullGC，可将此处注释掉 -->
+        <property name="filters" value="wall,stat,log4j" />
+        <!--  是否全局监控 -->
+     	<property name="useGlobalDataSourceStat" value="true" />	
+    </bean> 
+    
+	<!-- 从数据库一连接池配置 -->
+	 <bean id="slave01DataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+	        <!-- 映射慢sql -->
+         <property name="proxyFilters">
+            <list>
+                <ref bean="statfilter"/>
+                <ref bean="logFilter"/>
+            </list>
+        </property>
+		<property name="url" value="${jdbc.slave01.url}" />
+		<property name="username" value="${jdbc.slave01.username}" />
+		<property name="password" value="${jdbc.slave01.password}" />
+		<property name="driverClassName" value="${jdbc.slave01.driver}" />
+		<property name="dbType" value = "mysql" /><!-- 指定数据库类型。这个问题找了好久才找到，记得如果是连mysql数据库一定要写mysql  --> 
+ 		<!-- 配置初始化大小、最小、最大 --> 
+        <property name="initialSize" value="0" />
+        <property name="minIdle" value="0" />
+        <property name="maxActive" value="20" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 这里建议配置为TRUE，防止取到的连接不可用。获取链接的时候，不校验是否可用，开启会有损性能--> 
+        <property name="testOnBorrow" value="true" />
+        <!-- 归还链接到连接池的时候校验链接是否可用 -->
+        <property name="testOnReturn" value="false" />
+        <!-- 此项配置为true即可，不影响性能，并且保证安全性。意义为：申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <!-- 链接使用超过时间限制是否回收 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 超过时间限制时间（单位秒），目前为5分钟，如果有业务处理时间超过5分钟，可以适当调整。 -->
+        <property name="removeAbandonedTimeout" value="300" />
+        <!-- #链接回收的时候控制台打印信息，测试环境可以加上true，线上环境false。会影响性能。 -->
+        <property name="logAbandoned" value="true" />
+        <!-- 验证连接有效与否的SQL，不同的数据配置不同 --> 
+          <property name="validationQuery" value="select 1 " />
+          <!-- 配置监控统计拦截的filters，用于在界面中统计sql和开启druid防火墙。注意： -->
+        <!-- 监控中有jdbcSqlStat，原因是：com.alibaba.druid.statJdbcDataSourceStat中的createSqlStat方法中，
+           	 用了一个map来存放所有的sql语句，这样会导致线上触发FullGC，可将此处注释掉 -->
+        <property name="filters" value="wall,stat,log4j" />
+        <!--  是否全局监控 -->
+     	<property name="useGlobalDataSourceStat" value="true" />	
+    </bean> 
+	
+	
+	<!-- 从数据库二连接池配置 -->
+	 <bean id="slave02DataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<!-- 映射慢sql -->
+        <property name="proxyFilters">
+            <list>
+                <ref bean="statfilter"/>
+                <ref bean="logFilter"/>
+            </list>
+        </property>
+		<property name="url" value="${jdbc.slave02.url}" />
+		<property name="username" value="${jdbc.slave02.username}" />
+		<property name="password" value="${jdbc.slave02.password}" />
+		<property name="driverClassName" value="${jdbc.slave02.driver}" />
+		<property name="dbType" value = "mysql" /><!-- 指定数据库类型。这个问题找了好久才找到，记得如果是连mysql数据库一定要写mysql  --> 
+      	  		<!-- 配置初始化大小、最小、最大 --> 
+        <property name="initialSize" value="0" />
+        <property name="minIdle" value="0" />
+        <property name="maxActive" value="20" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 这里建议配置为TRUE，防止取到的连接不可用。获取链接的时候，不校验是否可用，开启会有损性能--> 
+        <property name="testOnBorrow" value="true" />
+        <!-- 归还链接到连接池的时候校验链接是否可用 -->
+        <property name="testOnReturn" value="false" />
+        <!-- 此项配置为true即可，不影响性能，并且保证安全性。意义为：申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <!-- 链接使用超过时间限制是否回收 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 超过时间限制时间（单位秒），目前为5分钟，如果有业务处理时间超过5分钟，可以适当调整。 -->
+        <property name="removeAbandonedTimeout" value="300" />
+        <!-- #链接回收的时候控制台打印信息，测试环境可以加上true，线上环境false。会影响性能。 -->
+        <property name="logAbandoned" value="true" />
+        <!-- 验证连接有效与否的SQL，不同的数据配置不同 --> 
+          <property name="validationQuery" value="select 1 " />
+          <!-- 配置监控统计拦截的filters，用于在界面中统计sql和开启druid防火墙。注意： -->
+        <!-- 监控中有jdbcSqlStat，原因是：com.alibaba.druid.statJdbcDataSourceStat中的createSqlStat方法中，
+           	 用了一个map来存放所有的sql语句，这样会导致线上触发FullGC，可将此处注释掉 -->
+        <property name="filters" value="wall,stat,log4j" />
+        <!--  是否全局监控 -->
+     	<property name="useGlobalDataSourceStat" value="true" />	
+    </bean> 
+   
+	
+	<!-- 定义数据源，使用自己实现的数据源 -->
+	 <bean id="dataSource" class="com.bashiju.wutils.datasource.DynamicDataSource">
+		<!-- 设置多个数据源 -->
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<!-- 这个key需要和程序中的key一致 -->
+				<entry key="master" value-ref="masterDataSource"/>
+				<entry key="slave01" value-ref="slave01DataSource"/>
+				<!-- <entry key="slave02" value-ref="slave02DataSource"/> -->
+			</map>
+		</property>
+		<!-- 设置默认的数据源，这里默认走写库 -->
+		<property name="defaultTargetDataSource" ref="masterDataSource"/>
+	</bean> 
+
+</beans>

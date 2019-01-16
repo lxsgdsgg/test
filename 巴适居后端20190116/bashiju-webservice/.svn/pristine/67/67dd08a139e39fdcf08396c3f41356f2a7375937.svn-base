@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerConcernedHouseMapper">
+	<resultMap type="com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity" id="houseMap">
+		<id property="id" column="id"/>
+        <result property="transactionTypeId" column="transactionTypeId"/>
+        <result property="transactionType" column="transactionType"/>
+        <result property="houseId" column="houseId"/>
+        <result property="houseSequence" column="houseSequence"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="regionId" column="regionId"/>
+        <result property="communityId" column="communityId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="orientationId" column="orientationId"/>
+        <result property="orientation" column="orientation"/>
+        <result property="decorationId" column="decorationId"/>
+        <result property="decoration" column="decoration"/>
+        <result property="sellingPrice" column="sellingPrice"/>
+        <result property="rentPrice" column="rentPrice"/>
+        <result property="minSellingPrice" column="minSellingPrice"/>
+        <result property="minRentPrice" column="minRentPrice"/>
+        <result property="room" column="room"/>
+        <result property="hall" column="hall"/>
+        <result property="toilet" column="toilet"/>
+        <result property="kitchen" column="kitchen"/>
+        <result property="balcony" column="balcony"/>
+        <result property="buildSpace" column="buildSpace"/>
+        <result property="useSpace" column="useSpace"/>
+        <result property="buildDates" column="buildDates"/>
+        <result property="labeld" column="labeld"/>
+        <result property="floorDes" column="floorDes"/>
+        <result property="totalLayers" column="totalLayers"/>
+        <result property="imageUrl" column="imageUrl"/>
+        <result property="houseType" column="houseType"/>
+        <result property="custId" column="custId"/>
+        <result property="concernedTime" column="addTime"/>
+     </resultMap>
+	
+	<resultMap type="com.bashiju.www.pojo.service.community.Community" id="communitMap">
+		<id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="buildYear" column="buildYear"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="regionCode" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="imageUrl" column="imageUrl"/>
+        <result property="address" column="address"/>
+     </resultMap>
+     
+	<select id="queryAllConcernedCommunityList" resultMap="communitMap">
+		SELECT a.id,a.`name`,a.address,a.salePrice,a.isHot,a.houseCount,a.buildYear,a.propertyLimit,
+		b.`name` AS areaName,c.`name` AS regionName,a.areaCode,d.id,d.type as houseType
+		,d.custId,d.addTime FROM sys_community AS a
+		LEFT JOIN sys_area AS b ON a.areaCode = b.`code`
+		LEFT JOIN sys_region AS c ON a.regionId = c.id
+		INNER JOIN cust_attention d ON a.id = d.sourceId
+		where a.isValid = 1 and d.custId = #{custId} 
+	</select>
+     
+	<select id="queryAllConcernedHouseList" resultMap="houseMap">
+		select a.transactionTypeId,a.transactionType,
+		a.id as houseId,a.houseId as houseSequence,b.areaCode,b.areaName,
+		b.regionId,b.communityId,b.communityName,a.orientationId
+		,a.orientation,a.decorationId,a.decoration,a.sellingPrice,
+		a.rentPrice,a.minSellingPrice,a.minRentPrice,a.room,a.hall,
+		a.toilet,a.kitchen,a.balcony,a.buildSpace,a.useSpace,
+		a.buildDates,a.labeld,b.floorDes,b.totalLayers,
+		(select max(path) from hs_houseAttachment aa where a.id = aa.shhId) as imageUrl
+		,c.type as houseType,c.custId,c.addTime from hs_secondhandhouse a
+		INNER JOIN hs_housebaseinfo b on a.houseId = b.id 
+		INNER JOIN cust_attention c on a.id = c.sourceId
+		where a.isValid = 1 and c.custId = #{custId}
+	</select>
+	
+</mapper>

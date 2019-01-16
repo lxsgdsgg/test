@@ -1,0 +1,408 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  LoginDialog.java   
+ * @Package com.bashiju.sso.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年7月9日 下午4:33:34   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.sso.controller;
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Panel;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+
+/**
+ * Java 窗体程序写登陆
+ * @ClassName:LoginDialog
+ * @Description:Java 窗体程序写登陆
+ * @author:zuoyuntao
+ * @date:2018年7月9日 下午4:33:34
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class LoginDialog extends JDialog{
+	/**   
+	 * @Fields serialVersionUID : 串行版本标识ID  
+	 */ 
+	private static final long serialVersionUID = -1741999636279740519L;
+	
+	/**
+	 * 登陆按钮
+	 */
+	private JButton loginBtn = null;
+	/**
+	 * 退出按钮
+	 */
+	private JButton quitBtn = null;
+	/**
+	 * 用户名称
+	 */
+	private JTextField userName = null;
+	/**
+	 * 公司下拉框
+	 */
+	private JComboBox<String> company = null;
+	/**
+	 * Logo区域
+	 */
+	private ImageIcon image = null;
+	/**
+	 * 密码输入框
+	 */
+	private JPasswordField password = null;
+	/**
+	 * 账户面板
+	 */
+	private Panel account = null;
+	/**
+	 * 当前区划信息
+	 */
+	private JSONObject areaObj = null;
+	/**
+	 * 显示口号信息
+	 */
+	private JLabel infoLabel = null;
+	/**
+	 * 显示外网IP
+	 */
+	private JLabel ipLabel = null;
+	/**
+	 * cookie对象
+	 */
+	private CookieStore cookieStore = null;
+	
+	public LoginDialog() {
+		super();
+	}
+
+	/**  
+	 * 类入口
+	 * @Title: main
+	 * @author: zuoyuntao  
+	 * @Description:类入口
+	 * @param args      
+	 * void 
+	 */
+	public static void main(String[] args) {
+		LoginDialog login = new LoginDialog();
+		login.initView();
+	}
+	
+	public void initView() {
+		//setTitle("云南巴适居网络服务有限公司");
+		getContentPane().setLayout(new BorderLayout(0,55));
+		setSize(new Dimension(350,430));
+		getContentPane().setBackground(Color.white);
+		JPanel logoPanel = new JPanel();
+		JLabel logo = new JLabel();
+//		image = new ImageIcon("/src/main/webapp/WEB-INF/image/logo-dark.png");
+		image = new ImageIcon(getClass().getResource(
+				"/src/main/webapp/WEB-INF/image/logo-dark.png"));
+		image.setImage(image.getImage().getScaledInstance(200, 60,Image.SCALE_DEFAULT ));
+		logo.setIcon(image);
+		logoPanel.add(logo,BorderLayout.CENTER);
+		
+		company = new JComboBox<String>();
+		company.setPreferredSize(new Dimension(300,40));
+		company.setBackground(java.awt.Color.white);
+		
+		userName = new JTextField();
+		userName.setPreferredSize(new Dimension(300,40));
+		userName.setText("13577000337");
+		
+		password = new JPasswordField();
+		password.setPreferredSize(new Dimension(300,40));
+		password.setText("123456");
+		
+		loginBtn = new JButton();
+		loginBtn.setText("登录");
+		loginBtn.setPreferredSize(new Dimension(300,40));
+		loginBtn.setBackground(Color.decode("#3F6EB5"));
+		loginBtn.setForeground(Color.white);
+		loginBtn.setFont(new Font("楷体",0,16));
+		
+		quitBtn = new JButton();
+		quitBtn.setText("退出");
+		quitBtn.setPreferredSize(new Dimension(300,40));
+		
+		account = new Panel();
+		account.add(userName);
+		account.add(password);
+		account.add(loginBtn);
+		
+		try {
+			String jsonStr = getAreaInfoPostRequest();
+			jsonStr = jsonStr.replaceAll("var returnCitySN =", "");
+			jsonStr = jsonStr.substring(0,jsonStr.length() - 1);
+			areaObj = JSON.parseObject(jsonStr);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		ipLabel = new JLabel(" 您的IP:" + areaObj.getString("cip") + "  巴适居ERP");
+		infoLabel = new JLabel("  为更巴适的房产交易服务努力");
+		ipLabel.setFont(new Font("宋体",0,12));
+		infoLabel.setFont(new Font("宋体",0,12));
+		
+		account.add(ipLabel);
+		account.add(infoLabel);
+		
+		logoPanel.setBackground(Color.white);
+		account.setBackground(Color.white);
+		
+		getContentPane().add(logoPanel,BorderLayout.NORTH);
+		getContentPane().add(account,BorderLayout.CENTER);
+		
+		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation((size.width - getWidth()) / 2
+				, (size.height - getHeight()) / 2);
+		addListeners();
+		setResizable(false);
+		setModal(true);
+		setVisible(true);
+	}
+	
+	/**
+	 * 添加监听事件
+	 * @Title: addListeners
+	 * @author: zuoyuntao  
+	 * @Description:添加监听事件   
+	 * void
+	 */
+	private void addListeners() {
+		loginBtn.addActionListener(new ActionListener() {
+			@SuppressWarnings("deprecation")
+			@Override
+			public void actionPerformed(ActionEvent e) {
+		        //发送 POST 请求
+				String phoneNo = userName.getText();
+				String passwordValue = password.getText();
+				try {
+					// 根据网卡取本机配置的IP
+					String ipAddress = InetAddress.getLocalHost().getHostAddress(); 
+					String hardware = getCpuInfo();
+					Map<String,String> content = new HashMap<String,String>();
+					content.put("userPhone", phoneNo);
+					content.put("userPass", passwordValue);
+					content.put("userIp", ipAddress);
+					content.put("areaCode", areaObj.getString("cid"));
+					content.put("areaName", areaObj.getString("cname"));
+					content.put("hardware", hardware);
+//					String hardware = getSerialNumber("C");
+					String result = sendPostRequest(
+							"http://sso.bashiju.com/sso/userLogin",content, "UTF-8");
+					JSONObject json = (JSONObject) JSON.parse(result);
+					if(json.getBooleanValue("success")) {
+						LoginDialog.this.dispose();
+						JBrowserFrame dialog = new JBrowserFrame(cookieStore);
+						dialog.doLoginSystem("http://sso.bashiju.com/sso/main/index");
+					}else {
+						ipLabel.setText(json.getString("msg"));
+						ipLabel.setForeground(Color.RED);
+						infoLabel.setText("");
+					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					System.out.println(e1.getMessage());
+					ipLabel.setText(e1.getMessage());
+					ipLabel.setForeground(Color.RED);
+					infoLabel.setText("");
+				}
+			}
+		});
+		//退出事件
+		quitBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				LoginDialog.this.dispose();
+				System.out.println("用户退出登陆");
+			}
+		});
+		//添加窗体关闭事件
+		addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) {}
+			@Override
+			public void windowClosing(WindowEvent e) {
+				System.out.println("用户点击关闭按钮");
+				LoginDialog.this.dispose();
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {}
+			@Override
+			public void windowIconified(WindowEvent e) {}
+			@Override
+			public void windowDeiconified(WindowEvent e) {}
+			@Override
+			public void windowActivated(WindowEvent e) {}
+			@Override
+			public void windowDeactivated(WindowEvent e) {}
+		});
+	}
+	
+	/**
+	 * 获取客户端主机IP地址
+	 * @Title: outputHostIpInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取客户端主机IP地址   
+	 * void
+	 */
+//	private String outputHostIpInfo() {
+//		try {
+//			// 根据网卡取本机配置的IP
+//			InetAddress inet = InetAddress.getLocalHost();
+//			String ipAddress = inet.getHostAddress(); 
+//			return ipAddress;
+//		} catch (UnknownHostException e) {
+//			e.printStackTrace();
+//		}
+//		return "";
+//	}
+	
+	/**
+	 * 通过搜狐网的服务器获取当前城市的区划
+	 * @Title: getAreaInfoPostRequest
+	 * @author: zuoyuntao  
+	 * @Description:通过搜狐网的服务器获取当前城市的区划
+	 * @return
+	 * @throws IOException      
+	 * String CitySN = {"cip": "222.221.191.215", "cid": "530100", "cname": "云南省昆明市"};
+	 */
+    private String getAreaInfoPostRequest() throws IOException {
+        HttpPost post = new HttpPost("http://pv.sohu.com/cityjson?ie=utf-8&qq-pf-to=pcqq.c2c");
+        List<BasicNameValuePair> values = new ArrayList<>();
+        
+        HttpEntity entity = new UrlEncodedFormEntity(values, "utf-8");
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+                CloseableHttpResponse response = httpClient.execute(post)) {
+            return EntityUtils.toString(response.getEntity(),"utf-8");
+        } catch (Exception e) {
+            System.out.println("获取失败");
+            throw e;
+        }
+    }
+    
+    /**
+	 * 发起登录系统的HTTP请求
+	 * @Title: sendPostRequest
+	 * @author: zuoyuntao  
+	 * @Description:发起登录系统的HTTP请求  
+	 * @param url 链接地址
+	 * @param content 参数
+	 * @param charset 编码格式
+	 * @return 返回请求结果
+	 * @throws IOException      
+	 */
+    public String sendPostRequest(String url, Map<String, String> params, String charset) throws IOException {
+        HttpPost post = new HttpPost(url);
+        List<BasicNameValuePair> values = new ArrayList<>();
+        
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            values.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+        }
+        HttpEntity entity = new UrlEncodedFormEntity(values, "utf-8");
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        
+        cookieStore = new BasicCookieStore();
+        
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCookieStore(cookieStore).build();
+                CloseableHttpResponse response = httpClient.execute(post)) {
+            return EntityUtils.toString(response.getEntity(),charset);
+        } catch (Exception e) {
+            System.out.println("获取失败");
+            throw e;
+        }
+    }
+    
+    
+	// 获取CPU序列号
+	@SuppressWarnings("resource")
+	private String getCpuInfo() throws IOException {
+		Process process = Runtime.getRuntime().exec(new String[] { "wmic", "cpu", "get", "ProcessorId" });
+		process.getOutputStream().close();
+		Scanner sc = new Scanner(process.getInputStream());
+		sc.next();
+		String serial = sc.next();
+		System.out.println("系统CPU信息>>>" + ":" + serial);
+		return serial;
+	}
+	
+	// 获取硬盘序列号
+	// wmic diskdrive get SerialNumber
+	public String getSerialNumber(String drive) {
+		String result = "";
+		try {
+			File file = File.createTempFile("realhowto", ".vbs");
+			file.deleteOnExit();
+			FileWriter fw = new java.io.FileWriter(file);
+			String vbs = "Set objFSO = CreateObject(\"Scripting.FileSystemObject\")\n"
+					+ "Set colDrives = objFSO.Drives\n" + "Set objDrive = colDrives.item(\"" + drive + "\")\n"
+					+ "Wscript.Echo objDrive.SerialNumber"; // see note
+			fw.write(vbs);
+			fw.close();
+			Process p = Runtime.getRuntime().exec("cscript //NoLogo " + file.getPath());
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line;
+			while ((line = input.readLine()) != null) {
+				result += line;
+			}
+			input.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("硬盘序列号:" + result.trim());
+		return result.trim();
+	}
+}

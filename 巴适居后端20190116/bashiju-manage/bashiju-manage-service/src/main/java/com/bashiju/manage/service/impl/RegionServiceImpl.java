@@ -1,0 +1,148 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.manage.mapper.RegionMapper;
+import com.bashiju.manage.service.IRegionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  RegionServiceImpl   
+ * @Description:TODO(片区管理业务逻辑)   
+ * @author: zhaobin
+ * @date:   2018年4月19日 下午12:06:07   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="片区管理") 
+@Service
+public class RegionServiceImpl implements IRegionService {
+	@Autowired
+	private RegionMapper regionMapper;
+	@Autowired
+	 private CommonSqlServie commonSqlServie;
+	
+	@SystemServiceLog(operationType="分页显示行政区域")
+	@Override
+	public Page<Map<String, Object>> queryArea(String code,int pageNum, int pageSize) {
+		if (StringUtils.isEmpty(code)) {
+			code="";
+		}else {
+			code=code.substring(0, 4);
+		}
+		
+		PageHelper.startPage(pageNum, pageSize);
+		//DataAuthHelper.auth();
+		Page<Map<String,Object>> page = regionMapper.queryArea(code);
+		return page;
+	}
+	@SystemServiceLog(operationType="查询片区列表")
+	@Override
+	public Page<Map<String, Object>> queryRegion(String areaCode, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		//DataAuthHelper.auth();
+		Page<Map<String,Object>> page = regionMapper.queryRegion(areaCode);
+		ExecutionResult.descFormat(areaCode, "根据区划码查询片区列表");
+		return page;
+	}
+	@SystemServiceLog(operationType="修改行政区域坐标")
+	@Override
+	public long updateArea(String code, String lng, String lat) {
+		Map<String,Object> map=new HashMap<>();
+		map.put("code", code);
+		map.put("longitude", lng);
+		map.put("latitude", lat);
+		long result=this.commonSqlServie.commonOperationDatabase(map, "sys_area", "code", false);
+		ExecutionResult.descFormat(code, "修改行政区域坐标为:"+lng+","+lat);
+		return result;
+	}
+	@SystemServiceLog(operationType="修改片区坐标")
+	@Override
+	public long updateRegion(Long id, String lng, String lat) {
+		Map<String,Object> map=new HashMap<>();
+		map.put("id", id);
+		map.put("longitude", lng);
+		map.put("latitude", lat);
+		long result=this.commonSqlServie.commonOperationDatabase(map, "sys_region", "id", false);
+		ExecutionResult.descFormat(id.toString(), "修改片区坐标为:"+lng+","+lat);
+		return result;
+	}
+	@SystemServiceLog(operationType="添加片区")
+	@Override
+	public String addRegion(String name, String code, String lng, String lat) {
+		long count=regionMapper.countRegionByName(name,code);
+		if (count>0) {
+			return "片区名称已使用";
+		}
+		Map<String,Object> user=UserThreadLocal.get();
+		Map<String,Object> map=new HashMap<>();
+		map.put("permissionArea", user.get("deptId"));
+		map.put("operatorId", user.get("id"));
+		map.put("name", name);
+		map.put("longitude", lng);
+		map.put("latitude", lat);
+		map.put("areaCode", code);
+		Long id=this.commonSqlServie.commonOperationDatabase(map, "sys_region", false);
+		ExecutionResult.descFormat(id+"","添加片区："+JSON.toJSONString(map));
+		return "success";
+	}
+	
+	@SystemServiceLog(operationType="查询片区列表")
+	@Override
+	public Page<Map<String, Object>> queryRegionByName(String cityCode,String name, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		//DataAuthHelper.auth();
+		Page<Map<String,Object>> page = regionMapper.queryRegionByName(name,cityCode);
+		ExecutionResult.descFormat(name, "根据名称查询片区列表");
+		return page;
+	}
+	@SystemServiceLog(operationType="区域下拉")
+	@Override
+	public List<Map<String, Object>> queryAreaSelect() {
+		ExecutionResult.descFormat("", "查询区域下拉");
+		return regionMapper.queryAreaSelect();
+	}
+	@SystemServiceLog(operationType="查询城市所有片区")
+	@Override
+	public List<Map<String, Object>> queryRegionsByCity(String cityCode) {
+		List<Map<String, Object>> result= regionMapper.queryRegionsByCity(cityCode);
+		ExecutionResult.descFormat(cityCode, "查询城市所有片区");
+		return result;
+	}
+	@SystemServiceLog(operationType="修改片区")
+	@Override
+	public long updateName(Long id, String name, String code) {
+		Map<String,Object> map=new HashMap<>();
+		map.put("id", id);
+		map.put("name", name);
+		map.put("areaCode", code);
+		long result=this.commonSqlServie.commonOperationDatabase(map, "sys_region", "id", false);
+		ExecutionResult.descFormat(id.toString(), "修改片区名称");
+		return result;
+	}
+	@SystemServiceLog(operationType="删除片区")
+	@Override
+	public boolean deleteRegion(Long id) {
+		int count=regionMapper.queryCommunityCount(id);
+		if (count==0) {
+			boolean result=commonSqlServie.delData("sys_region", "id", id.toString(), false);
+			return result;
+		}
+		throw new BusinessException("片区下已有小区，禁止删除");
+	}
+
+}

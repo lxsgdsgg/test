@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.ContentmanageMapper">
+  
+  	<select id="queryArticleList" resultType="map">
+  		select a.*,b.name as typeName from sys_article a INNER JOIN sys_article_classes b where b.type=#{type} and a.classesId = b.id and a.isValid=1
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		<if test="classesname!=null and classesname!='' ">
+			and b.name =#{classesname}
+		</if>
+		<if test="author!=null and author!='' ">
+			and a.author =#{author}
+		</if>
+		<if test="sources!=null and sources!='' ">
+			and a.sources =#{sources}
+		</if>
+  	</select>
+  	
+  	<select id="queryOurselvesList" resultType="map">
+  		select a.* from sys_article a where a.classesId in
+  		 <foreach item="item" index="index" collection="types"   open="(" separator="," close=")">
+		 	#{item}
+		 </foreach>
+  		 and a.isValid=1
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		
+  	</select>
+
+  	<select id="queryExamineList" resultType="map">
+  		select a.*,b.name as typeName,b.type from sys_article a INNER JOIN sys_article_classes b where a.classesId = b.id and a.isValid=1
+  		<if test="status!=null and status!='' ">
+			and a.examineStatus =#{status}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like '%${title}%'
+		</if>
+		<if test="classesname!=null and classesname!='' ">
+			and b.name =#{classesname}
+		</if>
+		<if test="author!=null and author!='' ">
+			and a.author =#{author}
+		</if>
+		<if test="sources!=null and sources!='' ">
+			and a.sources =#{sources}
+		</if>
+  	</select>
+  	<select id="queryCityByUser" resultType="map">
+  		select a.cityCode,b.name from sys_city_responsibility a INNER JOIN sys_area b where a.userId=#{userId} and a.cityCode = b.code and a.isvalid=1
+  	</select>
+  	<select id="queryCityByRole" resultType="map">
+  		select a.cityCode,c.name from sys_city_responsibility a INNER JOIN sys_user b INNER JOIN sys_area c where b.id =#{userId} and a.roleId=b.roleId and a.cityCode=c.`code` and a.isvalid=1
+  	</select>
+  </mapper>
+  
+   

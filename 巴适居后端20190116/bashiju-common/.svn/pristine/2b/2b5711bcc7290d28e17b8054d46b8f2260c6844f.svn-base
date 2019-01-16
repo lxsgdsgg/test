@@ -1,0 +1,62 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+
+	<!-- 用dubbo协议在24885端口暴露服务 ,同一台服务器上不同应用都要发布dubbo,端口号不能相同-->
+	<dubbo:protocol name="dubbo"  port="24885" />
+		
+	<!-- 将该接口暴露到dubbo中 -->
+	<dubbo:service interface="com.bashiju.api.ErHousingServiceApi"
+		ref="erHousingServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.api.CustomerServiceApi"
+		ref="customerServiceApiImpl" />	
+	<!-- 成交服务	-->
+	<dubbo:service interface="com.bashiju.api.DealServiceApi"
+		ref="dealServiceApiImpl" />
+	<dubbo:service interface="com.bashiju.api.TreesInfoServiceApi"
+		ref="treesInfoServiceApi" />
+	<dubbo:service interface="com.bashiju.api.TransferProcessServiceApi"
+		ref="transferProcessServiceApi" />
+	<dubbo:service interface="com.bashiju.api.DivideintoServiceApi"
+		ref="divideintoServiceApi" />
+	<dubbo:service interface="com.bashiju.api.FormServiceApi"
+		ref="formServiceImpl" />	
+	<dubbo:service interface="com.bashiju.api.DecisionConfigurateServiceApi"
+		ref="decisionConfigurateServiceApi" />	
+	<dubbo:service interface="com.bashiju.api.CompanyServiceApi"
+		ref="companyServiceApi" />	
+	<dubbo:service interface="com.bashiju.api.DeptServiceApi"
+		ref="deptServiceApi" />	
+	<dubbo:service interface="com.bashiju.api.PhoneSecurityManageServiceApi"
+		ref="phoneSecurityManageServiceApi" />	
+		
+		
+	<!--  dubbo服务详情          -->
+		
+	<bean id="erHousingServiceApiImpl" class="com.bashiju.common.service.housingservice.ErHousingServiceApiImpl" /> 	
+	<bean id="customerServiceApiImpl" class="com.bashiju.common.service.customerservice.CustomerServiceApiImpl" /> 
+		<!-- 成交服务	-->
+	<bean id="dealServiceApiImpl" class="com.bashiju.common.service.dealservice.DealServiceApiImpl" />
+	<!-- 树结构服务 -->
+	<bean id="treesInfoServiceApi" class="com.bashiju.common.service.manageservice.TreesInfoServiceApiImpl" />
+	<!-- 注册过户流程管理服务-->
+	<bean id="transferProcessServiceApi" class="com.bashiju.common.service.manageservice.TransferProcessServiceApiImpl" />
+	<!-- 注册分成计算服务-->
+	<bean id="divideintoServiceApi" class="com.bashiju.common.service.manageservice.DivideintoServiceApiImpl" />	
+	<!-- 动态表单服务-->
+	<bean id="formServiceImpl" class="com.bashiju.common.service.formservice.FormServiceImpl" />
+	<!-- 决策配置 -->
+	<bean id="decisionConfigurateServiceApi" class="com.bashiju.common.service.manageservice.DecisionConfigurateServiceApiImpl" />
+	<!-- 公司信息 -->
+	<bean id="companyServiceApi" class="com.bashiju.common.service.manageservice.CompanyServiceApiImpl" />
+	<!-- 部门信息 -->
+	<bean id="deptServiceApi" class="com.bashiju.common.service.manageservice.DeptServiceApiImpl" />
+	<!-- 电话号码安全管理 -->
+	<bean id="phoneSecurityManageServiceApi" class="com.bashiju.common.service.manageservice.PhoneSecurityManageServiceApiImpl" />
+</beans>

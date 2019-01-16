@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.DataacquMapper">
+  
+  	<select id="queryAnalysisTemplet" resultType="map">
+		select * from hs_houseCrawlerTemplate where isvalid = 1
+  		<if test="templateName !=null and templateName!='' ">
+  			and templateName = #{templateName}
+  		</if>
+  	</select>
+
+  	<select id="queryTempletName" resultType="map">
+  		select id,templateName from hs_houseCrawlerTemplate where isvalid = 1
+  	</select>
+  	
+  	<select id="queryAddressConf" resultType="map">
+			SELECT
+			b.`name` AS cityName,
+			a.id,
+			a.cityCode,
+			a.templateName,
+			a.templateId,
+			IFNULL(a.areaCode,'') as areaCode,
+			IFNULL(a.areaName,'') as areaName,
+			IFNULL(a.regionId,'')as regionId,
+			IFNULL(a.regionName,'') as regionName,
+			a.transactionTypeId,
+			a.transactionType,
+			a.houseListUrl,
+			a.permissionArea,
+			a.operatorId,
+			a.operator,
+			a.addTime,
+			a.updateTime,
+			a.isvalid
+			from hs_houseCrawlerConfigure a
+			inner join sys_area b on b.code = a.cityCode
+			where a.isvalid = 1
+  		<if test="templateName!=null and templateName!='' ">
+  			and a.templateName = #{templateName}
+  		</if>
+  		<if test="cityCode!=null and cityCode!='' ">
+  			and a.cityCode = #{cityCode}
+  		</if>
+  	</select>
+	
+	<select id="queryJobConf" resultType="map">
+  		select id,jobName,isValid,`status`,cronExpression,JobDescription,jobGroup,routingKey,targetParam from job where isValid=1
+  	</select>
+  </mapper>
+  
+   

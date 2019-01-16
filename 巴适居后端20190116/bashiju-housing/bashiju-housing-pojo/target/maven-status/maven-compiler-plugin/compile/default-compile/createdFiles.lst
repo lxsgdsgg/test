@@ -1,0 +1,17 @@
+com\bashiju\housing\pojo\BusinessExamineHandleTypeEnum.class
+com\bashiju\housing\pojo\BusinessExamineTypeEnum.class
+com\bashiju\housing\pojo\CommunityEntity.class
+com\bashiju\housing\pojo\LoanRateItem.class
+com\bashiju\housing\pojo\BusinessRateResult.class
+com\bashiju\housing\pojo\HouseDetailQueryEntity.class
+com\bashiju\housing\pojo\RangeQuery.class
+com\bashiju\housing\pojo\StringRangeQuery.class
+com\bashiju\housing\pojo\CommunityQueryEntity.class
+com\bashiju\housing\pojo\HouseAttachTypeEnum.class
+com\bashiju\housing\pojo\HouseStatus.class
+com\bashiju\housing\pojo\HousePropertyResult.class
+com\bashiju\housing\pojo\DeedTaxResult.class
+com\bashiju\housing\pojo\AccurateEntity.class
+com\bashiju\housing\pojo\KeyStatusEnum.class
+com\bashiju\housing\pojo\LoanRateResult.class
+com\bashiju\housing\pojo\HouseQueryEntity.class

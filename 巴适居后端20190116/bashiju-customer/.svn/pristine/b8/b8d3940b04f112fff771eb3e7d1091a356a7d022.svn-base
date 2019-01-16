@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.AgentLeavingMsgAndCommentsMapper">
+	<select id="queryAllAgentInfo" resultType="map">
+		SELECT a.id,a.userId,a.syncFlag,a.hotAgentFlag,a.mainRegions,a.mainCommunity,a.showedRdCnt,
+		a.histShowedRdCnt,a.dealCnt,a.histDealCnt,a.StarRating,a.commentCnt,a.seniority,a.permissionArea,
+		a.operatorId,a.operator,a.addTime,a.updateTime,IF(a.syncFlag=1,'是','否') AS syncFlagName,
+		IF(a.hotAgentFlag=1,'是','否') AS hotAgentFlagName,b.realName as userName,c.name as deptName,
+		a.isvalid FROM sys_agent_details a inner join sys_user b on a.userId=b.id inner join 
+		sys_dept c on b.deptId=c.id WHERE a.isvalid = 1
+		<if test="null != syncFlag and syncFlag != ''">
+			and a.syncFlag = #{syncFlag}
+		</if>
+		<if test="null != hotAgentFlag and hotAgentFlag != ''">
+			and a.hotAgentFlag = #{hotAgentFlag}
+		</if>
+		<if test="null != showedRdCnt and showedRdCnt != ''">
+			and a.showedRdCnt like '%${showedRdCnt}%'
+		</if>
+		<if test="null != deptId and deptId != ''">
+			and c.id = #{deptId}
+		</if>
+		<if test="null != companyId and companyId != ''">
+			and c.companyId = #{companyId}
+		</if>
+	</select>
+	
+	<select id="queryAllAgentLeavingMsgInfo" resultType="map">
+		SELECT a.id,a.userId,a.agentId,a.messageTypeId,a.messageType,a.realName
+		,a.mobile,a.content,a.isRead,if(a.isRead = '1','已读','未读') as isReadName
+		,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid
+		from sys_guestmessage  a where isvalid = 1 and  agentId = #{agentId}
+		<if test="null != messageTypeId and messageTypeId != ''">
+			and a.messageTypeId = #{messageTypeId}
+		</if>
+		<if test="null != isRead and isRead != ''">
+			and a.isRead = #{isRead}
+		</if>
+		<if test="null != mobile and mobile != ''">
+			and a.mobile like '%${mobile}%'
+		</if>
+	</select>
+	
+	<select id="queryAllAgentCommentsInfo" resultType="map">
+		SELECT a.id,a.userId,a.agentId,a.star,a.custId,a.custName,a.examineStatus,a.auditorId,a.auditor,a.auditTime,a.reason
+		,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid
+		,if(a.examineStatus='1','已审核','未审核') as checkName,chart.labeld,chart.labelId
+		from sys_cust_starrating a left join 
+		(select GROUP_CONCAT(b.labeld) as labeld
+		,GROUP_CONCAT(b.labelId) as labelId,agentId from sys_cust_starRating_hotLabel b group by agentId) chart
+  		on  chart.agentId = a.agentId 
+		where a.isValid = 1  and a.agentId = #{agentId}
+		<if test="null != custName and custName != ''">
+			and a.custName like '%${custName}%'
+		</if>
+		<if test="null != examineStatus and examineStatus != ''">
+			and a.examineStatus = #{examineStatus}
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ErrorLogMapper">
+	<select id="queryErrorLog" resultType="map"> 
+		select id,loginUser,deptId,depName as deptName,companyId,comName as companyName,
+		loginIp,loginArea,className,methodName,errorMessage,addTime,
+		updateTime,operator,isValid from error_log where  1=1
+		<if test="methodName!=null and methodName!='' ">and methodName like concat('%',#{methodName},'%')</if>
+		<if test="loginUser!=null and methodName!='' ">and loginUser like concat('%',#{loginUser},'%')</if>
+		<if test="addTime!=null and addTime!='' "> and addTime = #{addTime}</if>
+		<if test="beginAddTime!=null and beginAddTime!='' ">and addTime &gt;=#{beginAddTime}</if>
+		<if test="endAddTime!=null and endAddTime!='' ">and addTime &lt;=#{endAddTime}</if>
+		order by id desc
+	</select>
+</mapper>

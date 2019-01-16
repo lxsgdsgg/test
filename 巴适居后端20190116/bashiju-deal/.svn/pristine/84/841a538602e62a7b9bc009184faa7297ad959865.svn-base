@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.DealMapper">
+	<select id="queryDeals" resultType="map">
+		select a.id,a.dealType,a.agreementId,a.demandId,a.houseId,a.shhid,a.companyId,a.companyName,
+		a.areaCode,a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.buildingsId,
+		a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,a.buildingHouseId,a.buildingHouseName,
+		a.elevatorCount,a.householdCount,a.floorCount,a.totalLayers,a.room,a.hall,a.toilet,a.kitchen,
+		a.balcony,a.buildSpace,a.orientationId,a.orientation,a.owner,a.custName,a.traderId,a.price,
+		a.dealTime,a.landCertifcate,a.propertyTypeId,a.propertyType,a.propCertificate,a.referenceId,
+		a.reference,a.commissionPrice,a.receivedPrice,a.actualCommission,a.commissionFinishTime,
+		a.supplementInfo,a.transferStatus,a.houseUsesId,a.houseUses,a.permissionArea,a.addTime,
+		a.updateTime,a.operatorId,a.operator,a.isValid,a.isDivide,a.isautoDivide,a.isLoan,a.isFinishCase,
+		a.isBreach,a.finishCaseTime,b.realName as traderName, b.deptId,c.name as deptName 
+		from deal_transactioninfo a
+		left join sys_user b on a.traderId = b.id 
+		left join sys_dept c on b.deptId = c.id 
+		left join sys_user d on a.referenceId = d.id
+		where a.isvalid=1
+		<if test="houseUses != null and houseUses != '' "> and a.houseUses = #{houseUses} </if>
+		<if test="beginDealTime != null and beginDealTime != '' "> and a.dealTime &gt;= #{beginDealTime} </if>
+		<if test="endDealTime != null and endDealTime != '' "> and a.dealTime &lt;= #{endDealTime} </if>
+		<if test="beginCommissionFinishTime != null and beginCommissionFinishTime != '' "> and a.commissionFinishTime &gt;= #{beginCommissionFinishTime} </if>
+		<if test="endCommissionFinishTime != null and endCommissionFinishTime != '' "> and a.commissionFinishTime &lt;= #{endCommissionFinishTime} </if>
+		<if test="beginFinishCaseTime != null and beginFinishCaseTime != '' "> and a.finishCaseTime &gt;= #{beginFinishCaseTime} </if>
+		<if test="endFinishCaseTime != null and endFinishCaseTime != '' "> and a.finishCaseTime &lt;= #{endFinishCaseTime} </if>
+		<if test="traderId != null and traderId != '' "> and a.traderId = #{traderId} </if>
+		<if test="traderDeptId != null and traderDeptId != '' "> and c.id concat(#{traderDeptId},'%') </if>
+		<if test="referenceId != null and referenceId != '' "> and a.referenceId = #{referenceId} </if>
+		<if test="referenceDeptId != null and referenceDeptId != '' "> and d.deptId concat(#{referenceDeptId},'%') </if>
+		<if test="operatorId != null and operatorId != '' "> and a.operatorId = #{operatorId} </if>
+		<if test="operatorDeptId != null and operatorDeptId != '' "> and a.permissionArea concat(#{operatorDeptId},'%') </if>
+		<if test="dealId != null and dealId != '' "> and a.dealId = #{dealId} </if>
+		<if test="agreementId != null and agreementId != '' "> and a.agreementId = #{agreementId} </if>
+		<if test="houseId != null and houseId != '' "> and a.houseId = #{houseId} </if>
+		<if test="demandId != null and demandId != '' "> and a.demandId = #{demandId} </if>
+		<if test="owner != null and owner != '' "> and a.owner like concat('%',#{owner},'%') </if>
+		<if test="custName != null and custName != '' "> and a.custName like concat('%',#{custName},'%') </if>
+		<if test="communityName != null and communityName != '' "> and a.communityName like concat('%',#{communityName},'%') </if>
+		<if test="buildingHouseName != null and buildingHouseName != '' "> and a.buildingHouseName like concat('%',#{buildingHouseName},'%') </if>
+	</select>
+	
+	<select id="getDeals" resultType="map">
+		select * from deal_transactioninfo isvalid=1 and id = #{dealId}
+	</select>
+</mapper>

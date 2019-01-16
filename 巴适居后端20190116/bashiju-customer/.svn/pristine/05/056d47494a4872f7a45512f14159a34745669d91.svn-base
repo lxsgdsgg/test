@@ -1,0 +1,116 @@
+package com.bashiju.customer.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bashiju.customer.service.CustomerStatusEnum;
+import com.bashiju.customer.service.DemandFollowRecordService;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DemandFollowRecordController   
+ * @Description:客源带跟进记录控制层
+ * @author: wangpeng
+ * @date:   2018年6月13日 下午2:21:39   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="DemandFollowRecord")
+public class DemandFollowRecordController  extends BaseController{
+	@Autowired
+	private DemandFollowRecordService  demandFollowRecordService;
+	
+	/**
+	 * 
+	 * @Title: enterCustFollowRecordPage   
+	 * @Description:进入客源跟进记录 
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDemandFollowRecordPage")
+	public ModelAndView enterDemandFollowRecordPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv=getModelAndView(request, response, "demandFollowRecord/demandFollowRecord");
+		mv.addObject("custStatu", CustomerStatusEnum.itemList);
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: enterDemandFollowRecordDetailPage   
+	 * @Description: 进入客源跟进详情页面
+	 * @param request
+	 * @param response
+	 * @param demandId 需求编号（id）
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDemandFollowRecordDetailPage")
+	public ModelAndView enterDemandFollowRecordDetailPage(HttpServletRequest request,HttpServletResponse response,String demandId) {
+		ModelAndView mv=getModelAndView(request, response, "demandFollowRecord/demandFollowRecordDetail");
+		mv.addObject("demandId", demandId);
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: queryDemandFollowRecordData   
+	 * @Description: 查询客源跟进记录(分页)
+	 * @param transactionType 交易类型	
+	 * @param followTypeName 跟进类型名称
+	 * @param followType 跟进方式
+	 * @param followerId 跟进人
+	 * @param custIdAndFollowfollower 客源标号或跟进人
+	 * @param operatorId 维护人Id
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param page 当前页数
+	 * @param limit 每页总跳数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDemandFollowRecordData")
+	@ResponseBody
+	public Map<String,Object> queryDemandFollowRecordRecordData(String transactionType,String isValid,String followType,String followerId,String custIdAndFollowfollower,String operatorId,String beginTime,String endTime,int page,int limit){
+		Map<String,Object> paramMap = new HashMap<>();
+		paramMap.put("transactionType", transactionType);
+		paramMap.put("isValid", isValid);
+		paramMap.put("followType", followType);
+		paramMap.put("followerId", followerId);
+		paramMap.put("custIdAndFollowfollower", custIdAndFollowfollower);
+		paramMap.put("operatorId", operatorId);
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		Page<Map<String,Object>> pages=demandFollowRecordService.queryDemandFollowRecordData(paramMap,page, limit);
+		Map<String,Object> map=getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: queryDemandFollowRecordByDemandId   
+	 * @Description: 条件查询客源跟进记录
+	 * @param demandId 需求编号
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDemandFollowRecordByDemandId")
+	@ResponseBody
+	public Map<String,Object> queryDemandFollowRecordByDemandId(String demandId,int page,int limit){
+		Page<Map<String,Object>> custs = demandFollowRecordService.queryDemandFollowRecordByDemandId(demandId, page, limit);
+		Map<String,Object> map = getPageResult(custs);
+		return  map;
+	}
+}

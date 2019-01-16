@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ExcelMapper">
+	<insert id="batchExportCommunityInfo" parameterType="java.util.List">
+		insert into temp_tempcommunity(name,recordName,pinyin,areaCode,regionId,address
+		,longitude,latitude,floorArea,buildingArea,buildingCount,houseCount,propertyLimit
+		,capacityRatio,greenRate,developers,communityProfile,salePrice,isHot,buildYear
+		,matchingIds,matching,gas,elevatorService,waterSupply,heatSupply,powerSupply
+		,groundParkingCount,underGroundParkingCount,groundParkingLeasePrice,underGroundParkingLeasePrice
+		,groundParkingSalePrice,underGroundParkingSalePrice,propertyPhone,propertyFees,propertyName
+		,propertyAddress,street,permissionArea,operatorId,operator,addTime)
+		values
+		<foreach collection="list" item="item" index="index" separator="," >  
+			(#{item.name},#{item.recordName},#{item.pinyin},#{item.areaCode}
+			,#{item.regionId},#{item.address},#{item.longitude},#{item.latitude}
+			,#{item.floorArea},#{item.buildingArea},#{item.buildingCount},#{item.houseCount}
+			,#{item.propertyLimit},#{item.capacityRatio},#{item.greenRate},#{item.developers}
+			,#{item.communityProfile},#{item.salePrice},#{item.isHot},#{item.buildYear}
+			,#{item.matchingIds},#{item.matching},#{item.gas},#{item.elevatorService}
+			,#{item.waterSupply},#{item.heatSupply},#{item.powerSupply},#{item.groundParkingCount}
+			,#{item.underGroundParkingCount},#{item.groundParkingLeasePrice},#{item.underGroundParkingLeasePrice}
+			,#{item.groundParkingSalePrice},#{item.underGroundParkingSalePrice},#{item.propertyPhone}
+			,#{item.propertyFees},#{item.propertyName},#{item.propertyAddress},#{item.street},#{item.permissionArea}
+			,#{item.operatorId},#{item.operator},#{item.addTime})
+	    </foreach>  
+	</insert>
+	<select id="callBatchExportCommunity" resultType="String">
+		call sys_batchExportCommunity()
+	</select>
+</mapper>

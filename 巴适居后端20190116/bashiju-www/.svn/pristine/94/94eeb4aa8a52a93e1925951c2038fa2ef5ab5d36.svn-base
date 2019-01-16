@@ -1,0 +1,37 @@
+package com.bashiju.www.service.user.impl;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+
+public class Test
+{
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args)
+	{
+		// 获取开发者账号信息
+//		 AccountInfo.execute();
+
+		// 验证码通知短信接口
+		 /*IndustrySMS.execute();*/
+		 String str=" sha512Hex编码";
+		 Base64 base64 = new Base64();
+		 System.out.println("md5 编码后："+DigestUtils.md5(str));
+		 System.out.println("sha512Hex 编码后："+DigestUtils.sha512Hex(str));
+		 System.out.println("md2Hex 编码后："+DigestUtils.md2Hex(str));
+		 System.out.println("md5Hex 编码后："+DigestUtils.md5Hex(str));
+		 System.out.println("sha512 编码后："+DigestUtils.sha512(str));
+		 System.out.println("base64 编码后："+base64.decodeBase64(str));
+		 System.out.println("sha512Hex 编码后："+DigestUtils.sha1Hex(str));
+		 
+
+		// 会员营销短信接口
+//		 AffMarkSMS.execute();
+
+		// 语音验证码
+//		 VoiceCode.execute();
+
+	}
+}

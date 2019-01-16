@@ -1,0 +1,75 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityServiceImpl.java   
+ * @Package com.bashiju.www.service.community.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月24日 下午4:43:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.service.community.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.www.mapper.CommunityMapper;
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.community.CommunityQueryParams;
+import com.bashiju.www.pojo.service.community.HotCommunity;
+import com.bashiju.www.service.community.CommunityService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  CommunityServiceImpl   
+ * @Description:小区信息服务   
+ * @author: yangz
+ * @date:   2018年7月24日 下午4:43:49   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CommunityServiceImpl implements CommunityService {
+
+	@Autowired
+	private CommunityMapper communityMapper;
+	
+	
+	/**
+	 * @Description: 条件查询小区信息   
+	 * @param params 查询参数
+	 * @return: Page<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryCommunitys(com.bashiju.www.pojo.service.out.comm.CommunityQueryParams)   
+	 */
+	@Override
+	public Page<Community> queryCommunitys(CommunityQueryParams params) {
+		if(params==null)
+			throw new BusinessException("查询条件不允许为空");
+		if(StringUtils.isEmpty(params.getCityCode()))
+			throw new BusinessException("城市代码不允许为空");
+		//当每页显示的条数超过60条，则默认只显示30条
+		PageHelper.startPage(params.getPageNum(), params.getPageSize());
+		Page<Community> page = (Page<Community>) this.communityMapper.queryCommunitys(params);
+		return page;
+	}
+
+
+	/**
+	 * @Description: 查询城市下的热门小区  
+	 * @param cityCode 城市代码
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#queryHotCommunitys(java.lang.String)   
+	 */
+	@Override
+	public List<HotCommunity> queryHotCommunitys(String cityCode) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市代码不允许为空");
+		return communityMapper.queryHotCommunitys(cityCode);
+	}
+
+}

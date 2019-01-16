@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.FootPrintMapper">
+<!-- 	<select id="queryFootPrintByCustId" resultType="com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity" parameterType="string">
+		select a.cust_Id as custId,a.sourceId,b.titles,b.room,b.hall,z.path,i.name as labeld,
+		b.toilet,b.orientation,b.buildSpace,b.useSpace, b.decoration ,c.floorDes,
+		c.areaName,b.sellingPrice/100 as sellingPrice,b.sellingPrice/b.buildSpace/100 as  univalence ,c.regionName,c.totalLayers,b.buildDates,
+		c.communityName ,c.communityId,ifnull(group_concat(concat('距离地铁线',e.stationName,e.metroName,d.metroDistance,'米')),'') as metroLabel from cust_footprint a
+		left join hs_secondhandhouse b on a.sourceId = b.id 
+		LEFT JOIN hs_houseBaseInfo c on c.id = b.houseId
+		LEFT JOIN sys_station_block_community d  on d.communityId = c.communityId 
+		left join sys_metro_station e on d.stationId = e.id
+		left join hs_houseAttachment z on a.sourceId = z.shhId
+		left join sys_labeld i on a.sourceId = i.sourceId 
+		where a.cust_id =1  and a.type=1 and a.isValid = 1
+		group by c.id
+	</select> -->
+	
+	<resultMap type="com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity" id="rentFootPrint">
+		 <id property="id" column="id"/>
+		 <result property="custId" column="custId"/>
+		 <result property="type" column="type"/>
+		 <result property="sourceId" column="sourceId"/>
+		 <result property="browsingTime" column="browsingTime"/>
+		 <result property="room" column="room"/>
+		 <result property="titles" column="titles"/>
+		 <result property="toilet" column="toilet"/>
+		 <result property="hall" column="hall"/>
+		 <result property="useSpace" column="useSpace"/>
+		 <result property="orientation" column="orientation"/>
+		 <result property="elevatorCount" column="elevatorCount"/>
+		 <result property="buildSpace" column="buildSpace"/>
+		 <result property="decoration" column="decoration"/>
+		 <result property="floorDes" column="floorDes"/>
+		 <result property="areaName" column="areaName"/>
+		 <result property="regionName" column="regionName"/>
+		 <result property="rentPrice" column="rentPrice"/>
+		 <result property="communityName" column="communityName"/>
+		 <result property="url" column="url"/>
+		 <result property="twoYearCode" column="twoYearCode"/>
+		 <result property="dutyFreeCode" column="dutyFreeCode"/>
+		 <result property="fiveYearCode" column="fiveYearCode"/>
+		 <result property="houseCardCode" column="houseCardCode"/>
+		 <result property="allTimeCode" column="allTimeCode"/>
+		 <result property="schoollabel" column="schoollabel"/>
+		 <result property="metroLabel" column="metroLabel"/>
+	</resultMap>
+	
+	<resultMap type="com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity" id="saleFootPrint">
+		 <id property="id" column="id"/>
+		 <result property="custId" column="custId"/>
+		 <result property="type" column="type"/>
+		 <result property="sourceId" column="sourceId"/>
+		 <result property="browsingTime" column="browsingTime"/>
+		 <result property="room" column="room"/>
+		 <result property="titles" column="titles"/>
+		 <result property="toilet" column="toilet"/>
+		 <result property="hall" column="hall"/>
+		 <result property="useSpace" column="useSpace"/>
+		 <result property="orientation" column="orientation"/>
+		 <result property="elevatorCount" column="elevatorCount"/>
+		 <result property="buildSpace" column="buildSpace"/>
+		 <result property="decoration" column="decoration"/>
+		 <result property="floorDes" column="floorDes"/>
+		 <result property="areaName" column="areaName"/>
+		 <result property="regionName" column="regionName"/>
+		 <result property="sellingPrice" column="sellingPrice"/>
+		 <result property="communityName" column="communityName"/>
+		 <result property="url" column="url"/>
+		 <result property="twoYearCode" column="twoYearCode"/>
+		 <result property="dutyFreeCode" column="dutyFreeCode"/>
+		 <result property="fiveYearCode" column="fiveYearCode"/>
+		 <result property="houseCardCode" column="houseCardCode"/>
+		 <result property="allTimeCode" column="allTimeCode"/>
+		 <result property="schoollabel" column="schoollabel"/>
+		 <result property="metroLabel" column="metroLabel"/>
+	</resultMap>
+	
+	<select id="querySaleFootPrintByCustId" resultMap="saleFootPrint" parameterType="string">
+		select a.id,cust_id as custId,a.sourceId as houseId,b.buildDates,browsingTime,b.room,b.titles,b.toilet,b.hall,b.useSpace,b.orientation,b.elevatorCount,b.buildSpace,b.decoration,b.floorDes,b.areaName,b.region as regionName,
+		 b.sellingPrice/100 as sellingPrice ,b.communityId,communityName,b.url,b.twoYearCode,b.dutyFreeCode,b.fiveYearCode, b.houseCardCode,b.allTimeCode,b.schoollabel ,b.metroLabel from cust_footprint  a
+		 inner join  sys_client_saleHouseQueryInfos b on a.sourceId = b.id
+		 where a.cust_id =#{custId} and a.type = 1 and a.isValid = 1	ORDER BY a.browsingTime desc
+	</select>
+	
+	<select id="queryRentFootPrintByCustId" resultMap="rentFootPrint" parameterType="string">
+	 		select a.id,cust_id as custId,b.buildDates,a.sourceId as houseId,browsingTime,b.room,b.titles,b.toilet,b.hall,b.useSpace,b.orientation,b.elevatorCount,b.buildSpace,b.decoration,b.floorDes,b.areaName,b.region as regionName,
+		 b.rentPrice/100 as rentPrice ,b.communityId,communityName,b.url,b.twoYearCode,b.isSchoolRoom,b.isSubwayRoom,b.dutyFreeCode,b.fiveYearCode, b.houseCardCode,b.allTimeCode,b.schoollabel ,b.metroLabel from cust_footprint  a
+		 inner join  sys_client_rentHouseQueryInfos b on a.sourceId = b.id
+		 where a.cust_id =#{custId} and a.type =2 and a.isValid = 1	ORDER BY a.browsingTime desc
+	</select>
+	
+	<select id="queryNewHouseFootPrintByCustId" resultType="com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity" parameterType="string">
+			select a.id,b.name,b.imageUrl as url,b.huxingDesc ,b.areaName,b.regionName, b.openDate ,b.deliverDate ,b.avgPrice/100 ,b.address,b.labeld,b.metroLabel 
+			 from cust_footprint a inner join sys_client_communityProjectQueryInfos b ON
+			b.id = a.sourceId where a.cust_id =#{custId} and a.type=3 and  a.isValid = 1 ORDER BY a.browsingTime desc
+	</select>
+	
+	<insert id="saveFootPrint" parameterType="com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity">
+			INSERT INTO bashiju_erp.cust_footprint ( cust_id, type, sourceId, browsingTime, isValid) 
+			VALUES ( #{cust_id}, #{type}, #{sourceId}, #{browsingTime}, #{isValid});
+	</insert>
+	
+	<update id="deleteFootPrint" parameterType="string">
+			update cust_footprint set isValid = 0 where id = #{id}
+	</update>
+
+	<select id="queryFootPrintCountByCustId" resultType="com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity" parameterType="String">
+		select count(*)  as fooPrintCount from  cust_footprint  where cust_id =#{custId} and isValid = 1
+	</select>
+	
+	
+	<select id="queryIsExist" resultType="long">
+		select count(0) from cust_footprint where cust_id =#{custId} and type = #{type} and sourceId =#{sourceId} and isValid = 1
+	</select>
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.CustomerMapper">
+
+	<select id="queryMainter" resultType="map">
+		select maintainId,maintainer from cust_customerBusinessInfo where id=#{custId} and isValid = 1
+	</select>
+	<select id="queryDeptName" resultType="map">
+		select a.companyId,a.deptId,a.realName,b.name as deptName,c.name as companyName from sys_user a INNER JOIN sys_dept b on a.id=#{id} and a.deptId = b.id INNER JOIN sys_company c on a.companyId = c.id
+	</select>
+	<select id="queryLookHouse" resultType="map">
+		select a.*,b.name as deptname from cust_showedRecord a INNER JOIN sys_dept b on a.demandId = #{custId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryFollowRecord" resultType="map">
+		select a.*,b.name as deptname from cust_followRecord a INNER JOIN sys_dept b on a.custId = #{custId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="customerFindHouseList" resultType="map">
+		${sql}
+	</select>
+
+	<select id="queryFollowInfo" resultType="map">
+		select * from cust_followRecord where custId = #{custId} limit 0,6
+	</select>
+	<select id="queryRelateagentInfo" resultType="map">
+		select a.*,b.mobile from cust_custRelateAgent a INNER JOIN sys_user b on a.custId = #{custId} and a.agentId = b.id and a.isValid=1
+	</select>
+
+</mapper>

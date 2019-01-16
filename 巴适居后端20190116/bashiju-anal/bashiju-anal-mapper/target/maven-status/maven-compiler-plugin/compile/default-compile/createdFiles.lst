@@ -1,0 +1,17 @@
+com\bashiju\anal\mapper\DeptAchievementMapper.class
+com\bashiju\anal\mapper\UserIncomeMapper.class
+com\bashiju\anal\mapper\DealComprehensiveAnalysisMapper.class
+com\bashiju\anal\mapper\StatisticsBuyDemandMapper.class
+com\bashiju\anal\mapper\OperationAnalysisMapper.class
+com\bashiju\anal\mapper\DeptIncomeSortMapper.class
+com\bashiju\anal\mapper\StatisticsRentHouseMapper.class
+com\bashiju\anal\mapper\StatisticsSaleHouseMapper.class
+com\bashiju\anal\mapper\DealIndexAnalysisMapper.class
+com\bashiju\anal\mapper\TotalPerformanceAnalysisMapper.class
+com\bashiju\anal\mapper\DeptIncomeMapper.class
+com\bashiju\anal\mapper\IncomeTrendMapper.class
+com\bashiju\anal\mapper\UserAchievementMapper.class
+com\bashiju\anal\mapper\AnalCommonMapper.class
+com\bashiju\anal\mapper\StatisticsRentDemandMapper.class
+com\bashiju\anal\mapper\DealConversionRateAnalysisMapper.class
+com\bashiju\anal\mapper\FollowRecordMapper.class

@@ -1,0 +1,105 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:39:57   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.wutils.log.SystemServiceLog;
+import com.bashiju.www.mapper.CustomerPersonalCentralMapper;
+import com.bashiju.www.pojo.service.out.comm.CustomerPersonalCentralQueryParamEntity;
+import com.bashiju.www.service.user.ICustomerPersonalCentralService;
+
+/**
+ * 客户个人中心服务
+ * @ClassName:CustomerPersonalCentralServiceImpl
+ * @Description:客户个人中心服务
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:39:57
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="个人中心")
+public class CustomerPersonalCentralServiceImpl
+	implements ICustomerPersonalCentralService{
+	/**
+	 * 客户个人中心映射接口
+	 */
+	@Autowired
+	private CustomerPersonalCentralMapper mCustomerPersonalCentralMapper;
+
+	/**
+	 * Redis服务接口
+	 */
+	@Autowired(required=false)
+	private RedisServiceApi redisServiceApi;
+	
+	@Override
+	public void queryTransitScheduleList(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		redisServiceApi.setList("", new ArrayList<Map<String,Object>>());
+	}
+	@Override
+	public void queryMyHouseList(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void querySeekHouseRecordList(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void queryMyHouseRequestList(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void bindingHouseByBindCode(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void bindingCustomerByBindCode(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void queryMyEntrustment(
+			
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void queryMyConceredHouseSources(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+	@Override
+	public void queryMyComments(
+			CustomerPersonalCentralQueryParamEntity custEntity) {
+		
+		
+	}
+}

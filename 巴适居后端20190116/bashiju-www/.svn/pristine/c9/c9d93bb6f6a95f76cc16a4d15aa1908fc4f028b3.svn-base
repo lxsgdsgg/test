@@ -1,0 +1,120 @@
+package com.bashiju.www.controller;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.bashiju.www.service.user.UserRegisterService;
+import com.github.pagehelper.util.StringUtil;
+/**
+ * 
+ * @ClassName:  UserRegisterController   
+ * @Description:用户注册控制层   
+ * @author: wangpeng
+ * @date:   2018年7月16日 下午3:29:35   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="userRegister")
+public class UserRegisterController  extends BaseController {
+	
+	@Autowired
+	private UserRegisterService userRegisterService;
+	
+	
+	/**
+	 * 
+	 * @Title: enterUserRegisterPage   
+	 * @Description: 用户注册信息  
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterUserRegisterPage")
+	public ModelAndView enterUserRegisterPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "userRegister/userRegister");
+		return mv;
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: saveUserRegisterInfo   
+	 * @Description:保存用户注册信息   
+	 * @param jsonData
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveUserRegisterInfo")
+	@ResponseBody
+	public BashijuResult saveUserRegisterInfo(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("输入有误，请重试");
+		Map<Object,Object> map = (Map<Object, Object>) JSONObject.parse(jsonData);
+		//TODO:"短信验证";
+		boolean result = userRegisterService.userRegister(map);
+ 		if(result) {
+ 			return BashijuResult.ok();
+ 		}
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);	
+ 	
+	}
+	
+	/**
+	 * 
+	 * @Title: sendMsg   
+	 * @Description: 发送手机短信验证   
+	 * @return      
+	 * @return: String
+	 */
+	@RequestMapping(value="sendMsg")
+	@ResponseBody
+	public BashijuResult sendMsg(String mobile) {
+//		//TODO:发送短信，成功后返回给页面
+		String result = userRegisterService.sendMessage(mobile);
+		System.out.println(result);
+		if(!"".equals(result))
+			return BashijuResult.build(true, "发送成功",result);
+		return BashijuResult.build(false, "发送失败",result);
+	}
+	
+	
+	/**
+	 * 	
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否存在  
+	 * @param mobile
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="queryIsExistMobile")
+	@ResponseBody
+	public BashijuResult queryIsExistMobile(String mobile) {
+		if(StringUtil.isEmpty(mobile))
+			throw new BusinessException("电话号码不能为空");
+		 boolean result = userRegisterService.queryIsExistMobile(mobile);
+		 if(result)
+			 throw new BusinessException("该手机号码已注册");
+		 return BashijuResult.ok();
+	}
+	
+	
+	
+}

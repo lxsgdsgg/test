@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.www.mapper.CustomerEntrustmentsMapper">
+	 <resultMap id="houseEntrust" type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity">
+	   <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="transactionType" property="transactionType" />
+	    <result column="leaseType" property="leaseType" />
+	    <result column="joinRentStyle" property="joinRentStyle" />
+	    <result column="cityCode" property="cityCode" />
+	    <result column="areaCode" property="areaCode" />
+	    <result column="areaName" property="areaName" />
+	    <result column="regionId" property="regionId" />
+	    <result column="regionName" property="regionName" />
+	    <result column="communityId" property="communityId" />
+	    <result column="communityName" property="communityName" />
+	    <result column="buildingsId" property="buildingsId" />
+	    <result column="buildingsName" property="buildingsName" />
+	    <result column="bulidingUnitId" property="bulidingUnitId" />
+	    <result column="buildingsUnitName" property="buildingsUnitName" />
+	    <result column="buildingHouseId" property="buildingHouseId" />
+	    <result column="buildingHouseName" property="buildingHouseName" />
+	    <result column="room" property="room" />
+	    <result column="hall" property="hall" />
+	    <result column="toilet" property="toilet" />
+	    <result column="buildSpace" property="buildSpace" />
+	    <result column="floorDesc" property="floorDesc" />
+	    <result column="decorationId" property="decorationId" />
+	    <result column="decoration" property="decoration" />
+	    <result column="orientationId" property="orientationId" />
+	    <result column="orientation" property="orientation" />
+	    <result column="sellingPrice" property="sellingPrice" />
+	    <result column="rentPrice" property="rentPrice" />
+	    <result column="mobile" property="mobile" />
+	    <result column="clienteleName" property="clienteleName" />
+	    <result column="clienteleSex" property="clienteleSex" />
+	    <result column="addTime" property="addTime" />
+	    <result column="title" property="title" />
+	    <result column="descs" property="descs" />
+	    <result column="handleFlag" property="handleFlag" />
+	  </resultMap>
+	  
+	 <resultMap id="demandEntrust" type="com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="transactionType" property="transactionType" />
+	    <result column="leaseType" property="leaseType" />
+	    <result column="joinRentStyle" property="joinRentStyle" />
+	    <result column="cityCode" property="cityCode" />
+	    <result column="areaCode" property="areaCode" />
+	    <result column="areaName" property="areaName" />
+	    <result column="regionId" property="regionId" />
+	    <result column="regionName" property="regionName" />
+	    <result column="communityId" property="communityId" />
+	    <result column="communityName" property="communityName" />
+	    <result column="room" property="room" />
+	    <result column="hall" property="hall" />
+	    <result column="toilet" property="toilet" />
+	    <result column="buildSpace" property="buildSpace" />
+	    <result column="floorDesc" property="floorDesc" />
+	    <result column="decorationId" property="decorationId" />
+	    <result column="decoration" property="decoration" />
+	    <result column="orientationId" property="orientationId" />
+	    <result column="orientation" property="orientation" />
+	    <result column="minBuyPrice" property="minBuyPrice" />
+	    <result column="maxBuyPrice" property="maxBuyPrice" />
+	    <result column="minRentPrice" property="minRentPrice" />
+	    <result column="MaxRentPrice" property="MaxRentPrice" />
+	    <result column="mobile" property="mobile" />
+	    <result column="clienteleName" property="clienteleName" />
+	    <result column="clienteleSex" property="clienteleSex" />
+	    <result column="addTime" property="addTime" />
+	    <result column="descs" property="descs" />
+	    <result column="handleFlag" property="handleFlag" />
+	  </resultMap>
+	
+	<!-- 查询房源委托数据信息 -->
+	<select id="queryHouseEntrustData" resultMap="houseEntrust">
+		SELECT a.id,a.transactionType,a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,
+		a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,
+		a.buildingsId,a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,
+		a.buildingHouseId,a.buildingHouseName,a.room,a.hall,a.toilet,a.buildSpace,
+		a.floorDesc,a.decorationId,a.decoration,a.orientationId,a.orientation,
+		a.sellingPrice,a.rentPrice,a.custId,a.mobile,a.clienteleName,a.clienteleSex,
+		a.addTime,a.title,a.descs,a.handleFlag from cust_houseEntrust a where custId = #{custId}
+	</select>
+	
+	<!-- 查询需求委托数据信息 -->
+	<select id="queryDemandEntrustData" resultMap="demandEntrust">
+		SELECT a.id,a.transactionType,a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,
+		a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.room,a.hall,
+		a.toilet,a.buildSpace,a.floorDesc,a.decorationId,a.decoration,a.orientationId,
+		a.orientation,a.minBuyPrice,a.maxBuyPrice,a.minRentPrice,a.MaxRentPrice,a.custId,
+		a.mobile,a.clienteleName,a.clienteleSex,a.addTime,a.descs,a.handleFlag from cust_demandEntrust a
+		where custId = #{custId}
+	</select>
+	
+	<!-- 根据客户需求匹配房源信息 -->
+	<select id="queryHouseSourceDataByMatchingCondition" resultMap="houseEntrust">
+	
+	</select>
+	
+	<!-- 保存客户需求信息 -->
+	<insert id="saveDemandEntrustmentData" parameterType="map">
+	 	insert into cust_demandEntrust
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+	
+	<!-- 保存房源需求信息 -->
+	<insert id="saveHouseEntrustmentData" parameterType="map">
+		insert into cust_houseEntrust
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+	<!-- 保存受理数据信息 -->
+	<insert id="saveAgentAcceptDataList" parameterType="map">
+		insert into sys_agentAcceptance
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+</mapper>

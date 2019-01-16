@@ -1,0 +1,84 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralParamEntity.java   
+ * @Package com.bashiju.www.pojo.service.input.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午5:43:30   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.input.user;
+
+/**
+ * C端用户个人中心输入实体类
+ * @ClassName:CustomerPersonalCentralParamEntity
+ * @Description:C端用户个人中心输入实体类
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午5:43:30
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerPersonalCentralParamEntity {
+	/**登陆用户ID**/
+	private String custId;
+	/**登陆用户电话**/
+	private String mobile;
+	/**房源用户绑定码**/
+	private String bindCode;
+
+	/**  
+	 * @Title:  getCustId <BR>  
+	 * @Description: 获取用户ID <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getCustId() {
+		return custId;
+	}
+
+	/**  
+	 * @Title:  setCustId <BR>  
+	 * @Description:设置用户ID <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setCustId(String custId) {
+		this.custId = custId;
+	}
+
+	/**  
+	 * @Title:  getMobile <BR>  
+	 * @Description:获取电话号码 <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getMobile() {
+		return mobile;
+	}
+
+	/**  
+	 * @Title:  setMobile <BR>  
+	 * @Description: 设置电话号码<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	/**  
+	 * @Title:  getBindCode <BR>  
+	 * @Description:  获取绑定码<BR>  
+	 * @return: String <BR>  
+	 */
+	public String getBindCode() {
+		return bindCode;
+	}
+
+	/**  
+	 * @Title:  setBindCode <BR>  
+	 * @Description: 设置绑定码<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setBindCode(String bindCode) {
+		this.bindCode = bindCode;
+	}
+}

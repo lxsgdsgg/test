@@ -1,0 +1,226 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.HousePropertyArticleClassesMapper;
+import com.bashiju.manage.service.HousePropertyArticleClassesService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  HousePropertyArticleClassesServiceImpl   
+ * @Description:房产文章分类服务 
+ * @author: wangpeng
+ * @date:   2018年7月21日 下午12:01:34   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房产文章分类")
+public class HousePropertyArticleClassesServiceImpl  extends CommonSqlServie implements HousePropertyArticleClassesService{
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	@Autowired
+	private HousePropertyArticleClassesMapper housePropertyArticleClassesMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="查询房产文章分类")
+	public Page<Map<String, Object>> queryHousePropertyArticleClasses(String name,String level,String cityCode,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenuEnum.MENU_48.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> map = housePropertyArticleClassesMapper.queryHousePropertyArticleClasses(name,level,cityCode);
+		return map;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="新增房产文章类型")
+	public boolean saveOrUpdateHousePropertyArticleClasses(Map<Object, Object> map) {
+		//新增
+		if(!map.containsKey("id") ||map.get("id")==null ||StringUtils.isEmpty(map.get("id").toString())) {
+			map.remove("id");
+			map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			map.put("operatorId", UserThreadLocal.get().get("id"));
+			map.put("operator", UserThreadLocal.get().get("realName"));
+			map.put("addTime", new Date());
+			long result = this.commonOperationDatabase(map, "sys_article_classesManage", false);
+			ExecutionResult.descFormat(Long.toString(result),"新增房产文章类型");
+			if(result>0)
+				return true;
+			return false;
+		}else {
+			//修改
+			long result = this.commonOperationDatabase(map, "sys_article_classesManage", "id", false);
+			if(result>0)
+				return true;
+			return false;
+		}
+	} 
+	
+	@Override
+	@SystemServiceLog(operationType="查询房产文章分类等级")
+	public List<Map<String, Object>> queryHousePropertyArticleClassesNameByLevel(String level,String type) {
+		return 	housePropertyArticleClassesMapper.queryHousePropertyArticleClassesNameByLevel(level,type);
+	}
+
+	@Override
+	@SystemServiceLog(operationType="逻辑删除房产文章分类")
+	public boolean delHousePropertyArticleClasses(String houseAticleId) {
+		boolean result = this.delData("sys_article_classesManage", "id", houseAticleId, false);
+		if(result)
+			return true;
+		return false;
+	}
+	@Override
+	@SystemServiceLog(operationType="通过id查询房产文章分类")
+	public Map<String, Object> queryHousePropertyArticleClassesById(String houseAticleId) {
+		 Map<String, Object> map = housePropertyArticleClassesMapper.queryHousePropertyArticleClassesById(houseAticleId);
+		 if(map!=null &&map.size()>0)
+			 return map;
+		 return null;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="通过类型和城市代码查询房产文章分类")
+	public List<Map<String, Object>> queryHousePropertyArticleClassesByTypeAndCityCode(String type,String cityCode) {
+		List<Map<String,Object>> articleClasses = housePropertyArticleClassesMapper.queryHousePropertyArticleClassesByTypeAndCityCode(type,cityCode);
+		/*if(articleClasses!=null && articleClasses.size()>0) {
+			Map<String,Object> value = new HashMap<>();
+			for(Map<String,Object> o : articleClasses) {
+				if(value.containsKey(o.get("cityCode"))){
+					List fieldList =(List)value.get(o.get("cityCode"));
+					fieldList.add(o);
+					
+				}else{
+					List l = new ArrayList<>();
+					l.add(o);
+					value.put(o.get("cityCode").toString(), l);
+				}
+			}
+			return value;
+		}*/
+			
+		return articleClasses;
+	}
+
+	@Override
+	public List<Map<String, Object>> queryArticleClassTree() {
+		List<Map<String, Object>> results=new ArrayList<>();
+		Map<String, Object> zixunMap=new HashMap<>();
+		zixunMap.put("id", "t-1");
+		zixunMap.put("name", "资讯");
+		zixunMap.put("level", "0");
+		zixunMap.put("parentId", "");
+		zixunMap.put("children", new ArrayList<Map<String, Object>>());
+		results.add(zixunMap);
+		Map<String, Object> baikeMap=new HashMap<>();
+		baikeMap.put("id", "t-0");
+		baikeMap.put("name", "百科");
+		baikeMap.put("level", "0");
+		baikeMap.put("parentId", "");
+		baikeMap.put("children", new ArrayList<Map<String, Object>>());
+		results.add(baikeMap);
+		List<Map<String, Object>> list=housePropertyArticleClassesMapper.queryAllArticleClasses();
+		for (Map<String, Object> map : list) {
+			if (map.get("parentId")==null||"0".equals(map.get("parentId").toString())) {
+				if ("1".equals(map.get("type").toString())) {
+					List<Map<String, Object>> children= (List<Map<String, Object>>) zixunMap.get("children");
+					children.add(map);
+				}
+				if ("0".equals(map.get("type").toString())) {
+					List<Map<String, Object>> children= (List<Map<String, Object>>) baikeMap.get("children");
+					children.add(map);
+				}
+			}
+			for (Map<String, Object> item : list) {
+				if (map.get("type").toString().equals(item.get("type").toString())&&map.get("id").toString().equals(item.get("parentId").toString())) {
+					List<Map<String, Object>> children= (List<Map<String, Object>>) map.get("children");
+					if (children==null) {
+						children=new ArrayList<Map<String, Object>>();
+						map.put("children", children);
+					}
+					children.add(item);				
+				}
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public Page<Map<String, Object>> queryCityArticleClasseList(String name, String level, String cityCode, int page,
+			int limit) {
+		PageHelper.startPage(page, limit);
+		Page<Map<String,Object>> map = housePropertyArticleClassesMapper.queryCityArticleClasseList(name,level,cityCode);
+		return map;
+	}
+
+	@Override
+	public void saveCityArticleClasses(String cityCode, String jsonArray) {
+		if (StringUtils.isNotEmpty(cityCode)&&StringUtils.isNotEmpty(jsonArray)) {
+			commonSqlServie.delData("sys_article_classes", "cityCode", cityCode, false);
+			List<Map> datas=JSON.parseArray(jsonArray, Map.class);
+			if (datas.size()>0) {
+				Map user=UserThreadLocal.get();
+				String fields="articleTypeId,type,cityCode,name,level,parentId,isOpen,permissionArea,operatorId";
+				List<String> values=new ArrayList<>();
+				for (Map item : datas) {
+					if (item.get("type")!=null) {
+						StringBuffer buffer=new StringBuffer();
+						buffer.append(item.get("id"));
+						buffer.append(",");
+						buffer.append(item.get("type"));
+						buffer.append(",'");
+						buffer.append(cityCode);
+						buffer.append("','");
+						buffer.append(item.get("name"));
+						buffer.append("',");
+						buffer.append(item.get("level"));
+						buffer.append(",");
+						buffer.append(item.get("parentId"));
+						buffer.append(",");
+						buffer.append(0);
+						buffer.append(",'");
+						buffer.append(user.get("deptId"));
+						buffer.append("',");
+						buffer.append(user.get("id"));
+						values.add(buffer.toString());
+					}										
+				}
+				if (values.size()>0) {
+					commonSqlServie.batchAdd(fields, "sys_article_classes", values, false);
+				}				
+			}
+		}
+		throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+		
+	}
+
+	@Override
+	public List<Integer> queryCityArticleClassesTree(String cityCode) {
+		if (StringUtils.isNotEmpty(cityCode)) {
+			List<Integer> result=housePropertyArticleClassesMapper.queryCityArticleClassesTree(cityCode);
+			return result;
+		}
+		throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+	}
+		
+}

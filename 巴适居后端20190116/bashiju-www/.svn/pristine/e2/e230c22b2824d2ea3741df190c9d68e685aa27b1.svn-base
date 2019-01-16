@@ -1,0 +1,94 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentsMapper.java   
+ * @Package com.bashiju.www.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月30日 下午2:40:48   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 客户委托持久层接口
+ * @ClassName:CustomerEntrustmentsMapper
+ * @Description:客户委托持久层接口
+ * @author:zuoyuntao
+ * @date:2018年7月30日 下午2:40:48
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerEntrustmentsMapper {
+	/**
+	 * 保存客户房源委托信息 
+	 * @Title: saveHouseEntrustmentData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户房源委托信息         
+	 * @param paraMap 要保存数据对象
+	 * void
+	 */
+	public long saveHouseEntrustmentData(Map<String,Object> paraMap);
+	/**
+	 * 保存客户需求委托
+	 * @Title: saveDemandEntrustmentData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户需求委托
+	 * @param paraMap 要保存数据对象
+	 * void
+	 */
+	public void saveDemandEntrustmentData(Map<String,Object> paraMap);
+	/**
+	 * 根据客户需求匹配房源信息
+	 * @Title: queryHouseSourceDataByMatchingCondition
+	 * @author: zuoyuntao  
+	 * @Description:根据客户需求匹配房源信息     
+	 * @param demandEntity 客户需求实体对象
+	 * List<CustomerHouseEntrustmentEntity>
+	 */
+	public List<CustomerHouseEntrustmentEntity> queryHouseSourceDataByMatchingCondition(
+			CustomerDemandEntrustmentEntity demandEntity);
+	/**
+	 * 查询客户房源出售、出租委托信息
+	 * @Title: queryHouseEntrustData
+	 * @author: zuoyuntao  
+	 * @Description:查询客户房源出售、出租委托信息
+	 * @param custId  客户ID
+	 * @param entrustType 委托类型
+	 * @return      
+	 * Page<CustomerHouseEntrustmentEntity>
+	 */
+	public Page<CustomerHouseEntrustmentEntity> queryHouseEntrustData(@Param("custId") String custId
+			,@Param("entrustType") String entrustType);
+	/**
+	 * 查询客户需求求租、求购委托信息
+	 * @Title: queryDemandEntrustData
+	 * @author: zuoyuntao  
+	 * @Description:查询客户需求求租、求购委托信息
+	 * @param custId 客户ID
+	 * @param entrustType 委托类型
+	 * @return      
+	 * List<CustomerDemandEntrustmentEntity>
+	 */
+	public Page<CustomerDemandEntrustmentEntity> queryDemandEntrustData(@Param("custId") String custId
+			,@Param("entrustType") String entrustType);
+	/**
+	 * 保存经纪人受理数据信息
+	 * @Title: saveAgentAcceptDataList
+	 * @author: zuoyuntao  
+	 * @Description:保存经纪人受理数据信息
+	 * @param paraMap  经纪人受理数据对象
+	 * void
+	 */
+	public void saveAgentAcceptDataList(Map<String,Object> paraMap);
+}

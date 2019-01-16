@@ -1,0 +1,69 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CityOpenInfoService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月23日 上午9:20:17   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  CityOpenInfoService   
+ * @Description:平台城市开通服务接口   
+ * @author: yangz
+ * @date:   2018年7月23日 上午9:20:17   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CityOpenInfoService {
+
+	/**     
+	 * @Description: 条件查询开通城市信息   
+	 * @param provinceCode 省级行政区域
+	 * @param cityCode 市级行政区域
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	List<Map<String, Object>> queryCityOpenInfos(String provinceCode, String cityCode);
+	
+	/**     
+	 * @Description: 条件查询开通城市信息(分页)   
+	 * @param provinceCode 省级行政区域
+	 * @param cityCode 市级行政区域
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>      
+	 */ 
+	Page<Map<String, Object>> queryCityOpenInfos(String provinceCode, String cityCode, int pageNum, int pageSize);
+
+	/**     
+	 * @Description: 保存城市开通信息  
+	 * @param map 待保存的开通信息
+	 * @return: boolean      
+	 */ 
+	boolean saveCityOpen(Map<Object, Object> map);
+
+	/**     
+	 * @Description: 取消城市开通   
+	 * @param id 待取消的城市开通信息编号
+	 * @return: boolean      
+	 */ 
+	boolean cancelCityOpen(String id);
+	
+	/**
+	 * @Description: 保存公司城市开通信息    
+	 * @param cityOpenInfoId 要授权的城市编号
+	 * @param list 待保存的信息
+	 * @return: boolean
+	 */
+	boolean saveNavigationBarPermission(String cityOpenInfoId,List<Map<String,Object>> list);
+
+}

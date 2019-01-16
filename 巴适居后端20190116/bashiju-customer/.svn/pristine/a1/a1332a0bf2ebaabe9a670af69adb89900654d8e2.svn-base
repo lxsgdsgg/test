@@ -1,0 +1,117 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TestDataMapper.java   
+ * @Package com.bashiju.manage.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月11日 上午10:28:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.customer.mapper;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  CustomerMapper   
+ * @Description:客源服务
+ * @author: 
+ * @date:   2018年4月11日 上午10:28:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustomerMapper {
+	public Map<String,Object> queryMainter(String demandId);
+	public Map<String,Object> queryHsMainter(Long houseId);
+	public int queryDemandByMainter(Long maintainer);
+	public Map<String,Object> queryDemand(String demandId);
+	public Map<String,Object> queryDeptName(Long id);
+	public Page<Map<String, Object>> queryLookHouse(String demandId);
+	public void reduceLookHouseNum(String demandId);
+	public List<Map<String,Object>> queryImg(Long showedRecordId);
+	public List<Map<String,Object>> queryLookHouseId(Map<String,Object> param);
+	public Map<String,Object> queryHouseCommunity(String houseId);
+	public Page<Map<String, Object>> queryFollowRecord(String demandId);
+	public LinkedList<Map<String,Object>> queryCustomerPhone(@Param("demandId") String demandId,@Param("examineTypeId") String examineTypeId);
+	public Page<Map<String, Object>> customerFindHouseList(@Param("sql")String sql);
+	public Page<Map<String, Object>> queryNewHouseList(Map<String, Object> param);
+	public Page<Map<String, Object>> queryCustomerListByIds(@Param("ids")String ids);
+	public Page<Map<String, Object>> queryCustomerHouse(@Param("demandId") String demandId,@Param("companyId") String companyId);
+	public Page<Map<String, Object>> queryCustomerDemand(@Param("demandId") String demandId,@Param("transactionTypeId") String transactionTypeId,@Param("companyId") String companyId);
+	public Map<String,Object> queryCustomerInfo(@Param("demandId") String demandId,@Param("userId") Long userId);
+	public LinkedList<Map<String,Object>> queryFollowInfo(String demandId);
+	public LinkedList<Map<String,Object>> queryRelateagentInfo(@Param("demandId") String demandId,@Param("hasPhone") boolean hasPhone);
+	public Map<String,Object> queryShowAndBrowseNum(String demandId);
+	public Map<String,Object> queryCustomValue(@Param("customField") Map<String, Object> customField,@Param("formName") String formName,@Param("keyId") String keyId);
+	public int queryDepositByShhId(Long shhId);
+
+	public Map<String,Object> queryStore(@Param("demandId") String demandId,@Param("userId") Long userId);
+	public Map<String,Object> queryTaobaoTime(String id);
+	public int queryExamineInfo(@Param("demandId") String demandId,@Param("examineTypeId") String examineTypeId);
+	/**
+	 * 
+		 * 查询本公司、本城市的客源等级规则
+		 * @Description: 查询本公司、本城市的客源等级规则
+		 * @param cityCode 城市编码
+		 * @param companyId 公司id
+		 * @param transactionType 交易类型：4求购，5求租
+		 * @return  levelType:等级,conditions:等级条件,beginPrice:最低价格,endPrice:最高价格,beginSpace:最小面积,endSpace:最大面积
+		 * List<Map<Object,Object>>
+	 */
+	public List<Map<Object, Object>> queryCustomerLevel(@Param("cityCode")String cityCode,@Param("companyId")String companyId,@Param("transactionType")String transactionType);
+	public Page<Map<String, Object>> queryCustomerList(@Param("sql")String sql);
+	/**
+	 * 
+		 * 匹配房源
+		 * @Description: 匹配房源
+		 * @param param 匹配条件 {areas:[{type:1,value:区域编号},{type:2,value:片区id},{type:3,value:小区id}],minSpace:最小面积,maxSpace:最大面积,minSellingPrice:最小售价,maxSellingPrice:最大售价,
+		 *   minRentPrice:最小租价,maxRentPrice:最大租价,minRoom:最小房间数,maxRoom:最大房间数,minFloor:最小楼层,maxFloor:最大楼层,minBuildDate:最小建筑年代,minBuildDate:最大建筑年代,transactionTypeId:客源交易类型}
+		 * @return  status,sh.id,sh.houseId,hb.communityName,sh.buildSpace,room,sellingPrice,rentPrice,sh.orientation,sh.maintainer,floorCount
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> matchingHousing(Map<String, Object> param);
+	/**
+	 * 
+		 * 查询客源电话是否重复
+		 * @Description: 查询客源电话是否重复 
+		 * @param param {phone:电话,transactionTypeId:客源交易类型4求购、5求租,maintainId:维护人id,mainterDeptId:部门id}
+		 * @return 
+		 * Integer
+	 */
+	public Integer queryCountCustomerByPhone(Map<String,Object> param);
+	/**
+	 * 
+	 * @Title: queryCountCustomerByDemandId   
+	 * @Description: 查询客源是否已存在有效的
+	 * @param: param {demandId:需求,transactionTypeId:客源交易类型4求购、5求租,maintainId:维护人id,mainterDeptId:部门id}
+	 * @param: @return      
+	 * @return: Integer      
+	 * @throws
+	 */
+	public Integer queryCountCustomerByDemandId(Map<String,Object> param);
+	/**
+	 * 
+		 * 查询客源主电话
+		 * @Description: 查询客源主电话
+		 * @param demandId 客源id
+		 * @return 
+		 * String
+	 */
+	public String queryCustomerMainPhone(@Param("demandId")String demandId);
+	/**
+	 * 
+		 * 合同签订选择客源列表
+		 * @Description: 合同签订选择客源列表
+		 * @param param
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryContractCustomer(Map<String,Object> param);
+}

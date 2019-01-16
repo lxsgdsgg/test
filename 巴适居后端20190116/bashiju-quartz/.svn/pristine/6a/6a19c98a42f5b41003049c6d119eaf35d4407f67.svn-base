@@ -1,0 +1,110 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+	http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+
+   <!-- 声明exchange -->
+    <rabbit:topic-exchange name="ERP-QUARTZ-EXCHANGE" id="ERP-QUARTZ-EXCHANGE" durable="true" 
+    auto-delete="false" internal="false">
+    </rabbit:topic-exchange>
+    
+    <!-- spring template声明-->
+    <rabbit:template id="reRabbitTemplate"  exchange="ERP-QUARTZ-EXCHANGE" connection-factory="connectionFactory"  message-converter="jsonMessageConverter"/>
+	<!-- 以上为生产者的配置 -->
+	
+	
+	<!-- 以下为消费者配置 -->
+	
+   <!-- queue配置 -->
+    <!-- durable:是否持久化 -->
+    <!-- exclusive: 仅创建者可以使用的私有队列，断开后自动删除 -->
+    <!-- auto_delete: 当所有消费客户端连接断开后，是否自动删除队列 -->
+    <rabbit:queue id="ERP-QUARTZ-QUERYCOMPANY-QUEUE" name="ERP-QUARTZ-QUERYCOMPANY-QUEUE" durable="true" auto-delete="false" exclusive="false" />	
+    <rabbit:queue id="ERP-QUARTZ-HOUSE-STATUSCHANGE-QUEUE" name="ERP-QUARTZ-HOUSE-STATUSCHANGE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+    <rabbit:queue id="ERP-QUARTZ-HOUSE-LEVELCHANGE-QUEUE" name="ERP-QUARTZ-HOUSE-LEVELCHANGE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<rabbit:queue id="ERP-QUARTZ-HOUSE-CLOSEDISC-QUEUE" name="ERP-QUARTZ-HOUSE-CLOSEDISC-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	
+	<rabbit:queue id="ERP-QUARTZ-CUSTOMER-STATUSCHANGE-QUEUE" name="ERP-QUARTZ-CUSTOMER-STATUSCHANGE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<rabbit:queue id="ERP-QUARTZ-CUSTOMER-LEVELCHANGE-QUEUE" name="ERP-QUARTZ-CUSTOMER-LEVELCHANGE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<rabbit:queue id="ERP-QUARTZ-CUSTOMER-CLOSEDISC-QUEUE" name="ERP-QUARTZ-CUSTOMER-CLOSEDISC-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+
+	<rabbit:queue id="ERP-QUARTZ-HOUSE-CRAWLER-QUEUE" name="ERP-QUARTZ-HOUSE-CRAWLER-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<rabbit:queue id="ERP-QUARTZ-HOUSE-CRAWLERINSERTDATA-QUEUE" name="ERP-QUARTZ-HOUSE-CRAWLERINSERTDATA-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 清除房源今日浏览队列 -->
+	<rabbit:queue id="ERP-QUARTZ-HOUSE-CLRARTODAYSEE-QUEUE" name="ERP-QUARTZ-HOUSE-CLRARTODAYSEE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 自动取消房源置顶队列 -->
+	<rabbit:queue id="ERP-QUARTZ-HOUSE-CANCELSETTOP-QUEUE" name="ERP-QUARTZ-HOUSE-CANCELSETTOP-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 自动撤单队列 -->
+	<rabbit:queue id="ERP-QUARTZ-HOUSEANDCUSTOMER-CANCELNOTICE-QUEUE" name="ERP-QUARTZ-HOUSEANDCUSTOMER-CANCELNOTICE-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	
+	<!-- 筛选小区最优经纪人(筛选小区中综合评价最高的4个人) -->
+	<rabbit:queue id="ERP-QUARTZ-COMMUNITYBESTAGENTMQ-QUEUE" name="ERP-QUARTZ-COMMUNITYBESTAGENTMQ-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 处理EPR发布的到期岗位，将岗位置为失效状态 -->
+	<rabbit:queue id="ERP-QUARTZ-DEALEXPIRERECRUITINFO-QUEUE" name="ERP-QUARTZ-DEALEXPIRERECRUITINFO-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 统计小区每个月的价格走势  -->
+	<rabbit:queue id="ERP-QUARTZ-COMMUNITYPRICETRENDMQ-QUEUE" name="ERP-QUARTZ-COMMUNITYPRICETRENDMQ-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+	<!-- 经纪人受理委托变更(当前委托的经纪人要是半小时之内不处理，则变更给另一个经纪人)  -->
+	<rabbit:queue id="ERP-QUARTZ-AGENTACCEPTANCEUPDATEMQ-QUEUE" name="ERP-QUARTZ-AGENTACCEPTANCEUPDATEMQ-QUEUE" durable="true" auto-delete="false" exclusive="false" />
+
+
+	<!-- 声明消费者 -->
+    <bean id="QueryCompanyMq" class="com.bashiju.quartz.service.mq.QueryCompanyMq" />
+	<bean id="HouseStatusChangeMq" class="com.bashiju.quartz.service.mq.HouseStatusChangeMq" />
+	<bean id="HouseLevelChangeMq" class="com.bashiju.quartz.service.mq.HouseLevelChangeMq" />
+	<bean id="HouseCloseDiscChangeMq" class="com.bashiju.quartz.service.mq.HouseCloseDiscStatusChangeMq" />
+	
+	<bean id="CustomerStatusChangeMq" class="com.bashiju.quartz.service.mq.CustomerStatusChangeMq" />
+	<bean id="CustomerLevelChangeMq" class="com.bashiju.quartz.service.mq.CustomerLevelChangeMq" />
+	<bean id="CustomerCloseDiscChangeMq" class="com.bashiju.quartz.service.mq.CustomerCloseDiscStatusChangeMq" />
+	<!-- 爬虫获取数据-->
+	<bean id="HousingCrawlerProducerMq" class="com.bashiju.quartz.service.mq.HousingCrawlerProducerMq" />
+	<!-- 爬到的数据插入到数据库  -->
+	<bean id="HousingCrawlerConsumerMq" class="com.bashiju.quartz.service.mq.HousingCrawlerConsumerMq" />
+	<!-- 房源删除今日浏览  -->
+	<bean id="HouseClearTodaySeeMq" class="com.bashiju.quartz.service.mq.HouseClearTodaySeeMq" />
+	<!-- 房源自动取消置顶  -->
+	<bean id="HouseCancelSetTopMq" class="com.bashiju.quartz.service.mq.HouseCancelSetTopMq" />
+	<!-- 房源客源自动撤单  -->
+	<bean id="HouseAndCustomerCancelNoticeMq" class="com.bashiju.quartz.service.mq.HouseAndCustomerCancelNoticeMq" />
+	
+	<!-- 筛选小区最优经纪人(筛选小区中综合评价最高的4个人)-->
+	<bean id="CommunityBestAgentMq" class="com.bashiju.quartz.service.mq.CommunityBestAgentMq" />
+	<!-- 处理EPR发布的到期岗位，将岗位置为失效状态，声明处理逻辑的消费者 -->
+	<bean id="DealExpireRecruitinfoMq" class="com.bashiju.quartz.service.mq.RecruitInfoExpireMq" />
+	<!-- 统计小区每个月的价格走势  -->
+	<bean id="CommunityPriceTrendMq" class="com.bashiju.quartz.service.mq.CommunityPriceTrendMq" />
+	<!-- 经纪人受理委托变更(当前委托的经纪人要是半小时之内不处理，则变更给另一个经纪人)  -->
+	<bean id="AgentAcceptanceUpdateMq" class="com.bashiju.quartz.service.mq.AgentAcceptanceUpdateMq" />
+	
+	
+    <!-- listener配置 消费者 自动确认 -->
+    <!-- queues：监听的队列，多个的话用逗号（,）分隔 ref：监听器 -->
+     <rabbit:listener-container
+        connection-factory="connectionFactory" acknowledge="auto"
+        message-converter="jsonMessageConverter">
+        <rabbit:listener queues="ERP-QUARTZ-QUERYCOMPANY-QUEUE" ref="QueryCompanyMq" method="queryCompany"/>
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-STATUSCHANGE-QUEUE" ref="HouseStatusChangeMq" method="houseAutoStatusChange"/>
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-LEVELCHANGE-QUEUE" ref="HouseLevelChangeMq" method="houseAutolevelChange"/>       
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-CLOSEDISC-QUEUE" ref="HouseCloseDiscChangeMq" method="houseCloseDiscStatusAutoChange"/>        
+        <rabbit:listener queues="ERP-QUARTZ-CUSTOMER-STATUSCHANGE-QUEUE" ref="CustomerStatusChangeMq" method="customerAutoStatusChange"/>
+      	<rabbit:listener queues="ERP-QUARTZ-CUSTOMER-STATUSCHANGE-QUEUE" ref="CustomerLevelChangeMq" method="customerAutoLevelChange"/>
+        <rabbit:listener queues="ERP-QUARTZ-CUSTOMER-CLOSEDISC-QUEUE" ref="CustomerCloseDiscChangeMq" method="customerCloseDiscStatusAutoChange"/>        
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-CRAWLER-QUEUE" ref="HousingCrawlerProducerMq" method="queryCrawlerPage"/>
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-CRAWLERINSERTDATA-QUEUE" ref="HousingCrawlerConsumerMq" method="addCrawlerData"/>        
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-CLRARTODAYSEE-QUEUE" ref="HouseClearTodaySeeMq" method="clearTodaySee"/>
+        <rabbit:listener queues="ERP-QUARTZ-HOUSE-CANCELSETTOP-QUEUE" ref="HouseCancelSetTopMq" method="houseCancelSetTop"/>
+        <rabbit:listener queues="ERP-QUARTZ-HOUSEANDCUSTOMER-CANCELNOTICE-QUEUE" ref="HouseAndCustomerCancelNoticeMq" method="cancelNotice"/>      
+        <rabbit:listener queues="ERP-QUARTZ-COMMUNITYBESTAGENTMQ-QUEUE" ref="CommunityBestAgentMq" method="updateAndQueryCommunityBestAgents"/>
+        <rabbit:listener queues="ERP-QUARTZ-DEALEXPIRERECRUITINFO-QUEUE" ref="DealExpireRecruitinfoMq" method="dealRecruitInfoExpired"/>  
+        <rabbit:listener queues="ERP-QUARTZ-COMMUNITYPRICETRENDMQ-QUEUE" ref="CommunityPriceTrendMq" method="staticesCommunityPriceTrend"/>
+        <rabbit:listener queues="ERP-QUARTZ-AGENTACCEPTANCEUPDATEMQ-QUEUE" ref="AgentAcceptanceUpdateMq" method="agentAcceptanceUpdate"/>      
+    </rabbit:listener-container> 
+    
+     <!-- 消息对象json转换类 -->
+    <bean id="jsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+    
+
+</beans>

@@ -1,0 +1,100 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealServiceImpl.java   
+ * @Package com.bashiju.deal.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月16日 上午11:06:37   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealMapper;
+import com.bashiju.deal.service.DealService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  DealServiceImpl   
+ * @Description:成交管理服务   
+ * @author: yangz
+ * @date:   2018年6月16日 上午11:06:37   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="成交管理")
+@Service
+public class DealServiceImpl extends CommonSqlServie implements DealService {
+	
+	@Autowired
+	private DealMapper dealMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+
+	/**
+	 * @Description: 根据成交id获取成交信息  
+	 * @param dealId 成交id
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#getDeals(java.lang.String)   
+	 */
+	@Override
+	public Map<String, Object> getDeals(String dealId) {
+		if(StringUtils.isEmpty(dealId))
+			return null;
+		return this.dealMapper.getDeals(dealId);
+	}
+
+	/**
+	 * @Description: 条件查询成交信息   
+	 * @param params 查询信息的条件
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#queryDeals(java.util.Map)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryDeals(Map<String, Object> params) {
+		String menuId = "7";//TODO:这里要设置菜单id以后才知道
+		dataAuthHelper.auth(menuId, UserThreadLocal.get().get("id").toString());
+		return this.dealMapper.queryDeals(params);
+	}
+
+	/**
+	 * @Description: 条件查询成交信息 (分页)    
+	 * @param params 查询信息的条件
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数 
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#queryDeals(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryDeals(Map<String, Object> params, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> pages = (Page<Map<String, Object>>) this.queryDeals(params);
+		return pages;
+	}
+
+	/**
+	 * @Description: 更新成交信息   
+	 * @param deal 待更新的成交信息
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#updateDeal(java.util.Map)   
+	 */
+	@Override
+	public boolean updateDeal(Map<String, Object> deal) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+}

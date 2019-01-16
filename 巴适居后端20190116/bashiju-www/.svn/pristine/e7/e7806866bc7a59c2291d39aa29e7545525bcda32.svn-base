@@ -1,0 +1,100 @@
+package com.bashiju.www.global;
+
+/**
+ * C端全局变量类
+ * @ClassName:  WebGlobal   
+ * @Description: C端全局变量类
+ * @author: zhaobin
+ * @date:   2018年7月26日 上午9:45:58   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class WebGlobal {	
+	
+	/*列表数据过期时间*/
+	public static final int LIST_EXPTIME=60;
+	/*其他数据缓存过期时间*/
+	public static final int OTHER_EXPTIME=60*60;
+	
+	/*------左云涛建立的全局类 开始------*/
+	/**经纪人受理客户房源出租、出售委托推送key前缀**/
+	public static final String AGENT_ACCEPT_ENTRUST_PUSH_KEY_PREFIX = "AGENT_ACCEPT_ENTRUST_PUSH_KEY_PREFIX";
+
+	/*左云涛建立的全局类 结束*/
+
+	/*------王开发建立的全局类 开始------*/
+	/** 百科租房技巧类型id**/
+	public static final int RENT_SKILL_ID=0;
+	/** 区县值存入redis的key值前缀**/
+	public static final String AREA_ITEM_REDIS_PREFIX="AREA_REDIS_PREFIX_";
+	/** 片区值存入redis的key值前缀**/
+	public static final String REGION_ITEM_REDIS_PREFIX="REGION_REDIS_PREFIX_";
+	/** 动态下拉值存入redis的key值**/
+	public static final String SELECT_ITEM_REDIS_KEY="SELECT_REDIS_KEY";
+	/** 区间值存入redis的key值前缀**/
+	public static final String RANGE_ITEM_REDIS_PREFIX="RANGE_REDIS_PREFIX_";
+	/** 地铁线路存入redis的key值前缀**/
+	public static final String METRO_LINE_REDIS_PREFIX="METRO_REDIS_PREFIX_";
+	/** 地铁站点存入redis的key值前缀**/
+	public static final String METRO_STATION_REDIS_PREFIX="METRO_STATION_REDIS_PREFIX_";
+	/** 房源详细存入redis的key值前缀**/
+	public static final String HOUSE_DETAILED_BASE_REDIS_PREFIX ="HOUSE_BASE_REDIS_PREFIX_";
+	/** 房源详细带看存入redis的key值前缀**/
+	public static final String HOUSE_DETAILED_SHOWED_REDIS_PREFIX ="HOUSE_SHOWED_REDIS_PREFIX_";
+	/** 房源详细经纪人推荐存入redis的key值前缀**/
+	public static final String HOUSE_DETAILED_AGENT_REDIS_PREFIX ="HOUSE_AGENT_REDIS_PREFIX_";
+	/** 房源详细经纪人反馈存入redis的key值前缀**/
+	public static final String HOUSE_DETAILED_FEEDBACK_REDIS_PREFIX ="HOUSE_FEEDBACK_REDIS_PREFIX_";
+	/** 房源详细相似房源存入redis的key值前缀**/
+	public static final String HOUSE_DETAILED_SAME_REDIS_PREFIX ="HOUSE_SAME_REDIS_PREFIX_";
+	/** 首页房源数量统计存入redis的key值前缀**/
+	public static final String HOME_HOUSE_TOTAL_REDIS_PREFIX ="HOME_TOTAL_REDIS_PREFIX_";
+	/** 首页新房推荐存入redis的key值前缀**/
+	public static final String HOME_NEWGOOD_REDIS_PREFIX ="HOME_NEWGOOD_REDIS_PREFIX_";
+	/** 首页二手房靓房推荐存入redis的key值前缀**/
+	public static final String HOME_SELLGOOD_REDIS_PREFIX ="HOME_SELLGOOD_REDIS_PREFIX_";
+	/** 首页出租靓房推荐存入redis的key值前缀**/
+	public static final String HOME_RENTGOOD_REDIS_PREFIX ="HOME_RENTGOOD_REDIS_PREFIX_";
+	/** 首页资讯推荐存入redis的key值前缀**/
+	public static final String HOME_ENCYCLOPEDIA_REDIS_PREFIX ="HOME_ENCYCLOPEDIA_REDIS_PREFIX_";
+	/** 网站协议存入redis的key值前缀**/
+	public static final String HOME_PROTOCOL_REDIS_PREFIX ="HOME_PROTOCOL_REDIS_PREFIX_";
+	/** 文章类型存入redis的key值前缀**/
+	public static final String ARTICLE_TYPE_REDIS_PREFIX ="ARTICLE_TYPE_REDIS_PREFIX_";
+	/** 热门资讯存入redis的key值前缀**/
+	public static final String ARTICLE_ZIXUN_HOT_REDIS_PREFIX ="ARTICLE_ZIXUN_HOT_REDIS_PREFIX_";
+	/** 资讯快讯存入redis的key值前缀**/
+	public static final String ARTICLE_ZIXUN_FLASH_REDIS_PREFIX ="ARTICLE_ZIXUN_FLASH_REDIS_PREFIX_";
+	/** 热门百科存入redis的key值前缀**/
+	public static final String ARTICLE_BAIKE_HOT_REDIS_PREFIX ="ARTICLE_BAIKE_HOT_REDIS_PREFIX_";
+	/** 百科快讯存入redis的key值前缀**/
+	public static final String ARTICLE_BAIKE_FLASH_REDIS_PREFIX ="ARTICLE_BAIKE_FLASH_REDIS_PREFIX_";
+	/** 文章详细存入redis的key值前缀**/
+	public static final String ARTICLE_INFO_REDIS_PREFIX ="ARTICLE_INFO_REDIS_PREFIX_";
+	/** 租房技巧文章列表存入redis的key值前缀**/
+	public static final String ARTICLE_RENTSKILL_REDIS_PREFIX ="ARTICLE_RENTSKILL_REDIS_PREFIX_";
+	
+	/*王开发建立的全局类 结束*/
+	
+	
+	/*------杨智建立的全局类 开始------*/
+	
+	
+	/*杨智建立的全局类 结束*/
+
+	
+	/*------王鹏建立的全局类 开始------*/
+	/**登录用户id存入cookies的key前缀**/
+	public static final String CUSTOMER_LOGIN_COOKIES_ID = "CUSTOMER_LOGIN_COOKIES_ID_";
+	/**登录用户名称存入cookies的key前缀**/	
+	public  static final String CUSTOMER_LOGIN_COOKIES_NAME = " CUSTOMER_LOGIN_COOKIES_NAME_";
+	
+	/*王鹏建立的全局类 结束*/
+	
+	
+	/*-----李雯建立的全局类 开始-----*/
+	
+	
+	/*李雯建立的全局类 结束*/
+}

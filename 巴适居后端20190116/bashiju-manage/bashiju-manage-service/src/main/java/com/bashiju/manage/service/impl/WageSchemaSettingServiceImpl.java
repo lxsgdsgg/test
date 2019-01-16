@@ -1,0 +1,170 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  WageSchemaSettingServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年6月25日 下午5:32:11   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service.impl;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.WageSchemaSettingMapper;
+import com.bashiju.manage.service.IWageSchemaSettingService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 工资方案服务
+ * @ClassName:WageSchemaSettingServiceImpl
+ * @Description:工资方案服务
+ * @author:zuoyuntao
+ * @date:2018年6月25日 下午5:32:11
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="工资方案配置")
+public class WageSchemaSettingServiceImpl extends CommonSqlServie implements IWageSchemaSettingService {
+	/**
+	 * 权限接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	/**
+	 * 工资方案配置映射接口
+	 */
+	@Autowired
+	private WageSchemaSettingMapper mWageSchemaSettingMapper;
+	/**   
+	 * <p>Title: queryWageSchemaInfoWithPage</p>   
+	 * <p>Description: 查询工资方案配置集合--带分页</p>   
+	 * @param paraMap 参数对象
+	 * @param page 最少条数
+	 * @param limit 最多条数
+	 * @return   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#queryWageSchemaInfoWithPage(java.util.Map)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryWageSchemaInfoWithPage(Map<String, Object> paraMap
+			,int page ,int limit) {
+		PageHelper.startPage(page,limit);
+////		mDataAuthHelper.auth(MenusEnum.MENU_252.getCode()
+//				, String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) queryAllWageSchemaInfo(paraMap);
+	}
+
+	/**   
+	 * <p>Title: queryAllWageSchemaInfo</p>   
+	 * <p>Description: 查询工资方案配置集合</p>   
+	 * @param paraMap 参数集合
+	 * @return   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#queryAllWageSchemaInfo(java.util.Map)   
+	 */
+
+	@Override
+	public List<Map<String, Object>> queryAllWageSchemaInfo(Map<String, Object> paraMap) {
+		return mWageSchemaSettingMapper.queryAllWageSchemaSetingInfoByMap(paraMap);
+	}
+	/**   
+	 * <p>Title: queryAllWageSchemaInfo</p>   
+	 * <p>Description: 查询工资方案配置集合--组装条件</p>   
+	 * @param paraMap 参数集合
+	 * @return   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#queryAllWageSchemaInfo(java.util.Map)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryAllWageSchemaInfoByCondition(Map<String, Object> paraMap) {
+		String condition = buildConditionSql(paraMap, "sys_salary_config");
+		return mWageSchemaSettingMapper.queryAllWageSchemaSetingInfoByCondition(condition);
+	}
+	
+	/**
+	 * 组装查询条件
+	 * @Title: buildConditionSql
+	 * @author: zuoyuntao  
+	 * @Description:组装查询条件
+	 * @param paraMap 参数对象
+	 * @param alias 别名
+	 * @return      
+	 * String JSON 格式为：
+	 */
+	private String buildConditionSql (Map<String,Object> paraMap,String alias) {
+		StringBuilder condition = new StringBuilder();
+		Iterator<String> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			String value = String.valueOf(paraMap.get(key));
+			if("null".equals(value)) {
+				continue;
+			}
+			condition.append(" and ").append(alias).append(".")
+				.append(key).append(" = '").append(value).append("'");
+		}
+		return condition.toString();
+	} 
+
+	/**   
+	 * <p>Title: saveOrUpdateWageSchemaInfo</p>   
+	 * <p>Description:添加或修改工资方案信息 </p>   
+	 * @param paraMap   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#saveOrUpdateWageSchemaInfo(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="添加/修改工资方案")
+	public void saveOrUpdateWageSchemaInfo(Map<String,Object> paraMap) {
+		if(paraMap.containsKey(ManageGlobal.PRI_FIELD)) {
+			commonOperationDatabase(paraMap
+					, ManageGlobal.T_SYS_SALARY_CONFIG, ManageGlobal.PRI_FIELD, false);
+			ExecutionResult.descFormat(String.valueOf(paraMap.get(ManageGlobal.PRI_FIELD))
+					, "修改工资方案配置");
+		}else {
+			long id = commonOperationDatabase(paraMap
+					, ManageGlobal.T_SYS_SALARY_CONFIG, false);
+			ExecutionResult.descFormat(String.valueOf(id), "添加工资方案配置");
+		}
+	}
+
+	/**   
+	 * <p>Title: deleteWageSchema</p>   
+	 * <p>Description: 删除工资方案配置</p>   
+	 * @param wageId
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#deleteWageSchema(java.lang.String, java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除工资方案")
+	public void deleteWageSchema(String wageId) {
+		clearData(ManageGlobal.T_SYS_SALARY_CONFIG, " id = " + wageId);
+		ExecutionResult.descFormat(wageId, "删除工资方案配置");
+	}
+	/**
+	 * <p>Title: jurgeWageDataExists</p>   
+	 * <p>Description: 判断数据是否存在</p>   
+	 * @param paraMap 参数对象
+	 * @return   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#jurgeWageDataExists(java.util.Map)
+	 */
+	@Override
+	public boolean jurgeWageDataExists(Map<String, Object> paraMap) {
+		String condition = buildConditionSql(paraMap, "sys_salary_config");
+		long count = mWageSchemaSettingMapper.countWageSchemaInfoByCondition(condition);
+		if(count > 0) {
+			return true;
+		}
+		return false;
+	}
+
+}

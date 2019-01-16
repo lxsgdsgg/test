@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.ImgMapper">
+	
+	<select id="queryImg" resultType="com.bashiju.www.pojo.service.out.comm.ImgResult">
+		select code,codeDesc,type,mainTitle,smallTitle,path,conditionData from sys_image where cityCode=#{cityCode} and isValid = 1
+	</select>
+	
+	
+	
+</mapper>

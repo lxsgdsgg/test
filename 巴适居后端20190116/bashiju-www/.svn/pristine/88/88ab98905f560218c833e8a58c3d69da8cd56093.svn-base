@@ -1,0 +1,109 @@
+package com.bashiju.www.service.user.impl;
+
+import java.net.URLEncoder;
+import java.util.Map;
+import java.util.Random;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.www.mapper.UserRegisterMapper;
+import com.bashiju.www.service.user.UserRegisterService;
+
+/**
+ * 
+ * @ClassName:  UserRegisterServiceImpl   
+ * @Description:用户注册服务   
+ * @author: wangpeng
+ * @date:   2018年7月16日 下午2:55:16   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(operationType="用户注册服务")
+public class UserRegisterServiceImpl extends CommonSqlServie  implements UserRegisterService {
+	
+	@Autowired
+	private UserRegisterMapper userRegisterMapper;
+	
+	/**
+	 * 
+	 * <p>Title: userRegister</p>   
+	 * <p>Description: 用户注册</p>   
+	 * @param map 用户输入参数
+	 * @return   
+	 * @see com.bashiju.www.service.user.UserRegisterService#userRegister(java.util.Map)
+	 */
+	@Override
+	public boolean userRegister(Map<Object, Object> map) {
+		long result = this.commonOperationDatabase(map, "cust_customer",false);
+		if(result>0)
+			return true;
+		return false;
+	}
+	
+	/**
+	 * 
+	 * <p>Title: queryIsExistMobile</p>   
+	 * <p>Description: 查询手机号码是否已存在</p>   
+	 * @param mobile
+	 * @return   
+	 * @see com.bashiju.www.service.user.UserRegisterService#queryIsExistMobile(java.lang.String)
+	 */
+	@Override
+	public boolean queryIsExistMobile(String mobile) {
+		long result = userRegisterMapper.queryIsExistMobile(mobile);
+		if(result>0)
+			return true;//号码已存在
+		return false;
+	}
+	public boolean sendMsg() {
+		  
+		return false;
+	}
+	@Override
+	 public   String  getRandomNum(){
+	        Random random=new Random();
+	        String randomNum = random.nextInt(1000000) + "";
+	        if(randomNum.length()!=6){
+	            System.out.println("6位伪随机数："+randomNum);
+	            return  getRandomNum();
+	        }
+//	        System.out.println("6位随机数："+randomNum);
+	        return randomNum;
+	    }
+	@Override
+	public String sendMessage(String mobile) {
+		//生成随机数
+	        Random random=new Random();
+	        String randomNum = random.nextInt(1000000) + "";
+	        String operation = "/industrySMS/sendSMS";
+
+	        String accountSid = Config.ACCOUNT_SID;
+	        String to = mobile;
+	        String smsContent = "【巴适居】尊敬的用户，您的验证码为"+randomNum+"";
+	        
+		/**
+		 * 验证码通知短信
+		 */
+			String tmpSmsContent = null;
+		    try{
+		      tmpSmsContent = URLEncoder.encode(smsContent, "UTF-8");
+		    }catch(Exception e){
+		      
+		    }
+		    String url = Config.BASE_URL + operation;
+		    String body = "accountSid=" + accountSid + "&to=" + to + "&smsContent=" + tmpSmsContent
+		        + HttpUtil.createCommonParam();
+		    // 提交请求
+		    String result = HttpUtil.post(url, body);
+//		    System.out.println("result:" + System.lineSeparator() + result);
+//		    System.out.println("+++++++++++++++++++++++");
+//		    System.out.println(result);
+		    System.out.println("生成的隨機數是："+randomNum);
+		    return result;
+	}
+}

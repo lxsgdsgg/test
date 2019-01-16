@@ -1,0 +1,115 @@
+package com.bashiju.base.service.privacyprotectionservice;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dyplsapi.model.v20170525.BindAxnExtensionRequest;
+import com.aliyuncs.dyplsapi.model.v20170525.BindAxnExtensionResponse;
+import com.aliyuncs.dyplsapi.model.v20170525.UnbindSubscriptionRequest;
+import com.aliyuncs.dyplsapi.model.v20170525.UnbindSubscriptionResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
+import com.bashiju.api.PrivacyProtectionServiceApi;
+import com.bashiju.base.BaseGlobal.BaseGlobal;
+import com.bashiju.utils.exception.BusinessException;
+
+/**
+ * 阿里云隐私号码保护，主要用于绑定解绑手机号码
+ * @ClassName:  PrivacyPhoneUtil   
+ * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @author: zhaobin
+ * @date:   2018年10月8日 下午3:20:49   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class PrivacyProtectionServiceImpl implements PrivacyProtectionServiceApi{
+	
+	final static Logger logger=LoggerFactory.getLogger(PrivacyProtectionServiceImpl.class);
+		
+	 /**
+     * AXN分机号绑定
+     * @return 
+     * @throws ClientException
+     */
+    public BindAxnExtensionResponse bindAxnExtension(String Phone){
+    	BindAxnExtensionResponse response =null;
+        //可自助调整超时时间
+        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+        //初始化acsClient,暂不支持region化
+        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", BaseGlobal.accessKeyId,  BaseGlobal.accessKeySecret);
+        try {
+			DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou",  BaseGlobal.plsproduct,  BaseGlobal.plsdomain);		
+        IAcsClient acsClient = new DefaultAcsClient(profile);
+
+        //组装请求对象-具体描述见控制台-文档部分内容
+        BindAxnExtensionRequest request = new BindAxnExtensionRequest();
+        //必填:对应的号池Key
+        request.setPoolKey(BaseGlobal.poolKey);
+        //必填:AXN关系中的A号码
+        request.setPhoneNoA(Phone);
+        //可选:分机号，如果不填，自动分配1-3位
+        request.setExtension(null);
+        //可选:A拨打X时回拨到默认的B号码
+        request.setPhoneNoB(null);
+        //必填:绑定关系对应的失效时间-不能早于当前系统时间
+        request.setExpiration("2058-10-08 17:00:00");
+        //可选:是否需要录制音频-默认是false
+        request.setIsRecordingEnabled(true);
+        //外部业务自定义ID属性
+        request.setOutId("yourOutId");
+        //hint 此处可能会抛出异常，注意catch
+         response = acsClient.getAcsResponse(request);
+        } catch (ClientException e) {
+        	logger.error("隐私号码{}绑定出错,具体原因是:{}",Phone,e.getErrMsg());
+			e.printStackTrace();
+			return null;
+		}
+        if(response.getCode()==null && !response.getCode().equals("OK")) {
+        	throw new BusinessException("隐私号码未绑定成功，错误码为"+response.getCode());
+        }
+        return response;
+    }
+    
+    /**
+     * 关系解绑(解绑接口不区分AXB、AXN)
+     * @return
+     * @throws ClientException
+     */
+    public boolean unbind(String subsId, String secretNo) {
+    	 UnbindSubscriptionResponse response =null;
+        //可自助调整超时时间
+        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+        //初始化acsClient,暂不支持region化
+        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", BaseGlobal.accessKeyId, BaseGlobal.accessKeySecret);
+        try {
+			DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", BaseGlobal.plsproduct, BaseGlobal.plsdomain);		
+			IAcsClient acsClient = new DefaultAcsClient(profile);
+
+			//组装请求对象
+			UnbindSubscriptionRequest request = new UnbindSubscriptionRequest();
+			//必填:对应的号池Key
+			request.setPoolKey(BaseGlobal.poolKey);
+			//必填-分配的X小号-对应到绑定接口中返回的secretNo;
+			request.setSecretNo(secretNo);
+			//可选-绑定关系对应的ID-对应到绑定接口中返回的subsId;
+			request.setSubsId(subsId);
+			response = acsClient.getAcsResponse(request);
+	    }catch (ClientException e) {
+	    	logger.error("隐私号码对应关系SubsId{}解绑出错,具体原因是:{}",subsId,e.getErrMsg());
+			e.printStackTrace();
+			return false;
+		}
+	    if(response.getCode()==null && !response.getCode().equals("OK")) {
+	    	throw new BusinessException("隐私号码未绑定成功，错误码为"+response.getCode());
+	    }
+	    return true;
+    }
+}

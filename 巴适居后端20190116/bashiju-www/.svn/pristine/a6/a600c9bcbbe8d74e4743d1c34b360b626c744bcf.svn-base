@@ -1,0 +1,62 @@
+package com.bashiju.www.service.api;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+
+/**
+ * 
+ *   首页接口
+ * @ClassName:  IHomePageService   
+ * @Description:   首页接口
+ * @author: wangkaifa
+ * @date:   2018年7月31日 上午10:31:39       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IHomePageService {
+	
+	/**
+	 * 
+		 * 查询城市的新房、二手房、租房数量
+		 * @Description: 查询城市的新房、二手房、租房数量
+		 * @param cityCode 城市代码
+		 * @return 
+		 * HouseTotalResult
+	 */
+	HouseTotalResult queryHouseTotalByCityCode(String cityCode);
+
+	/**
+	 * 
+		 * 首页根据城市查询最新资讯列表
+		 * redis的key值:WebGlobal.HOME_ENCYCLOPEDIA_REDIS_PREFIX+城市代码
+		 * @Description: 根据城市查询热门资讯列表，点击率高的的最新资讯文章 
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> queryNewZiXunList(String cityCode,int limit);
+	
+	/**
+	 * 
+		 * 首页二手房推荐查询,显示4个靓房最后修改的靓房排在最前边
+		 * @Description: 首页二手房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<HouseListResult> querySellGoodHouse(String cityCode);
+	
+	/**
+	 * 
+		 * 首页租房推荐查询,显示4个靓房最后修改的靓房排在最前边
+		 * @Description: 首页租房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<HouseListResult> queryRentGoodHouse(String cityCode);
+}

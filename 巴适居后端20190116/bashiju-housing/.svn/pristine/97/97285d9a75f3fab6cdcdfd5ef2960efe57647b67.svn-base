@@ -1,0 +1,131 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  HouseSeekByMapMapper.java   
+ * @Package com.bashiju.housing.mapper   
+ * @Description:地图找房映射类
+ * @author: zuoyuntao     
+ * @date:   2018年6月7日 下午2:58:06   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.housing.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 地图找房映射类
+ * @ClassName:HouseSeekByMapMapper
+ * @Description:地图找房映射类
+ * @author:zuoyuntao
+ * @date:2018年6月7日 下午2:58:06
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface HouseSeekByMapMapper {
+	/**
+	 * 根据条件获取小区信息
+	 * @Title: queryCommunityDataList
+	 * @author: zuoyuntao  
+	 * @Description:根据条件获取小区信息
+	 * @param paraMap 条件参数
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryCommunityDataList(Map<String,Object> paraMap); 
+	/**
+	 * 可以通过一些封装的条件查询房源信息 
+	 * @Title: queryHouseInfoByCondition
+	 * @author: zuoyuntao  
+	 * @Description:可以通过一些封装的条件查询房源信息   
+	 * @param condition 其他条件
+	 * @param paraMap 参数集合
+	 * @return      
+	 * Page<Map<String,String>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryHouseInfoByCondition(@Param("condition") String condition
+			,@Param("paraMap") Map<String,Object> paraMap);
+	/**
+	 * 统计小区层面的房源信息
+	 * @Title: statisticsCommunityHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:统计小区层面的房源信息   
+	 * @param condition 其他条件
+	 * @param paraMap 参数集合
+	 * @return      
+	 * List<Map<String,String>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> statisticsCommunityHouseInfoByConn(
+			@Param("condition") String condition,@Param("paraMap") Map<String,Object> paraMap);
+	/**
+	 * 统计行政区域/片区层面的房源数据信息
+	 * @Title: statisticsAreaHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:统计行政区域/片区层面的房源数据信息
+	 * @param level 级次（2：城市 3 行政区）
+	 * @param condition 其他条件
+	 * @param paraMap 参数集合
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> statisticsAreaHouseInfoByConn(@Param("paraMap")Map<String,Object> paraMap);
+	
+	/**
+	 * 统计片区层面的房源信息
+	 * @Title: statisticsRegionHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:统计片区层面的房源信息
+	 * @param condition 附加查询条件
+	 * @param paraMap 参数集合
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> statisticsRegionHouseInfoByConn(
+			@Param("condition")String condition,@Param("paraMap") Map<String,Object> paraMap);
+	
+	/**
+	 * 根据条件查询房源信息
+	 * @Title: queryHouseDetailBySql
+	 * @author: zuoyuntao  
+	 * @Description:根据条件查询房源信息
+	 * @param jsonData 参数对象
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryHouseDetailBySql(@Param("findSql")String findSql);
+	/**
+	 * 根据行政区划编码查询片区信息
+	 * @Title: queryOneRegionHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据行政区划编码查询片区信息
+	 * @param areaCode
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryOneRegionHouseInfoByConn(
+			@Param("areaCode")String areaCode,@Param("paraMap") Map<String,Object> paraMap);
+	/**
+	 * 根据片区ID查询小区信息
+	 * @Title: queryOneCommunityHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据片区ID查询小区信息
+	 * @param regionId
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryOneCommunityHouseInfoByConn(
+			@Param("regionId")String regionId,@Param("paraMap") Map<String,Object> paraMap);
+}

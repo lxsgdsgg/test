@@ -1,0 +1,1381 @@
+package com.bashiju.housing.pojo;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.DiscStatusEnum;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+public class HouseQueryEntity {
+	private static final int NEWPLATE_INTERVAL=3;
+	/** 交易类型:1、出售,2、出租,3、租售,4、全部**/
+	private String transactionTypeId;
+	/** 0:城市,1:行政区域、2:片区、3:小区**/
+	private List<AccurateEntity> areas;
+	/** 座栋名称:1、精确查询，2、模糊查询**/
+	private AccurateEntity building;
+	/**单元名称**/
+	private String buildingUnit;
+	/**房号**/
+	private String buildingHouse;
+	/** 1、房源编号，2、业主姓名，3、门牌号，4、业主电话、5小区名称，6、钥匙编号，7、委托编号，8、推荐标签，9、房源备注**/
+	private AccurateEntity vagueData;
+	/**状态**/
+	private HouseStatus status;
+	/**待确认**/
+	private String unConfirm;
+	/**我的私盘**/
+	private String myPrivate;
+	/**我的房源**/
+	private String myHousing;
+	/**我的收藏**/
+	private String myCollection;
+	/**今日浏览**/
+	private String todaySee;
+	/**责任盘**/
+	private String managePlate;
+	/**淘宝池**/
+	private String hunting;
+	/**非淘宝池**/
+	private String unHunting;
+	/**图片**/
+	private String isPicture;
+	/**视频**/
+	private String isVideo;
+	/**有钥匙**/
+	private String isKey;
+	/**无钥匙**/
+	private String unKey;
+	/**独家**/
+	private String isUnique;
+	/**委托**/
+	private String isIntrust;
+	/**封盘路径**/
+	private String closeDiscWay;
+	/**封盘电话**/
+	private String closeDiscPhone;
+	/**通知撤单**/
+	private String isCancelNotice;
+	/**新上**/
+	private String newHousing;
+	/**急切**/
+	private String isUrgent;
+	/**学区房**/
+	private String isSchoolRoom;
+	/**靓房**/
+	private String isGood;
+	/**是否外网同步:1、同步，0、不同步**/
+	private String isSynchron;
+	/**30天租赁到期**/
+	private String contractEnd;
+	/**降价**/
+	private String reducePriceFlg;
+	/**带看**/
+	private String viewing;
+	/**价格**/
+	private RangeQuery sellingPrice;
+	/**面积**/
+	private RangeQuery buildSpace;
+	/**部门用户类型:zr-录入人，wt-委托人,kp-开盘人,wh-维护人,dj-独家人,tp-图片人,ys-钥匙人**/
+	private String agentType;
+	/** 部门或用户:1、部门，2、用户**/
+	private AccurateEntity departmentOrUser;
+	/**学校id**/
+	private String schoolId;
+	/**用途id**/
+	private String houseUsesId;
+	/**付款方式id**/
+	private String payTypeId;
+	/**楼层**/
+	private RangeQuery floor;
+	/**几室**/
+	private RangeQuery room;
+	/**几厅**/
+	private RangeQuery hall;
+	/**几卫**/
+	private RangeQuery toilet;
+	/**日期类型:1、录入日期,2、开盘日期,3、最近跟进日期,4、最近带看日期,5、租赁到期日期**/
+	private String dateType;
+	/**开始时间**/
+	private String beginDate; 
+	/**结束时间**/
+	private String endDate; 
+	/**朝向（多选，id用英文逗号分隔）**/
+	private String orientationId; 
+	/**装修（多选，id用英文逗号分隔）**/
+	private String decorationId;
+	/**来源（多选，id用英文逗号分隔）**/
+	private String resourceTypeId;
+	/**产权性质（多选，id用英文逗号分隔）**/
+	private String propertyTypeId;
+	/**建筑结构（多选，id用英文逗号分隔）**/
+	private String structureId;
+	/**建筑类型（多选，id用英文逗号分隔）**/
+	private String houseTypeId;
+	/**房源等级**/
+	private String levelType;
+	/**房龄**/
+	private RangeQuery buildDates;
+	/**外网同步:1、是,0、否**/
+	private String synchronType;
+	/**配套**/
+	private String matchingIds;
+	/**下定:1、是,0、否**/
+	private String isDeposit;
+	/**房源标签**/
+	private String labeld;
+	/**房源现状**/
+	private String actualityId;
+	/**产权年限**/
+	private String propRightsLenId;
+	/**全景看房:1、是,0、否**/
+	private String panorama;
+	/**图片:1、是,0、否**/
+	private String pictureType;
+	/**房源描述:1、是,0、否**/
+	private String description;
+	/**其他公司id**/
+	private String otherCompany;
+	/**交易年限id**/
+	private String housingYearsId;
+	/**带看排序:1、升序，2、降序**/
+	private String sort;
+	
+	public String getTransactionTypeId() {
+		return transactionTypeId;
+	}
+	public void setTransactionTypeId(String transactionTypeId) {
+		this.transactionTypeId = transactionTypeId;
+	}
+	public List<AccurateEntity> getAreas() {
+		return areas;
+	}
+	public void setAreas(List<AccurateEntity> areas) {
+		this.areas = areas;
+	}
+	public AccurateEntity getBuilding() {
+		return building;
+	}
+	public void setBuilding(AccurateEntity building) {
+		this.building = building;
+	}
+	public String getBuildingUnit() {
+		return buildingUnit;
+	}
+	public void setBuildingUnit(String buildingUnit) {
+		this.buildingUnit = buildingUnit;
+	}
+	public String getBuildingHouse() {
+		return buildingHouse;
+	}
+	public void setBuildingHouse(String buildingHouse) {
+		this.buildingHouse = buildingHouse;
+	}
+	public AccurateEntity getVagueData() {
+		return vagueData;
+	}
+	public void setVagueData(AccurateEntity vagueData) {
+		this.vagueData = vagueData;
+	}
+	public HouseStatus getStatus() {
+		return status;
+	}
+	public void setStatus(HouseStatus status) {
+		this.status = status;
+	}
+	public String getMyPrivate() {
+		return myPrivate;
+	}
+	public void setMyPrivate(String myPrivate) {
+		this.myPrivate = myPrivate;
+	}
+	public String getMyHousing() {
+		return myHousing;
+	}
+	public void setMyHousing(String myHousing) {
+		this.myHousing = myHousing;
+	}
+	public String getMyCollection() {
+		return myCollection;
+	}
+	public void setMyCollection(String myCollection) {
+		this.myCollection = myCollection;
+	}
+	public String getTodaySee() {
+		return todaySee;
+	}
+	public void setTodaySee(String todaySee) {
+		this.todaySee = todaySee;
+	}
+	public String getManagePlate() {
+		return managePlate;
+	}
+	public void setManagePlate(String managePlate) {
+		this.managePlate = managePlate;
+	}
+	public String getHunting() {
+		return hunting;
+	}
+	public void setHunting(String hunting) {
+		this.hunting = hunting;
+	}
+	public String getUnHunting() {
+		return unHunting;
+	}
+	public void setUnHunting(String unHunting) {
+		this.unHunting = unHunting;
+	}
+	public String getIsPicture() {
+		return isPicture;
+	}
+	public void setIsPicture(String isPicture) {
+		this.isPicture = isPicture;
+	}
+	public String getIsVideo() {
+		return isVideo;
+	}
+	public void setIsVideo(String isVideo) {
+		this.isVideo = isVideo;
+	}
+	public String getIsKey() {
+		return isKey;
+	}
+	public void setIsKey(String isKey) {
+		this.isKey = isKey;
+	}
+	public String getUnKey() {
+		return unKey;
+	}
+	public void setUnKey(String unKey) {
+		this.unKey = unKey;
+	}
+	public String getIsUnique() {
+		return isUnique;
+	}
+	public void setIsUnique(String isUnique) {
+		this.isUnique = isUnique;
+	}
+	public String getIsIntrust() {
+		return isIntrust;
+	}
+	public void setIsIntrust(String isIntrust) {
+		this.isIntrust = isIntrust;
+	}
+	public String getCloseDiscWay() {
+		return closeDiscWay;
+	}
+	public void setCloseDiscWay(String closeDiscWay) {
+		this.closeDiscWay = closeDiscWay;
+	}
+	public String getCloseDiscPhone() {
+		return closeDiscPhone;
+	}
+	public void setCloseDiscPhone(String closeDiscPhone) {
+		this.closeDiscPhone = closeDiscPhone;
+	}
+	
+	public String getIsCancelNotice() {
+		return isCancelNotice;
+	}
+	public void setIsCancelNotice(String isCancelNotice) {
+		this.isCancelNotice = isCancelNotice;
+	}
+	public String getNewHousing() {
+		return newHousing;
+	}
+	public void setNewHousing(String newHousing) {
+		this.newHousing = newHousing;
+	}
+	public String getIsUrgent() {
+		return isUrgent;
+	}
+	public void setIsUrgent(String isUrgent) {
+		this.isUrgent = isUrgent;
+	}
+	public String getIsSchoolRoom() {
+		return isSchoolRoom;
+	}
+	public void setIsSchoolRoom(String isSchoolRoom) {
+		this.isSchoolRoom = isSchoolRoom;
+	}
+	public String getIsGood() {
+		return isGood;
+	}
+	public void setIsGood(String isGood) {
+		this.isGood = isGood;
+	}
+	public String getIsSynchron() {
+		return isSynchron;
+	}
+	public void setIsSynchron(String isSynchron) {
+		this.isSynchron = isSynchron;
+	}
+	public String getContractEnd() {
+		return contractEnd;
+	}
+	public void setContractEnd(String contractEnd) {
+		this.contractEnd = contractEnd;
+	}
+	public String getReducePriceFlg() {
+		return reducePriceFlg;
+	}
+	public void setReducePriceFlg(String reducePriceFlg) {
+		this.reducePriceFlg = reducePriceFlg;
+	}
+	public String getViewing() {
+		return viewing;
+	}
+	public void setViewing(String viewing) {
+		this.viewing = viewing;
+	}
+	public RangeQuery getSellingPrice() {
+		return sellingPrice;
+	}
+	public void setSellingPrice(RangeQuery sellingPrice) {
+		this.sellingPrice = sellingPrice;
+	}
+	public RangeQuery getBuildSpace() {
+		return buildSpace;
+	}
+	public void setBuildSpace(RangeQuery buildSpace) {
+		this.buildSpace = buildSpace;
+	}
+	public String getAgentType() {
+		return agentType;
+	}
+	public void setAgentType(String agentType) {
+		this.agentType = agentType;
+	}
+	public AccurateEntity getDepartmentOrUser() {
+		return departmentOrUser;
+	}
+	public void setDepartmentOrUser(AccurateEntity departmentOrUser) {
+		this.departmentOrUser = departmentOrUser;
+	}
+	public String getSchoolId() {
+		return schoolId;
+	}
+	public void setSchoolId(String schoolId) {
+		this.schoolId = schoolId;
+	}
+	public String getHouseUsesId() {
+		return houseUsesId;
+	}
+	public void setHouseUsesId(String houseUsesId) {
+		this.houseUsesId = houseUsesId;
+	}
+	public String getPayTypeId() {
+		return payTypeId;
+	}
+	public void setPayTypeId(String payTypeId) {
+		this.payTypeId = payTypeId;
+	}
+	public RangeQuery getFloor() {
+		return floor;
+	}
+	public void setFloor(RangeQuery floor) {
+		this.floor = floor;
+	}
+	public RangeQuery getRoom() {
+		return room;
+	}
+	public void setRoom(RangeQuery room) {
+		this.room = room;
+	}
+	public RangeQuery getHall() {
+		return hall;
+	}
+	public void setHall(RangeQuery hall) {
+		this.hall = hall;
+	}
+	public RangeQuery getToilet() {
+		return toilet;
+	}
+	public void setToilet(RangeQuery toilet) {
+		this.toilet = toilet;
+	}
+	public String getDateType() {
+		return dateType;
+	}
+	public void setDateType(String dateType) {
+		this.dateType = dateType;
+	}
+	public String getBeginDate() {
+		return beginDate;
+	}
+	public void setBeginDate(String beginDate) {
+		this.beginDate = beginDate;
+	}
+	public String getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	public String getOrientationId() {
+		return orientationId;
+	}
+	public void setOrientationId(String orientationId) {
+		this.orientationId = orientationId;
+	}
+	public String getDecorationId() {
+		return decorationId;
+	}
+	public void setDecorationId(String decorationId) {
+		this.decorationId = decorationId;
+	}
+	public String getResourceTypeId() {
+		return resourceTypeId;
+	}
+	public void setResourceTypeId(String resourceTypeId) {
+		this.resourceTypeId = resourceTypeId;
+	}
+	public String getPropertyTypeId() {
+		return propertyTypeId;
+	}
+	public void setPropertyTypeId(String propertyTypeId) {
+		this.propertyTypeId = propertyTypeId;
+	}
+	public String getStructureId() {
+		return structureId;
+	}
+	public void setStructureId(String structureId) {
+		this.structureId = structureId;
+	}
+	public String getHouseTypeId() {
+		return houseTypeId;
+	}
+	public void setHouseTypeId(String houseTypeId) {
+		this.houseTypeId = houseTypeId;
+	}
+	public String getLevelType() {
+		return levelType;
+	}
+	public void setLevelType(String levelType) {
+		this.levelType = levelType;
+	}
+	public RangeQuery getBuildDates() {
+		return buildDates;
+	}
+	public void setBuildDates(RangeQuery buildDates) {
+		this.buildDates = buildDates;
+	}
+	public String getSynchronType() {
+		return synchronType;
+	}
+	public void setSynchronType(String synchronType) {
+		this.synchronType = synchronType;
+	}
+	public String getMatchingIds() {
+		return matchingIds;
+	}
+	public void setMatchingIds(String matchingIds) {
+		this.matchingIds = matchingIds;
+	}
+	public String getIsDeposit() {
+		return isDeposit;
+	}
+	public void setIsDeposit(String isDeposit) {
+		this.isDeposit = isDeposit;
+	}
+	public String getLabeld() {
+		return labeld;
+	}
+	public void setLabeld(String labeld) {
+		this.labeld = labeld;
+	}
+	public String getActualityId() {
+		return actualityId;
+	}
+	public void setActualityId(String actualityId) {
+		this.actualityId = actualityId;
+	}
+	public String getPropRightsLenId() {
+		return propRightsLenId;
+	}
+	public void setPropRightsLenId(String propRightsLenId) {
+		this.propRightsLenId = propRightsLenId;
+	}
+	public String getPanorama() {
+		return panorama;
+	}
+	public void setPanorama(String panorama) {
+		this.panorama = panorama;
+	}
+	public String getPictureType() {
+		return pictureType;
+	}
+	public void setPictureType(String pictureType) {
+		this.pictureType = pictureType;
+	}
+	public String getOtherCompany() {
+		return otherCompany;
+	}
+	public void setOtherCompany(String otherCompany) {
+		this.otherCompany = otherCompany;
+	}
+	public String getUnConfirm() {
+		return unConfirm;
+	}
+	public void setUnConfirm(String unConfirm) {
+		this.unConfirm = unConfirm;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getSort() {
+		return sort;
+	}
+	public void setSort(String sort) {
+		this.sort = sort;
+	}
+	public String getHousingYearsId() {
+		return housingYearsId;
+	}
+	public void setHousingYearsId(String housingYearsId) {
+		this.housingYearsId = housingYearsId;
+	}
+	public String toSql() {
+		StringBuilder tableSql=new StringBuilder();
+		tableSql.append("SELECT DISTINCT ");
+		tableSql.append("sh.id,");
+		tableSql.append("sh.labeld,");
+		tableSql.append("sh.houseId,");
+		tableSql.append("sh.statusId,");
+		tableSql.append("sh.transactionType,");
+		tableSql.append("sh.transactionTypeId,");//交易类型
+		tableSql.append("sh.discStatusId,");//盘状态
+		tableSql.append("sh.discStatus,");
+		tableSql.append("sh.houseUses,");
+		tableSql.append("sh.houseUsesId,");
+		tableSql.append("hb.areaName,");
+		tableSql.append("hb.regionName,");
+		tableSql.append("hb.communityName,");
+		tableSql.append("hb.buildingsName,");
+		tableSql.append("hb.buildingsUnitName,");
+		tableSql.append("hb.buildingHouseName,");
+		tableSql.append("hb.floorCount,");
+		tableSql.append("hb.totalLayers,");
+		tableSql.append("sh.room,");
+		tableSql.append("sh.hall,");
+		tableSql.append("sh.toilet,");
+		tableSql.append("sh.kitchen,");
+		tableSql.append("sh.balcony,");
+		tableSql.append("sh.useSpace,");
+		tableSql.append("sh.buildSpace,");
+		tableSql.append("sh.orientation,");
+		tableSql.append("sh.decoration,");
+		tableSql.append("sh.matching,");
+		tableSql.append("sh.resourceType,");
+		tableSql.append("sh.buildDates,");
+		tableSql.append("sh.propertyType,");
+		tableSql.append("FLOOR(sh.sellingPrice/1000000) as sellingPrice,");
+		tableSql.append("FLOOR(sh.rentPrice/100) as rentPrice,");
+		tableSql.append("sh.levelType,");
+		tableSql.append("sh.remark,");
+		tableSql.append("sh.entrustCode,");
+		tableSql.append("sh.keyCode,");
+		tableSql.append("sh.addTime,");
+		tableSql.append("sh.updateTime,");
+		tableSql.append("sh.allFollowTime,");
+		tableSql.append("sh.mainterFllowTime,");
+		tableSql.append("sh.operator,");
+		tableSql.append("sh.mainterDept,");
+		tableSql.append("sh.companyName,");
+		tableSql.append("sh.permissionArea,");
+		tableSql.append("sh.taobaoStatus,");//淘宝状态
+		tableSql.append("sh.taobaoStatusId,");//淘宝状态
+		
+		tableSql.append("sh.examineStatus,");//审核状态
+		tableSql.append("sh.isUnique,");//是否独家
+		tableSql.append("sh.isKeys,");//是否有钥匙
+		tableSql.append("sh.isSetTop,");//是否置顶
+		tableSql.append("sh.isGood,");//是否靓房
+		tableSql.append("sh.isPicture,");//是否有图片
+		tableSql.append("sh.isVideo,");//是否有视频
+		tableSql.append("sh.isDeposit,");//是否下定
+		tableSql.append("sh.viewingCount,");//带看次数
+		tableSql.append("hb.isSchoolRoom,");//是否靓房
+		tableSql.append("sh.operatorId ");
+		tableSql.append("FROM hs_secondhandhouse  AS sh ");//二手房源主表
+		tableSql.append("INNER JOIN hs_housebaseinfo  AS hb ON sh.houseId=hb.id and sh.isValid=1");//关联房源基础表
+		StringBuilder conditionSql=new StringBuilder();
+		if (StringUtils.isNotEmpty(transactionTypeId)) {
+			if (!transactionTypeId.equals("4")) {
+				conditionSql.append("sh.transactionTypeId=");
+				conditionSql.append(transactionTypeId );
+			}
+		}
+		if (areas!=null&&areas.size()>0) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append("(");
+			for (int i = 0; i < areas.size(); i++) {
+				if (i>0) {
+					conditionSql.append(" or ");
+				}
+				if (areas.get(i).getType()==0) {
+					conditionSql.append(" hb.cityCode='");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append("' ");
+				}
+				if (areas.get(i).getType()==1) {
+					conditionSql.append(" hb.areaCode='");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append("' ");
+				}
+				if (areas.get(i).getType()==2) {
+					conditionSql.append(" hb.regionId=");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(" ");
+				}
+				if (areas.get(i).getType()==3) {
+					conditionSql.append(" hb.communityId=");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(" ");
+				}
+			}
+			conditionSql.append(")");
+		}
+		
+		if (building!=null) {
+			if (building.getType()!=null&&building.getValue()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" hb.buildingsName ");
+				if (building.getType()==1) {
+					conditionSql.append(" = '");
+					conditionSql.append(building.getValue());
+					conditionSql.append("' ");
+				}else {
+					conditionSql.append(" like '%");
+					conditionSql.append(building.getValue());
+					conditionSql.append("%' ");
+				}							
+			}
+		}
+		
+		if (StringUtils.isNotEmpty(buildingUnit)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" hb.buildingsUnitName like '");
+			conditionSql.append(buildingUnit.toUpperCase());
+			conditionSql.append("%' ");
+		}
+		
+		if (StringUtils.isNotEmpty(buildingHouse)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" hb.buildingHouseName = '");
+			conditionSql.append(buildingHouse);
+			conditionSql.append("' ");
+		}
+		
+		if (vagueData!=null) {
+			if (vagueData.getType()!=null&&vagueData.getValue()!=null) {
+				if (conditionSql.length()>0&&vagueData.getType()!=4) {
+					conditionSql.append(" and ");
+				}
+				switch (vagueData.getType()) {
+				case 1:
+					conditionSql.append(" sh.houseId like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 2:
+					conditionSql.append(" sh.owner like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 3:
+					conditionSql.append(" hb.buildingHouseName like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 4:
+					tableSql.append(" INNER   JOIN hs_houseOwnerRelate AS hor ON hor.shhId=sh.id AND hor.isValid=1");
+					tableSql.append(" and hor.phone like '%");
+					tableSql.append(vagueData.getValue());
+					tableSql.append("%' ");
+					break;
+				case 5:
+					conditionSql.append(" hb.communityName like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 6:
+					conditionSql.append(" sh.keyCode like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 7:
+					conditionSql.append(" sh.entrustCode like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 8:
+					conditionSql.append(" sh.labeld like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 9:
+					conditionSql.append(" sh.remark like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				}
+			}
+		}
+		if (status!=null) {
+			if (StringUtils.isNotEmpty(status.toSql())) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(status.toSql());
+			}			
+		}
+		if (StringUtils.isNotEmpty(unConfirm)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.examineStatus = '0' ");
+		}
+		Map<Object, Object> user=UserThreadLocal.get();
+		 long userId=Long.parseLong(user.get("id").toString());
+		 String departmentId=user.get("deptId").toString();
+		//long userId=1;
+		//String departmentId="BSJ0101";
+		if (StringUtils.isNotEmpty(myPrivate)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.discStatusId = 1 ");
+			conditionSql.append(" and sh.operatorId = ");
+			conditionSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(myHousing)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.operatorId = ");
+			conditionSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(myCollection)) {
+			tableSql.append(" INNER JOIN hs_myCollection AS mc ON mc.shhId=sh.id ");
+			tableSql.append(" and mc.operatorId =");
+			tableSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(todaySee)) {
+			tableSql.append(" INNER JOIN hs_todaySee AS ts ON ts.shhId=sh.id and ts.operatorId =");
+			tableSql.append(userId);
+			tableSql.append(" ");
+		}
+		if (StringUtils.isNotEmpty(hunting)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.taobaoStatusId = 1 ");
+		}
+		if (StringUtils.isNotEmpty(unHunting)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.taobaoStatusId = 0 ");
+			conditionSql.append(" and  sh.discStatusId =");
+			conditionSql.append(DiscStatusEnum.PUBLICDISC.getCode());
+		}
+		if (StringUtils.isNotEmpty(isPicture)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isPicture = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isVideo)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isVideo = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isKey)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isKeys = 1 ");
+		}
+		if (StringUtils.isNotEmpty(unKey)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isKeys = 0 ");
+		}
+		if (StringUtils.isNotEmpty(isUnique)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isUnique = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isIntrust)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isIntrust = 1 ");
+		}
+		if (StringUtils.isNotEmpty(closeDiscWay)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.closeDiscFlg = 1 ");
+		}
+		if (StringUtils.isNotEmpty(closeDiscPhone)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.closeDiscFlg = 2 ");
+		}
+		if (StringUtils.isNotEmpty(isCancelNotice)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isCancelNotice = 1 ");
+		}
+		if (StringUtils.isNotEmpty(newHousing)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.openPlateDate IS NOT NULL AND DATEDIFF(NOW(),sh.openPlateDate)<= ");
+			conditionSql.append(NEWPLATE_INTERVAL);
+		}
+		if (StringUtils.isNotEmpty(isUrgent)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isUrgent = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isSchoolRoom)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" hb.isSchoolRoom = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isGood)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isGood = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isSynchron)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isSynchron = 1 ");
+		}
+		if (StringUtils.isNotEmpty(contractEnd)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.openPlateDate IS NOT NULL AND DATEDIFF(NOW(),sh.contractEndDate)<=30  ");
+		}
+		if (StringUtils.isNotEmpty(reducePriceFlg)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.changePriceFlg = 2 ");
+		}
+		if (StringUtils.isNotEmpty(viewing)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.viewingCount > 0 ");
+		}
+		if (sellingPrice!=null) {
+			
+			if (sellingPrice.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.sellingPrice >= ");
+				conditionSql.append((sellingPrice.getMin()*10000));
+			}
+			
+			if (sellingPrice.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.sellingPrice <= ");
+				conditionSql.append((sellingPrice.getMax()*10000));
+			}
+			
+		}
+		if (buildSpace!=null) {
+			
+			if (buildSpace.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildSpace >= ");
+				conditionSql.append((buildSpace.getMin()));
+			}
+			
+			if (buildSpace.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildSpace <= ");
+				conditionSql.append((buildSpace.getMax()));
+			}
+		}
+		if (StringUtils.isNotEmpty(agentType)&&departmentOrUser!=null) {
+			tableSql.append(" INNER JOIN hs_houseRelateAgent AS hra ON hra.shhId=sh.id AND hra.agentType='");
+			tableSql.append(agentType);
+			tableSql.append("' ");
+			if (departmentOrUser.getType()==1) {
+				tableSql.append("AND hra.departmentId LIKE '");
+				tableSql.append(departmentOrUser.getValue());
+				tableSql.append("%' ");
+			}else {
+				tableSql.append("AND hra.agentId =");
+				tableSql.append(departmentOrUser.getValue());
+				tableSql.append(" ");
+			}
+		}
+		if (StringUtils.isEmpty(agentType)&&departmentOrUser!=null) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (departmentOrUser.getType()==1) {
+				conditionSql.append(" sh.permissionArea LIKE '");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append("%' ");
+			}else {
+				conditionSql.append(" sh.operatorId =");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append(" ");
+			}
+		}
+		if (StringUtils.isNotEmpty(schoolId)) {
+			tableSql.append(" INNER JOIN school_block_community AS sbc ON sbc.communityId=hb.communityId AND sbc.schoolId=");
+			tableSql.append(schoolId);
+		}
+		if (StringUtils.isNotEmpty(houseUsesId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.houseUsesId='");
+			conditionSql.append(houseUsesId);
+			conditionSql.append("' ");
+		}
+		if (StringUtils.isNotEmpty(payTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.payTypeId=");
+			conditionSql.append(payTypeId);
+			conditionSql.append(" ");
+		}
+		if (floor!=null) {
+			
+			if (floor.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" hb.floorCount>= ");
+				conditionSql.append(floor.getMin());
+			}
+			
+			if (floor.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" hb.floorCount<= ");
+				conditionSql.append(floor.getMax());
+			}
+		}
+		if (room!=null) {
+			
+			if (room.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.room>= ");
+				conditionSql.append(room.getMin());
+			}
+			
+			if (room.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.room<= ");
+				conditionSql.append(room.getMax());
+			}
+		}
+		if (hall!=null) {
+			
+			if (hall.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.hall>= ");
+				conditionSql.append(hall.getMin());
+			}
+			
+			if (hall.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.hall<= ");
+				conditionSql.append(hall.getMax());
+			}
+		}
+		
+		if (toilet!=null) {
+			
+			if (toilet.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.toilet>= ");
+				conditionSql.append(toilet.getMin());
+			}
+			
+			if (toilet.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.toilet<= ");
+				conditionSql.append(toilet.getMax());
+			}
+		}
+		if (StringUtils.isNotEmpty(dateType)&&(StringUtils.isNotEmpty(beginDate)||StringUtils.isNotEmpty(endDate))) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			switch (dateType) {
+			case "1":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.addTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" sh.addTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.addTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "2":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.openPlateDate BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" sh.openPlateDate >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.openPlateDate <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "3":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.mainterFllowTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" sh.mainterFllowTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.mainterFllowTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "4":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.lastShowedTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" sh.lastShowedTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.lastShowedTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "5":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.contractEndDate BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" sh.contractEndDate >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" sh.contractEndDate <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			}								
+		}
+		if (StringUtils.isEmpty(dateType)&&(StringUtils.isNotEmpty(beginDate)||StringUtils.isNotEmpty(endDate))) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+				conditionSql.append(" sh.addTime BETWEEN '");
+				conditionSql.append(beginDate);
+				conditionSql.append("' AND '");
+				conditionSql.append(endDate);
+				conditionSql.append("' ");
+			}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+				conditionSql.append(" sh.addTime >= '");
+				conditionSql.append(beginDate);
+				conditionSql.append("' ");
+			}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+				conditionSql.append(" sh.addTime <= '");
+				conditionSql.append(endDate);
+				conditionSql.append("' ");
+			}
+		}
+		if (StringUtils.isNotEmpty(orientationId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (orientationId.substring(orientationId.length()-1).equals(",")) {
+				orientationId=orientationId.substring(0, orientationId.length()-1);
+			}
+			conditionSql.append(" sh.orientationId in (");
+			conditionSql.append(orientationId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(decorationId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (decorationId.substring(decorationId.length()-1).equals(",")) {
+				decorationId=decorationId.substring(0, decorationId.length()-1);
+			}
+			conditionSql.append(" sh.decorationId in (");
+			conditionSql.append(decorationId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(resourceTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (resourceTypeId.substring(resourceTypeId.length()-1).equals(",")) {
+				resourceTypeId=resourceTypeId.substring(0, resourceTypeId.length()-1);
+			}
+			conditionSql.append(" sh.resourceTypeId in (");
+			conditionSql.append(resourceTypeId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(propertyTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (propertyTypeId.substring(propertyTypeId.length()-1).equals(",")) {
+				propertyTypeId=propertyTypeId.substring(0, propertyTypeId.length()-1);
+			}
+			conditionSql.append(" sh.propertyTypeId in (");
+			conditionSql.append(propertyTypeId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(structureId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (structureId.substring(structureId.length()-1).equals(",")) {
+				structureId=structureId.substring(0, structureId.length()-1);
+			}
+			conditionSql.append(" sh.structureId in (");
+			conditionSql.append(structureId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(houseTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (houseTypeId.substring(houseTypeId.length()-1).equals(",")) {
+				houseTypeId=houseTypeId.substring(0, houseTypeId.length()-1);
+			}
+			conditionSql.append(" sh.houseTypeId in (");
+			conditionSql.append(houseTypeId);
+			conditionSql.append(") ");
+		}
+		if (StringUtils.isNotEmpty(levelType)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.levelType='");
+			conditionSql.append(levelType);
+			conditionSql.append("' ");
+		}
+		if (buildDates!=null) {
+			
+			if (buildDates.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildDates >= '");
+				conditionSql.append(buildDates.getMin());
+				conditionSql.append("' ");
+			}
+			
+			if (buildDates.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildDates <= '");
+				conditionSql.append(buildDates.getMax());
+				conditionSql.append("' ");
+			}
+		}
+		if (StringUtils.isNotEmpty(synchronType)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.buildDates = ");
+			conditionSql.append(synchronType);
+		}
+		if (StringUtils.isNotEmpty(matchingIds)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET(");
+			conditionSql.append(matchingIds);
+			conditionSql.append(",sh.matchingIds) ");
+		}
+		if (StringUtils.isNotEmpty(isDeposit)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isDeposit = ");
+			conditionSql.append(isDeposit);
+		}
+		if (StringUtils.isNotEmpty(labeld)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.labeld like '%");
+			conditionSql.append(labeld);
+			conditionSql.append("%' ");
+		}
+		if (StringUtils.isNotEmpty(actualityId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET(");
+			conditionSql.append(actualityId);
+			conditionSql.append(",sh.actualityId) ");
+		}
+		if (StringUtils.isNotEmpty(propRightsLenId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.propRightsLenId = ");
+			conditionSql.append(propRightsLenId);
+		}
+		if (StringUtils.isNotEmpty(panorama)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.panorama !='' ");
+			conditionSql.append(panorama);
+		}
+		if (StringUtils.isNotEmpty(pictureType)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.isPicture = ");
+			conditionSql.append(pictureType);
+		}
+		if (StringUtils.isNotEmpty(description)) {
+			if (description.equals("1")) {
+				tableSql.append(" INNER JOIN hs_house_description AS hhd ON hhd.shhId=sh.id AND hhd.description !='' ");
+			}
+		}
+		if (StringUtils.isNotEmpty(otherCompany)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.companyId = '");
+			conditionSql.append(otherCompany);
+			conditionSql.append("' ");
+		}
+
+		if (StringUtils.isNotEmpty(housingYearsId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" sh.housingYearsId=");
+			conditionSql.append(housingYearsId);
+			conditionSql.append(" ");
+		}
+		if (StringUtils.isNotEmpty(managePlate)) {
+			tableSql.append(" INNER JOIN sys_responsibility_plate AS srp ON srp.communityId=hb.communityId AND srp.departmentId='");
+			tableSql.append(departmentId);
+			tableSql.append("' ");
+		}
+		if (conditionSql.length()>0) {
+			tableSql.append(" where ");
+			tableSql.append(conditionSql);
+		}
+		if (StringUtils.isNotEmpty(sort)) {
+			tableSql.append(" order by sh.viewingCount ");
+			if (sort.equals("2")) {
+				tableSql.append("desc ");
+			}
+		}else {
+			tableSql.append(" order by sh.updateTime desc ");
+		}
+		System.out.println(tableSql.toString());
+		return tableSql.toString();
+	}
+
+	
+	public static void main(String[] args) {
+		HouseQueryEntity sb=new HouseQueryEntity();
+		/*sb.setLevelType("A");
+		HouseStatus status=new HouseStatus();
+		status.setEffective(1);
+		sb.setStatus(status);*/
+//		String json="{\"transactionTypeId\":3,\"status\":{\"invalid\":[1,2,3]}}";
+//		sb=JSON.parseObject(json, HouseQueryEntity.class);
+		System.out.println(sb.toSql());
+//		System.out.println(JSON.toJSONString(sb));
+//		System.out.println(LocalDate.now().toString());
+	}
+}

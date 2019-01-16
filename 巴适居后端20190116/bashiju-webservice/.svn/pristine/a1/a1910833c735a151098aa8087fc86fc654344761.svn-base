@@ -1,0 +1,78 @@
+package com.bashiju.www.service.api;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.article.ArticleInfoResult;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+
+/**
+ * 
+ *   百科页面接口
+ * @ClassName:  IBaiKePageService   
+ * @Description:   百科页面接口
+ * @author: wangkaifa
+ * @date:   2018年7月31日 上午10:51:07       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IBaiKePageService {
+
+	/**
+	 * 
+		 * 根据城市查询百科文章类型
+		 * @Description: 根据城市查询百科文章类型
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<ArticleTypeResult>
+	 */
+	List<ArticleTypeResult> queryBaikeType(String cityCode);
+	
+	/**
+	 * 
+		 * 百科快讯接口
+		 * redis的key值:WebGlobal.ARTICLE_BAIKE_FLASH_REDIS_PREFIX+城市代码
+		 * @Description: 百科快讯接口
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> queryNewBaiKeList(String cityCode,int limit);
+	
+	/**
+	 * 
+		 * 根据类型查询百科，按时间倒序
+		 * @Description: 根据类型查询百科，按时间倒序
+		 * @param cityCode 城市代码
+		 * @param typeId  百科文章类型id  
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<ArticleListResult>
+	 */
+	WebPage<ArticleListResult> queryBaikeListByType(String cityCode,int typeId,int page,int limit);
+	
+	/**
+	 * 
+		 * 根据id查询文章详细,浏览次数加1
+		 * @Description: 根据id查询文章详细
+		 * @param id 百科文章id
+		 * @return 
+		 * ArticleInfoResult
+	 */
+	ArticleInfoResult queryBaiKeArticleInfo(int id);
+	
+	/**
+	 * 
+		 * 根据城市查询相似百科列表
+		 * @Description: 根据城市查询相似百科列表 
+		 * @param cityCode 城市代码
+		 * @param id 百科文章id
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> querySameBaiKeList(String cityCode,Integer id,int limit);
+}

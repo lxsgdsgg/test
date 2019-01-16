@@ -1,0 +1,76 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerRequestDetailEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年9月27日 下午3:44:04   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 我的需求--查看--需求明细实体类
+ * @ClassName:CustomerRequestDetailEntity
+ * @Description:我的需求--查看--需求明细实体类
+ * @author:zuoyuntao
+ * @date:2018年9月27日 下午3:44:04
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerRequestDetailEntity implements Serializable {
+	/**   
+	 * @Fields serialVersionUID : 串行版本标识ID    
+	 */ 
+	private static final long serialVersionUID = -2855015850160737535L;
+	/**需求ID**/
+	private String demandId;
+	/**需求编号**/
+	private String demandSequence;
+	/**需求类型**/
+	private String transactionType;
+	/**房屋类型**/
+	private String houseUses;
+	/**最低价格（单位为：元）**/
+	private String minPrice;
+	/**最高价格（单位为：元）**/
+	private String maxPrice;
+	/**最小面积（单位为：m²）**/
+	private String minSpace;
+	/**最大面积（单位为：m²）**/
+	private String maxSpace;
+	/**需求区域**/
+	private String areaNames;
+	/**需求片区**/
+	private String regionNames;
+	/**需求小区**/
+	private String communityNames;
+	/**最少房间数**/
+	private int minRoom;
+	/**最多房间数**/
+	private int maxRoom;
+	/**楼层**/
+	private int floorCount;
+	/**房龄**/
+	private String houseAge;
+	/**周边配套**/
+	private String matching;
+	/**备注**/
+	private String remark;
+	/**需求标签**/
+	private String labeld;
+	/**朝向**/
+	private String orientation;
+	/**装修**/
+	private String decoration;
+	/**房屋类型**/
+	private String houseType;
+	/**需求原因**/
+	private String reason;
+}

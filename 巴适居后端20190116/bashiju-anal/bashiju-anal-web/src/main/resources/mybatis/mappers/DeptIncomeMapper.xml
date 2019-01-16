@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DeptIncomeMapper">
+	
+	<select id="queryDeptIncome" resultType="map">
+		select '门店', a.name as deptName 
+		,sum(case when c.dealType='00' and b.moneyType =0 then floor(b.actualPrice/100) end ) as sellActualPrice
+		,sum(case when c.dealType='01' and b.moneyType =0 then floor(b.actualPrice/100) end ) as rentActualPrice
+		,sum(case when c.dealType='02' and b.moneyType =0 then floor(b.actualPrice/100) end ) as newActualPrice
+		,sum(case when b.moneyType =1 then floor(b.actualPrice/100) end ) as finceActualPrice
+		,sum(floor(d.basePay/100)) as basePay
+		,sum(floor(h.companyAmount/100)) as ssfAmount
+		,sum(floor(g.amount/100)) as commissionPrice
+		from sys_dept a  left join deal_commissionrecord b on b.permissionArea like concat(a.id,'%')
+		and b.isValid=1 and b.status in('01','02') and DATE_FORMAT(b.sureTime,'%Y-%m') = '2018-11' left join deal_transactionInfo c on b.dealId = c.id 
+		left join finance_employee_wagesInfo d on d.permissionArea like concat(a.id,'%') and d.examineStatus = 1 and d.isvalid=1 and d.months ='2018-10'
+		left join sys_user e on e.deptId = a.id left join sys_employee_wagesConfigurate f on e.id = f.userId left join finance_ssf_detail h on h.ssfId = f.ssfConfigId and f.isvalid=1 and h.isvalid = 1
+		left join finance_employeeCommissions g on g.permissionArea like concat(a.id,'%') and g.months ='2018-10'
+		where a.isvalid=1
+		and a.companyId = 'BAO' and a.deptTypeId in(4,5)
+		group by a.id order by a.id
+	</select>
+	
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

@@ -1,0 +1,79 @@
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+public interface IUserService {
+    /**
+	 * 
+	 * @Description: 根据id查询用户信息   
+	 * @param id 用户id
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getUserById(String id);
+	
+	/**
+	 * 
+	 * @Description: 根据手机号查询用户信息   
+	 * @param mobile 手机号
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getUserByMobile(String mobile);
+	
+	/**
+	 * 
+	 * @Description: 多条件 查询用户信息
+	 * @param map 查询条件，用户属性<br>
+	 *  map{<br>
+	 * 	realName 用户名<br>
+	 * 	mobile 手机号<br>
+	 *  wxNum 微信号<br>
+	 *  telPhone 固定电话<br>
+	 *  companyId 所属公司<br>
+	 *  deptId 所属部门<br>
+	 *  roleId 所属角色<br>
+	 *  sex 性别<br>
+	 *  employee_num 员工号<br>
+	 *  email 邮件号<br>
+	 *  postId 所属职位<br>
+	 * }<br>
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryUser(Map<String,Object> map);
+	
+	/**
+	 * 
+	 * @Description: 多条件 查询用户信息(分页)  
+	 * @param map 查询条件，用户属性<br>
+	 *  map{<br>
+	 * 	realName 用户名<br>
+	 * 	mobile 手机号<br>
+	 *  wxNum 微信号<br>
+	 *  telPhone 固定电话<br>
+	 *  companyId 所属公司<br>
+	 *  deptId 所属部门<br>
+	 *  roleId 所属角色<br>
+	 *  sex 性别<br>
+	 *  employee_num 员工号<br>
+	 *  email 邮件号<br>
+	 *  postId 所属职位<br>
+	 * }<br>
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryUser(Map<String,Object> map,int pageNum,int pageSize);
+    
+    public Page<Map<String, Object>> queryAllUser(int pageNum,int pageSize);
+
+	public  List<Map<String,Object>> queryTableField(String tableName,boolean isListShow);
+	public List<Map<String, Object>> queryCustomComponentValues(String Sql);
+	public List<Map<String, Object>> queryCustomField(String tableName,String showField, String queryCondition);
+
+}

@@ -1,0 +1,171 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerConcernedHouseServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:35:50   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.www.mapper.CustomerConcernedHouseMapper;
+import com.bashiju.www.pojo.comm.HouseTypeEnum;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.user.ICustomerConcernedHouseService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心--用户房源关注服务
+ * @ClassName:CustomerConcernedHouseServiceImpl
+ * @Description:个人中心--用户房源关注服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:35:50
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerConcernedHouseServiceImpl implements ICustomerConcernedHouseService{
+	/**
+	 * 房源关注接口
+	 */
+	@Autowired
+	private CustomerConcernedHouseMapper mCustomerConcernedHouseMapper;
+	/**
+	 * Redis服务接口
+	 */
+	@Autowired(required=false)
+	private ICacheService  mICacheService ;
+	/**
+	 * 公共的我的关注接口
+	 */
+	@Autowired
+	private ICommService mICommService;
+	/**
+	 * 阿里的对象映射接口
+	 */
+	private static final ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * <p>Title: cancelConcernedHouse</p>   
+	 * <p>Description: 取消对房源、小区的关注</p>   
+	 * @param custId 登陆用户ID
+	 * @param sourceId 房源、小区或其他关注对象的ID
+	 * @param houseType 房源类型（1：新房、2：二手房、3：租房）
+	 * @see com.bashiju.www.service.user.ICustomerConcernedHouseService#cancelConcernedHouse(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void cancelConcernedHouse(String custId, String sourceId, String houseType) {
+		mCustomerConcernedHouseMapper.cancelConcernedHouse(
+				custId, sourceId, houseType);
+		mICommService.cancelAttention(Integer.parseInt(custId)
+				, sourceId,Integer.parseInt(houseType));
+		//取消关注后更新Redis数据
+		//TODO(需要补充生成参数HashCode的方法)
+		String redisKey = "queryAllConcernedHouseList"+"HashCode";
+		updateRedisDataList(custId,redisKey,houseType);
+	}
+	
+	/**
+	 * <p>Title: queryAllConcernedHouseList</p>   
+	 * <p>Description: 查询用户关注的房源、小区</p>   
+	 * @param custId 登陆用户ID
+	 * @param houseType 房源类型（1：新房、2：二手房、3：租房、4：小区）
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerConcernedHouseService#queryAllConcernedHouseList(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public List<CustomerConcernedHouseEntity> queryAllConcernedHouseList(
+			String custId,String houseType) {
+		List<CustomerConcernedHouseEntity> retList = new ArrayList<CustomerConcernedHouseEntity>();
+		retList = queryAllConcernedHouseListFromRedis(custId,houseType);
+		if(retList.size() == 0 
+				&& houseType.equals(HouseTypeEnum.COMMUNIT.getCode())) {
+			retList = mCustomerConcernedHouseMapper.queryAllConcernedCommunityList(custId,houseType);
+			//TODO 需要补充生成hash值得方法
+			Random random = new Random();
+			String hashKey = "queryAllConcernedHouseList" + random.nextInt();
+			try {
+				mICacheService.saveCache(hashKey, MAPPER.writeValueAsString(retList), 60*60);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}else if(retList.size() == 0 
+				&& !houseType.equals(HouseTypeEnum.COMMUNIT.getCode())) {
+			retList = mCustomerConcernedHouseMapper.queryAllConcernedHouseList(custId,houseType);
+			//TODO 需要补充生成hash值得方法
+			Random random = new Random();
+			String hashKey = "queryAllConcernedHouseList" + random.nextInt();
+			try {
+				mICacheService.saveCache(hashKey, MAPPER.writeValueAsString(retList), 60*60);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
+		return retList;
+	}
+	/**
+	 * 从Redis读取数据
+	 * @Title: queryAllConcernedHouseListFromRedis
+	 * @author: zuoyuntao  
+	 * @Description:从Redis读取数据
+	 * @param custId 登陆用户ID
+	 * @param houseType 房源类型（1：新房、2：二手房、3：租房、4：小区）
+	 * @return      
+	 * List<CustomerConcernedHouseEntity> JSON 格式为：
+	 */
+	@SuppressWarnings("unchecked")
+	private List<CustomerConcernedHouseEntity> queryAllConcernedHouseListFromRedis(
+			String custId,String houseType){
+		List<CustomerConcernedHouseEntity> retList 
+						= new ArrayList<CustomerConcernedHouseEntity>();
+		try {
+			//TODO(需要补充生成参数HashCode的方法)
+			String key = "queryAllConcernedHouseList"+"HashCode";
+			String retStr = mICacheService.getCache(key);
+			if(StringUtil.isNotEmpty(retStr)) {
+				retList = MAPPER.readValue(retStr, List.class);
+			}
+		}catch(Exception ee) {
+			ee.printStackTrace();
+			return null;
+		}
+		return retList;
+	}
+	/**
+	 * 根据Key更新Redis数据 
+	 * @Title: updateRedisDataList
+	 * @author: zuoyuntao  
+	 * @Description:根据Key更新Redis数据   
+	 * @param custId 用户id
+	 * @param key Redis的key
+	 * @param houseType 房源类型（1：新房、2：二手房、3：租房、4：小区）     
+	 * void 
+	 */
+	private void updateRedisDataList(String custId,String key,String houseType) {
+		List<CustomerConcernedHouseEntity> dataList = new ArrayList<CustomerConcernedHouseEntity>();
+		if(houseType.equals(HouseTypeEnum.COMMUNIT.getCode())) {
+			dataList = mCustomerConcernedHouseMapper.queryAllConcernedCommunityList(custId,houseType);
+		}else {
+			dataList = mCustomerConcernedHouseMapper.queryAllConcernedHouseList(custId,houseType);
+		}
+		try {
+			mICacheService.saveCache(key, MAPPER.writeValueAsString(dataList),60*60);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			throw new BusinessException("更新Redis异常");
+		}
+	}
+}

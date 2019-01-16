@@ -1,0 +1,59 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealService.java   
+ * @Package com.bashiju.deal.service   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月15日 下午4:17:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  DealService   
+ * @Description:成交管理服务接口   
+ * @author: yangz
+ * @date:   2018年6月15日 下午4:17:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface DealService {
+
+	/**
+	 * @Description: 根据成交id获取成交信息  
+	 * @param dealId 成交id
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getDeals(String dealId);
+	
+	/**
+	 * @Description: 条件查询成交信息   
+	 * @param params 查询信息的条件
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryDeals(Map<String,Object> params);
+	
+	/**
+	 * @Description: 条件查询成交信息 (分页)    
+	 * @param params 查询信息的条件
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数 
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryDeals(Map<String,Object> params,int pageNum,int pageSize);
+	
+	/**
+	 * @Description: 更新成交信息   
+	 * @param deal 待更新的成交信息
+	 * @return: boolean
+	 */
+	public boolean updateDeal(Map<String,Object> deal);
+	
+}

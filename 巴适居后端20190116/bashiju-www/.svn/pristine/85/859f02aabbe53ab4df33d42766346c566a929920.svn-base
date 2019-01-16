@@ -1,0 +1,100 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerRecruitService.java   
+ * @Package com.bashiju.www.service.recruit      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 上午11:05:33   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.recruit;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.recruit.CustomerRecruitQueryParam;
+import com.bashiju.www.pojo.service.out.recruit.CustCurriculumVitaeEntity;
+import com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitDetailEntity;
+import com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitEntity;
+
+/**
+ * 公司招聘管理服务接口
+ * @ClassName:ICustomerRecruitService
+ * @Description:公司招聘管理服务接口
+ * @author:zuoyuntao
+ * @date:2018年8月7日 上午11:05:33
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerRecruitService {
+	/**
+	 * 查询发布岗位数据信息
+	 * @Title: queryRecruitPositionDataWithPage
+	 * @author: zuoyuntao  
+	 * @Description:查询发布岗位数据信息 
+	 * @param paramEntity 参数实体类
+	 * @param page
+	 * @param limit
+	 * @return      
+	 * Page<CustReleaseRecruitEntity> 
+	 */
+	public WebPage<CustReleaseRecruitEntity> queryRecruitPositionDataWithPage(
+			CustomerRecruitQueryParam paramEntity,int page,int limit);
+	/**
+	 * 获取招聘详细信息
+	 * @Title: queryPositionDetailList
+	 * @author: zuoyuntao  
+	 * @Description:获取招聘详细信息
+	 * @param positionId 职位ID
+	 * @return      
+	 * CustReleaseRecruitDetailEntity
+	 */
+	public CustReleaseRecruitDetailEntity queryPositionDetailList(
+			String positionId);
+	/**
+	 * 保存投递简历信息
+	 * @Title: saveResumeInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存投递简历信息
+	 * @param file 文件
+	 * @param type 文件类型 1=图片;2=文本;3=音频;4=视频; 5=其他
+	 * @param isWatermark 是否需要水印
+	 * @param isImport 是否导入
+	 * @param detailEntity 求职者详细信息     
+	 * void 
+	 */
+	public void saveResumeInfo(MultipartFile file,int type,boolean isWatermark
+		,boolean isImport,CustCurriculumVitaeEntity detailEntity);
+	/**
+	 * 获取政治面貌下拉选择数据
+	 * @Title: getPoliticalOutlookSelect
+	 * @author: zuoyuntao  
+	 * @Description:获取政治面貌下拉选择数据
+	 * @return      
+	 * List<Map<String,String>> 
+	 */
+	public List<Map<String , String>> getPoliticalOutlookSelect();
+	/**
+	 * 获取民族下拉选择数据
+	 * @Title: getNationListSelect
+	 * @author: zuoyuntao  
+	 * @Description:获取民族下拉选择数据
+	 * @return      
+	 * List<Map<String,String>>
+	 */
+	public List<Map<String , String>> getNationListSelect();
+	/**
+	 * 获取学历下拉选择数据
+	 * @Title: getEducationListSelect
+	 * @author: zuoyuntao  
+	 * @Description:获取学历下拉选择数据 
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> getEducationListSelect();
+}

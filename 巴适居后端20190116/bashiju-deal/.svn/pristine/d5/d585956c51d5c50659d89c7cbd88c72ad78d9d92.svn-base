@@ -1,0 +1,432 @@
+package com.bashiju.deal.service.impl;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.alibaba.fastjson.JSON;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.global.DealGlobal;
+import com.bashiju.deal.mapper.ContractMapper;
+import com.bashiju.deal.service.ContractService;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.mysql.jdbc.Buffer;
+/**
+ * 
+ *   合同模板管理
+ * @ClassName:  ContractServiceImpl   
+ * @Description:   合同模板管理
+ * @author: wangkaifa
+ * @date:   2018年9月20日 下午5:26:25       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class ContractServiceImpl implements ContractService {
+	@Autowired
+	ContractMapper contractMapper;
+	@Autowired
+	CommonSqlServie commonSqlServie;
+	@Autowired
+	DataAuthHelper dataAuthHelper;
+	
+	@Override
+	public Page<Map<String, Object>> queryContractList(int page, int limit) {
+		PageHelper.startPage(page,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_75.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String, Object>> result=contractMapper.queryContractList();
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> queryDetailed(Long templateId) {
+		Map<String, Object> result=new HashMap<>();
+		Map<String, Object> template=contractMapper.queryContract(templateId);
+		List<Map<String, Object>> terms=contractMapper.queryTerms(templateId);
+		List<Map<String, Object>> items=contractMapper.queryItems(templateId);
+		if (template.get("declaration")!=null&&!"".equals(template.get("declaration").toString())) {
+			result.put("declaration", template.get("declaration"));
+		}else {
+			result.put("declaration", "");
+		}
+		result.put("codePrefix", template.get("codePrefix"));
+		result.put("templateType", template.get("templateType"));
+		result.put("companyName", template.get("companyName"));
+		List<Map<String, Object>> termList=new ArrayList<>();
+		if (terms!=null&&terms.size()>0) {
+			for (int i = 0; i < terms.size(); i++) {
+				Map<String, Object> term=new HashMap<>();
+				term.put("number", terms.get(i).get("number"));
+				term.put("title", terms.get(i).get("title"));
+				List<Map<String, Object>> content=new ArrayList<>();
+				List<List<Map<String, Object>>> rows=new ArrayList<>();
+				if (items!=null&&items.size()>0) {
+					Map<String, List<Map<String, Object>>> rowMap=new HashMap<>();
+					for (int j = 0; j < items.size(); j++) {
+						if (items.get(j).get("termId").toString().equals(terms.get(i).get("id").toString())) {
+							Map<String, Object> item=new HashMap<>();
+							item.put("tag", items.get(j).get("tag")==null?"":items.get(j).get("tag"));
+							item.put("css", items.get(j).get("css")==null?"":items.get(j).get("css"));
+							item.put("value", items.get(j).get("value")==null?"":items.get(j).get("value"));
+							item.put("text", items.get(j).get("text")==null?"":items.get(j).get("text"));
+							if (items.get(j).get("tag").toString().equals("date")||items.get(j).get("tag").toString().equals("beginTime")
+									||items.get(j).get("tag").toString().equals("endTime")) {
+								item.put("year", "");
+								item.put("month", "");
+								item.put("date", "");
+							}
+							if (items.get(j).get("itemType").toString().equals("1")) {
+								content.add(item);
+							}else {
+								String key=items.get(j).get("number").toString();
+								List<Map<String, Object>> row=rowMap.get(key);
+								if (row==null) {
+									row=new ArrayList<>();
+								}
+								row.add(item);
+								rowMap.put(key, row);
+							}
+						}
+					}
+					for (int j = 0; j < rowMap.size(); j++) {
+						rows.add(rowMap.get((j+1)+""));
+					}				
+				}
+				term.put("content", content);
+				term.put("rows", rows);
+				termList.add(term);
+			}
+		}
+		result.put("terms", termList);
+		return result;
+	}
+
+	@Override
+	public Long addTemplate(String templateName, String type,String codePrefix, String remark) {
+		Map user=UserThreadLocal.get();
+		Map<Object, Object> param=new HashMap<>();
+		param.put("templateName", templateName);
+		param.put("remark", remark);
+		param.put("declaration", "");
+		param.put("templateType", type);
+		param.put("codePrefix", codePrefix);
+		param.put("companyId", user.get("companyId"));
+		param.put("companyName", user.get("comName"));
+		param.put("permissionArea", user.get("deptId"));
+		param.put("operatorId", user.get("id"));
+		Long id=commonSqlServie.commonOperationDatabase(param, "contract_template_main", false);
+		return id;
+	}
+
+	@Override
+	public int updateTemplate(Long id, String templateName, String type,String codePrefix, String remark) {
+		Map<Object, Object> param=new HashMap<>();
+		param.put("templateName", templateName);
+		param.put("remark", remark);
+		param.put("templateType", type);
+		param.put("codePrefix", codePrefix);
+		param.put("id", id);
+		Long result=commonSqlServie.commonOperationDatabase(param, "contract_template_main", "id", false);
+		return result.intValue();
+	}
+
+	@Override
+	public boolean saveTemplateDetailed(Long id,String companyName,String declaration, String termJson) {
+		Map user=UserThreadLocal.get();
+		Map<Object, Object> param=new HashMap<>();
+		param.put("declaration", declaration);
+		param.put("companyName", companyName);
+		param.put("id", id);
+		Long result=commonSqlServie.commonOperationDatabase(param, "contract_template_main", "id", false);
+		if (StringUtils.isNotEmpty(termJson)) {
+			contractMapper.deleteItem(id);
+			contractMapper.deleteTerm(id);
+			List<Map> terms=JSON.parseArray(termJson, Map.class);
+			for (int i = 0; i < terms.size(); i++) {
+				Map<Object, Object> term=new HashMap<>();
+				term.put("templateId", id);
+				term.put("title", terms.get(i).get("title")==null?"":terms.get(i).get("title"));
+				term.put("number", i+1);
+				term.put("permissionArea", user.get("deptId"));
+				term.put("operatorId", user.get("id"));
+				long termId=commonSqlServie.commonOperationDatabase(term, "contract_template_term", false);
+				if (terms.get(i).get("content")!=null) {
+					List<Map> content=JSON.parseArray(terms.get(i).get("content").toString(), Map.class);				
+					String fields="templateId,termId,itemType,number,tag,css,value,text,width,permissionArea,operatorId";
+					List<String> valueList=new ArrayList<>();
+					for (int j = 0; j < content.size(); j++) {
+						StringBuffer paramBuffer=new StringBuffer();
+						paramBuffer.append(id);
+						paramBuffer.append(",");
+						paramBuffer.append(termId);
+						paramBuffer.append(",");
+						paramBuffer.append(1);
+						paramBuffer.append(",");
+						paramBuffer.append(j+1);
+						paramBuffer.append(",'");
+						if (content.get(j).get("tag")!=null) {
+							paramBuffer.append(content.get(j).get("tag"));
+						}
+						paramBuffer.append("','");
+						if (content.get(j).get("css")!=null) {
+							paramBuffer.append(content.get(j).get("css"));
+						}
+						paramBuffer.append("','");
+						if (content.get(j).get("value")!=null) {
+							paramBuffer.append(content.get(j).get("value"));
+						}
+						paramBuffer.append("','");
+						if (content.get(j).get("text")!=null) {
+							paramBuffer.append(content.get(j).get("text"));
+						}
+						paramBuffer.append("',");
+						if (content.get(j).get("width")!=null) {
+							paramBuffer.append(content.get(j).get("width"));
+						}else {
+							paramBuffer.append(0);
+						}
+						paramBuffer.append(",'");
+						paramBuffer.append(user.get("deptId"));
+						paramBuffer.append("',");
+						paramBuffer.append(user.get("id"));
+						valueList.add(paramBuffer.toString());
+	
+					}
+					if (valueList.size()>0) {
+						commonSqlServie.batchAdd(fields, "contract_template_termItem", valueList, false);
+					}				
+				}
+				if (terms.get(i).get("rows")!=null) {
+					String fields="templateId,termId,itemType,number,tag,css,value,text,width,permissionArea,operatorId";
+					List<String> valueList=new ArrayList<>();
+					List<List> rows=JSON.parseArray(terms.get(i).get("rows").toString(), List.class);
+					for (int j = 0; j < rows.size(); j++) {
+						List<Map>  row=JSON.parseArray(rows.get(j).toString(), Map.class);
+						
+						for (int k = 0; k < row.size(); k++) {
+							StringBuffer paramBuffer=new StringBuffer();
+							paramBuffer.append(id);
+							paramBuffer.append(",");
+							paramBuffer.append(termId);
+							paramBuffer.append(",");
+							paramBuffer.append(2);
+							paramBuffer.append(",");
+							paramBuffer.append(j+1);
+							paramBuffer.append(",'");
+							if (row.get(k).get("tag")!=null) {
+								paramBuffer.append(row.get(k).get("tag"));
+							}
+							paramBuffer.append("','");
+							if (row.get(k).get("css")!=null) {
+								paramBuffer.append(row.get(k).get("css"));
+							}
+							paramBuffer.append("','");
+							if (row.get(k).get("value")!=null) {
+								paramBuffer.append(row.get(k).get("value"));
+							}
+							paramBuffer.append("','");
+							if (row.get(k).get("text")!=null) {
+								paramBuffer.append(row.get(k).get("text"));
+							}
+							paramBuffer.append("',");
+							if (row.get(k).get("width")!=null) {
+								paramBuffer.append(row.get(k).get("width"));
+							}else {
+								paramBuffer.append(0);
+							}
+							paramBuffer.append(",'");
+							paramBuffer.append(user.get("deptId"));
+							paramBuffer.append("',");
+							paramBuffer.append(user.get("id"));
+							valueList.add(paramBuffer.toString());
+		
+						}
+					}
+					if (valueList.size()>0) {
+						commonSqlServie.batchAdd(fields, "contract_template_termItem", valueList, false);
+					}					
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public int deleteTemplate(Long templateId) {
+		commonSqlServie.delData("contract_template_main", "id", templateId.toString(), false);
+		return 1;
+	}
+
+	@Override
+	public Long saveContract(String dataJson) throws IOException {
+		if (StringUtils.isNotEmpty(dataJson)) {
+			Map user=UserThreadLocal.get();
+			Map data=JSON.parseObject(dataJson, Map.class);
+			//房源id不为空
+			if (data.get("shhId")==null||"".equals(data.get("shhId").toString())) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}else {
+				data.put("shhId", Long.parseLong(data.get("shhId").toString()));
+			}
+			//客源id不为空
+			if (data.get("custId")==null||"".equals(data.get("custId").toString())) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}
+			//合同编号不为空
+			if (data.get("code")==null||"".equals(data.get("code").toString())) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}
+			//房源编号不为空
+			if (data.get("houseId")==null||"".equals(data.get("houseId").toString())) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}
+			//合同类型不为空
+			if (data.get("agreementType")==null||"".equals(data.get("agreementType").toString())) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}
+			if (data.get("price")!=null) {
+				if (!"".equals(data.get("price").toString())) {
+					data.put("price", Integer.parseInt(data.get("price").toString()));
+				}else {
+					data.remove("price");
+				}			
+			}
+			if (data.get("commissionA")!=null&&!"".equals(data.get("commissionA").toString())) {
+				data.put("commissionA", Integer.parseInt(data.get("commissionA").toString()));
+				
+			}else {
+				data.put("commissionA", 0);
+			}
+			if (data.get("commissionB")!=null&&!"".equals(data.get("commissionB").toString())) {
+				data.put("commissionB", Integer.parseInt(data.get("commissionB").toString()));				
+			}else {
+				data.put("commissionB", 0);
+			}
+			if (data.get("totalMoney")!=null) {
+				if (!"".equals(data.get("totalMoney").toString())) {
+					data.put("totalMoney", Integer.parseInt(data.get("totalMoney").toString()));
+				}else {
+					data.remove("totalMoney");
+				}				
+			}
+			if (data.get("contractPicture")!=null) {
+				if (!"".equals(data.get("contractPicture").toString())) {
+					byte[] image = Base64.decodeBase64(data.get("contractPicture").toString());//转码得到图片数据
+					// 1、源图片
+					InputStream sbs = new ByteArrayInputStream(image); 
+					BufferedInputStream bis=new BufferedInputStream(sbs);
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					BufferedOutputStream bos = new BufferedOutputStream(out);
+					int b;
+					while ((b = bis.read()) != -1) {
+						bos.write(b ^ DealGlobal.IMAGESALT);
+					}					
+					bis.close();
+					bos.close();
+					data.put("contractPicture", out.toByteArray());
+					//data.put("contractPicture", image);
+				}else {
+					data.remove("contractPicture");
+				}				
+			}
+			
+			Map<String, Object> signMan=contractMapper.queryUserInfo(Integer.parseInt(data.get("signPerson").toString()));
+			data.put("signPerson",signMan.get("id"));
+			data.put("status", "00");
+			data.put("permissionArea", signMan.get("deptId"));
+			data.put("operatorId", signMan.get("id"));
+			data.put("signCompanyId", signMan.get("companyId"));
+			data.put("signDeptId", signMan.get("deptId"));
+			data.put("signCompanyName", signMan.get("companyName"));
+			data.put("isCross", 0);
+			if (!data.get("houseCompanyId").toString().equals(data.get("custCompanyId").toString())) {
+				data.put("isCross", 1);
+			}
+			Long id = commonSqlServie.commonOperationDatabase(data, "oa_agreement", false);
+			return id;
+		}
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> queryContractByHouseId(Long hid,String agreementType) {
+		Map<String, Object> result=contractMapper.queryContractByHouseId(hid,agreementType);
+		return result;
+	}
+
+	@Override
+	public byte[] queryContractPicture(Long id) throws IOException {
+		Map<String, Object> result=contractMapper.queryContractPitureByHouseId(id);
+		if (result!=null&&result.get("contractPicture")!=null) {
+			byte[] picture=(byte[]) result.get("contractPicture");
+			InputStream sbs = new ByteArrayInputStream(picture); 
+			BufferedInputStream bis=new BufferedInputStream(sbs);
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			BufferedOutputStream bos = new BufferedOutputStream(out);
+			int b;
+			while ((b = bis.read()) != -1) {
+				bos.write(b ^ DealGlobal.IMAGESALT);
+			}
+			bis.close();
+			bos.close();
+			return out.toByteArray();
+		}
+		return null;
+	}
+	@Override
+	public byte[] queryContractPicture(String code) throws IOException {
+		Map<String, Object> result=contractMapper.queryContractPitureByCode(code);
+		if (result!=null&&result.get("contractPicture")!=null) {
+			byte[] picture=(byte[]) result.get("contractPicture");
+			InputStream sbs = new ByteArrayInputStream(picture); 
+			BufferedInputStream bis=new BufferedInputStream(sbs);
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			BufferedOutputStream bos = new BufferedOutputStream(out);
+			int b;
+			while ((b = bis.read()) != -1) {
+				bos.write(b ^ DealGlobal.IMAGESALT);
+			}
+			bis.close();
+			bos.close();
+			return out.toByteArray();
+		}
+		return null;
+	}
+	@Override
+	public List<Map<String, Object>> queryContractListByType(String templateType) {
+		
+		List<Map<String, Object>> list=contractMapper.queryContractListByType(templateType,UserThreadLocal.get().get("companyId").toString());
+		return list;
+	}
+
+	@Override
+	public Map<String, Object> queryContractMan(String code) {
+		Map<String, Object> result=contractMapper.queryContractMan(code);
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> queryContractByCode(String code) {
+		Map<String, Object> result=contractMapper.queryContractByCode(code);
+		return result;
+	}
+
+
+}

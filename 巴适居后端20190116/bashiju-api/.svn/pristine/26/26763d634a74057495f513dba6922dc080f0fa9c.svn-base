@@ -1,0 +1,48 @@
+package com.bashiju.api;
+
+import com.bashiju.pojo.BusinessLogModel;
+
+/**
+ * 
+ *   房源日志接口
+ * @ClassName:  HouseLogApi   
+ * @Description:  房源日志接口
+ * @author: wangkaifa
+ * @date:   2018年11月15日 上午10:41:54       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface HouseLogApi {
+	/**
+	 * 
+		 * 新增资源日志
+		 * @Description: 新增资源日志
+		 * @param param 
+		 * void
+	 */
+	void addSource(BusinessLogModel param);
+	/**
+	 * 
+		 * 修改资源日志
+		 * @Description: 修改资源日志
+		 * @param param 
+		 * void
+	 */
+	void updateSource(BusinessLogModel param);
+	/**
+	 * 
+		 * 删除资源日志
+		 * @Description: 进入菜单主页面（详细描述） 
+		 * @param param 
+		 * void
+	 */
+	void deleteSource(BusinessLogModel param);
+	/**
+	 * 
+		 * 查询资源日志
+		 * @Description: 查询资源日志
+		 * @param param 
+		 * void
+	 */
+	void querySource(BusinessLogModel param);
+}

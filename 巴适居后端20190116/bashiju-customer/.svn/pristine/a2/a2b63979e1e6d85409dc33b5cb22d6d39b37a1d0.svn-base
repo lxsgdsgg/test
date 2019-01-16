@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.DemandShowedRecordMapper">
+	<select id="queryDemandShowedRecordData" resultType="map">
+		select  a.id, a.custName,a.transactionType,a.transactionTypeId,a.demandId,
+		a.leader,b.name as deptName,a.visterEvaluate,a.leadTime,a.sourceId ,a.operatorId,a.permissionArea from  demand_showedRecord a 
+		left join sys_dept b on b.id = a.deptId where a.isValid = 1
+		<if test="transactionTypeId!=null and transactionTypeId!='' "> and  a.transactionTypeId=#{transactionTypeId}</if>
+		<if test="leaderId!=null and leaderId!='' ">and  a.leaderId =#{leaderId}</if>
+		<if test="beginTime!=null and beginTime!='' "> and a.leadTime&gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' "> and a.leadTime&lt;=#{endTime}</if>
+	</select>
+	
+	
+		<select id="queryDemandShowedRecordById" resultType="map">
+				select  dsd.leadTime,dsd.id,dsd.demandId,dsd.companyId,dsd.content,dsd.leaderId,dsd.leader,
+		dsd.transactionTypeId,dsd.transactionType,dsd.custName,dsd.custCallType,dsd.permissionArea,
+		dsd.operator,dsd.operatorId,dsd.isValid   from demand_showedrecord dsd 
+				where dsd.id=#{id} and dsd.isValid=1
+		</select>
+</mapper>

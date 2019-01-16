@@ -1,0 +1,11 @@
+com\bashiju\base\service\smsservice\SendSMS.class
+com\bashiju\base\service\redisservice\RedisGetIdImpl.class
+com\bashiju\base\service\ssoqueryservice\PermissionServiceimpl.class
+com\bashiju\base\service\emailservice\EmailServiceImpl.class
+com\bashiju\base\service\redisservice\RedisLockTool.class
+com\bashiju\base\service\redisservice\RedisClusterServiceImpl.class
+com\bashiju\base\service\mq\SaveLog.class
+com\bashiju\base\service\ssoqueryservice\SsoQueryServiceImpl.class
+com\bashiju\base\service\redisservice\ObjectTranscoder.class
+com\bashiju\base\service\redisservice\RedisParent.class
+com\bashiju\base\service\mq\RabbitExcute.class

@@ -1,0 +1,60 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TestDataMapper.java   
+ * @Package com.bashiju.manage.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月11日 上午10:28:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.customer.mapper;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  CustomerMapper   
+ * @Description:客源服务
+ * @author: 
+ * @date:   2018年4月11日 上午10:28:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustomerMapper {
+	public Map queryMainter(String demandId);
+	public Map queryDeptName(Long id);
+	public Page<Map<String, Object>> queryLookHouse(String demandId);
+	public Page<Map<String, Object>> queryFollowRecord(String demandId);
+	public LinkedList<Map> queryCustomerPhone(String demandId);
+	public Page<Map<String, Object>> customerFindHouseList(@Param("sql")String sql);
+	public Page<Map<String, Object>> queryCustomerListByIds(@Param("ids")String ids);
+	public Map<String,Object> queryCustomerInfo(@Param("demandId") String demandId,@Param("userId") Long userId);
+	public LinkedList<Map> queryFollowInfo(String demandId);
+	public LinkedList<Map> queryRelateagentInfo(String demandId);
+	public Map queryCustomValue(@Param("customField") Map<String, Object> customField,@Param("formName") String formName,@Param("keyId") String keyId);
+	public int queryDepositByShhId(Long shhId);
+
+	public Map queryStore(@Param("demandId") String demandId,@Param("userId") Long userId);
+
+	/**
+	 * 
+		 * 查询本公司、本城市的客源等级规则
+		 * @Description: 查询本公司、本城市的客源等级规则
+		 * @param cityCode 城市编码
+		 * @param companyId 公司id
+		 * @param transactionType 交易类型：4求购，5求租
+		 * @return  levelType:等级,conditions:等级条件,beginPrice:最低价格,endPrice:最高价格,beginSpace:最小面积,endSpace:最大面积
+		 * List<Map<Object,Object>>
+	 */
+	public List<Map<Object, Object>> queryCustomerLevel(@Param("cityCode")String cityCode,@Param("companyId")String companyId,@Param("transactionType")String transactionType);
+
+
+
+}

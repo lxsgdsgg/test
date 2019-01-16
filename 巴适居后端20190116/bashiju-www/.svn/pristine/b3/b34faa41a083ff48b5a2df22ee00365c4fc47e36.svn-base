@@ -1,0 +1,157 @@
+package com.bashiju.www.pojo.service.out.house;
+/**
+ * 
+ *   房源列表搜索返回对象
+ * @ClassName:  HouseListResult   
+ * @Description:  房源列表搜索返回对象
+ * @author: wangkaifa
+ * @date:   2018年7月24日 下午3:23:45       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class HouseListResult {
+	/**房源标题**/
+	protected String title;
+	/**房源封面图片地址**/
+	protected String imageUrl;
+	/**几室**/
+	protected int room;
+	/**几厅**/
+	protected int hall;
+	/**几卫**/
+	protected int toilet;
+	/**朝向**/
+	protected int orientation;
+	/**建筑面积**/
+	protected int buildSpace;
+	/**使用面积**/
+	protected int useSpace;
+	/**装修**/
+	protected int decoration;
+	/**房源类型**/
+	protected int houseType;
+	/**总楼层**/
+	protected int totalFloor;
+	/**建筑年代**/
+	protected String buildYear;
+	/**价格分**/
+	protected int price;
+	/**小区名称**/
+	protected String community;
+	/**片区名称**/
+	protected String region;
+	/**区域名称**/
+	protected String areaName;
+	/**标签逗号分隔**/
+	protected String label;
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public String getImageUrl() {
+		return imageUrl;
+	}
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+	public int getRoom() {
+		return room;
+	}
+	public void setRoom(int room) {
+		this.room = room;
+	}
+	public int getHall() {
+		return hall;
+	}
+	public void setHall(int hall) {
+		this.hall = hall;
+	}
+	public int getToilet() {
+		return toilet;
+	}
+	public void setToilet(int toilet) {
+		this.toilet = toilet;
+	}
+	public int getOrientation() {
+		return orientation;
+	}
+	public void setOrientation(int orientation) {
+		this.orientation = orientation;
+	}
+	public int getBuildSpace() {
+		return buildSpace;
+	}
+	public void setBuildSpace(int buildSpace) {
+		this.buildSpace = buildSpace;
+	}
+	public int getUseSpace() {
+		return useSpace;
+	}
+	public void setUseSpace(int useSpace) {
+		this.useSpace = useSpace;
+	}
+	public int getDecoration() {
+		return decoration;
+	}
+	public void setDecoration(int decoration) {
+		this.decoration = decoration;
+	}
+	public int getHouseType() {
+		return houseType;
+	}
+	public void setHouseType(int houseType) {
+		this.houseType = houseType;
+	}
+	public int getTotalFloor() {
+		return totalFloor;
+	}
+	public void setTotalFloor(int totalFloor) {
+		this.totalFloor = totalFloor;
+	}
+	public String getBuildYear() {
+		return buildYear;
+	}
+	public void setBuildYear(String buildYear) {
+		this.buildYear = buildYear;
+	}
+	public int getPrice() {
+		return price;
+	}
+	public void setPrice(int price) {
+		this.price = price;
+	}
+	public String getCommunity() {
+		return community;
+	}
+	public void setCommunity(String community) {
+		this.community = community;
+	}
+	public String getRegion() {
+		return region;
+	}
+	public void setRegion(String region) {
+		this.region = region;
+	}
+	public String getAreaName() {
+		return areaName;
+	}
+	public void setAreaName(String areaName) {
+		this.areaName = areaName;
+	}
+	public String getLabel() {
+		return label;
+	}
+	public void setLabel(String label) {
+		this.label = label;
+	}
+	@Override
+	public String toString() {
+		return "HouseListResult [title=" + title + ", imageUrl=" + imageUrl + ", room=" + room + ", hall=" + hall
+				+ ", toilet=" + toilet + ", orientation=" + orientation + ", buildSpace=" + buildSpace + ", useSpace="
+				+ useSpace + ", decoration=" + decoration + ", houseType=" + houseType + ", totalFloor=" + totalFloor
+				+ ", buildYear=" + buildYear + ", price=" + price + ", community=" + community + ", region=" + region
+				+ ", areaName=" + areaName + ", label=" + label + "]";
+	}
+}

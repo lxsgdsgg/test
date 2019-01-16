@@ -1,0 +1,42 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.bashiju.quartz</groupId>
+  <artifactId>bashiju-quartz</artifactId>
+  <packaging>pom</packaging>
+  <parent>
+  	 <groupId>com.bashiju</groupId>
+  	<artifactId>bashiju-parent</artifactId>
+  	<version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <modules>
+  	<module>bashiju-quartz-pojo</module>
+  	<module>bashiju-quartz-mapper</module>
+  	<module>bashiju-quartz-service</module>
+  </modules>
+  <dependencies>
+  		<dependency>
+			<groupId>com.bashiju.utils</groupId>
+			<artifactId>bashiju-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+			<!-- quartz -->
+		<dependency>
+		    	<groupId>org.quartz-scheduler</groupId>
+			    <artifactId>quartz</artifactId>
+		</dependency>
+	  <dependency>
+		        <groupId>org.springframework.amqp</groupId>
+		        <artifactId>spring-rabbit</artifactId>
+    	</dependency>
+			<dependency>
+    			<groupId>org.springframework</groupId>
+   		 		<artifactId>spring-context-support</artifactId>
+			</dependency>
+	  <!-- 单元测试 -->
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

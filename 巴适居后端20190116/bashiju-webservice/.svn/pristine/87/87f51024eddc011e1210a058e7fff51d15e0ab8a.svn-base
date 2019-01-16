@@ -1,0 +1,329 @@
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.input.house.SellHouseParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseDescriptionResult;
+import com.bashiju.www.pojo.service.out.house.HouseFeedbackResult;
+import com.bashiju.www.pojo.service.out.house.HouseImageResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.pojo.service.out.house.HouseSameLinkResult;
+import com.bashiju.www.pojo.service.out.house.RentHouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.github.pagehelper.Page;
+
+public interface HouseMapper {
+	/**
+	 * 
+		 * 查询二手房源详细基本信息
+		 * @Description: 查询二手房源详细基本信息 
+		 * @param houseId 房源id
+		 * @return 
+		 * HouseInfoResult
+	 */
+	public HouseInfoResult queryHouseInfo(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询租房详细
+		 * @Description: 查询租房详细
+		 * @param houseId 房源id
+		 * @return 
+		 * RentHouseInfoResult
+	 */
+	public RentHouseInfoResult queryRentHouseInfo(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询经纪人简介信息
+		 * @Description: 查询经纪人简介信息
+		 * @param userId 经纪人id
+		 * @return 
+		 * AgentResult
+	 */
+	public AgentResult queryAgentById(@Param("userId")long userId);
+	/**
+	 * 
+		 * 查询房源的带看经纪人列表
+		 * @Description: 查询房源的带看经纪人列表
+		 * @param houseId 房源id
+		 * @return 
+		 * List<AgentResult>
+	 */
+	public List<AgentResult> queryAgentsByHouseId(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的带看记录列表
+		 * @Description: 查询房源的带看记录列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<ShowedRecordResult>
+	 */
+	public Page<ShowedRecordResult> queryShowedRecords(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的小区简介
+		 * @Description: 查询房源的小区简介 
+		 * @param communityId 小区id
+		 * @return 
+		 * CommunityResult
+	 */
+	public CommunityResult queryCommunityInfo(@Param("communityId")long communityId);
+	/**
+	 * 
+		 * 查询房源图片
+		 * @Description: 查询房源图片 
+		 * @param houseId
+		 * @return 
+		 * HouseImageResult
+	 */
+	public List<HouseImageResult> queryHouseImages(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询小区地铁标签
+		 * @Description: 查询小区地铁标签 
+		 * @param communityId 小区id
+		 * @return 
+		 * String
+	 */
+	public String queryMetroLabel(@Param("communityId")long communityId);
+	/**
+	 * 
+		 * 查询房源列表
+		 * @Description: 查询房源列表
+		 * @param param
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	public Page<HouseListResult> queryHouseList(SellHouseParam param);
+	/**
+	 * 
+		 * 查询房源描述列表
+		 * @Description: 查询房源描述列表
+		 * @param houseId 房源id
+		 * @return 
+		 * List<HouseDescriptionResult>
+	 */
+	public List<HouseDescriptionResult> queryHouseDescriptionList(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 增加房源浏览数
+		 * @Description: 增加房源浏览数
+		 * @param houseId 房源id
+		 * @return 
+		 * int
+	 */
+	public int updateHouseBrowsingCount(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 增加二手房房源浏览数
+		 * @Description: 增加二手房房源浏览数
+		 * @param houseId 房源id
+		 * @return 
+		 * int
+	 */
+	public int updateSellHouseBrowsingCount(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 增加租房房源浏览数
+		 * @Description: 增加租房房源浏览数
+		 * @param houseId 房源id
+		 * @return 
+		 * int
+	 */
+	public int updateRentHouseBrowsingCount(@Param("houseId")long houseId);
+	/**
+	 * 
+	 * @Title: querySellSameHouseList   
+	 * @Description: TODO(查询出售相似房源)   
+	 * @param: @param param
+	 * @param: @return      
+	 * @return: List<GoodHouseListResult>      
+	 * @throws
+	 */
+	public List<GoodHouseListResult> querySellSameHouseList(HouseSameParam param);
+	/**
+	 * 
+	 * @Title: queryRentSameHouseList   
+	 * @Description: TODO(查询出租相似房源)   
+	 * @param: @param param
+	 * @param: @return      
+	 * @return: List<GoodHouseListResult>      
+	 * @throws
+	 */
+	public List<GoodHouseListResult> queryRentSameHouseList(HouseSameParam param);
+	/**
+	 * 
+		 * 查询其他公司的同套房源列表
+		 * @Description: 查询其他公司的同套房源列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<HouseSameLinkResult>
+	 */
+	public List<HouseSameLinkResult> queryHouseSameLinks(@Param("houseId")long houseId);
+
+	
+	/**
+	 * 
+	 * @Title: saveHouseTipOff   
+	 * @Description: TODO(房源举报)   
+	 * @param: @param param
+	 * @param: @return      
+	 * @return: int      
+	 * @throws
+	 */
+	public int saveHouseTipOff(HouseTipOffParam param);
+
+	/**
+	 * 
+		 * 查询房源比较列表
+		 * @Description: 查询房源比较列表 
+		 * @param ids 比较房源id
+		 * @return 
+		 * List<HouseCompareResult>
+	 */
+	public List<HouseCompareResult> queryHouseCompareList(@Param("ids")List<Long> ids);
+	
+	/**
+	 * 
+	 * @Title: querySellHouseByCoummunity   
+	 * @Description: TODO(根据小区模糊查询房源)   
+	 * @param:  communityName
+	 * @param:  cityCode    
+	 * @return: List<HouseListResult>      
+	 * @throws
+	 */
+	public Page<HouseListResult> querySellHouseByCoummunity(@Param("cityCode")String cityCode,@Param("communityName")String communityName);
+	/**
+	 * 
+	 * @Title: queryErHouseTotalByCityCode   
+	 * @Description: TODO(统计二手房和出租)   
+	 * @param: @param cityCode
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryErHouseTotalByCityCode(String cityCode);
+
+	public List<GoodHouseListResult> querySellGoodHouse(@Param("cityCode")String cityCode);
+	public List<GoodHouseListResult> queryRentGoodHouse(@Param("cityCode")String cityCode);
+
+	public int queryCustEvaluate(@Param("custId")int custId,@Param("agentEvaluateHouseId")int agentEvaluateHouseId);
+	public int saveFeedbackUse(@Param("custId")int custId,@Param("agentEvaluateHouseId")int agentEvaluateHouseId);
+	public int updateFeedbackUseCount(@Param("agentEvaluateHouseId")int agentEvaluateHouseId);
+	public Page<HouseFeedbackResult> queryFeedback(@Param("houseId")Long houseId,@Param("sort")int sort);
+	/**
+	 * 
+		 * 查询同价位同小区租房列表
+		 * @Description:查询同价位同小区租房列表
+		 * @param communityId 小区id
+		 * @param price 租价
+		 * @param limit 显示条数
+		 * @return 
+		 * List<GoodHouseListResult>
+	 */
+	public List<GoodHouseListResult> querySamePriceHouse(@Param("communityId")long communityId,@Param("price")int price,@Param("limit")int limit);
+	/**
+	 * 
+		 * 按区域查询二手房列表
+		 * @Description: 按区域查询二手房列表
+		 * @param param
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	public Page<HouseListResult> querySellHouseByArea(SellHouseParam param);
+	/**
+	 * 
+		 * 按地铁查询二手房列表
+		 * @Description: 按地铁查询二手房列表
+		 * @param param
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	public Page<HouseListResult> querySellHouseByMetro(SellHouseParam param);
+	/**
+	 * 
+		 * 地图找房查询区域信息
+		 * @Description: 地图找房查询区域信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseArea(HouseMapParam param);
+	
+	/**
+	 * 
+		 * 地图找房查询片区信息
+		 * @Description: 地图找房查询片区信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseRegion(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房查询小区信息
+		 * @Description: 地图找房查询小区信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseCommunity(HouseMapParam param);
+	/**
+	 * 
+		 * 二手房地图找房列表查询
+		 * @Description: 二手房地图找房列表查询
+		 * @param param
+		 * @return 
+		 * Page<HouseMapListResult>
+	 */
+	Page<HouseMapListResult> querySellHouseMapList(HouseMapListParam param);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路房源统计
+		 * @Description: 地图找房二手房地铁线路房源统计 
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路小区房源统计
+		 * @Description: 地图找房二手房地铁线路小区房源统计 
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseCommunityMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路房源列表查询
+		 * @Description: 地图找房二手房地铁线路房源列表查询
+		 * @param param
+		 * @return 
+		 * Page<HouseMapListResult>
+	 */
+	Page<HouseMapListResult> querySellHouseMapMetroList(HouseMapListParam param);
+	/**
+	 * 
+		 * 二手房列表好房推荐查询
+		 * @Description: 二手房列表好房推荐查询 
+		 * @param cityCode
+		 * @return 
+		 * Page<GoodHouseListResult>
+	 */
+	Page<GoodHouseListResult> querySellGoodHouses(@Param("cityCode")String cityCode);
+}

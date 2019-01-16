@@ -1,0 +1,74 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FootPrintServiceImpl.java   
+ * @Package com.bashiju.www.service.FootPrint.Impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月11日 下午4:23:26   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.FootPrint.Impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.www.mapper.FootPrintMapper;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity;
+import com.bashiju.www.service.FootPrint.FootPrintService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  FootPrintServiceImpl   
+ * @Description:我的足迹服务  
+ * @author: wangpeng
+ * @date:   2018年8月11日 下午4:23:26   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class FootPrintServiceImpl implements FootPrintService{
+	
+	@Autowired
+	private FootPrintMapper footPrintMapper;
+	
+
+	/**   
+	 * <p>Title: queryFootPrintByCustId</p>   
+	 * <p>Description: 条件查询我的足迹 </p>   
+	 * @param houseId 房源id
+	 * @see com.bashiju.www.service.FootPrint.FootPrintService#queryFootPrintByCustId(java.lang.String)   
+	 */
+	@Override
+	public Page<FootPrintToQueryEntity> queryFootPrintByCustId(String custId,String type) {
+		if(StringUtils.isEmpty(custId))
+			throw new BusinessException("房源id不能为空");
+		PageHelper.startPage(1, 10);
+		Page<FootPrintToQueryEntity> footPrint = footPrintMapper.queryFootPrintByCustId(custId,type);
+		return footPrint;
+	}
+
+	/**   
+	 * <p>Title: saveFootPrint</p>   
+	 * <p>Description:新增我的足迹 </p>   
+	 * @param footPrintToSaveEntity
+	 * @see com.bashiju.www.service.FootPrint.FootPrintService#saveFootPrint(com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity)   
+	 */
+	@Override
+	public boolean saveFootPrint(FootPrintToSaveEntity footPrintToSaveEntity) {
+		if(StringUtils.isEmpty(footPrintToSaveEntity.toString()))
+			throw new BusinessException("参数不能为空");
+		long result = footPrintMapper.saveFootPrint(footPrintToSaveEntity);
+		if(result>0)
+			return true;
+		return false;
+	}
+
+}

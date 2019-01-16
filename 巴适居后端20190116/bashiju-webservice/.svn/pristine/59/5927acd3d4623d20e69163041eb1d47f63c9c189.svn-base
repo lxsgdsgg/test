@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.webservice.mapper.CustomerStarCommentsMapper">
+	 <resultMap id="agentCommentsMap" type="com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="agentId" property="userId" />
+	    <result column="star" property="star" />
+	    <result column="content" property="content" />
+	    <result column="labelIds" property="labelIds" />
+	    <result column="labels" property="labels" />
+	    <result column="titles" property="titles" />
+	    <result column="secondLabelIds" property="secondLabelIds" />
+	    <result column="secondLabels" property="secondLabels" />
+	    <result column="examineStatus" property="examineStatus" />
+	    <result column="auditorId" property="auditorId" />
+	    <result column="auditor" property="auditor" />
+	    <result column="addTime" property="addTime" />
+	    <result column="auditTime" property="auditTime" />
+	    <result column="reason" property="reason" />
+	    <result column="isValid" property="isvalid" />
+	  </resultMap>
+	 <resultMap id="houseCommentsMap" type="com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseCommentsEntity">
+	    <result property="id" column="id"/>
+        <result property="houseId" column="houseId"/>
+        <result property="agentId" column="agentId"/>
+        <result property="custId" column="custId"/>
+        <result property="companyId" column="companyId"/>
+        <result property="custName" column="custName"/>
+        <result property="visterEvaluate" column="visterEvaluate"/>
+        <result property="updateTime" column="updateTime"/>
+	  </resultMap>
+	  
+	<select id="queryCustomerCommentsDataList" resultMap="agentCommentsMap">
+		SELECT *
+		from sys_cust_starrating where isValid = 1 and custId = #{custId}
+	</select>
+	<select id="queryCustomerHouseCommentsDataList" resultMap="houseCommentsMap">
+		select a.id,a.companyId,a.companyName,b.id as houseId,a.demandId,a.deptId,a.content,
+		a.leader,a.leadTime,a.transactionTypeId,a.transactionType,a.custName,a.custCallType,b.titles,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid,a.visterEvaluate,
+		c.areaCode,c.areaName,c.regionId,c.regionName,c.communityId,c.communityName,c.buildingsId,
+		c.buildingsName,c.bulidingUnitId,c.buildingsUnitName,c.buildingHouseId,c.buildingHouseName,
+		b.room,b.hall,b.toilet,b.kitchen,b.buildSpace,b.useSpace,a.leaderId as agentId,
+		d.realName as agentName,e.custId from demand_showedrecord as a
+		inner join hs_secondhandhouse as b on a.sourceId = b.id
+		inner join hs_housebaseinfo as c on b.houseId = c.id
+		inner join sys_user as d on a.leaderId = d.id
+		inner join sys_custbindinfo as e on a.sourceId = e.sourcesId
+		where b.isValid = 1 and e.custId = #{custId}
+	</select>
+	<insert id="saveCustomerComments" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity">
+		insert into sys_cust_starrating (
+			userId,agentId,star,content,custId,custName,
+			examineStatus,auditorId,auditor,auditTime,reason
+			,permissionArea,operatorId,operator,addTime,updateTime,isValid
+		)
+		values(
+			#{userId},#{agentId},#{star},#{content},#{custId},#{custName}
+			,#{examineStatus},#{auditorId},#{auditor},#{auditTime},#{reason},#{permissionArea},
+			#{operatorId},#{operator},#{addTime},#{updateTime},#{isValid}
+		)
+	</insert>
+	<insert id="batchAddLabels" parameterType="java.util.Map">
+		<foreach collection="hotList"  item="value">
+			insert into sys_cust_starRating_hotLabel 
+	 		<foreach collection="value.entrySet()" index="key" open="(" separator="," close=")">
+			  <if test="key != 'id'.toString()">
+			   		${key}
+			   </if>
+			</foreach> 
+			values			
+			<foreach collection="value.entrySet()" index="key" item="item" open="("  separator="," close=");"> 
+				<if test="key != 'id'.toString()">
+					#{item} 					
+				</if>
+			</foreach>
+	 	</foreach>
+	 	<foreach collection="serviceRateList" item="value">
+			insert into sys_cust_starRating_serviceComment 
+	 		<foreach collection="value.entrySet()" index="key" open="(" separator="," close=")">
+			  <if test="key != 'id'.toString()">
+			   		${key}
+			   </if>
+			</foreach> 
+			values			
+			<foreach collection="value.entrySet()" index="key" item="item" open="(" separator="," close=");"> 
+				<if test="key != 'id'.toString()">
+					#{item} 					
+				</if>
+			</foreach>
+	 	</foreach>
+	</insert>
+	<update id="updateCustomerSeeHouseComments" 
+		parameterType="com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseCommentsEntity">
+		update demand_showedrecord set updateTime=#{updateTime},visterEvaluate=#{visterEvaluate}
+		where id = #{id} and isValid = 1
+	</update>
+	<select id="queryUserInfoById" resultType="map">
+		select operator,operatorId,permissionArea,companyId from sys_user where isValid = 1 and id = ${userId}
+	</select>
+</mapper>

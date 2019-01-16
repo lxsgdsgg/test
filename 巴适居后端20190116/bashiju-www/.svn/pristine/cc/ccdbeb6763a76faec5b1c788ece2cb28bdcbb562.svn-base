@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CommMapper">
+	
+	<insert id="saveAttention">
+           insert into cust_attention(type,sourceId,custId,addTime,isValid) 
+           value(#{type},#{sourceId},#{custId},now(),1)
+     </insert> 
+
+	<update id="addAttentionCount">
+		UPDATE hs_secondHandHouse SET attentionCount=attentionCount+1 WHERE id=#{houseId}
+	</update>
+	<update id="minusAttentionCount">
+		UPDATE hs_secondHandHouse SET attentionCount=attentionCount-1 WHERE id=#{houseId}
+	</update>
+
+	 <delete id="delAttention">
+  	 	delete from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+  	 </delete>
+  	 
+	<select id="isAttention" resultType="int">
+		select count(0) from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+	</select>
+	
+	<insert id="addFeedback">
+		insert into cust_feedback (content,contact,addTime)
+		value(#{content},#{contact},#{addTime})
+	</insert>
+	
+	<select id="queryCommunityBestAgent" parameterType="String" resultType="com.bashiju.www.pojo.service.agent.Agent">
+		select a.userId, a.agentId, c.realName as agentName, c.deptId, c.profilePhoto as profileUrl
+		, d.name as postName, b.mainRegions as mainRegionsCodes, b.mainRegions, b.showedRdCnt, b.histShowedRdCnt
+		, b.StarRating, b.commentCnt, c.telPhone
+		,d.labeld label
+		from sys_communityBestAgent a
+		left join sys_agent_details b on a.agentId = b.id
+		left join sys_user c on a.userId = c.id
+		left join sys_post d on c.postId = d.id 
+		left join (select agentId,group_concat(distinct labeld) labeld 
+		from sys_cust_starRating_hotLabel group by agentId)d on d.agentId =a.agentId
+		where a.communityId = #{communityCode};
+	</select>
+	<select id="queryWebProtocol" resultType="com.bashiju.www.pojo.service.out.comm.WebProtocolResult">
+		select title,content from sys_protocol where typeId=#{typeId} and isValid = 1 order by addTime desc
+	</select>
+	<select id="queryAreas" resultType="com.bashiju.www.pojo.service.out.comm.WebMapOnelevelType">
+		select name,code as id from sys_area where parentCode=#{cityCode} and isValid = 1
+	</select>
+	
+	<select id="queryRegions" resultType="com.bashiju.www.pojo.service.out.comm.WebMapSecondlevelType">
+		select a.id,a.name,a.areaCode as parentId from sys_region a INNER JOIN sys_area b where a.areaCode = b.`code` and b.parentCode=#{cityCode} and a.isValid = 1 and b.isValid = 1 
+	</select>
+	
+	<select id="queryArticleOneTypes" resultType="com.bashiju.www.pojo.service.out.comm.WebMapOnelevelType">
+		select id,name from sys_article_classes where type=#{type} and (cityCode=#{cityCode} or isOpen = 1) and level=#{level} and isValid = 1
+	</select>
+	<select id="queryArticleLastTypes" resultType="com.bashiju.www.pojo.service.out.comm.WebMapSecondlevelType">
+		select a.id,a.name,(select parentId from sys_article_classes where id =a.parentId ) as parentId 
+		from sys_article_classes a where a.type=#{type} and (a.cityCode=#{cityCode} or a.isOpen = 1) and a.level=#{level} and a.isValid = 1
+	</select>
+</mapper>

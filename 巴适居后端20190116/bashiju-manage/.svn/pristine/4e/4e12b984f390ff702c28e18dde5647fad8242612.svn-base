@@ -1,0 +1,25 @@
+package com.bashiju.manage.mapper;
+/**
+ * 
+ * @ClassName:  NavigationBarMapper   
+ * @Description:TODO(导航栏映射接口)   
+ * @author: wangpeng
+ * @date:   2018年7月24日 上午9:25:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+public interface NavigationBarMapper {
+	
+	Page<Map<String, Object>> queryNavigationBarData();
+	
+	
+	Map<String,Object> queryNavigationBarById(@Param("navigationBarId")String navigationBarId);
+}

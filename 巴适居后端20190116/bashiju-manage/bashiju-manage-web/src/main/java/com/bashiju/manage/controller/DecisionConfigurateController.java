@@ -1,0 +1,110 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DecisionConfigurateController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月6日 上午9:19:24   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.controller;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.pojo.DecisionConfigurateTypeEnum;
+import com.bashiju.manage.service.DecisionConfigurateService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  DecisionConfigurateController   
+ * @Description:决策配置管理   
+ * @author: yangz
+ * @date:   2018年7月6日 上午9:19:24   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="decisionConfigurate")
+public class DecisionConfigurateController extends BaseController {
+	
+	@Autowired
+	private DecisionConfigurateService decisisionConfigurateService;
+
+	/**
+	 * @Description: 进入决策配置界面   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="decisionConfiguratePage")
+	public ModelAndView decisionConfiguratePage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = this.getModelAndView(request, response, "decisionConfigurate/decisionConfigurate");
+		mv.addObject("decisionConfigurateType", DecisionConfigurateTypeEnum.enumMap);
+		return mv;
+	}
+	
+	/**
+	 * @Description: 获取决策配置数据  
+	 * @param request
+	 * @return: Object
+	 */
+	@RequestMapping(value="getData")
+	@ResponseBody
+	public Object getData(HttpServletRequest request) {
+		int pageNum = 1;
+		int pageSize = 20;
+		String num = request.getParameter("page"); 
+		String size = request.getParameter("limit");
+		String cityCode = request.getParameter("cityCode");
+		String type = request.getParameter("type");
+		String name = request.getParameter("name");
+		if(StringUtils.isEmpty(cityCode))//当城市编码为空的时候，默认当前操作人所在城市
+			cityCode = UserThreadLocal.get().get("cityCode").toString();
+		if(!StringUtils.isEmpty(num))
+			pageNum = Integer.parseInt(num);
+		if(!StringUtils.isEmpty(size))
+			pageSize = Integer.parseInt(size);
+		Page<Map<String,Object>> page =decisisionConfigurateService.queryDecisisionConfigurate(cityCode,type,name,pageNum,pageSize);
+		return JSONObject.toJSON(getPageResult(page));
+	}
+	
+	/**
+	 * @Description: 保存决策配置信息  
+	 * @param request
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveDecisisionCOnfigurate")
+	@ResponseBody
+	public BashijuResult saveDecisisionCOnfigurate(HttpServletRequest request) {
+		String jsonData = request.getParameter("jsonData");
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要保存的决策配置信息");
+		Map<String,Object> map = (Map<String,Object>) JSONObject.parse(jsonData);
+		
+		//如果需要做新增操作的话，则要注意前端需要将数据封装完成，否则会报错
+		boolean result = this.decisisionConfigurateService.saveDecisisionCOnfigurateDetail(map);
+		if(result)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+	}
+}

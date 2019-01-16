@@ -1,0 +1,136 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CompanyCityOpenInfoServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月23日 下午4:52:15   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.manage.mapper.CompanyCityOpenMapper;
+import com.bashiju.manage.service.CompanyCityOpenService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  CompanyCityOpenInfoServiceImpl   
+ * @Description:公司城市开通管理接口   
+ * @author: yangz
+ * @date:   2018年7月23日 下午4:52:15   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="公司城市开通")
+public class CompanyCityOpenServiceImpl extends CommonSqlServie implements CompanyCityOpenService {
+
+	@Autowired
+	private CompanyCityOpenMapper companyCityOpenMapper;
+	
+	@Autowired
+	private DataAuthHelper DataAuthHelper;
+	/**     
+	 * @Description: 查询公司城市开通信息   
+	 * @param provinceCode 省级编码
+	 * @param cityCode 城市编码
+	 * @param companyId 公司编号
+	 * @param companyName 公司名称（模糊查询）
+	 * @param isOpen 是否开通
+	 * @return: Page<Map<String,Object>> 
+	 * @see com.bashiju.manage.service.CompanyCityOpenInfoService#queryCompanyCityOpenInfos(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryCompanyCityOpenInfos(String provinceCode, String cityCode, String companyId,
+			String companyName, Boolean isOpen) {
+		//TODO:授权逻辑未完成
+		DataAuthHelper.auth("1", UserThreadLocal.get().get("id").toString());
+		return companyCityOpenMapper.queryCompanyCityOpenInfos(provinceCode, cityCode, companyId, companyName, isOpen);
+	}
+
+	/**     
+	 * @Description: 查询公司城市开通信息  (分页) 
+	 * @param provinceCode 省级编码
+	 * @param cityCode 城市编码
+	 * @param companyId 公司编号
+	 * @param companyName 公司名称（模糊查询）
+	 * @param isOpen 是否开通
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 * @see com.bashiju.manage.service.CompanyCityOpenService#queryCompanyCityOpenInfos(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryCompanyCityOpenInfos(String provinceCode, String cityCode, String companyId,
+			String companyName, Boolean isOpen, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) this.queryCompanyCityOpenInfos(provinceCode, cityCode, companyId, companyName, isOpen);
+		return page;
+	}
+
+	/**     
+	 * @Description: 保存公司城市开通信息   
+	 * @param map 待保存的公司城市开通信息
+	 * @return: boolean 
+	 * @see com.bashiju.manage.service.CompanyCityOpenService#saveOrUpdateCityOpen(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存公司城市开通")
+	public boolean saveOrUpdateCityOpen(Map<String,Object> map) {
+		if(map==null || map.size()<=0)
+			throw new BusinessException("待保存的信息不能为空");
+		if(map.containsKey("id") && map.get("id")!=null && !StringUtils.isEmpty(map.get("id").toString())) {
+			//修改
+			long id = this.commonOperationDatabase(map, "sys_companyCityOpenInfo", "id", false);
+			ExecutionResult.descFormat(Long.toString(id), "修改公司开通信息");
+		}else {
+			//新增
+			//验证公司有没有开通该城市，如果有的话不允许再次开通,如果过期的话，那就修改签约时间即可
+			List<Map<String,Object>> list = this.queryCompanyCityOpenInfos(null, map.get("cityCode").toString(), 
+					map.get("companyId").toString(), null, null);
+			if(list!=null && list.size()>0)
+				throw new BusinessException("该公司在该城市下边的开通信息已经存在，不需要再次开通");
+			long id = this.commonOperationDatabase(map, "sys_companyCityOpenInfo", false);
+			ExecutionResult.descFormat(Long.toString(id), "新增公司开通信息");
+		}
+		return true;
+	}
+
+	/**     
+	 * @Description: 取消公司的开通城市权限   
+	 * @param id 要取消的开通信息
+	 * @return: boolean   
+	 * @see com.bashiju.manage.service.CompanyCityOpenService#cancelCompanyCityOpen(java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="取消公司城市开通")
+	public boolean cancelCompanyCityOpen(String id) {
+		if(StringUtils.isEmpty(id))
+			return false;
+		Map<String,Object> m = new HashMap<>();
+		m.put("id", id);
+		m.put("isOpen", 3); //关闭城市
+		this.commonOperationDatabase(m, "sys_companyCityOpenInfo", "id",false);
+		boolean result = this.delData("sys_companyCityOpenInfo", "id", id, false);
+		ExecutionResult.descFormat(id, "取消公司城市开通");
+		return result;
+	}
+
+}

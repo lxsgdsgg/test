@@ -1,0 +1,172 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralMapper.java   
+ * @Package com.bashiju.webservice.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年8月2日 下午3:05:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.out.usercentral.AdministrativeDivisionEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerAppointmentEntity;
+import com.bashiju.www.pojo.service.reservation.ReservationEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 个人中心持久层接口
+ * @ClassName:CustomerPersonalCentralMapper
+ * @Description:个人中心持久层接口
+ * @author:zuoyuntao
+ * @date:2018年8月2日 下午3:05:49
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerPersonalCentralMapper {
+	/**
+	 * 获取【个人信息】 
+	 * @Title: queryPersonalInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取【个人信息】
+	 * @param custId 客户ID
+	 * @return      
+	 * List<CustCustomerEntity>
+	 */
+	public CustCustomerEntity queryPersonalInfo(@Param("custId")String custId);
+	/**
+	 * 查询客户个人详细信息 
+	 * @Title: queryPersonalDetailInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询客户个人详细信息   
+	 * @param custId 客户ID
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryPersonalDetailInfo(@Param("custId")String custId);
+	/**
+	 * 客户修改密码
+	 * @Title: modifyCustomerPassword
+	 * @author: zuoyuntao  
+	 * @Description:客户修改密码
+	 * @param paraMap 参数对象，包含{custId 客户ID，finalPassword 客户最终密码，updateTime 更新时间 }
+	 * void 
+	 */
+	public void modifyCustomerPassword(Map<String,Object> paraMap);
+	/**
+	 * 查询客户收藏的经纪人
+	 * @Title: queryMyselfAgentList
+	 * @author: zuoyuntao  
+	 * @Description:查询客户收藏的经纪人
+	 * @param custId 客户ID
+	 * @param agentType 经纪人类型（0：我聊过的经纪人 1：带看过的经纪人）   
+	 * Page<Agent>
+	 */
+	public Page<Agent> queryMyselfAgentList(@Param("custId")String custId,@Param("agentType")String agentType);
+	/**
+	 * 查询我的预约
+	 * @Title: queryMyselfApointmentList
+	 * @author: zuoyuntao  
+	 * @Description:查询我的预约  
+	 * @param custId 客户ID
+	 * @return      
+	 * List<CustomerOwnerAppointmentEntity> 
+	 */
+	public List<CustomerOwnerAppointmentEntity> queryMyselfAppointmentList(@Param("custId")String custId);
+	/**
+	 * 统计我的预约数量
+	 * @Title: countMyReservateCount
+	 * @author: zuoyuntao  
+	 * @Description:统计我的预约数量
+	 * @param custId 客户ID
+	 * @return      
+	 * long JSON 格式为：
+	 */
+	public long countMyReservateCount(@Param("custId") String custId);
+	/**
+	 * 更新客户信息
+	 * @Title: saveCustCustormer
+	 * @author: zuoyuntao  
+	 * @Description:更新客户信息  
+	 * @param CustCustomerEntity custCustomerEntity      
+	 * void
+	 */
+	public void updateCustCustormer(CustCustomerEntity custCustomerEntity);
+	/**
+	 * 取消预约
+	 * @Title: concelMyselfAppointment
+	 * @author: zuoyuntao  
+	 * @Description:取消预约
+	 * @param id 预约ID
+	 * @param updateTime 更新时间
+	 * void 
+	 */
+	public void concelMyselfAppointment(@Param("id") String id,@Param("updateTime") String updateTime) ;
+	
+	/**
+	 * @Title: saveReservationWatchHouse   
+	 * @author: wangpeng  
+	 * @Description: 新增预约  
+	 * @param reservation 保存参数     
+	 * @return: long
+	 */
+	public  long saveReservationWatchHouse(ReservationEntity reservationEntity);
+	
+	
+	/**
+	 * @Title: queryMaintainInfoByShhId   
+	 * @Description:   条件查询房源维护人信息
+	 * @param shhId 房源编号
+	 * @return: Map<String,Object>
+	 */
+	public Map<String, Object> queryMaintainInfoByShhId(@Param("shhId")String shhId);
+	
+	/****
+	 * 条件查询经纪人信息	
+	 * @Title: queryMaintainInfoByAgentId   
+	 * @Description: 条件查询经纪人信息
+	 * @param maintainId  经纪人编号
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> queryMaintainInfoByAgentId(@Param("maintainId")String maintainId);
+	
+	
+	/***
+	 * @Title: queryIsExistReservationWatchHouseByCustIdAndShhId   
+	 * @Description: 条件查询是否已存在预约
+	 * @param custId 客户id
+	 * @param shhId 房源id
+	 * @return: long
+	 */
+	public long queryIsExistReservationWatchHouseByCustIdAndShhId(@Param("custId")String custId,@Param("shhId")String shhId);
+	/**
+	 * 根据上级编码查询行政区划
+	 * @Title: queryCountryAreaListByCityCode
+	 * @author: zuoyuntao  
+	 * @Description:根据上级编码查询行政区划
+	 * @param parentCode 上级行政区划编码
+	 * @param level 级次
+	 * @return      
+	 * List<AdministrativeDivisionEntity>
+	 */
+	public List<AdministrativeDivisionEntity> queryAreaListByPro(@Param("parentCode") String parentCode,@Param("level") String level);
+	/**
+	 * 查询行政区划
+	 * @Title: queryCountryAreaListByCityCode
+	 * @author: zuoyuntao  
+	 * @Description:查询行政区划
+	 * @param parentCode 上级行政区划编码
+	 * @return      
+	 * List<AdministrativeDivisionEntity>
+	 */
+	public List<AdministrativeDivisionEntity> queryAllAreaList(@Param("parentCode") String parentCode);
+} 

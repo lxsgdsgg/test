@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.OperationAnalysisMapper">
+	<!-- 综合运营报表 -->
+	<select id="queryComprehensiveReport" resultType="map">
+		SELECT d.`name` as areaName,dc.id,
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			dc.name deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId == 5 ">
+			dc.realName deptName,
+		</if>
+		COUNT(CASE WHEN a.operatTypeId=1 THEN a.id END ) AS selldeal,
+		COUNT(CASE WHEN a.operatTypeId=2 THEN a.id END ) AS rentdeal,COUNT(CASE WHEN a.operatTypeId=3 THEN a.id END ) AS newdeal,
+		COUNT(CASE WHEN a.operatTypeId=4 THEN a.id END ) AS sellhouseadd,COUNT(CASE WHEN a.operatTypeId=5 THEN a.id END ) AS sellhouseopen,
+		COUNT(CASE WHEN a.operatTypeId=6 THEN a.id END ) AS sellhousekey,COUNT(CASE WHEN a.operatTypeId=7 THEN a.id END ) AS sellhouseexclusive,
+		COUNT(CASE WHEN a.operatTypeId=8 THEN a.id END ) AS sellhouseprice,COUNT(CASE WHEN a.operatTypeId=9 THEN a.id END ) AS sellhousespace,
+		COUNT(CASE WHEN a.operatTypeId=10 THEN a.id END ) AS sellhousecancelorder,COUNT(CASE WHEN a.operatTypeId=11 THEN a.id END ) AS sellhouseothersell,
+		COUNT(CASE WHEN a.operatTypeId=12 THEN a.id END ) AS sellhouseotherrent,COUNT(CASE WHEN a.operatTypeId=13 THEN a.id END ) AS sellhousedelay,
+		COUNT(CASE WHEN a.operatTypeId=14 THEN a.id END ) AS sellhousetaobao,COUNT(CASE WHEN a.operatTypeId=15 THEN a.id END ) AS sellhousepicture,
+		COUNT(CASE WHEN a.operatTypeId=16 THEN a.id END ) AS sellhousevideo,COUNT(CASE WHEN a.operatTypeId=17 THEN a.id END ) AS sellhouseentrust,
+		COUNT(CASE WHEN a.operatTypeId=18 THEN a.id END ) AS renthouseadd,COUNT(CASE WHEN a.operatTypeId=19 THEN a.id END ) AS renthouseopen,
+		COUNT(CASE WHEN a.operatTypeId=20 THEN a.id END ) AS renthousekey,COUNT(CASE WHEN a.operatTypeId=21 THEN a.id END ) AS renthouseexclusive,
+		COUNT(CASE WHEN a.operatTypeId=22 THEN a.id END ) AS renthouseprice,COUNT(CASE WHEN a.operatTypeId=23 THEN a.id END ) AS renthousespace,
+		COUNT(CASE WHEN a.operatTypeId=24 THEN a.id END ) AS renthousecancelorder,COUNT(CASE WHEN a.operatTypeId=25 THEN a.id END ) AS renthouseothersell,
+		COUNT(CASE WHEN a.operatTypeId=26 THEN a.id END ) AS renthouseotherrent,COUNT(CASE WHEN a.operatTypeId=27 THEN a.id END ) AS renthousedelay,
+		COUNT(CASE WHEN a.operatTypeId=28 THEN a.id END ) AS renthousetaobao,COUNT(CASE WHEN a.operatTypeId=29 THEN a.id END ) AS renthousepicture,
+		COUNT(CASE WHEN a.operatTypeId=30 THEN a.id END ) AS renthousevideo,COUNT(CASE WHEN a.operatTypeId=31 THEN a.id END ) AS renthouseentrust,
+		COUNT(CASE WHEN a.operatTypeId=32 THEN a.id END ) AS sellcustomeradd,COUNT(CASE WHEN a.operatTypeId=33 THEN a.id END ) AS sellcustomerinvalid,
+		COUNT(CASE WHEN a.operatTypeId=34 THEN a.id END ) AS sellcustomerdeposit,COUNT(CASE WHEN a.operatTypeId=35 THEN a.id END ) AS sellcustomerothersell,
+		COUNT(CASE WHEN a.operatTypeId=36 THEN a.id END ) AS sellcustomerotherrent,COUNT(CASE WHEN a.operatTypeId=37 THEN a.id END ) AS sellcustomerdelay,
+		COUNT(CASE WHEN a.operatTypeId=38 THEN a.id END ) AS sellcustomertaobao,COUNT(CASE WHEN a.operatTypeId=39 THEN a.id END ) AS rentcustomeradd,
+		COUNT(CASE WHEN a.operatTypeId=40 THEN a.id END ) AS rentcustomerinvalid,COUNT(CASE WHEN a.operatTypeId=41 THEN a.id END ) AS rentcustomerdeposit,
+		COUNT(CASE WHEN a.operatTypeId=42 THEN a.id END ) AS rentcustomerothersell,COUNT(CASE WHEN a.operatTypeId=43 THEN a.id END ) AS rentcustomerotherrent,
+		COUNT(CASE WHEN a.operatTypeId=44 THEN a.id END ) AS rentcustomerdelay,COUNT(CASE WHEN a.operatTypeId=45 THEN a.id END ) AS rentcustomertaobao,
+		COUNT(CASE WHEN a.operatTypeId=46 or a.operatTypeId=59 THEN a.id END ) AS housefollowup,COUNT(CASE WHEN a.operatTypeId=47 or a.operatTypeId=60 THEN a.id END ) AS houserealexploration,
+		COUNT(CASE WHEN a.operatTypeId=48 THEN a.id END ) AS sellcustomerfollowup,COUNT(CASE WHEN a.operatTypeId=49 THEN a.id END ) AS rentcustomerfollowup,
+		COUNT(CASE WHEN a.operatTypeId=50 THEN a.id END ) AS sellcustomershowed,COUNT(CASE WHEN a.operatTypeId=51 THEN a.id END ) AS sellhouseshowed,
+		COUNT(CASE WHEN a.operatTypeId=52 THEN a.id END ) AS rentcustomershowed,COUNT(CASE WHEN a.operatTypeId=53 THEN a.id END ) AS renthouseshowed,
+		COUNT(CASE WHEN a.operatTypeId=54 THEN a.id END ) AS newhouseshowed,COUNT(CASE WHEN a.operatTypeId=55 THEN a.id END ) AS newhouseshoweddisc,
+		COUNT(CASE WHEN a.operatTypeId=56 THEN a.id END ) AS houselookphone,COUNT(CASE WHEN a.operatTypeId=57 THEN a.id END ) AS sellcustomerlookphone,
+		COUNT(CASE WHEN a.operatTypeId=58 THEN a.id END ) AS rentcustomerlookphone
+		 FROM  sys_dept AS d
+		 <if test="deptTypeId !=null and deptTypeId &lt; 5 "> 
+		RIGHT JOIN sys_dept AS dc ON d.id=dc.parentId AND dc.isvalid=1 AND d.deptTypeId=#{deptTypeId}  
+		LEFT JOIN  report_operation_analysis AS a ON a.departmentId LIKE CONCAT(dc.id,'%') AND a.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId == 5 ">
+		RIGHT JOIN sys_user AS dc ON d.id=dc.deptId AND dc.isvalid=1 AND d.deptTypeId=5 
+		LEFT JOIN  report_operation_analysis AS a ON a.operatorId =dc.id AND a.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')
+		</if>	
+		WHERE d.id IS NOT  NULL AND d.companyId=#{companyId}
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if>
+		GROUP BY dc.id order by d.id
+	</select>
+	<!-- 根据下拉编号查询下拉值 -->
+	<select id="queryWidgetList" resultType="map">
+		SELECT cast(id as char) as value,fieldValue as name,fieldCode FROM dynamicform_field_value WHERE isValid=1 AND widgetCode= #{widgetCode}
+	</select>
+	<!-- 房源跟进报表 -->
+	<select id="queryHouseStatusFollowUpReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(CASE WHEN sh.statusId=1 THEN f.id END) cell_1,COUNT(CASE WHEN sh.statusId=2 THEN f.id END) cell_2,COUNT(CASE WHEN sh.statusId=3 THEN f.id END) cell_3,
+		COUNT(CASE WHEN sh.statusId=4 THEN f.id END) cell_4,COUNT(CASE WHEN sh.statusId=5 THEN f.id END) cell_5,COUNT(CASE WHEN sh.statusId=6 THEN f.id END) cell_6,
+		COUNT(CASE WHEN sh.statusId=7 THEN f.id END) cell_7,COUNT(CASE WHEN sh.statusId=8 THEN f.id END) cell_8,COUNT(CASE WHEN sh.statusId=9 THEN f.id END) cell_9,
+		COUNT(CASE WHEN sh.statusId=10 THEN f.id END) cell_10,COUNT(CASE WHEN sh.statusId=11 THEN f.id END) cell_11,COUNT(CASE WHEN sh.statusId=12 THEN f.id END) cell_12,
+		COUNT(f.id) total
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		 LEFT JOIN hs_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.operatorId=dc.id
+		 </if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN hs_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		LEFT JOIN hs_secondhandhouse AS sh ON sh.isValid=1 AND sh.id=f.shhId
+		WHERE d.id IS not NULL AND d.companyId=#{companyId}  
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>	
+	<select id="queryHouseFollowUpTypeReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(f.id) total,
+		<if test="followType!=null and followType.size()>0">
+			<foreach collection="followType" item="item" separator="," open="" close="">
+			COUNT(CASE WHEN f.followType=${item} THEN f.id END) cell_${item}
+			</foreach>
+		</if>
+		
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		LEFT JOIN hs_followrecord AS f ON f.operatorId=dc.id AND f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN hs_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		WHERE d.id IS not NULL  AND d.companyId=#{companyId} 
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>
+	<!-- 客源跟进报表 -->
+	<select id="queryCustomerStatusFollowUpReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(CASE WHEN c.statusId=1 THEN f.id END) cell_1,COUNT(CASE WHEN c.statusId=2 THEN f.id END) cell_2,COUNT(CASE WHEN c.statusId=3 THEN f.id END) cell_3,
+		COUNT(CASE WHEN c.statusId=4 THEN f.id END) cell_4,COUNT(CASE WHEN c.statusId=5 THEN f.id END) cell_5,COUNT(CASE WHEN c.statusId=6 THEN f.id END) cell_6,
+		COUNT(CASE WHEN c.statusId=7 THEN f.id END) cell_7,COUNT(CASE WHEN c.statusId=8 THEN f.id END) cell_8,COUNT(f.id) total
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		 LEFT JOIN demand_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.operatorId=dc.id
+		 </if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN demand_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		LEFT JOIN demand_customerbusinessinfo AS c ON c.isValid=1 AND c.id=f.demandId
+		WHERE d.id IS not NULL AND d.companyId=#{companyId}  
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>
+	<select id="queryCustomerFollowUpTypeReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(f.id) total,
+		<if test="followType!=null and followType.size()>0">
+			<foreach collection="followType" item="item" separator="," open="" close="">
+			COUNT(CASE WHEN f.followType=${item} THEN f.id END) cell_${item}
+			</foreach>
+		</if>
+		
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		LEFT JOIN demand_followrecord AS f ON f.operatorId=dc.id AND f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN demand_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		WHERE d.id IS not NULL  AND d.companyId=#{companyId} 
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>
+	<!-- 房源维护频率分析 -->
+	<select id="queryHouseFollowUpCycleReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(DISTINCT CASE WHEN sh.isValid=1 and sh.openPlateDate between #{beginDate} AND concat(concat(#{endDate},' 23:59:59'),' 23:59:59') THEN sh.id END) AS houseCount,COUNT(DISTINCT f.id) AS followCount,TRUNCATE(COUNT(DISTINCT f.id)/COUNT(DISTINCT CASE WHEN sh.isValid=1 and sh.openPlateDate between #{beginDate} AND concat(#{endDate},' 23:59:59') THEN sh.id END),2) AS avgFollow,
+		TRUNCATE(COUNT(DISTINCT f.id)/COUNT(DISTINCT CASE WHEN sh.isValid=1 and sh.openPlateDate between #{beginDate} AND concat(#{endDate},' 23:59:59') THEN sh.id END)/DATEDIFF(#{endDate},#{beginDate}),2) AS followCycle
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		 LEFT JOIN hs_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.operatorId=dc.id
+		 </if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN hs_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		LEFT JOIN hs_secondhandhouse AS sh ON sh.isValid=1
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		 AND sh.mainterDeptId LIKE CONCAT(d.id,'%') 
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		  AND sh.maintainId=dc.id
+		</if>
+		WHERE d.id IS not NULL AND d.companyId=#{companyId}  
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>
+	<!-- 客源维护频率分析 -->
+	<select id="queryCustomerFollowUpCycleReport" resultType="map">
+		SELECT 
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		(CASE WHEN d.deptTypeId=2 THEN '大区' WHEN d.deptTypeId=3 THEN '区' WHEN d.deptTypeId=4 THEN '店' WHEN d.deptTypeId=5 THEN '组' END) AS areaName,d.id,d.`name` AS deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		d.`name` AS areaName,dc.id,dc.realName AS deptName,
+		</if>
+		COUNT(DISTINCT CASE WHEN c.isValid=1 and c.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')  THEN c.id END) AS customerCount,COUNT(DISTINCT f.id) AS followCount,TRUNCATE(COUNT(DISTINCT f.id)/COUNT(DISTINCT CASE WHEN c.isValid=1 and c.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')  THEN c.id END),2) AS avgFollow,
+		TRUNCATE(COUNT(DISTINCT f.id)/COUNT(DISTINCT CASE WHEN c.isValid=1 and c.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59')  THEN c.id END)/DATEDIFF(#{endDate} ,#{beginDate}),2) AS followCycle
+		 FROM sys_dept AS d 
+		 <if test="deptTypeId !=null and deptTypeId &gt; 5">
+		 RIGHT JOIN sys_user AS dc ON dc.isValid=1 AND dc.deptId=d.id
+		 LEFT JOIN demand_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.operatorId=dc.id
+		 </if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		LEFT JOIN demand_followrecord AS f ON  f.isValid=1 AND f.addTime between #{beginDate} AND concat(#{endDate},' 23:59:59') AND f.deptId LIKE CONCAT(d.id,'%') 
+		</if>
+		LEFT JOIN demand_customerbusinessinfo AS c ON c.isValid=1
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		 AND c.mainterDeptId LIKE CONCAT(d.id,'%') 
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		  AND c.maintainId=dc.id
+		</if>
+		WHERE d.id IS not NULL AND d.companyId=#{companyId}  
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		<if test="deptTypeId !=null and deptTypeId &gt; 5">
+		GROUP BY dc.id ORDER BY d.id
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5">
+		AND d.deptTypeId=#{deptTypeId}
+		GROUP BY d.id ORDER BY d.id
+		</if>
+	</select>
+	<!-- 社区精耕运营分析 -->
+	<select id="queryCommunityDealReport" resultType="map">
+		SELECT dc.communityId,d.id,d.`name`,dc.communityName,COUNT(DISTINCT sh1.id) AS storeHouse,COUNT(DISTINCT sh2.id) AS totalHouse,TRUNCATE(COUNT(DISTINCT sh1.id)/COUNT(DISTINCT sh2.id),2) AS storeHouseRate,
+		COUNT(DISTINCT dt1.id)AS storeSellDeal,COUNT(DISTINCT dt2.id) AS sellTotalDeal, TRUNCATE(COUNT(DISTINCT dt1.id)/COUNT(DISTINCT dt2.id),2) AS storeSellDealRate, (COUNT(DISTINCT dt2.id)-COUNT(DISTINCT dt1.id)) AS storeSellOtherDeal, 
+		(COUNT(DISTINCT dt3.id)-COUNT(DISTINCT dt1.id)) AS sellOtherDeal, COUNT(DISTINCT dt4.id)AS storeRentDeal,COUNT(DISTINCT dt5.id) AS rentTotalDeal,TRUNCATE(COUNT(DISTINCT dt4.id)/COUNT(DISTINCT dt5.id),2) AS storeRentDealRate, 
+		(COUNT(DISTINCT dt5.id)-COUNT(DISTINCT dt4.id)) AS storeRentOtherDeal, (COUNT(DISTINCT dt6.id)-COUNT(DISTINCT dt4.id)) AS rentOtherDeal
+		FROM sys_dept_responsibility_community AS dc INNER JOIN sys_dept AS d ON d.isvalid=1 AND dc.isValid=1 AND d.id=dc.deptId AND d.companyId=#{companyId}
+		<if test="deptId !=null and deptId !='' ">
+			and d.id=#{deptId}
+		</if> 
+		LEFT JOIN hs_housebaseinfo AS hb ON hb.communityId=dc.communityId
+		LEFT JOIN hs_secondhandhouse AS sh1 ON sh1.houseId=hb.id AND sh1.isValid=1 AND sh1.mainterDeptId=d.id AND sh1.companyId=#{companyId} AND sh1.openPlateDate BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN hs_secondhandhouse AS sh2 ON sh2.houseId=hb.id AND sh2.isValid=1 AND sh2.companyId=#{companyId} AND sh2.openPlateDate BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN hs_secondhandhouse AS u ON u.mainterDeptId=d.id  AND u.companyId=#{companyId}
+		LEFT JOIN deal_transactioninfo AS dt1 ON dt1.communityId=dc.communityId AND dt1.isValid=1 AND dt1.dealType='00' AND dt1.shhid=u.id AND  dt1.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN deal_transactioninfo AS dt2 ON dt2.communityId=dc.communityId AND dt2.isValid=1 AND dt2.dealType='00'  AND dt2.companyId=#{companyId} AND dt2.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN deal_transactioninfo AS dt3 ON dt3.communityId=dc.communityId AND dt3.isValid=1 AND dt3.dealType='00'   AND dt3.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN deal_transactioninfo AS dt4 ON dt4.communityId=dc.communityId AND dt4.isValid=1 AND dt4.dealType='01' AND dt4.shhid=u.id AND  dt4.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN deal_transactioninfo AS dt5 ON dt5.communityId=dc.communityId AND dt5.isValid=1 AND dt5.dealType='01'  AND dt5.companyId=#{companyId} AND dt5.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		LEFT JOIN deal_transactioninfo AS dt6 ON dt6.communityId=dc.communityId AND dt6.isValid=1 AND dt6.dealType='01'   AND dt6.dealTime BETWEEN #{beginDate} AND concat(#{endDate},' 23:59:59')
+		GROUP BY dc.communityId ORDER BY d.id
+	</select>
+</mapper>

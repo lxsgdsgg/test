@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+	http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+
+   <!-- 声明exchange -->
+    <rabbit:topic-exchange name="ERP-SSO-EXCHANGE" id="ERP-SSO-EXCHANGE" durable="true" 
+    auto-delete="false" internal="false">
+   <!--   <rabbit:bindings>
+        <rabbit:binding queue="ERP-HOUSE-LOG-ADD-QUEUE" pattern="LOG.HOUSE.ADD"/>
+        <rabbit:binding queue="ERP-HOUSE-LOG-UPDATE-QUEUE" pattern="LOG.HOUSE.UPDATE"/>
+        <rabbit:binding queue="ERP-HOUSE-LOG-DEL-QUEUE" pattern="LOG.HOUSE.DEL"/>
+        <rabbit:binding queue="ERP-HOUSE-LOG-QUERY-QUEUE" pattern="LOG.HOUSE.QUERY"/>
+        
+        <rabbit:binding queue="ERP-NEWHOUSE-LOG-ADD-QUEUE" pattern="LOG.NEWHOUSE.ADD"/>
+        <rabbit:binding queue="ERP-NEWHOUSE-LOG-UPDATE-QUEUE" pattern="LOG.NEWHOUSE.UPDATE"/>
+        <rabbit:binding queue="ERP-NEWHOUSE-LOG-DEL-QUEUE" pattern="LOG.NEWHOUSE.DEL"/>
+        <rabbit:binding queue="ERP-NEWHOUSE-LOG-QUERY-QUEUE" pattern="LOG.NEWHOUSE.QUERY"/>
+        
+         <rabbit:binding queue="ERP-CUSTOMER-LOG-ADD-QUEUE" pattern="LOG.CUSTOMER.ADD"/>
+        <rabbit:binding queue="ERP-CUSTOMER-LOG-UPDATE-QUEUE" pattern="LOG.CUSTOMER.UPDATE"/>
+        <rabbit:binding queue="ERP-CUSTOMER-LOG-DEL-QUEUE" pattern="LOG.CUSTOMER.DEL"/>
+        <rabbit:binding queue="ERP-CUSTOMER-LOG-QUERY-QUEUE" pattern="LOG.CUSTOMER.QUERY"/>
+        
+        <rabbit:binding queue="ERP-DEAL-LOG-ADD-QUEUE" pattern="LOG.DEAL.ADD"/>
+        <rabbit:binding queue="ERP-DEAL-LOG-UPDATE-QUEUE" pattern="LOG.DEAL.UPDATE"/>
+        <rabbit:binding queue="ERP-DEAL-LOG-DEL-QUEUE" pattern="LOG.DEAL.DEL"/>
+        <rabbit:binding queue="ERP-DEAL-LOG-QUERY-QUEUE" pattern="LOG.DEAL.QUERY"/>
+        
+         <rabbit:binding queue="ERP-MANAGE-LOG-ADD-QUEUE" pattern="LOG.MANAGE.ADD"/>
+        <rabbit:binding queue="ERP-MANAGE-LOG-UPDATE-QUEUE" pattern="LOG.MANAGE.UPDATE"/>
+        <rabbit:binding queue="ERP-MANAGE-LOG-DEL-QUEUE" pattern="LOG.MANAGE.DEL"/>
+        <rabbit:binding queue="ERP-MANAGE-LOG-QUERY-QUEUE" pattern="LOG.MANAGE.QUERY"/>
+        
+        <rabbit:binding queue="ERP-SYSTEM-LOG-ADD-QUEUE" pattern="LOG.SYSTEM.ADD"/>
+        <rabbit:binding queue="ERP-SYSTEM-LOG-UPDATE-QUEUE" pattern="LOG.SYSTEM.UPDATE"/>
+        <rabbit:binding queue="ERP-SYSTEM-LOG-DEL-QUEUE" pattern="LOG.SYSTEM.DEL"/>
+        <rabbit:binding queue="ERP-SYSTEM-LOG-QUERY-QUEUE" pattern="LOG.SYSTEM.QUERY"/>
+    </rabbit:bindings>  -->
+    </rabbit:topic-exchange>
+
+   <!-- spring template声明-->
+    <rabbit:template id="reRabbitTemplate"  exchange="ERP-SSO-EXCHANGE" connection-factory="connectionFactory"  message-converter="jsonMessageConverter"/>
+     <!-- 消息对象json转换类 -->
+    <bean id="jsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+  </beans>

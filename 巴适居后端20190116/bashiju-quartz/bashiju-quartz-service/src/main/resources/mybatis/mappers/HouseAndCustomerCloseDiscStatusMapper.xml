@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HouseAndCustomerCloseDiscStatusMapper">
+	<select id="queryCloseDiscHouseInfo" resultType="Map">
+		SELECT
+			a.houseId,
+			c.companyId,
+			c.companyName,
+			a.id,
+			c.departmentId,
+			c.departmentName,
+			b.cityCode as cityCodes
+			FROM
+			hs_houserelateagent c
+			INNER JOIN hs_secondhandhouse a ON a.id = c.shhId
+			INNER JOIN hs_housebaseinfo  b ON b.id = a.houseId	
+	where a.isValid=1 
+			and a.closeDiscFlg!=0 
+			and a.closePlanteEndDate &lt; now()
+			and a.companyId=#{companyId}
+			AND c.agentType=3
+	</select>
+	
+		<select id="queryCloseDiscCustomerInfo" resultType="Map">
+		SELECT
+			a.id,
+			b.companyId,
+			b.companyName,
+			b.departmentId,
+			b.departmentName,
+			a.cityCodes
+			FROM
+			demand_customerbusinessinfo a
+			INNER JOIN demand_custrelateagent b ON a.id = b.demandId
+		where a.isValid=1
+			and a.isCloseDisc!=0 
+			and a.closePlanteEndDate &lt; now()
+			and a.companyId=#{companyId}
+			AND b.agentType=5
+
+	</select>
+</mapper>
+	

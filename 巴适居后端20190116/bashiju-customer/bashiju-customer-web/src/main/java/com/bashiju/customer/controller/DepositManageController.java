@@ -1,0 +1,243 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DepositManageController.java   
+ * @Package com.bashiju.customer.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年6月29日 下午2:39:59   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.customer.controller;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.customer.service.FormService;
+import com.bashiju.customer.service.IDepositManageService;
+import com.bashiju.enums.CustomerTransactionEnum;
+import com.bashiju.enums.DepositManageEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 客源定金管理控制器
+ * @ClassName:DepositManageController
+ * @Description:客源定金管理控制器
+ * @author:zuoyuntao
+ * @date:2018年6月29日 下午2:39:59
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="depositmanage")
+public class DepositManageController extends BaseController{
+	/**
+	 * 定金管理接口
+	 */
+	@Autowired
+	private IDepositManageService mIDepositManageService;
+	/**
+	 * 动态表单接口
+	 */
+	@Autowired
+	private FormService formService;
+	/**
+	 * 获取主页面视图
+	 * @Title: getDepositManageModel
+	 * @author: zuoyuntao  
+	 * @Description:获取主页面视图
+	 * @param request
+	 * @param response
+	 * @return      
+	 * ModelAndView 
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value="getDepositManageModel")
+	public ModelAndView getDepositManageModel(HttpServletRequest request
+			,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request
+				, response, "depositmanage/depositmanage");
+		LinkedList<Map> depts = formService.queryDept();
+		
+		model.addObject("custList", JSON.toJSON(CustomerTransactionEnum.enumList));
+		model.addObject("depositStatus", JSON.toJSON(DepositManageEnum.enumList));
+		model.addObject("depts", JSON.toJSONString(depts));
+		return model;
+	}
+	
+	
+	/**
+	 * 定金管理搜索条件下拉数据
+	 * @Title: depositManageDropdown   
+	 * @Description: 定金管理搜索条件下拉数据
+	 * @return: Object
+	 */
+	@RequestMapping(value="depositManageDropdown")
+	@ResponseBody
+	public Object depositManageDropdown() {
+		Map<String,Object> map = new HashMap<>();
+		//下定状态
+		map.put("depositStatus", DepositManageEnum.enumList);
+		//客源交易类型
+//		map.put("custTransaction", CustomerTransactionEnum.enumList);
+		return map;
+	}
+	
+	
+	/**
+	 * 获取主页面数据信息
+	 * @Title: getDepositManagePage
+	 * @author: zuoyuntao  
+	 * @Description:获取主页面数据信息 
+	 * @param jsonData 页面查询字段
+	 * @param page 最小条数
+	 * @param limit 最大条数
+	 * @return      
+	 * Object JSON 格式为：
+	 */
+	@RequestMapping(value="getDepositManagePage")
+	@ResponseBody
+	public Object getDepositManagePage(String jsonData,int page,int limit
+			,String custType,String depositStatus,String trusteesId,String depositTime) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			paraMap = JSON.parseObject(jsonData);
+		}
+		paraMap.put("custType", custType);
+		paraMap.put("status", depositStatus);
+		paraMap.put("trusteesId", trusteesId);
+		if(StringUtil.isNotEmpty(depositTime)) {
+			String[] timeArr = depositTime.split(",");
+			if(timeArr.length == 2) {
+				paraMap.put("startTime",timeArr[0]);
+				paraMap.put("endTime", timeArr[1]);
+			}else {
+				throw new BusinessException("下定时间端选择异常！");
+			}
+		}
+		Page<Map<String,Object>> pageObj = mIDepositManageService
+				.queryDepositDataListPage(paraMap, page, limit);
+		return this.getPageResult(pageObj);
+	}
+	/**
+	 * 保存定金支出数据
+	 * @Title: savePayOffData
+	 * @author: zuoyuntao  
+	 * @Description:保存定金支出数据
+	 * @param jsonData 页面参数
+	 * @param depositId 定金ID
+	 * @return      
+	 * BashijuResult 
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="savePayOffData")
+	@ResponseBody
+	public BashijuResult savePayOffData(String jsonData,String depositId) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("参数错误！");
+		}
+		if(StringUtil.isEmpty(depositId)) {
+			throw new BusinessException("参数错误！");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap = (Map<String,Object>) JSON.parse(jsonData);
+		paraMap.put("id", depositId);
+		paraMap.put("status",DepositManageEnum.PAYOFFED.getCode());
+		mIDepositManageService.savePayOffData(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 驳回定金确认请求
+	 * @Title: rebackDepositRequest
+	 * @author: zuoyuntao  
+	 * @Description:驳回定金确认请求
+	 * @param depositId 定金ID
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="rebackDepositRequest")
+	@ResponseBody
+	public BashijuResult rebackDepositRequest(String depositId) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id", depositId);
+		paraMap.put("isValid","0");
+		paraMap.put("status",DepositManageEnum.REBACKED.getCode());
+		mIDepositManageService.updateDepositData(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 退定金 
+	 * @Title: retreatDeposit
+	 * @author: zuoyuntao  
+	 * @Description:退定金   
+	 * @param depositId 定金ID
+	 * @param houseId 房源ID
+	 * @param demandId 客源ID
+	 * @return      
+	 * BashijuResult JSON 格式为：
+	 */
+	@RequestMapping(value="retreatDeposit")
+	@ResponseBody
+	public BashijuResult retreatDeposit(String depositId,String houseId,String demandId) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id", depositId);
+		paraMap.put("status",DepositManageEnum.RETREATED.getCode());
+		paraMap.put("houseId",houseId);
+		paraMap.put("demandId",demandId);
+		mIDepositManageService.updateDepositData(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 确认定金
+	 * @Title: retreatDeposit
+	 * @author: zuoyuntao  
+	 * @Description:确认定金   
+	 * @param depositId 定金ID
+	 * @param houseId 房源ID
+	 * @param demandId 客源ID
+	 * @return      
+	 * BashijuResult JSON 格式为：
+	 */
+	@RequestMapping(value="comfirmDeposit")
+	@ResponseBody
+	public BashijuResult comfirmDeposit(String depositId,String houseId,String demandId) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("id", depositId);
+		paraMap.put("status",DepositManageEnum.CONFIRMED.getCode());
+		paraMap.put("houseId",houseId);
+		paraMap.put("demandId",demandId);
+		mIDepositManageService.updateDepositData(paraMap);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 修改定金信息
+	 * @Title: updateDepositData
+	 * @author: zuoyuntao  
+	 * @Description:修改定金信息
+	 * @param paraMap
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="updateDepositData")
+	@ResponseBody
+	public BashijuResult updateDepositData(@RequestBody Map<String,Object> paraMap) {
+		mIDepositManageService.updateDepositData(paraMap);
+		return BashijuResult.ok();
+	}
+}

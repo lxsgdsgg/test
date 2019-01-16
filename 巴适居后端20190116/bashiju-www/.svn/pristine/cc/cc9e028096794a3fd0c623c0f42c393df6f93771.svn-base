@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CommMapper">
+	
+	<insert id="saveAttention">
+           insert into cust_attention(type,sourceId,custId,addTime,isValid) 
+           value(#{type},#{sourceId},#{custId},now(),1)
+     </insert> 
+	
+	
+	 <delete id="delAttention">
+  	 	delete from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+  	 </delete>
+  	 
+	<select id="isAttention" resultType="int">
+		select count(0) from cust_attention where type=#{type} and sourceId=#{sourceId} and custId=#{custId}
+	</select>
+	
+	<insert id="addFeedback">
+		insert into cust_feedback (content,contact,addTime)
+		value(#{content},#{contact},#{addTime})
+	</insert>
+	
+</mapper>

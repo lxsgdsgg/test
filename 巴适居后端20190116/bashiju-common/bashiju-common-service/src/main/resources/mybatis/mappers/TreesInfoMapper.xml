@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.common.mapper.TreesInfoMapper">
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryDeptInfoToCreateTree" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				UNION
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union
+				select a.permissionArea,a.operatorId,a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+2)  
+				from sys_dept where isvalid=1) as level from vw_sys_user a left join sys_dept b on 
+				a.deptId = b.id where a.isValid = 1 and b.isvalid = 1
+			</when>
+			<otherwise>
+				select (select max(FORMAT((length(id)-length(companyId))/2,0)) from sys_dept where isvalid = 1) 
+				as maxLevel,permissionArea,operatorId,id as code,name,parentId as parentCode,FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+				union all
+				select (select max(FORMAT((length(id)-length(companyId))/2,0))  from sys_dept where isvalid=1) as maxLevel,
+				a.permissionArea,a.operatorId,a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+1)  
+				from sys_dept where isvalid=1) as level from vw_sys_user a left join sys_dept b on 
+				a.deptId = b.id where a.isValid = 1 and b.isvalid = 1
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="getRegionList" resultType="map" >
+		<![CDATA[select * from(select code,name,parentCode,'1' as level from sys_area where parentCode = #{rgCode} and isvalid = 1 
+		union all select id as code,name as name,areacode as parentCode,'2' as level from sys_region 
+		where areacode in(select code from sys_area where parentCode = #{rgCode} and isvalid = 1)
+		union all select id as code,name,regionId as parentCode,'3' as level from sys_community where isValid =1 
+		and regionId in(select id from sys_region where areacode in(select code from sys_area where parentCode = #{rgCode} 
+		and isvalid = 1)))aa order by level ]]>
+	</select>
+	
+	<select id="queryAreaSelect" resultType="map" >
+		SELECT `code`,`name`,parentCode,level FROM sys_area 
+	</select>
+</mapper>

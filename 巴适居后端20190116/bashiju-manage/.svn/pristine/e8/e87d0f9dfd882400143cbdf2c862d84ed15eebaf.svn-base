@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ProposalAndWageSchemaMapper">
+	<select id="queryAllProposalAndWageSchemaInfoByMap" resultType="map">
+		SELECT sys_user.permissionArea,sys_user.operatorId,sys_user.operator,sys_dept.`name` AS deptName,
+		sys_user.realName,sys_area.`code` as areaCode,sys_area.`name` as areaName,sys_user.companyId,
+		sys_user.isValid,sys_extract.extractName AS proposalName,sys_salary_config.extractName AS salaryName,
+		sys_salary_extract_user_config.id,sys_user.id as userId,sys_salary_extract_user_config.addTime,
+		sys_salary_extract_user_config.updateTime,sys_salary_config.id as salaryConfId,sys_extract.id as proposalId
+		FROM sys_user LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		LEFT JOIN sys_salary_extract_user_config ON sys_user.id = sys_salary_extract_user_config.userId
+		LEFT JOIN sys_salary_config ON sys_salary_extract_user_config.salaryConfId = sys_salary_config.id
+		LEFT JOIN sys_extract ON sys_salary_extract_user_config.extractId = sys_extract.id
+		LEFT JOIN sys_area ON sys_user.areaCode = sys_area.`code`
+		where sys_user.isValid = 1
+		<if test="null != areaCode and areaCode != ''">
+			and sys_area.code = #{areaCode}			
+		</if>
+		<if test="null != deptId and deptId != ''">
+			and sys_user.deptId = #{deptId}			
+		</if>
+		<if test="null != proposalId and proposalId != ''">
+			and sys_extract.id = #{proposalId}			
+		</if>
+		<if test="null != salaryId and salaryId != ''">
+			and sys_salary_config.id = #{salaryId}		
+		</if>
+		<if test="null != userName and userName != ''">
+			and sys_user.realName like '%${userName}%'			
+		</if>
+	</select>
+	
+	<select id="queryAllProposalAndWageSchemaInfoByCondition" resultType="map">
+		SELECT sys_user.permissionArea,sys_user.operatorId,sys_user.operator,sys_dept.`name` AS deptName,
+		sys_user.realName,sys_area.`code` as areaCode,sys_area.`name` as areaName,sys_user.companyId,
+		sys_user.isValid,sys_extract.extractName AS proposalName,sys_salary_config.extractName AS salaryName,
+		sys_salary_extract_user_config.id,sys_user.id as userId,sys_salary_extract_user_config.addTime,
+		sys_salary_extract_user_config.updateTime,sys_salary_config.id as salaryConfId,sys_extract.id as proposalId
+		FROM sys_user LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		LEFT JOIN sys_salary_extract_user_config ON sys_user.id = sys_salary_extract_user_config.userId
+		LEFT JOIN sys_salary_config ON sys_salary_extract_user_config.salaryConfId = sys_salary_config.id
+		LEFT JOIN sys_extract ON sys_salary_extract_user_config.extractId = sys_extract.id
+		LEFT JOIN sys_area ON sys_user.areaCode = sys_area.`code`
+		where sys_user.isValid = 1
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+	
+	<select id="countProposalAndWageSchemaInfoByCondition" resultType="long">
+		select count(1) from sys_salary_extract_user_config where isValid = 1  
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+</mapper>

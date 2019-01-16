@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HouseAndCustomerLevelTaskMapper">
+	
+		<select id="queryCustomerLevlConfig" resultType="Map">
+		select 
+				id,
+				cityCode,
+				companyId,
+				transactionType,
+				levelType,
+				conditions,
+				minPrice,
+				maxPrice,
+				minSpace,
+				maxSpace,
+				lookCount
+		from 	res_cust_level_condition		
+		where 	companyId=#{companyId}
+				 and cityCode=#{cityCode}
+				 and isValid=1 
+				 and res_cust_level_condition.updateTime &gt;= DATE_SUB(now(),interval 2 DAY) 
+		order by updateTime asc
+	
+	</select>
+		<!-- 查询满足房源客源等级条件设定的房源客源信息 -->
+	<select id="queryCustomerABLevelInfo" resultType="Map">
+	SELECT
+		a.id,
+		b.companyId,
+		b.companyName,
+		b.departmentId,
+		b.departmentName,
+		a.cityCodes
+	FROM
+		demand_customerbusinessinfo a
+		INNER JOIN demand_custrelateagent b ON a.id = b.demandId
+		where a.isValid=1  
+		AND a.transactionTypeId=#{transactionTypeId}
+		AND a.statusId=#{statusId}
+		AND a.companyId=#{companyId}
+		AND a.levelType!=#{levelType}
+		AND a.operatorCityCode=#{cityCode}
+		AND b.agentType=5
+			<if test="isRepeat">
+				AND a.isRepeat=1
+			</if>
+			<if test="isBond">
+				AND a.isBond=1
+			</if>
+			<if test="isUrgent">
+				AND a.isUrgent=1
+			</if>
+			<if test="isCloseDisc">
+				AND a.isCloseDisc=1
+			</if>
+			<if test="taobaoStatus">
+				AND a.taobaoStatusId = 1
+			</if>
+			<if test="viewingCount!='null' and viewingCount!=''">
+				AND a.viewingCount &gt;= #{viewingCount}
+			</if>
+			<if test="minPrice!='null' and minPrice!=''">
+				AND (a.minPrice &gt;=#{minPrice}
+			</if>
+			<if test="maxPrice!='null' and maxPrice!='' and maxPrice != '0'.toString()">
+				OR a.maxPrice &lt;=#{maxPrice}
+			</if>)
+			<if test="minSpace!='null' and minSpace!=''">
+				AND (a.minSpace &gt;=#{minSpace}
+			</if>
+			<if test="maxSpace!='null' and maxSpace!=''  and maxSpace != '0'.toString()">
+				OR a.maxSpace &lt;=#{maxSpace}
+			</if>)
+	</select>
+	
+	<select id="queryCustomerCLevelInfo" resultType="Map">
+		SELECT
+		a.id,
+		b.companyId,
+		b.companyName,
+		b.departmentId,
+		b.departmentName,
+		a.cityCodes
+	FROM
+		demand_customerbusinessinfo a
+		INNER JOIN demand_custrelateagent b ON a.id = b.demandId	
+		where a.isValid=1  
+		AND a.statusId=#{statusId}
+		AND a.companyId=#{companyId}
+		AND a.operatorCityCode=#{cityCode}
+		AND b.agentType=5
+		AND a.updateTime &lt;  DATE_SUB(now(),interval 3 HOUR)
+	</select>
+	
+	<select id="queryCustomerDLevelInfo" resultType="Map">
+	SELECT
+		a.id,
+		b.companyId,
+		b.companyName,
+		b.departmentId,
+		b.departmentName,
+		a.cityCodes
+	FROM
+		demand_customerbusinessinfo a
+		INNER JOIN demand_custrelateagent b ON a.id = b.demandId
+	 where 			
+		 a.operatorCityCode=#{cityCode} 
+		 AND a.statusId!=#{statusId} 
+		 AND a.isValid=1 
+		 AND a.companyId=#{companyId}
+		 AND b.agentType=5
+		AND a.updateTime &lt;  DATE_SUB(now(),interval 3 HOUR)
+	</select>
+	
+	
+	
+		
+	<select id="queryHouseLevlConfig" resultType="Map">
+		select 
+				id,
+				cityCode,
+				companyId,
+				transactionType,
+				levelType,
+				areaCode,
+				regionId,
+				conditions,
+				propertyType,
+				decoratingType,
+				payTypeId,
+				minPrice,
+				maxPrice,
+				minSpace,
+				maxSpace,
+				houseUses,
+				matchingId
+		from 	res_house_level_condition		
+		where 	companyId=#{companyId}
+				 and cityCode=#{cityCode}
+				 and isValid=1 
+				 and res_house_level_condition.updateTime &gt;= DATE_SUB(now(),interval 2 DAY) 
+		order by updateTime asc
+	
+	</select>
+	
+	<select id="queryHouseABLevelInfo" resultType="Map">
+	SELECT
+			a.houseId,
+			c.companyId,
+			c.companyName,
+			a.id,
+			c.departmentId,
+			c.departmentName,
+			b.cityCode as cityCodes
+			FROM
+			hs_houserelateagent c
+			INNER JOIN hs_secondhandhouse a ON a.id = c.shhId
+			INNER JOIN hs_housebaseinfo  b ON b.id = a.houseId	
+		where a.isValid=1  
+		AND a.transactionTypeId=#{transactionTypeId}
+		AND a.statusId=#{statusId}
+		AND a.companyId=#{companyId}
+		AND a.levelType!=#{levelType}
+		AND b.cityCode=#{cityCode}
+		AND c.agentType=3
+			<if test="areaCodeString!='null' and areaCodeString!=''" >
+			   AND (${areaCodeString})
+			</if>
+			<if test="regionIdString!='null' and regionIdString!=''" >
+			   AND (${regionIdString})
+			</if>
+
+			<if test="taobaoStatus">
+				AND a.taobaoStatusId=1 
+			</if>		
+			<if test="isPicture">
+				AND a.isPicture=1
+			</if>
+			<if test="isKeys">
+				AND a.isKeys=1
+			</if>
+			<if test="isUnique">
+				AND a.isUnique=1 
+			</if>
+			<if test="closeDiscFlg">
+				AND a.closeDiscFlg !=0
+			</if>
+			<if test="isUrgent">
+				AND a.isUrgent=1 
+			</if>
+			<if test="isSatisfyTwoYear">
+				AND a.isSatisfyTwoYear=1  
+			</if>
+			<if test="isOnly">
+				AND a.isOnly=1 
+			</if>
+			   
+			<if test="propertyTypeId !='null' and propertyTypeId !=''">
+				AND a.propertyTypeId=#{propertyTypeId}
+			</if>
+			<if test="decorationId !='null' and decorationId !=''">
+				AND a.decorationId=#{decorationId}
+			</if>
+			<if test="houseUsesId !='null' and houseUsesId !=''">
+				AND a.houseUsesId=#{houseUsesId}
+			</if>
+			<if test="payTypeId !='null' and payTypeId !=''">
+				AND a.payTypeId=#{payTypeId}
+			</if>
+
+			
+			<if test="sellingMinPrice !='null' and sellingMinPrice !=''">
+				AND (a.sellingPrice &gt;=#{sellingMinPrice}
+			</if>
+			<if test="sellingMaxPrice !='null' and sellingMaxPrice !='' and sellingMaxPrice !='0'.toString()">
+				OR a.sellingPrice &lt;=#{sellingMaxPrice}
+			</if>)
+			<if test="buildMinSpace !='null' and buildMinSpace !=''">
+				and (a.sellingPrice &gt;=#{buildMinSpace}
+			</if>
+			<if test="buildMaxSpace !='null' and buildMaxSpace !='' and buildMaxSpace!='0'.toString()">
+				OR a.buildSpace &lt;=#{buildMaxSpace}
+			</if>)
+
+			<if test="matchingIdString!='null' and matchingIdString!=''" >
+			   AND ${matchingIdString}				
+			</if>
+	</select>
+	
+	<select id="queryHouseCLevelInfo" resultType="Map">
+			SELECT
+			a.houseId,
+			c.companyId,
+			c.companyName,
+			a.id,
+			c.departmentId,
+			c.departmentName,
+			b.cityCode as cityCodes
+			FROM
+			hs_houserelateagent c
+			INNER JOIN hs_secondhandhouse a ON a.id = c.shhId
+			INNER JOIN hs_housebaseinfo  b ON b.id = a.houseId			
+			where a.isValid=1  
+			AND a.statusId=#{statusId}
+			AND a.companyId=#{companyId}
+			AND c.agentType=3
+			AND a.updateTime &lt;  DATE_SUB(now(),interval 3 HOUR)
+	</select>
+	
+	<select id="queryHouseDLevelInfo" resultType="Map">
+		SELECT
+			a.houseId,
+			c.companyId,
+			c.companyName,
+			a.id,
+			c.departmentId,
+			c.departmentName,
+			b.cityCode as cityCodes
+			FROM
+			hs_houserelateagent c
+			INNER JOIN hs_secondhandhouse a ON a.id = c.shhId
+			INNER JOIN hs_housebaseinfo  b ON b.id = a.houseId				
+		 where 		
+			a.statusId!=#{statusId} 
+			AND a.isValid=1 
+			AND a.companyId=#{companyId}
+			AND c.agentType=3
+			AND a.updateTime &lt; DATE_SUB(now(),interval 3 HOUR)
+	</select>
+</mapper>

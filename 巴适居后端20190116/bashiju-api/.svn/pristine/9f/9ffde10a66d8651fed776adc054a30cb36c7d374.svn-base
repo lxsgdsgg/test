@@ -1,0 +1,62 @@
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public enum NavigationbarTypeEnum {
+	/**
+	 * 头部导航栏
+	 */
+	HEADBAR("0","头部导航栏"),
+	/**
+	 * 底部导航栏
+	 */
+	BOTTOMBAR("1","底部导航栏");
+	
+	
+	public static Map<String , String> enumMap;   
+    /**
+     * 
+     */
+    public static List<Map<String , String>> enumList;
+    static {
+        enumMap = new TreeMap<String, String>();
+        enumList=new ArrayList<>();
+        for (NavigationbarTypeEnum item : NavigationbarTypeEnum.values()) {
+            enumMap.put(item.code, item.desc);
+            Map<String , String> map=new HashMap<>();
+            map.put("value", item.code);
+            map.put("name", item.desc);
+            enumList.add(map);
+        }
+    }
+    /**
+     * 枚举转换
+     */
+    public static NavigationbarTypeEnum parseOf(String value){
+        for(NavigationbarTypeEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+
+    private String code;
+    private String desc;
+
+    NavigationbarTypeEnum(String code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+}

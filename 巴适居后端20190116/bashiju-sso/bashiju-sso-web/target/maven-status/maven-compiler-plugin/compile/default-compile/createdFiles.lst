@@ -1,0 +1,12 @@
+com\bashiju\sso\controller\log\LogCustomerController.class
+com\bashiju\sso\controller\log\LogManageController.class
+com\bashiju\sso\controller\log\LogHouseController.class
+com\bashiju\sso\controller\PermissionController.class
+com\bashiju\sso\controller\log\LogSystemController.class
+com\bashiju\sso\controller\log\LogDealController.class
+com\bashiju\sso\controller\UserController.class
+com\bashiju\sso\controller\log\LogFinController.class
+com\bashiju\sso\controller\log\LogNewHouseController.class
+com\bashiju\sso\controller\systemmsg\SystemMsgController.class
+com\bashiju\sso\controller\log\LogOaController.class
+com\bashiju\sso\controller\VerifyCodeServlet.class

@@ -1,0 +1,90 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IWageSchemaSettingService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:(用一句话描述该文件做什么)   
+ * @author: zuoyuntao     
+ * @date:   2018年6月25日 下午5:18:35   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 工资方案配置服务接口
+ * @ClassName:IWageSchemaSettingService
+ * @Description:工资方案配置服务接口
+ * @author:zuoyuntao
+ * @date:2018年6月25日 下午5:18:35
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IWageSchemaSettingService {
+	/**
+	 * 查询工资方案配置数据集合--分页
+	 * @Title: queryWageSchemaInfoWithPage
+	 * @author: zuoyuntao  
+	 * @Description:查询工资方案配置数据集合--分页   
+	 * @param paraMap 参数对象
+	 * @param page 最少条数
+	 * @param limit 最多条数
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：
+	 */
+	public Page<Map<String,Object>> queryWageSchemaInfoWithPage(Map<String,Object> paraMap
+			,int page,int limit);
+	/**
+	 * 查询工资方案配置数据集合--不分页
+	 * @Title: queryAllWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询工资方案配置数据集合--不分页
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String,Object>> queryAllWageSchemaInfo(Map<String,Object> paraMap);
+	/**
+	 * 保存工资方案配置
+	 * @Title: saveOrUpdateWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存工资方案配置 
+	 * @param paraMap      
+	 * void JSON 格式为：
+	 */
+	public void saveOrUpdateWageSchemaInfo(Map<Object,Object> paraMap);
+	/**
+	 * 删除工资方案配置
+	 * @Title: deleteWageSchema
+	 * @author: zuoyuntao  
+	 * @Description:删除工资方案配置   
+	 * @param wageId 方案ID
+	 * void JSON 格式为：
+	 */
+	public void deleteWageSchema(String wageId);
+	
+	/**   
+	 * <p>Title: queryAllWageSchemaInfo</p>   
+	 * <p>Description: 查询工资方案配置集合--组装条件</p>   
+	 * @param paraMap 参数集合
+	 * @return   
+	 * @see com.bashiju.manage.service.IWageSchemaSettingService#queryAllWageSchemaInfo(java.util.Map)   
+	 */
+	public List<Map<String, Object>> queryAllWageSchemaInfoByCondition(Map<String, Object> paraMap);
+	/**
+	 * 判断数据是否存在
+	 * @Title: jurgeWageDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap
+	 * @return      
+	 * boolean JSON 格式为：
+	 */
+	public boolean jurgeWageDataExists(Map<String,Object> paraMap);
+}

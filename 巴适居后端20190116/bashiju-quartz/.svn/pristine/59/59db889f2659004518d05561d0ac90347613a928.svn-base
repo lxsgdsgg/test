@@ -1,0 +1,257 @@
+package com.bashiju.quartz.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.DecisionConfigurateServiceApi;
+import com.bashiju.enums.CustomerTransactionEnum;
+import com.bashiju.enums.DecisionConfigurateEnum;
+import com.bashiju.quartz.mapper.HouseAndCustomerStatusTaskMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**
+ * 
+ *  房源、客源相关数据重置服务
+ * @ClassName:  ResetSourceService   
+ * @Description:  房源、客源相关数据重置服务
+ * @author: wangkaifa
+ * @date:   2018年7月7日 下午4:36:23       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class ResetSourceService extends CommonSqlServie{
+
+	@Autowired
+	DecisionConfigurateServiceApi decisionConfigurateServiceApi;
+	@Autowired
+	HouseAndCustomerStatusTaskMapper houseAndCustomerStatusTaskMapper;
+	/** 一次最多插入条数**/
+	private final int maxCount=100;
+	/**
+	 * 
+		 * 删除今日浏览
+		 * @Description: 进入菜单主页面（详细描述）  
+		 * void
+	 */
+	public void deleteTodaySee() {
+		try {
+			Integer count=houseAndCustomerStatusTaskMapper.deleteAllTodaySee();
+			System.out.println("清除房源今日浏览："+count+"条");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 
+		 * 自动取消房源置顶
+		 * @Description: 自动取消房源置顶
+		 * void
+	 */
+	public void resetTopStatus() {
+		try {
+			//查询房源最长置顶天数决策配置
+			List<Map<String,Object>> configurates=decisionConfigurateServiceApi.queryDecisionConfigurate(DecisionConfigurateEnum.DECISION_15.getCode());
+			if (configurates!=null&&configurates.size()>0) {
+				List<Map<String, Object>> houseList=new ArrayList<>();
+				for (Map<String, Object> configurate : configurates) {
+					try {
+						//房源最长置顶天数
+						Integer day=Integer.parseInt(configurate.get("val").toString());
+						//城市代码
+						String cityCode=configurate.get("cityCode").toString();
+						//取消置顶
+						int count=houseAndCustomerStatusTaskMapper.updateIsTop(day, cityCode);
+						System.out.println("取消房源置顶："+count+"条");
+						//查询被取消置顶的房源，插入日志
+						List<Map<String, Object>> list=houseAndCustomerStatusTaskMapper.queryTopHouseIdByCityCode(day, cityCode);
+						if (list!=null&&list.size()>0) {
+							houseList.addAll(list);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				if (houseList.size()>0) {
+					saveLog(houseList,"房源置顶到期自动取消");
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 
+		 * 房源自动撤单
+		 * @Description: 房源自动撤单
+		 * void
+	 */
+	public void houseCancelNotice () {
+		try {
+			List<Map<String,Object>> configurates=decisionConfigurateServiceApi.queryDecisionConfigurate(DecisionConfigurateEnum.DECISION_11.getCode());
+			if (configurates!=null&&configurates.size()>0) {
+				List<Map<String, Object>> houseList=new ArrayList<>();
+				for (Map<String, Object> configurate : configurates) {
+					try {
+						//房源最长通知撤单等待天数
+						Integer day=Integer.parseInt(configurate.get("val").toString());
+						//城市代码
+						String cityCode=configurate.get("cityCode").toString();
+						//取消置顶
+						int count=houseAndCustomerStatusTaskMapper.updateHouseIsCancelNotice(day, cityCode);
+						System.out.println("房源自动撤单："+count+"条");
+						//查询被撤单的房源，插入日志
+						List<Map<String, Object>> list=houseAndCustomerStatusTaskMapper.querycancelNoticeHouseByCityCode(day, cityCode);
+						if (list!=null&&list.size()>0) {
+							houseList.addAll(list);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				if (houseList.size()>0) {
+					saveLog(houseList,"房源通知撤单到期自动撤单");
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 
+		 * 求购客源自动撤单
+		 * @Description: 求购客源自动撤单  
+		 * void
+	 */
+	public void buyCustomerCancelNotice () {
+		try {
+			List<Map<String,Object>> configurates=decisionConfigurateServiceApi.queryDecisionConfigurate(DecisionConfigurateEnum.DECISION_20.getCode());
+			if (configurates!=null&&configurates.size()>0) {
+				List<Map<String, Object>> customerList=new ArrayList<>();
+				for (Map<String, Object> configurate : configurates) {
+					try {
+						//客源最长通知撤单等待天数
+						Integer day=Integer.parseInt(configurate.get("val").toString());
+						//城市代码
+						String cityCode=configurate.get("cityCode").toString();
+						//自动撤单
+						int count=houseAndCustomerStatusTaskMapper.updateCustomerIsCancelNotice(day, cityCode,Integer.parseInt(CustomerTransactionEnum.BUY.getCode()));
+						System.out.println("求购客源自动撤单："+count+"条");
+						//查询被撤单的客源，插入日志
+						List<Map<String, Object>> list=houseAndCustomerStatusTaskMapper.querycancelNoticeCustomerByCityCode(day, cityCode,Integer.parseInt(CustomerTransactionEnum.BUY.getCode()));
+						if (list!=null&&list.size()>0) {
+							customerList.addAll(list);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				if (customerList.size()>0) {
+					saveLog(customerList,"求购客源通知撤单到期自动撤单");
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 
+		 * 求租客源自动撤单
+		 * @Description: 求租客源自动撤单  
+		 * void
+	 */
+	public void rentCustomerCancelNotice () {
+		try {
+			List<Map<String,Object>> configurates=decisionConfigurateServiceApi.queryDecisionConfigurate(DecisionConfigurateEnum.DECISION_29.getCode());
+			if (configurates!=null&&configurates.size()>0) {
+				List<Map<String, Object>> customerList=new ArrayList<>();
+				for (Map<String, Object> configurate : configurates) {
+					try {
+						//客源最长通知撤单等待天数
+						Integer day=Integer.parseInt(configurate.get("val").toString());
+						//城市代码
+						String cityCode=configurate.get("cityCode").toString();
+						//自动撤单
+						int count=houseAndCustomerStatusTaskMapper.updateCustomerIsCancelNotice(day, cityCode,Integer.parseInt(CustomerTransactionEnum.RENT.getCode()));
+						System.out.println("求租客源自动撤单："+count+"条");
+						//查询被撤单的客源，插入日志
+						List<Map<String, Object>> list=houseAndCustomerStatusTaskMapper.querycancelNoticeCustomerByCityCode(day, cityCode,Integer.parseInt(CustomerTransactionEnum.RENT.getCode()));
+						if (list!=null&&list.size()>0) {
+							customerList.addAll(list);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				if (customerList.size()>0) {
+					saveLog(customerList,"求租客源通知撤单到期自动撤单");
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 
+		 * 保存定时取消置房源顶日志
+		 * @Description: 保存定时取消置房源顶日志
+		 * @param list [{houseId:房源编号,companyId:公司id}]
+		 * void
+	 */
+	private void saveLog(List<Map<String, Object>> list,String content) {
+		String fieldString="companyId,sourceType,sourceId,excuteContext";
+		//分次数批量插入日志
+		for (int j = 0; j < list.size(); j=j+maxCount) {
+			try {
+				int max = j+maxCount;
+				if (max > list.size()) {
+					max = list.size();
+				}
+				List<Map<String, Object>> itemList=list.subList(j, max);
+				List<String> listString=new ArrayList<>();
+				for(int i=0;i<itemList.size();i++) {				
+					StringBuilder sb=new StringBuilder();
+						sb.append("'"+itemList.get(i).get("companyId")).append("','定时任务','")
+						.append(itemList.get(i).get("id")).append("','"+content+"'");	
+					listString.add(sb.toString());
+				}
+				 batchAdd( fieldString, "user_log",listString, true);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	/**
+	 * 
+		 *  更新房源最近15天带看数量
+		 * @Description:  更新房源最近15天带看数量 
+		 * void
+	 */
+	public void twoWeekShowedCount() {
+		try {
+			houseAndCustomerStatusTaskMapper.updateViewingCount();
+			houseAndCustomerStatusTaskMapper.updateSellViewingCount();
+			houseAndCustomerStatusTaskMapper.updateRentViewingCount();
+			houseAndCustomerStatusTaskMapper.updateProjectViewingCount();
+			houseAndCustomerStatusTaskMapper.updateProjectQueryViewingCount();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}

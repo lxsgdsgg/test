@@ -1,0 +1,229 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerRecruitServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 上午11:04:10   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.recruit.impl;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.bashiju.enums.EducationEnum;
+import com.bashiju.enums.FileTypeEnum;
+import com.bashiju.enums.NationEnum;
+import com.bashiju.enums.PoliticalOutlookEnum;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.FtpUtil;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.CustomerRecruitMapper;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.recruit.CustomerRecruitQueryParam;
+import com.bashiju.www.pojo.service.out.recruit.CustCurriculumVitaeEntity;
+import com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitDetailEntity;
+import com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.recruit.ICustomerRecruitService;
+import com.bashiju.www.tools.WebCommonTools;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 公司招聘管理服务
+ * @ClassName:CustomerRecruitServiceImpl
+ * @Description:公司招聘管理服务
+ * @author:zuoyuntao
+ * @date:2018年8月7日 上午11:04:10
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerRecruitServiceImpl implements ICustomerRecruitService{
+	/**
+	 * 招聘数据库持久层接口
+	 */
+	@Autowired
+	private CustomerRecruitMapper mCustomerRecruitMapper;
+	/**
+	 * 缓存处理接口
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	/**
+	 * 数据映射对象
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * <p>Title: queryRecruitPositionDataWithPage</p>   
+	 * <p>Description:查询发布岗位信息 </p>   
+	 * @param paramEntity 查询参数实体对象
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @return   
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#queryRecruitPositionDataWithPage(com.bashiju.www.pojo.service.input.recruit.CustomerRecruitQueryParam, int, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public WebPage<CustReleaseRecruitEntity> queryRecruitPositionDataWithPage(CustomerRecruitQueryParam paramEntity,
+			int page, int limit) {
+		String key = Md5EncryptUtils.md5Encrypt("queryRecruitPositionDataWithPage"+page+limit);
+		String dataStr = this.readDataListFromRedisByKey(key);
+		if(StringUtil.isNotEmpty(dataStr)) {
+			try {
+				return MAPPER.readValue(dataStr, WebPage.class);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		PageHelper.startPage(page,limit);
+		Page<CustReleaseRecruitEntity>  pageObj = 
+				mCustomerRecruitMapper.queryRecruitPositionDataWithPage(paramEntity);
+		if(pageObj.size() > 0) {
+			WebPage<CustReleaseRecruitEntity> retPage = new WebPage<CustReleaseRecruitEntity>(pageObj);
+			mICacheService.saveCache(key, retPage, WebGlobal.OTHER_EXPTIME);
+			return retPage;
+		}
+		return null;
+	}
+	/**
+	 * <p>Title: queryPositionDetailList</p>   
+	 * <p>Description:查询岗位详细信息 </p>   
+	 * @param positionId 岗位ID
+	 * @return   
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#queryPositionDetailList(java.lang.String)
+	 */
+	@Override
+	public CustReleaseRecruitDetailEntity queryPositionDetailList(String positionId) {
+		String key = Md5EncryptUtils.md5Encrypt("queryPositionDetailList" + positionId.trim());
+		String dataStr = this.readDataListFromRedisByKey(key);
+		if(StringUtil.isNotEmpty(dataStr)) {
+			try {
+				return MAPPER.readValue(dataStr,CustReleaseRecruitDetailEntity.class);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+		}
+		CustReleaseRecruitDetailEntity retEntity =
+				mCustomerRecruitMapper.queryPositionDetailList(positionId);
+		mICacheService.saveCache(key, retEntity, WebGlobal.OTHER_EXPTIME);
+		return retEntity;
+	}
+	/**
+	 * <p>Title: saveResumeInfo</p>   
+	 * <p>Description: 保存投递简历信息 </p> 
+	 * @Description:保存投递简历信息
+	 * @param file 文件
+	 * @param type 文件类型 1=图片;2=文本;3=音频;4=视频; 5=其他
+	 * @param isWatermark 是否需要水印
+	 * @param positionId 岗位ID
+	 * @param isImport 是否导入
+	 * @param detailEntity 求职者详细信息     
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#updateResumeInfo(byte[], java.lang.String, boolean, com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitDetailEntity)
+	 */
+	@Override
+	public void saveResumeInfo(MultipartFile file,int type,boolean isWatermark
+			, boolean isImport,CustCurriculumVitaeEntity detailEntity) {
+		if(FileTypeEnum.enumMap.containsKey(String.valueOf(type))) {
+			throw new BusinessException("传入文件类型暂不被支持");
+		}
+		if(StringUtil.isEmpty(String.valueOf(detailEntity.getRecruitInfoId()))) {
+			throw new BusinessException("传入参数为空！");
+		}
+		if(isImport && null == file) {
+			throw new BusinessException("附件内容为空");
+		}
+		if(isImport) {//上传文件
+			try {
+				FtpUtil.uploadFile(file , type, isWatermark);
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new BusinessException(e.getMessage());
+			}
+		}else {
+			detailEntity.setAttachment("");
+		}
+		CustReleaseRecruitDetailEntity oneDetail = 
+				queryPositionDetailList(String.valueOf(detailEntity.getRecruitInfoId()));
+		if(null == oneDetail) {
+			throw new BusinessException("未找到该岗位信息");
+		}
+		String nowDate = WebCommonTools.formatDate("");
+		detailEntity.setAddTime(nowDate);
+		detailEntity.setIsValid(1);
+		detailEntity.setOperator(oneDetail.getOperator());
+		detailEntity.setOperatorId(oneDetail.getOperatorId());
+		detailEntity.setPermissionArea(oneDetail.getPermissionArea());
+		detailEntity.setUpdateTime(nowDate);
+		Map<String,Object> paraMap = WebCommonTools.castEntityToHashMap(detailEntity);
+		mCustomerRecruitMapper.saveResumeInfo(paraMap);
+	}
+	/**
+	 * 根据Key从Redis读取数据
+	 * @Title: readDataListFromRedisByKey
+	 * @author: zuoyuntao  
+	 * @Description:根据Key从Redis读取数据
+	 * @param key Redis的key
+	 * @return      
+	 * String 
+	 */
+	public String readDataListFromRedisByKey(String key) {
+		String retStr = mICacheService.getCache(key);
+		if(StringUtil.isNotEmpty(retStr)) {
+			return retStr;
+		}
+		return null;
+	}
+	/**
+	 * <p>Title: getPoliticalOutlookSelect</p>   
+	 * <p>Description:获取政治面貌枚举</p>   
+	 * @return   
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#getPoliticalOutlookSelect()
+	 */
+	@Override
+	public List<Map<String , String>> getPoliticalOutlookSelect() {
+		return PoliticalOutlookEnum.enumList;
+	}
+	/**
+	 * <p>Title: getNationListSelect</p>   
+	 * <p>Description:获取名族枚举 </p>   
+	 * @return   
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#getNationListSelect()
+	 */
+	@Override
+	public List<Map<String,String>> getNationListSelect() {
+		return NationEnum.enumList;
+	}
+	/**
+	 * <p>Title: getEducationListSelect</p>   
+	 * <p>Description: 获取学历下拉选择数据 </p>   
+	 * @return   
+	 * @see com.bashiju.www.service.recruit.ICustomerRecruitService#getEducationListSelect()
+	 */
+	@Override
+	public List<Map<String,Object>> getEducationListSelect(){
+		return EducationEnum.enumList;
+	}
+
+}

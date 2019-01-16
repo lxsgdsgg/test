@@ -1,0 +1,111 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.ResCustLevelConditionMapper;
+import com.bashiju.manage.service.ResCustLevelConditionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 
+ * @ClassName:  ResCustLevelConditionServiceImpl   
+ * @Description:客源等级条件接口   
+ * @author: wangpeng
+ * @date:   2018年5月18日 下午5:42:03   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="客源等级条件管理")
+public class ResCustLevelConditionServiceImpl extends CommonSqlServie implements ResCustLevelConditionService{
+	@Autowired
+	private ResCustLevelConditionMapper resCustLevelConditionMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryResCustLevelCondition</p>   
+	 * <p>Description: 查询客源等级条件信息（分页）</p>   
+	 * @param transcationType 客源交易类型
+	 * @param levelType 等级
+	 * @param pageNum 当前页
+	 * @param pageSize 每一页条数
+	 * @return   
+	 * @see com.bashiju.manage.service.ResCustLevelConditionService#queryResCustLevelCondition(java.lang.String, java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询客源信息条件")
+	public Page<Map<String, Object>> queryResCustLevelCondition(Map<String,Object> paramMap,
+		 int page, int limit) {
+			PageHelper.startPage(page, limit);
+			dataAuthHelper.auth(MenuEnum.MENU_70.getCode(),UserThreadLocal.get().get("id").toString());
+			String companyId=UserThreadLocal.get().get("companyId").toString();
+			if(StringUtils.isEmpty(companyId))
+				return null;
+			Page<Map<String,Object>> map=resCustLevelConditionMapper.queryResCustLevelCondition(paramMap);
+		return  map;
+	}
+	/**
+	 * 
+	 * <p>Title: queryResCustLevelConditionById</p>   
+	 * <p>Description:id查询房源等级条件信息 </p>   
+	 * @param id 
+	 * @return   
+	 * @see com.bashiju.manage.service.ResCustLevelConditionService#queryResCustLevelConditionById(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="id查询房源等级条件信息")
+	public Map<String, Object> queryResCustLevelConditionById(String id) {
+		Map<String,Object> map=resCustLevelConditionMapper.queryResCustLevelConditionById(id);
+		if(map!=null&& map.size()>0)
+			return map;
+	 return null;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="编辑或客源等级条件")
+	public boolean saveOrUpdateResCustLevelCcondition(Map<String,Object> map) {
+		if(!map.containsKey("id")||StringUtils.isEmpty(map.get("id").toString())) {
+			map.remove("id");
+			long result=commonOperationDatabase(map, "res_cust_level_condition", false);
+			if(result>0)
+				ExecutionResult.descFormat(Long.toString(result),"新增客源等级条件");
+			else
+				return false;
+		}else {
+			long result=commonOperationDatabase(map, "res_cust_level_condition", "id", false);
+			if(result>0)
+				ExecutionResult.descFormat(map.get("id").toString(),"编辑客源等级条件");
+			else
+				return false;
+		}
+			
+	 return true;
+	}
+
+	@SystemServiceLog(operationType="逻辑删除客源等级条件")
+	public boolean delResCustLevelCondition(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("请选择要删除的客源等级条件");
+		boolean result= this.delData("res_cust_level_condition", "id", id, false);
+		if(result) {
+			ExecutionResult.descFormat(id, "删除客源等级条件");
+			return true;
+		}else
+			return false;
+	}
+
+}

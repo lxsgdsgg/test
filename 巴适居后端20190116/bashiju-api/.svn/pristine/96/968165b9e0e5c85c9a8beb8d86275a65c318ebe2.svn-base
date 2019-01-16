@@ -1,0 +1,78 @@
+package com.bashiju.enums.pc;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+/**
+ * 建筑面积
+ * @ClassName:  BuildAreaEnum   
+ * @Description:建筑面积  
+ * @author: wangkaifa
+ * @date:   2018年5月30日 上午9:49:00   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum BuildAreaEnum {
+	/** ONE("1", "30㎡以下")**/
+	ONE("1", "30㎡以下"),
+	/** TWO("2", "30-50㎡")**/
+	TWO("2", "30-50㎡"),
+	/** THREE("3", "50-80㎡")**/
+	THREE("3", "50-80㎡"),
+	/** FOUR("4", "80-100㎡")**/
+	FOUR("4", "80-100㎡"),
+	/** FIVE("5", "100-120㎡")**/
+	FIVE("5", "100-120㎡"),
+	/** SIX("6", "120-150㎡")**/
+	SIX("6", "120-150㎡"),
+	/** SEVEN("7", "150-200㎡")**/
+	SEVEN("7", "150-200㎡"),
+	/** EIGHT("8", "200㎡以上")**/
+	EIGHT("8", "200㎡以上")
+    ;
+	public static Map<String , String> enumMap;
+    /** 房源交易类型下拉数据 **/
+    public static List<Map<String, Object>> enumList;
+    static {
+        enumMap = new TreeMap<String, String>();
+        enumList=new ArrayList<>();
+        for (BuildAreaEnum item : BuildAreaEnum.values()) {
+            enumMap.put(item.code, item.desc);
+            Map<String, Object> map=new HashMap<>();
+            map.put("name", item.desc);
+            map.put("value", item.code);
+            enumList.add(map);
+        }
+    }
+
+    /**
+     * 枚举转换
+     */
+    public static BuildAreaEnum parseOf(String value){
+        for(BuildAreaEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+
+
+    private String code;
+    private String desc;
+
+    BuildAreaEnum(String code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+}

@@ -1,0 +1,179 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DivideIntoConfigServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:分成配置业务接口实现类   
+ * @author: zuoyuntao     
+ * @date:   2018年4月24日 下午3:06:51   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.DivideIntoConfigMapper;
+import com.bashiju.manage.service.IDivideIntoConfigService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/** 
+ * 分成配置业务接口实现类 
+ * @ClassName:  DivideIntoConfigServiceImpl   
+ * @Description:分成配置业务接口实现类   
+ * @author: zuoyuntao
+ * @date:   2018年4月24日 下午3:06:51   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="分成配置")
+public class DivideIntoConfigServiceImpl implements IDivideIntoConfigService{
+	/**
+	 * 分成配置数据库操作接口
+	 */
+	@Autowired
+	private DivideIntoConfigMapper mDivideIntoConfigMapper;
+	/**
+	 * 通用数据库操作接口
+	 */
+	@Autowired
+	private CommonSqlServie commonSqlServie = null;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 查询所有的分成配置信息
+	 * <p>Title: queryDivideIntoConfigInfoList</p>   
+	 * <p>Description: 查询所有的分成配置信息</p>   
+	 * @param paraMap 参数map对象，包含configName、areaCode两个字段
+	 * @param curPageCount 每页显示数据最少条数
+	 * @param maxPageCont  每页显示数据最大条数
+	 * @return 
+	 * Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=6, pages=1, reasonable=false, pageSizeZero=false}[{id=12, configName=一手成交, configStatus=1, cityId=BSJ0101, isValid=1, cityName=昆明市, addTime=2018-05-23 10:25:05.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:25:52.0, operatorId=1, permissionArea=BSJ0103, dealType=1, configType=3, houseEntrustTrans=3, keyMgrTrans=4, signUkTrans=0, picUploadTrans=6, companyId=BSJ01, actionRoleIptRate=15, actRoleOpMgrRate=5, actRoleHouseMsgRate=25, actRoleCusIptRate=5, actRoleCusMgrRate=5, actRoleContractMgrRate=25, actHouseEntrustMgrRate=5, actRoleKeyMgrRate=5, actRoleSignUkRate=5, actRolePivUploadRate=5, status=已设置, valid=有效, dealTypeName=住宅, configTypeName=一手成交, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}, {id=13, configName=住宅出售（住宅、商铺、车位）, configStatus=1, cityId=BSJ0101, isValid=1, cityName=昆明市, addTime=2018-05-23 10:28:52.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:29:39.0, operatorId=1, permissionArea=BSJ0103, dealType=1, configType=1, houseEntrustTrans=0, keyMgrTrans=1, signUkTrans=5, picUploadTrans=0, companyId=BSJ01, actionRoleIptRate=20, actRoleOpMgrRate=20, actRoleHouseMsgRate=20, actRoleCusIptRate=5, actRoleCusMgrRate=5, actRoleContractMgrRate=5, actHouseEntrustMgrRate=5, actRoleKeyMgrRate=10, actRoleSignUkRate=10, actRolePivUploadRate=, status=已设置, valid=有效, dealTypeName=住宅, configTypeName=出售, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}, {id=14, configName=住宅出租（住宅、商铺、车位）, cityId=BSJ0101, isValid=1, cityName=昆明市, addTime=2018-05-23 10:24:01.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:24:48.0, operatorId=1, permissionArea=BSJ0103, dealType=1, configType=2, companyId=BSJ01, status=未设置, valid=有效, dealTypeName=住宅, configTypeName=出租, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}, {id=15, configName=商业出售（写字楼、厂房、商铺、仓库，土地）, configStatus=1, cityId=BSJ0102, isValid=1, cityName=大理市, addTime=2018-05-22 18:59:52.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-22 19:00:36.0, operatorId=1, permissionArea=BSJ0103, dealType=2, configType=1, houseEntrustTrans=3, keyMgrTrans=0, signUkTrans=0, picUploadTrans=6, companyId=BSJ01, actionRoleIptRate=5, actRoleOpMgrRate=1, actRoleHouseMsgRate=6, actRoleCusIptRate=6, actRoleCusMgrRate=8, actRoleContractMgrRate=9, actHouseEntrustMgrRate=15, actRoleKeyMgrRate=3, actRoleSignUkRate=2, actRolePivUploadRate=7, status=已设置, valid=有效, dealTypeName=商业, configTypeName=出售, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}, {id=32, configName=商业出租（写字楼、厂房、商铺、仓库、土地）, cityId=BSJ0102, isValid=1, cityName=大理市, addTime=2018-05-23 10:23:34.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:24:21.0, operatorId=1, permissionArea=BSJ0103, dealType=2, configType=2, houseEntrustTrans=0, keyMgrTrans=0, signUkTrans=0, picUploadTrans=0, companyId=BSJ01, status=未设置, valid=有效, dealTypeName=商业, configTypeName=出租, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}, {id=33, configName=一手成交, cityId=BSJ0101, isValid=1, cityName=昆明市, addTime=2018-05-23 10:26:11.0, operator=测试人员, operatorId=1, permissionArea=BSJ0103, dealType=2, configType=3, houseEntrustTrans=0, keyMgrTrans=0, signUkTrans=0, picUploadTrans=0, companyId=BSJ01, status=未设置, valid=有效, dealTypeName=商业, configTypeName=一手成交, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}]   
+	 * @see com.bashiju.manage.service.IDivideIntoConfigService#queryDivideIntoConfigInfoList(java.util.Map, int, int)
+	 */
+	@Override
+	public Page<Map<String, Object>> queryDivideIntoConfigInfoList(Map<String,Object> paraMap,
+			int curPageCount,int maxPageCont) {
+		PageHelper.startPage(curPageCount, maxPageCont);
+		dataAuthHelper.auth(MenuEnum.MENU_114.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mDivideIntoConfigMapper.queryDivideInfoConfList(paraMap);
+	}
+	/**
+	 * 增加或修改分成配置信息
+	 * @Title: saveOrUpdateDivideInto   
+	 * @Description: 增加或修改分成配置信息  
+	 * @param: paraMap 传入操作数据对象
+	 * 字段列表{id=32, configName=商业出租（写字楼、厂房、商铺、仓库、土地）, cityId=BSJ0102, isValid=1, addTime=2018-05-23 10:23:34.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:24:21.0, operatorId=1, permissionArea=BSJ0103, dealType=2, configType=2, houseEntrustTrans=0, keyMgrTrans=0, signUkTrans=0, picUploadTrans=0, companyId=BSJ01, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}    
+	 * @return void     
+	 */
+	@SystemServiceLog(operationType="编辑分成配置")
+	@Override
+	public void saveOrUpdateDivideInto(Map<Object,Object> oneMap) {
+		if(oneMap.containsKey("id")) {
+			long retId = commonSqlServie.commonOperationDatabase(oneMap
+					, ManageGlobal.CONFIG_TABLE_NAME,ManageGlobal.PRI_FIELD,false);
+			ExecutionResult.descFormat(String.valueOf(retId), "修改分成配置");
+		}else {
+			long retId = commonSqlServie.commonOperationDatabase(oneMap
+					, ManageGlobal.CONFIG_TABLE_NAME, false);
+			ExecutionResult.descFormat(String.valueOf(retId), "增加分成配置");
+		}
+	}
+	/**
+	 * 根据配置ID查询分成配置信息
+	 * <p>Title: queryDivideIntoConfigInfoMapById</p>   
+	 * <p>Description:根据配置ID查询分成配置信息 </p>   
+	 * @param confId 主配置ID
+	 * @return   
+	 * {id=32, configName=商业出租（写字楼、厂房、商铺、仓库、土地）, cityId=BSJ0102, isValid=1, addTime=2018-05-23 10:23:34.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 10:24:21.0, operatorId=1, permissionArea=BSJ0103, dealType=2, configType=2, houseEntrustTrans=0, keyMgrTrans=0, signUkTrans=0, picUploadTrans=0, companyId=BSJ01, confAdd=confAdd, confEidt=confEidt, edit=edit, del=del}    
+	 * @see com.bashiju.manage.service.IDivideIntoConfigService#queryDivideIntoConfigInfoMapById(java.lang.String)
+	 */
+	@Override
+	public Map<String, Object> queryDivideIntoConfigInfoMapById(String confId) {
+		dataAuthHelper.auth(MenuEnum.MENU_114.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		Map<Object,Object> paramMap = new HashMap<Object,Object>();
+		paramMap.put(ManageGlobal.PRI_FIELD, confId);
+		return mDivideIntoConfigMapper.queryDivideInfoConfById(confId);
+	}
+	/**
+	 * 根据城市Id和公司ID判断分成配置是否存在
+	 * @Title: jurgeDivideIntoConfigExists   
+	 * @Description: 根据城市Id和公司ID判断分成配置是否存在 
+	 * @param: paraMap：参数对象（暂时包括：cityId 城市ID，companyId 公司ID，dealType 处理类型：1商业或2住宅，configType 配置类型：1出售2出租3一首成交）
+	 * @return: boolean true/false  
+	 */
+	@Override
+	public boolean jurgeDivideIntoConfigExists(Map<Object,Object> paraMap) {
+		StringBuilder condition = new StringBuilder();
+		String cityId = String.valueOf(paraMap.get("cityId"));
+		String companyId = String.valueOf(paraMap.get("companyId"));
+		String dealType = String.valueOf(paraMap.get("dealType"));
+		String configType = String.valueOf(paraMap.get("configType"));
+		condition.append("cityId='")
+				 .append(cityId)
+				 .append("' and companyId='")
+				 .append(companyId)
+				 .append("' and dealType='")
+				 .append(dealType)
+				 .append("' and configType='")
+				 .append(configType)
+				 .append("'");
+		long count = mDivideIntoConfigMapper.queryDivideInfoConfByConn(condition.toString());
+		if(count > 0) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	 * 删除分成配置
+	 * <p>Title: deleteDivideIntoConfigInfoByConfId</p>   
+	 * <p>Description: 删除分成配置</p>   
+	 * @param paraMap 传入参数，必须包含ID
+	 * @return   
+	 * @see com.bashiju.manage.service.IDivideIntoConfigService#deleteDivideIntoConfigInfoByConfId(java.util.Map)
+	 */
+	@SystemServiceLog(operationType="删除分成配置")
+	@Override
+	public String deleteDivideIntoConfigInfoByConfId(Map<String,Object> paraMap) {
+		commonSqlServie.delData(
+				ManageGlobal.CONFIG_TABLE_NAME,ManageGlobal.PRI_FIELD
+				, (String) paraMap.get(ManageGlobal.PRI_FIELD), false);
+		ExecutionResult.descFormat((String) paraMap.get("id"), "删除分成配置");
+		return "success";
+	}
+
+	/**
+	 * 根据公司ID获取城市信息
+	 * @Title: queryCityInfoByCompanyId   
+	 * @Description: 根据公司ID获取城市信息   
+	 * @param: @param companyId：公司ID
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>    
+	 * {BSJ0102=大理市, BSJ0101=昆明市}，key为城市Id，value为城市名称  
+	 */
+	@Override
+	public List<Map<String,Object>> queryCityInfoByCompanyId(String companyId){
+		return mDivideIntoConfigMapper.getCityInfoByCompanyId(companyId);
+	}
+}

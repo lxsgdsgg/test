@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.TotalPerformanceAnalysisMapper">
+	
+	<select id="queryPageDataList" resultType="map">
+		select aa.*,
+		 (ifnull(aa.businessPicUpload,0) + ifnull(aa.businessContractDeal,0) + ifnull(aa.businessCustomerSourceInput ,0)
+		+ ifnull(aa.businessCustomerSourceMaintain,0) + ifnull(aa.businessHouseOpenPlate,0) + ifnull(aa.businessHouseSourceInput,0) 
+		+ ifnull(aa.businessHouseSourceMaintain,0) + ifnull(aa.businessKeysCarry,0)+ ifnull(aa.businessSoleEntrust,0)) as businessTotal,
+		
+		 (ifnull(aa.rentPicUpload,0) + ifnull(aa.rentContractDeal,0) + ifnull(aa.rentCustomerSourceInput ,0)
+		+ ifnull(aa.rentCustomerSourceMaintain,0) + ifnull(aa.rentHouseOpenPlate,0) + ifnull(aa.rentHouseSourceInput,0) 
+		+ ifnull(aa.rentHouseSourceMaintain,0) + ifnull(aa.rentKeysCarry,0)+ ifnull(aa.rentSoleEntrust,0)) as rentTotal,
+		
+		 (ifnull(aa.oneHandPicUpload,0) + ifnull(aa.oneHandContractDeal,0) + ifnull(aa.oneHandCustomerSourceInput ,0)
+		+ ifnull(aa.oneHandCustomerSourceMaintain,0)+ ifnull(aa.oneHandHouseOpenPlate,0) + ifnull(aa.oneHandHouseSourceInput,0) 
+		+ ifnull(aa.oneHandHouseSourceMaintain,0) + ifnull(aa.oneHandKeysCarry,0)+ ifnull(aa.oneHandSoleEntrust,0)) as oneHandTotal,
+		
+		(ifnull(aa.businessPicUpload,0) + ifnull(aa.businessContractDeal,0) + ifnull(aa.businessCustomerSourceInput ,0)
+		+ ifnull(aa.businessCustomerSourceMaintain,0) + ifnull(aa.businessHouseOpenPlate,0) + ifnull(aa.businessHouseSourceInput,0) 
+		+ ifnull(aa.businessHouseSourceMaintain,0) + ifnull(aa.businessKeysCarry,0) + ifnull(aa.businessSoleEntrust,0)
+		+ ifnull(aa.rentPicUpload,0) + ifnull(aa.rentContractDeal,0) + ifnull(aa.rentCustomerSourceInput ,0)
+		+ ifnull(aa.rentCustomerSourceMaintain,0) + ifnull(aa.rentHouseOpenPlate,0) + ifnull(aa.rentHouseSourceInput,0) 
+		+ ifnull(aa.rentHouseSourceMaintain,0) + ifnull(aa.rentKeysCarry,0) + ifnull(aa.rentSoleEntrust,0)
+		+ ifnull(aa.oneHandPicUpload,0) + ifnull(aa.oneHandContractDeal,0) + ifnull(aa.oneHandCustomerSourceInput ,0)
+		+ ifnull(aa.oneHandCustomerSourceMaintain,0) + ifnull(aa.oneHandHouseOpenPlate,0) + ifnull(aa.oneHandHouseSourceInput,0) 
+		+ ifnull(aa.oneHandHouseSourceMaintain,0) + ifnull(aa.oneHandKeysCarry,0) + ifnull(aa.oneHandSoleEntrust,0)) as total
+		 from(
+		select a.id,a.areaCode,a.name as areaName
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			,b.name deptName,
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;= 5 ">
+			,b.realName deptName,
+		</if>
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='传照片人' then d.actualProfit end),2) as businessPicUpload,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='合同成交人' then d.actualProfit/100 end),2) as businessContractDeal,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='客源录入人' then d.actualProfit/100 end),2) as businessCustomerSourceInput,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='客源维护人' then d.actualProfit/100 end),2) as businessCustomerSourceMaintain,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='房源开盘人' then d.actualProfit/100 end),2) as businessHouseOpenPlate,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='房源录入人' then d.actualProfit/100 end),2) as businessHouseSourceInput,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='房源维护人' then d.actualProfit/100 end),2) as businessHouseSourceMaintain,
+		truncate(sum(distinct case when c.dealType='00' and d.dividReason='拿钥匙人' then d.actualProfit/100 end),2) as businessKeysCarry,
+		truncate(sum(distinct case when c.dealType='00' and (d.dividReason='签独家人' or d.dividReason='房源委托人') then d.actualProfit/100 end),2) as businessSoleEntrust,
+
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='传照片人' then d.actualProfit end),2) as rentPicUpload,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='合同成交人' then d.actualProfit/100 end),2) as rentContractDeal,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='客源录入人' then d.actualProfit/100 end),2) as rentCustomerSourceInput,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='客源维护人' then d.actualProfit/100 end),2) as rentCustomerSourceMaintain,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='房源开盘人' then d.actualProfit/100 end),2) as rentHouseOpenPlate,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='房源录入人' then d.actualProfit/100 end),2) as rentHouseSourceInput,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='房源维护人' then d.actualProfit/100 end),2) as rentHouseSourceMaintain,
+		truncate(sum(distinct case when c.dealType='01' and d.dividReason='拿钥匙人' then d.actualProfit/100 end),2) as rentKeysCarry,
+		truncate(sum(distinct case when c.dealType='01' and (d.dividReason='签独家人' or d.dividReason='房源委托人') then d.actualProfit/100 end),2) as rentSoleEntrust,
+		
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='传照片人' then d.actualProfit end),2) as oneHandPicUpload,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='合同成交人' then d.actualProfit/100 end),2) as oneHandContractDeal,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='客源录入人' then d.actualProfit/100 end),2) as oneHandCustomerSourceInput,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='客源维护人' then d.actualProfit/100 end),2) as oneHandCustomerSourceMaintain,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='房源开盘人' then d.actualProfit/100 end),2) as oneHandHouseOpenPlate,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='房源录入人' then d.actualProfit/100 end),2) as oneHandHouseSourceInput,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='房源维护人' then d.actualProfit/100 end),2) as oneHandHouseSourceMaintain,
+		truncate(sum(distinct case when c.dealType='02' and d.dividReason='拿钥匙人' then d.actualProfit/100 end),2) as oneHandKeysCarry,
+		truncate(sum(distinct case when c.dealType='02' and (d.dividReason='签独家人' or d.dividReason='房源委托人') then d.actualProfit/100 end),2) as oneHandSoleEntrust,
+		truncate(sum(distinct case when c.isValid=1 then e.actualProfit/100 end),2) as financeCnt
+
+		from sys_dept a 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			right join sys_dept b on a.id = b.parentId and b.isvalid=1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			right join sys_user b on a.id = b.deptId and b.isvalid=1
+		</if>
+		
+		inner join deal_transactioninfo c on 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			c.permissionArea like concat(b.id,'%') 
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			b.id = c.traderId
+		</if>
+		left join (select dealId,sum(actualProfit) actualProfit,dividReason 
+			from deal_divideninfo where isValid = 1 group by dealId,dividReason) d on c.id = d.dealId
+		left join (select dealId,sum(actualProfit) actualProfit,dividReason 
+			from deal_financedivideninfo where isValid = 1 group by dealId) e on c.id = e.dealId
+		where a.isvalid=1 and c.isValid = 1 
+		<!-- 佣金确认日期 -->
+		<if test="confirmType !=null and confirmType != '' and confirmType == 0 ">
+			and c.dealTime &gt;=#{beginDate} and c.dealTime &lt;= #{endDate}
+		</if>
+		<!-- 佣金结案时间 -->
+		<if test="confirmType !=null and confirmType != '' and confirmType == 1 ">
+			and c.finishCaseTime &gt;=#{beginDate} and c.finishCaseTime &lt;= #{endDate}
+		</if>
+		
+		and a.companyId = #{companyId} 
+		and a.deptTypeId= #{deptTypeId}
+		
+		<if test="requestType !=null and requestType !='' ">
+			and c.transactionTypeId=${requestType}
+		</if>
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		group by b.id order by b.id) aa
+	</select>
+	
+</mapper>

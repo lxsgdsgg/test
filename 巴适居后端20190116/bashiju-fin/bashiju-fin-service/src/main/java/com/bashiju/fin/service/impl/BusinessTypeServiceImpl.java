@@ -1,0 +1,103 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  BusinessTypeServiceImpl.java   
+ * @Package com.bashiju.fin.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年9月11日 下午2:50:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.fin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.fin.mapper.BusinessTypeMapper;
+import com.bashiju.fin.service.BusinessTypeService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  BusinessTypeServiceImpl   
+ * @Description:交易类型服务   
+ * @author: yangz
+ * @date:   2018年9月11日 下午2:50:39   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="交易类型")
+public class BusinessTypeServiceImpl extends CommonSqlServie implements BusinessTypeService {
+
+	@Autowired
+	private BusinessTypeMapper businessTypeMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 查询业务类型信息
+	 * @Description: 查询业务类型信息   
+	 * @param name 业务类型名称(模糊)
+	 * @param companyId 公司编号
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.fin.service.BusinessTypeService#queryBusinessTypes(java.lang.String)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryBusinessTypes(String name,String companyId) {
+//		if(StringUtils.isEmpty(companyId))
+//			throw new BusinessException("公司编号不允许为空");
+		 dataAuthHelper.auth(MenuEnum.MENU_128.getCode(), UserThreadLocal.get().get("id").toString());
+		return businessTypeMapper.queryBusinessTypes(name,companyId);
+	}
+
+	/**
+	 * 查询业务类型信息
+	 * @Description: 查询业务类型信息   
+	 * @param name 业务类型名称
+	 * @param companyId 公司编号
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 * @see com.bashiju.fin.service.BusinessTypeService#queryBusinessTypes(java.lang.String, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryBusinessTypes(String name,String companyId, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) this.queryBusinessTypes(name,companyId);
+		return page;
+	}
+
+	/**
+	 * 更新业务类型信息   
+	 * @Description: 更新业务类型信息   
+	 * @param map 待更新的业务类型信息
+	 * @return: boolean
+	 * @see com.bashiju.fin.service.BusinessTypeService#updateBusinessType(java.util.Map)   
+	 */
+	@Override
+	public boolean updateBusinessType(Map<String,Object> map) {
+		if(map == null || map.size()<=0)
+			throw new BusinessException("待更新的业务类型信息不允许为空");
+		if(map.containsKey("id") && map.get("id")!=null) {
+			long id = this.commonOperationDatabase(map, "finance_businessType", "id", false);
+			ExecutionResult.descFormat(Long.toString(id), "编辑业务类型");
+		}else {
+			long id = this.commonOperationDatabase(map, "finance_businessType", false);
+			ExecutionResult.descFormat(Long.toString(id),"新增业务类型");
+		}
+			
+		return true;
+	}
+
+}

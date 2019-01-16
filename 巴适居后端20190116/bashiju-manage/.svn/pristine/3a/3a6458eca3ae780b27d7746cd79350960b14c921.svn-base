@@ -1,0 +1,226 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  SchoolBlockServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    学区管理业务实现类   
+ * @author: zuoyuntao     
+ * @date:   2018年5月17日 上午11:07:51   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.SchoolBlockMapper;
+import com.bashiju.manage.service.ISchoolBlockService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**   
+ * 学区管理业务实现类
+ * @ClassName:  SchoolBlockServiceImpl   
+ * @Description:学区管理业务实现类  
+ * @author: zuoyuntao
+ * @date:   2018年5月17日 上午11:07:51   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="学区管理")
+public class SchoolBlockServiceImpl extends CommonSqlServie implements ISchoolBlockService {
+	@Autowired
+	private SchoolBlockMapper mSchoolBlockMapper ;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 获取学校信息分页对象
+	 * @Title: querySchoolPageObj   
+	 * @Description: 获取学校信息分页对象  
+	 * @param: schoolName 学校名称
+	 * @param: schoolAddress 学校地址
+	 * @param: curPage 最少条数
+	 * @param: limit 最多条数
+	 * @return: Page<Map<String,Object>>
+	 * {count=8, msg=, code=0, data=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=8, pages=1, reasonable=false, pageSizeZero=false}[{schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-17 16:24:27.0, schoolDel=schoolDel, isValid=1, schoolAddress=放大沙发s'f'd's, updateTime=2018-05-24 10:22:29.0, operator=测试人员, middleSchoolName= 法大师傅爱的色放安德森发大水, communityEdit=communityEdit, id=1, communityAdd=communityAdd, schoolName=呵呵了, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-17 16:25:14.0, schoolDel=schoolDel, isValid=1, schoolAddress=法大师傅阿斯蒂芬, operator=测试人员, middleSchoolName=发大水发射点犯得上发生, communityEdit=communityEdit, id=2, communityAdd=communityAdd, schoolName=从沙发上的, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-17 16:26:07.0, schoolDel=schoolDel, isValid=1, schoolAddress=放大沙发是, operator=测试人员, middleSchoolName=放大沙发是法大师傅打, communityEdit=communityEdit, id=3, communityAdd=communityAdd, schoolName=发的沙发上的, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-18 09:34:12.0, schoolDel=schoolDel, isValid=1, schoolAddress=测试--1234, updateTime=2018-05-21 09:52:32.0, operator=测试人员, middleSchoolName=测试--456, communityEdit=communityEdit, id=4, communityAdd=communityAdd, schoolName=测试测试, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-18 17:37:28.0, schoolDel=schoolDel, isValid=1, schoolAddress=法撒旦, updateTime=2018-05-21 10:31:52.0, operator=测试人员, middleSchoolName=法撒旦发范德萨发, communityEdit=communityEdit, id=6, communityAdd=communityAdd, schoolName=发射-123, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 10:47:50.0, schoolDel=schoolDel, isValid=1, schoolAddress=法大师傅的撒地方阿三法撒旦发生的事, updateTime=2018-05-21 10:48:12.0, operator=测试人员, middleSchoolName=飞洒发的打算, communityEdit=communityEdit, id=7, communityAdd=communityAdd, schoolName=测试萨芬士, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 11:58:00.0, schoolDel=schoolDel, isValid=1, schoolAddress=发射点发顺丰, updateTime=2018-05-21 11:59:18.0, operator=测试人员, middleSchoolName=法大师傅法大师傅, communityEdit=communityEdit, id=8, communityAdd=communityAdd, schoolName=沙发-1664, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 13:37:06.0, schoolDel=schoolDel, isValid=1, schoolAddress=测试--888, updateTime=2018-05-21 13:42:34.0, operator=测试人员, middleSchoolName=测试, communityEdit=communityEdit, id=9, communityAdd=communityAdd, schoolName=测试-999, operatorId=1}]}   
+	 */
+	@Override
+	public Page<Map<String, Object>> querySchoolPageObj(Map<String,Object> paraMap
+			,int curPage,int limit) {
+		PageHelper.startPage(curPage,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_35.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mSchoolBlockMapper.getSchoolPageObj(paraMap);
+	}
+
+	/**
+	 * 获取小区信息分页对象
+	 * @Title: queryCommunityPageObj   
+	 * @Description: 获取小区信息分页对象   
+	 * @param: paraMap 包含学校Id：schoolId（值不可为空）和小区名称字段：communityName（值可以为空）
+	 * @param: curPage 最少条数
+	 * @param: limit 最多条数
+	 * @return: Page<Map<String,Object>> 
+	 * {count=4, msg=, code=0, data=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=4, pages=1, reasonable=false, pageSizeZero=false}[{schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 10:57:34.0, schoolDel=schoolDel, isValid=1, communityRemark=测试试试, updateTime=2018-05-21 11:28:14.0, operator=测试人员, schoolId=1, communityName=投入和他如何, communityEdit=communityEdit, id=10, communityAdd=communityAdd, communityId=5, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 11:56:41.0, schoolDel=schoolDel, isValid=1, communityRemark=测试--12, operator=测试人员, schoolId=1, communityName=12, communityEdit=communityEdit, id=15, communityAdd=communityAdd, communityId=8, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-24 10:22:57.0, schoolDel=schoolDel, isValid=1, communityRemark=test123, updateTime=2018-05-24 10:23:33.0, operator=测试人员, schoolId=1, communityName=13, communityEdit=communityEdit, id=21, communityAdd=communityAdd, communityId=9, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-30 11:22:30.0, schoolDel=schoolDel, isValid=1, communityRemark=测试---1111, operator=测试人员, schoolId=1, communityName=玛卡切片, communityEdit=communityEdit, id=22, communityAdd=communityAdd, communityId=3, operatorId=1}]}    
+	 */
+	@Override
+	public Page<Map<String, Object>> queryCommunityPageObj(Map<String
+			, Object> paraMap, int curPage, int limit) {
+		PageHelper.startPage(curPage,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_35.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mSchoolBlockMapper.getCommunityPageObj(paraMap);
+	}
+
+	/**
+	 * 添加或保存数据信息 
+	 * @Title: saveOrUpdateSchoolInfo   
+	 * @Description: 添加或保存数据信息  
+	 * @param: paraMap 保存数据对象   
+	 * @param: tableName 保存数据的物理表名称
+	 * @return: void      
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存学区信息")
+	public void saveOrUpdateSchoolInfo(Map<Object,Object> paraMap, String tableName) {
+		if(paraMap.containsKey(ManageGlobal.PRI_FIELD) && null != paraMap.get(ManageGlobal.PRI_FIELD)) {
+			commonOperationDatabase(paraMap, tableName,ManageGlobal.PRI_FIELD, false);
+			ExecutionResult.descFormat(String.valueOf(paraMap.get(ManageGlobal.PRI_FIELD)) , "修改学区信息");
+		}else {
+			long id = commonOperationDatabase(paraMap, tableName, false);
+			//这里如果是添加学区信息，需要判断一下
+			if(tableName.equals(ManageGlobal.SCHOOL_BLOCK_COMMUNITY)) {
+				long count = mSchoolBlockMapper.getCommunityCountByCodintion(
+						String.valueOf(paraMap.get("communityId")),null);
+				if(count > 1) {
+					//不做任何操作
+				}else {
+					Map<Object,Object> updateMap = new HashMap<Object,Object>();
+					String communityId = String.valueOf(paraMap.get("communityId"));
+					updateMap.put("communityId",communityId);
+					updateMap.put("isSchoolRoom","1");
+					commonOperationDatabase(updateMap,"hs_housebaseinfo","communityId",false);
+					ExecutionResult.descFormat(communityId, "更新房源为学区房");
+				}
+			}
+			ExecutionResult.descFormat(String.valueOf(id), "添加学区信息");
+		}
+	}
+
+	/**
+	 * 删除数据信息 
+	 * @Title: delSchoolData   
+	 * @Description: 删除数据信息   
+	 * @param: paraMap 参数对象   ，包含schoolId或communityId字段
+	 * @param: tableName 删除数据表名称（可以是小区表也可以是学校信息表）
+	 * @return: void      
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除学区信息")
+	public void delSchoolBlockData(Map<String,String> paraMap, String tableName) {
+		dataAuthHelper.auth(MenuEnum.MENU_35.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		String schoolId = paraMap.get("schoolId");
+		String communityId = paraMap.get("communityId");
+		if(tableName.equalsIgnoreCase("school_info")) {
+			delData(tableName,ManageGlobal.PRI_FIELD, paraMap.get("schoolId"), false);
+			delData(ManageGlobal.SCHOOL_BLOCK_COMMUNITY, "id", paraMap.get("schoolId"), false);
+			ExecutionResult.descFormat(schoolId, "删除学区管理-学校及周边小区信息");
+		}else {
+			delData(tableName,ManageGlobal.PRI_FIELD, paraMap.get("communityId"), false);
+			ExecutionResult.descFormat(communityId, "删除学区周边小区信息");
+		}
+		
+		if(StringUtil.isEmpty(communityId)) {
+			return;
+		}
+		//以下是不管删除的是学校信息还是学区信息，都根据学区ID判断一下，如果不存在则将该小区的所有房源设置为非学区房
+		long count = mSchoolBlockMapper.getCommunityCountByCodintion(
+				String.valueOf(communityId),String.valueOf(schoolId));
+		if( count > 0 ) {//如果存在数据则能修改是否学区房
+			//不做任何操作
+			return;
+		}else {
+			Map<Object,Object> updateMap = new HashMap<Object,Object>();
+			updateMap.put("communityId",String.valueOf(communityId));
+			updateMap.put("isSchoolRoom","0");
+			commonOperationDatabase(updateMap,"hs_housebaseinfo","communityId",false);
+			ExecutionResult.descFormat(communityId, "取消房源为学区房");
+		}
+	}
+
+	/**
+	 * 根据Id查询数据信息
+	 * @Title: queryDataById   
+	 * @Description: 根据Id查询数据信息   
+	 * @param: id id值（小区信息表的ID或学校信息表的ID）
+	 * @param: tableName 表名称
+	 * @return: List<Map<String,Object>> 
+	 * 小区：{schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 10:57:34.0, schoolDel=schoolDel, isValid=1, communityRemark=测试试试, updateTime=2018-05-21 11:28:14.0, operator=测试人员, schoolId=1, communityName=投入和他如何, communityEdit=communityEdit, id=10, communityAdd=communityAdd, communityId=5, operatorId=1}
+	 * 学校：{schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-17 16:24:27.0, schoolDel=schoolDel, isValid=1, schoolAddress=放大沙发s'f'd's, updateTime=2018-05-24 10:22:29.0, operator=测试人员, middleSchoolName= 法大师傅爱的色放安德森发大水, communityEdit=communityEdit, id=1, communityAdd=communityAdd, schoolName=呵呵了, operatorId=1}     
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询数据")
+	public List<Map<String, Object>> queryDataById(String id, String tableName) {
+		dataAuthHelper.auth(MenuEnum.MENU_35.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		ExecutionResult.descFormat(id, "根据ID查询学区信息");
+		return mSchoolBlockMapper.getDataById(id, tableName);
+	}
+	
+	/**
+	 * 通过学校名称判断学校在系统中是否存在
+	 * @Title: isSchoolExist   
+	 * @Description: 通过学校名称判断学校在系统中是否存在  
+	 * @param: fieldValue：学校名称或者小区编码
+	 * @param: type：1:学校2:小区
+	 * @param: schoolId：学校ID
+	 * @param: rgCode 城市编码
+	 * @return: boolean true/false   
+	 */
+	@Override
+	public boolean isObjExists(String fieldValue,String type,String schoolId,String rgCode) {
+		long count = 0;
+		if(type.equals("1")) {
+			count = mSchoolBlockMapper.getSchoolCountByName(fieldValue,rgCode);
+		}else if(type.equals("2")) {
+			count = mSchoolBlockMapper.getCommunityCountByCodintion(fieldValue,schoolId);
+		}else {
+			//暂不实现
+		}
+		if(count > 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 根据用户当前区划查询小区数据信息
+	 * @Title: queryRegionList   
+	 * @Description: 根据用户当前区划查询小区数据信息   
+	 * @param: rgCode：行政区划编码
+	 * @return: List<Map<String,Object>>    
+	 * [{code=530102, parentCode=530100, level=1, name=五华区}, {code=530112, parentCode=530100, level=1, name=西山区}, {code=530122, parentCode=530100, level=1, name=晋宁县}, {code=530127, parentCode=530100, level=1, name=嵩明县}, {code=530181, parentCode=530100, level=1, name=安宁市}, {code=530101, parentCode=530100, level=1, name=市辖区}, {code=530111, parentCode=530100, level=1, name=官渡区}, {code=530114, parentCode=530100, level=1, name=呈贡区}, {code=530125, parentCode=530100, level=1, name=宜良县}, {code=530126, parentCode=530100, level=1, name=石林彝族自治县}, {code=530129, parentCode=530100, level=1, name=寻甸回族彝族自治县}, {code=530103, parentCode=530100, level=1, name=盘龙区}, {code=530113, parentCode=530100, level=1, name=东川区}, {code=530124, parentCode=530100, level=1, name=富民县}, {code=530128, parentCode=530100, level=1, name=禄劝彝族苗族自治县}, {code=5, parentCode=530111, level=2, name=小菜园}, {code=18, parentCode=530101, level=2, name=111111111}, {code=19, parentCode=530102, level=2, name=啊打发}, {code=9, parentCode=530114, level=2, name=新城第一区}, {code=12, parentCode=530112, level=2, name=南亚风情园}, {code=4, parentCode=530103, level=2, name=讽德诵功}, {code=16, parentCode=530113, level=2, name=的风格的}, {code=8, parentCode=530114, level=2, name=老城}, {code=11, parentCode=530111, level=2, name=世纪城}, {code=3, parentCode=530102, level=2, name=结果符合}, {code=14, parentCode=530102, level=2, name=w}, {code=6, parentCode=530124, level=2, name=发的广泛地}, {code=7, parentCode=530102, level=2, name=0}, {code=10, parentCode=530112, level=2, name=地方}, {code=2, parentCode=530102, level=2, name=好的水晶头}, {code=13, parentCode=530101, level=2, name=1}, {code=11, parentCode=9, level=3, name=爱生气啊}, {code=10, parentCode=13, level=3, name=15}, {code=7, parentCode=2, level=3, name=11}, {code=3, parentCode=12, level=3, name=玛卡切片}, {code=9, parentCode=13, level=3, name=13}, {code=6, parentCode=3, level=3, name=额外热舞}, {code=4, parentCode=4, level=3, name=把握今天陪我}, {code=8, parentCode=13, level=3, name=12}, {code=5, parentCode=3, level=3, name=投入和他如何}, {code=2, parentCode=4, level=3, name=听见撒}]  
+	 */
+	public List<Map<String,Object>> queryRegionList(String rgCode){
+		return mSchoolBlockMapper.getRegionList(rgCode);
+	}
+}

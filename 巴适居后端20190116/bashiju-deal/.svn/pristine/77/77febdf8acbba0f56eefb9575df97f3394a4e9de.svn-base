@@ -1,0 +1,49 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealMapper.java   
+ * @Package com.bashiju.customer.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月21日 上午9:43:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+/**   
+ * @ClassName:  DealMapper   
+ * @Description:成交管理持久服务  
+ * @author: yangz
+ * @date:   2018年6月21日 上午9:43:08   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface DealMapper {
+
+	/**
+	 * @Description: 根据成交id获取成交信息  
+	 * @param dealId 成交id
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getDeals(@Param("dealId")String dealId);
+	
+	/**
+	 * @Description: 条件查询成交信息   
+	 * @param params 查询信息的条件
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryDeals(Map<String,Object> params);
+
+	/**     
+	 * @Description: 根据成交编号查询中介类分成信息  
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	public List<Map<String, Object>> queryDividenInfos(@Param("dealId")String dealId);
+}

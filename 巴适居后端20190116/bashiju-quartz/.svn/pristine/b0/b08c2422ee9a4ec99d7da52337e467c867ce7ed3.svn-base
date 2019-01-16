@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.GetScheduleJobs">
+
+<!--设置ScheduleJob类和数据库中表的字段一一对应，注意数据库字段和ScheduleJob类中的字段名称不一致，此处一定要！-->
+    <resultMap id="ScheduleJob" type="com.bashiju.quartz.pojo.ScheduleJob">
+        <id column="id" property="jobId" jdbcType="INTEGER" />
+        <result column="job_name" property="jobName" jdbcType="CHAR" />
+        <result column="job_group" property="jobGroup" jdbcType="CHAR" />
+        <result column="job_status" property="isValid" jdbcType="CHAR" />
+        <result column="cron_expression" property="cronExpression" jdbcType="CHAR" />
+        <result column="description" property="description" jdbcType="CHAR" />
+        <result column="target_object" property="targetObject" jdbcType="CHAR" />
+        <result column="target_method" property="targetMethod" jdbcType="CHAR" />
+        <result column="is_spring_bean" property="isSpringBean" jdbcType="CHAR" />
+        <result column="clazz" property="clazz" jdbcType="CHAR" />
+        <result column="concurrent" property="concurrent" jdbcType="CHAR" />
+        <result column="child_jobs" property="childJobs" jdbcType="CHAR" />
+    </resultMap>
+    
+	<select id="getAllScheduleJobs" resultMap="ScheduleJob">
+			SELECT * FROM job
+	</select>
+	
+	<select id="getScheduleJobById" parameterType="INTEGER" resultMap="ScheduleJob">
+			SELECT 
+					ID,JOB_NAME,JOB_STATUS,CRON_EXPRESSION,CONCURRENT,DESCRIPTION,JOB_GROUP,
+						TARGET_OBJECT,TARGET_METHOD,IS_SPRING_BEAN,CLAZZ,CHILD_JOBS
+						 FROM job WHERE ID =#{id}
+	</select>
+	
+	<select id="getChildsJobByMainJobName" parameterType="String" resultMap="ScheduleJob">
+			SELECT CHILD_JOBS FROM JOB WHERE JOB_NAME =#{job_name};
+	</select>
+
+</mapper>

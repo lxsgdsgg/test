@@ -1,0 +1,66 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerPersonInfoPageServiceApi.java   
+ * @Package com.bashiju.wapi.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:16:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.wapi.usercentral;
+
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+
+/**
+ * 个人信息页面服务接口（将实现：个人注册信息读取、修改手机号码、修改密码功能）
+ * @ClassName:ICustomerPersonInfoPageServiceApi
+ * @Description:个人信息页面服务接口（将实现：个人注册信息读取、修改手机号码、修改密码功能）
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:16:36
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerPersonInfoPageServiceApi {
+	/**
+	 * 读取客户个人注册信息
+	 * @Title: queryCustomerPersonalInfo
+	 * @author: zuoyuntao  
+	 * @Description:读取客户个人注册信息
+	 * @param key
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryCustomerPersonalInfo(String key);
+	/**
+	 * 修改客户信息 
+	 * @Title: modifyCustomerInfo
+	 * @author: zuoyuntao  
+	 * @param key 客户登陆标记
+	 * @Description:修改客户信息
+	 * @param custEntity 可用户个人注册信息
+	 * void
+	 */
+	public void modifyCustomerInfo(String key,CustCustomerEntity custEntity);
+	/**
+	 * 修改密码 
+	 * @Title: modifyPassword
+	 * @author: zuoyuntao  
+	 * @Description:修改密码
+	 * @param key 用户登陆标记
+	 * @param password      
+	 * void JSON
+	 */
+	public void modifyPassword(String key,String password);
+	/**
+	 * 获取手机验证码
+	 * @Title: queryPhoneVerifyCode
+	 * @author: zuoyuntao  
+	 * @Description:获取手机验证码
+	 * @param mobile 手机号码
+	 * @return      
+	 * String 
+	 */
+	public void queryPhoneVerifyCode(String mobile);
+}

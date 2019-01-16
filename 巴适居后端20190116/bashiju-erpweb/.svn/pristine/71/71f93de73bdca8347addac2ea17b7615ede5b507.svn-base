@@ -1,0 +1,145 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="form" class="demo-form-inline">
+          <el-form-item label="部门">
+            <el-input v-model="form.deptName" placeholder="部门名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary">查询</el-button>
+            <el-button>重置</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+
+    <div class="page-content-bd">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="deptTypeName"
+          align="center"
+          label="角色名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="createDate"
+          align="center"
+          label="新增日期">
+        </el-table-column>
+
+        <el-table-column
+          prop="editDate"
+          align="center"
+          label="更新日期">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button @click="handleEdit" type="text" size="small">编辑</el-button>
+            <el-button @click="handleDelete" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+    </div>
+    <el-dialog
+      title="职位编辑"
+      :visible.sync="editDialogVisible"
+      width="400px">
+      <el-form :model="editForm" :rules="rules" ref="editForm" label-width="100px">
+        <el-form-item label="职位名称" prop="name" placeholder="请填写部门类型名称">
+          <el-input v-model="editForm.name"></el-input>
+        </el-form-item>
+
+        <el-form-item class="margin-b-none">
+          <el-button type="primary" @click="handleSubmit">确认</el-button>
+          <el-button @click="handleCancel">取消</el-button>
+        </el-form-item>
+
+      </el-form>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'deptType',
+  data () {
+    return {
+      form: {
+        deptName: ''
+      },
+      editForm: {
+        name: '',
+        parentDept: ''
+      },
+      rules: {
+        name: [
+          {required: true, message: '请输入职位类型名称', trigger: 'blur'}
+        ]
+      },
+      tableData: [
+        {
+          deptTypeName: '部门经理',
+          createDate: '2018-07-21',
+          editDate: '2018-07-22'
+        },
+        {
+          deptTypeName: '经纪人',
+          createDate: '2018-07-21',
+          editDate: '2018-07-22'
+        }
+      ],
+      editDialogVisible: false
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.editDialogVisible = true
+    },
+    handleEdit () {
+      this.editDialogVisible = true
+    },
+    handleDelete () {
+      this.$confirm('确定删除该职位？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    handleCancel () {
+      this.editDialogVisible = false
+    },
+    handleSubmit () {
+      this.editDialogVisible = false
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

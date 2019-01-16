@@ -1,0 +1,75 @@
+package com.bashiju.customer.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.customer.mapper.CustFollowRecordMapper;
+import com.bashiju.customer.service.CustFollowRecordService;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  CustFollowRecordServiceImpl   
+ * @Description:客源跟进记录服务
+ * @author: wangpeng
+ * @date:   2018年6月13日 下午2:25:13   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="客源跟进记录服务")
+public class CustFollowRecordServiceImpl implements CustFollowRecordService {
+	@Autowired
+	private CustFollowRecordMapper custFollowRecordMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryCustFollowRecordData</p>   
+	 * <p>Description: 查询客源跟进记录</p>   
+	 * @param transactionType 交易类型
+	 * @param followTypeName 跟进方式
+	 * @param followType 跟进类型
+	 * @param followerId 跟进人
+	 * @param custIdAndFollowfollower
+	 * @param operatorId 维护人
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param pageNum
+	 * @param pageSize
+	 * @return   
+	 * @see com.bashiju.customer.service.CustFollowRecordService#queryCustFollowRecordData(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询客源跟进记录")
+	public Page<Map<String, Object>> queryCustFollowRecordData(String transactionType,String followTypeName,String followType,String followerId,String custIdAndFollowfollower,String operatorId,String beginTime,String endTime,int pageNum,int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		dataAuthHelper.auth(MenusEnum.MENU_217.getValue(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>>pages=custFollowRecordMapper.queryCustFollowRecordData(transactionType, followTypeName, followType, followerId,custIdAndFollowfollower,operatorId, beginTime, endTime);
+		return pages;
+	}
+	/**
+	 * 
+	 * <p>Title: queryCustFollowRecordByCustId</p>   
+	 * <p>Description: 通过客源id查询客源跟进记录</p>   
+	 * @param custId 客源id
+	 * @param pageNum
+	 * @param pageSize
+	 * @return   
+	 * @see com.bashiju.customer.service.CustFollowRecordService#queryCustFollowRecordByCustId(java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="通过客源id查询客源跟进记录")
+	public Page<Map<String, Object>> queryCustFollowRecordByDemandId(String demandId,int pageNum, int pageSize) {
+		Page<Map<String,Object>>custs=custFollowRecordMapper.queryCustFollowRecordByDemandId(demandId);
+		return custs;
+	}
+
+}

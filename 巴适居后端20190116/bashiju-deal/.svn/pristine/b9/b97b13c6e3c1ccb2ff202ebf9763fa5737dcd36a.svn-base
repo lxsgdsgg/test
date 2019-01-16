@@ -1,0 +1,93 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealActionLogQueryServiceImpl.java   
+ * @Package com.bashiju.deal.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年11月30日 下午4:05:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.deal.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealActionLogQueryMapper;
+import com.bashiju.deal.service.IDealActionLogQueryService;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 成交操作日志查询服务实现类
+ * @ClassName:DealActionLogQueryServiceImpl
+ * @Description:成交操作日志查询服务实现类
+ * @author:zuoyuntao
+ * @date:2018年11月30日 下午4:05:39
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class DealActionLogQueryServiceImpl implements IDealActionLogQueryService{
+	/**
+	 * 持久层接口对象
+	 */
+	@Autowired
+	private DealActionLogQueryMapper mDealActionLogQueryMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * <p>Title: auxDealActionLogPageList</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param paramMap 参数对象
+	 * @return   
+	 * @see com.bashiju.deal.service.IDealActionLogQueryService#queryDealActionLogPageList(int, int, java.lang.String, java.util.Map)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxDealActionLogPageList(int page, int limit,
+			Map<String, Object> paramMap) {
+		PageHelper.startPage(page,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_116.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) mDealActionLogQueryMapper.auxDealActionLogPageList(paramMap);
+	}
+
+	/**
+	 * <p>Title: auxDealActionLogByDealId</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param dealId 成交编号
+	 * @return   
+	 * @see com.bashiju.deal.service.IDealActionLogQueryService#queryDealActionLogByDealId(int, int, java.lang.String)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxDealActionLogByDealId(int page, int limit, String dealId) {
+		PageHelper.startPage(page,limit);
+		Page<Map<String, Object>> retPage = (Page<Map<String, Object>>) mDealActionLogQueryMapper.auxDealActionLogByDealId(dealId);
+		return retPage;
+	}
+
+	/**
+	 * <p>Title: auxDealActionLogByDealType</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param dealType 成交类型
+	 * @return   
+	 * @see com.bashiju.deal.service.IDealActionLogQueryService#queryDealActionLogByDealType(int, int, java.lang.String)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxDealActionLogByDealType(int page, int limit, String dealType) {
+		PageHelper.startPage(page,limit);
+		return (Page<Map<String, Object>>) mDealActionLogQueryMapper.auxDealActionLogByDealType(dealType);
+	}
+
+}

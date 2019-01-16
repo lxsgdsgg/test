@@ -1,0 +1,182 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseRequestEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 上午11:03:35   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 客户房源需求实体类
+ * @ClassName:CustomerHouseRequestEntity
+ * @Description:客户房源需求实体类
+ * @author:zuoyuntao
+ * @date:2018年7月26日 上午11:03:35
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerHouseRequestEntity{
+	/**
+	 * 主键ID
+	 */
+	private String id;
+	/**
+	 * 需求类型--求租/求购	
+	 */
+	private String transactionTypeId;
+	/**
+	 * 需求类型--求租/求购
+	 */
+	private String transactionType;
+	/**
+	 * 发布时间
+	 */
+	private String releaseTime;
+	/**
+	 * 需求编号
+	 */
+	private String custId;
+	/**
+	 * 客户标题
+	 */
+	private String titles;
+	/**
+	 * 客户名称
+	 */
+	private String custName;
+	/**
+	 * 客户称呼
+	 */
+	private String custCallType;
+	/**
+	 * 区域编码
+	 */
+	private String areaCode;
+	/**
+	 * 区域名称
+	 */
+	private String areaName;
+	/**
+	 * 片区ID
+	 */
+	private String regionId;
+	/**
+	 * 片区名称
+	 */
+	private String regionName;
+	/**
+	 * 小区ID
+	 */
+	private String communityId;
+	/**
+	 * 小区名称
+	 */
+	private String communityName;
+	/**
+	 * 房屋用途ID，多个要求用逗号隔开
+	 */
+	private String houseUsesIds;
+	/**
+	 * 房屋用途。多个要求用逗号隔开
+	 */
+	private String houseUses;
+	/**
+	 * 最小房间要求
+	 */
+	private int minRoom;
+	/**
+	 * 最大房间要求
+	 */
+	private int maxRoom;
+	/**
+	 * 最低价格
+	 */
+	private int minPrice;
+	/**
+	 * 最高价格
+	 */
+	private int maxPrice;
+	/**
+	 * 最小面积
+	 */
+	private int minSpace;
+	/**
+	 * 最大面积
+	 */
+	private int maxSpace;
+	/**
+	 * 最低楼层
+	 */
+	private int minFloorCount;
+	/**
+	 * 需求最大楼层
+	 */
+	private int maxFloorCount;
+	/**
+	 * 最早建筑年代
+	 */
+	private int minBuildDates;
+	/**
+	 * 最晚建筑年代
+	 */
+	private int maxBuildDates;
+	/**
+	 * 装修ID
+	 */
+	private String decorationIds;
+	/**
+	 * 装修
+	 */
+	private String decoration;
+	/**
+	 * 周边配套（多个需求用逗号隔开）
+	 */
+	private String matchingIds;
+	/**
+	 * 周边配套需求
+	 */
+	private String matching;
+	/**
+	 * 房屋朝向ID
+	 */
+	private String orientationId;
+	/**
+	 * 房屋朝向
+	 */
+	private String orientation;
+	/**
+	 * 房屋类型ID，多个房屋类型用逗号隔开
+	 */
+	private String houseTypeIds;
+	/**
+	 * 房屋类型，多个房屋类型用逗号隔开
+	 */
+	private String houseType;
+	/**
+	 * 是否学区房
+	 */
+	private int isSchoolRoom;
+	/**
+	 * 是否全款
+	 */
+	private int isFullAmount;
+	/**
+	 * 是否急切
+	 */
+	private int isUrgent;
+	/**
+	 * 全员跟进时间
+	 */
+	private String allFollowTime;
+	/**
+	 * 最后带看时间
+	 */
+	private String lastShowedTime;
+}

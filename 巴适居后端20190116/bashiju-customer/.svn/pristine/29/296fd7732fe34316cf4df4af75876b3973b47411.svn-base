@@ -1,0 +1,1202 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+    <% request.setAttribute("staticfile_url", "/src");%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>表格实例</title>
+<%@include file="/common/common.jsp" %> 
+
+
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/bootstrap-3.3.7/css/bootstrap.min.css" >
+
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/datatables/media/css/dataTables.bootstrap.min.css" >
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/easyform/easyform.css" >
+<%-- <link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/laydate/theme/default/laydate.css" > --%>
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/manage-platform/css/MultiSelection.css" >
+<style type="text/css">
+.checkboxDiv{
+	margin:20px;
+}
+.checkboxDiv ul{
+	min-height:150px;
+}
+.checkboxDiv li{
+	min-width:120px;
+	
+}
+.input-xs {
+    height: 24px;
+    padding: 2px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    float:left;
+}
+ul.list-inline{
+	margin-top:6px;
+}
+.list-inline li{
+	font-size: 12px;
+}
+.list-inline>li {
+    display: inline-block;
+    padding-right: 2px;
+    padding-left: 2px;
+}
+.operator {
+	margin-top:10px;
+	border: 1px solid transparent;
+	border-color:#ccc;
+	border-left: 0;
+	border-right: 0;
+}
+.operator .btn{
+	width:100px;
+	border-radius: 0px;
+	border-top:0;
+	border-bottom:0;
+}
+
+.tooltip {
+margin-top:-4px;
+    position: relative;
+    z-index: 1070;
+    display:inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: left;
+    text-align: start;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
+    word-break: normal;
+    word-spacing: normal;
+    word-wrap: normal;
+    white-space: normal;
+    filter: alpha(opacity=0);
+    opacity: 1; 
+    line-break: auto;
+}
+.tooltip.right .tooltip-arrow {
+    top: 50%;
+    left: 0;
+    margin-top: -5px;
+    border-width: 5px 5px 5px 0;
+    border-right-color: #1E9FFF;
+}
+.tooltip-inner {
+    max-width: 500px;
+    padding: 1px 8px;
+    color:#333;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 4px;
+    border: 1px solid #1E9FFF;
+}
+
+.activeStaus {
+	color:red !important;
+}
+
+.checkbox input[type=checkbox] , .multiCheckbox input[type=checkbox]{
+    position: absolute !important;
+    margin-left: -16px !important;
+}
+.checkbox label{
+	min-width:50px;
+}
+
+.multiCheckbox li{
+	padding-left:20px;
+}
+.input-group-addon{
+	padding:0;
+}
+.lower,.upper{
+	width:80px !important;
+	height:30px;
+	
+}
+.lower{
+	margin-left:10px;	
+}
+.upper{
+	margin-right:10px;
+}
+.rangeInput {
+	width:120px;
+}
+.rangeDiv{
+	display: inline-block;
+	float:left;
+}
+.rangeDiv .dropdown-menu{
+	min-width:220px;
+}
+.queryData{
+	display:inline-block;
+	width:150px !important;
+}
+.queryItem li a{
+	display:inline;
+	line-height: 2;
+}
+.jiantou{
+	float:right;
+	padding-right:10px;
+}
+.queryCondition{
+	border: 1px solid #ccc;
+    border-radius: 3px;  
+}
+.queryInput{ 
+	border:0;
+	height:22px;
+}
+.childItem{
+	border: 1px solid #fff;
+    border-radius: 10px;
+    background-color: #d2d2d2;
+    padding: 1px 5px;
+    float: left;
+    font-size:12px;
+   	color:#444;
+}
+.closeItem {
+    float: right;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    color: red;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=20);
+    opacity: .5;
+    padding-left: 5px;
+}
+.closeItem:hover{
+	color: #333;
+	cursor: pointer;
+}
+#xiaoqu , #needArea{
+	border: 1px solid #ccc;
+    border-radius: 3px; 
+    height:24px;
+    font-size: 12px;
+    color: #c2c2c2;
+    float:left;
+    min-width:300px;
+}
+.more li{
+	width:400px;
+	margin:6px;
+	float:left;
+}
+.more li select{
+	margin-left:10px;
+}
+.moreItem{
+	float:none !important;
+}
+.moreDate{
+	width: 120px !important;
+    float: none;
+}
+.form-horizontal .form-group {
+    margin-right: 0px; 
+    margin-left: 0px; 
+}
+.bitian{
+	color:red;
+	margin-right:2px;
+}
+.suffix{
+	color:#ccc;
+	border:1px solid #ccc;
+	border-left:0;
+	float: left;
+	height: 24px;
+    padding-top: 1px;
+}
+.prefix{
+	border-right:0;
+	float: left;
+}
+#addDetailForm input, #addDetailForm select{
+	height: 24px !important;
+	padding:0px !important;
+}
+
+#addDetailForm label{
+	padding-top:2px;
+	font-size:12px;
+	font-weight: 500;
+}
+#addDetailForm label.check{
+	float:left;
+	margin-left:20px;
+	cursor: pointer;
+	font-size:12px;
+	font-weight: 500;
+	padding-top:2px;
+}
+#addDetailForm label input[type=checkbox]{
+	position: absolute;
+    margin: 0 -15px;
+}
+.form-group {
+    margin-bottom: 10px;
+}
+.custom-inline li{
+	display: inline-block;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+.custom-inline li input{
+	margin-left: 10px;
+}
+#showHouses tbody tr :hover{
+	background-color: #01AAED;
+	cursor: pointer;
+}
+.ulItem{
+	margin-top:0px;
+}
+</style>
+</head>
+<body>
+
+<div >	
+<div class="title-text" style="margin:10px;font-size:16px;font-weight:800;"></div>
+<c:if test="${type=='exchange'}">
+	<form id="firstData" class="form-horizontal" style="margin:20px 0;">
+			<input type="hidden" name="transactionTypeId">
+		    <div class="form-group form-group-sm">
+		    <div class="form-inline">
+		    	<label  class="col-sm-3 control-label"><span class="bitian">*</span>公私盘</label>
+			    <div class="col-sm-9">
+				 <input type="hidden" name="discStatus">
+				 <select class="form-control oneselect" name="discStatusId" style="float:left;">
+					  <option value="2">公盘</option>
+					   <option value="1">私盘</option>
+				 </select>
+				 <button type="button" class="btn btn-link">我的私客</button>
+			    </div>
+		    
+		    </div>
+		  </div>
+		  
+		  <div class="form-group form-group-sm">
+		    <div class="form-inline">
+		    	<label  class="col-sm-3 control-label"><span class="bitian">*</span>客户姓名</label>
+			    <div class="col-sm-7">
+			      <input type="text" id="custName" name="custName" class="form-control pull-left" style="width:100px;" data-easytip="position:top;" data-easyform="length:2 6;" data-message="姓名长度必须为2-6">
+				 <select id="relateTypeId" name="relateTypeId" class="form-control" style="float:left;">
+					  <option value="1">先生</option>
+					  <option value="2">女士</option>
+					  <option value="3">公司</option>
+				 </select>
+			    </div>
+		    
+		    </div>
+		  </div>
+		  
+		  <div class="form-group form-group-sm">
+		    <div class="form-inline">
+		    	<label  class="col-sm-3 control-label"><span class="bitian">*</span>电话</label>
+			    <div class="col-sm-7">
+			      <input type="text" name="phone" class="form-control pull-left" style="width:100px;" data-easytip="position:top;" data-easyform="length:7 16;char-normal;" data-message="电话格式错误">
+				 <input type="hidden" name="relateName">
+				 <select  name="relateType" class="form-control" style="float:left;">
+					  <option value="1" >本人</option>
+					  <option value="2">配偶</option>
+					  <option value="3">亲戚</option>
+					  <option value="4">朋友</option>
+					  <option value="5">授权委托人</option>
+				 </select>
+			    </div>
+		    
+		    </div>
+		  </div>
+		  <div class="form-group form-group-sm">
+		  <div class="form-inline">
+			  <label  class="col-sm-4 control-label" style="color:red;font-size:12px;">* 固话与区号间请用"-"分隔，例如:022-8888888</label>
+			  <div class="col-sm-8">
+			  </div>
+		  </div>
+		  </div>
+		  
+		  <div class="form-group form-group-sm">
+		    <div class="form-inline col-sm-10 text-center">
+		    	<button id="nextBtn" type="button" class="btn ">下一步</button>
+		    	<button type="button" class="btn btn-link">取消</button>
+		    </div>
+		   </div>
+	</form>
+</c:if>
+<!-- 第二页开始 -->
+<div class="secondPage hidden">
+<form id="demandData" class="form-horizontal" style="margin:20px 0;">
+	<input type="hidden" name="demandId">
+	<div class="form-group form-group-sm">
+	    <div class="form-inline">
+	    	<div class="col-sm-3" style="padding-right:0;padding-left:0;">
+			    <div class="form-inline">
+			    	<label  class="col-sm-4 control-label" style="padding-left:0;"><span class="bitian">*</span>客户姓名</label>
+				    <div class="col-sm-7" style="padding-right:0;padding-left:0;">
+				      <input type="text" name="custName" class="form-control pull-left" style="width:80px;" >
+					   <input type="hidden" name="relateTypeName">
+					 <select name="relateTypeId" class="form-control" style="float:left;">
+						  <option value="1">先生</option>
+						  <option value="2">女士</option>
+						  <option value="3">公司</option>
+					 </select>
+				    </div>
+			    
+			    </div>
+			  </div>
+			  <div class="col-sm-6">
+			  	<label  class="pull-left control-label"><span class="bitian">*</span>需求区域&nbsp;</label>
+			    	<div  id="needArea" class="col-sm-8">
+				      <span id="needAreaTitle">选择行政区、片区、小区(可多选)</span>
+				    </div>
+			  </div>
+		    <div class="col-sm-3">
+		    <label  class="pull-left control-label"><span class="bitian">*</span>用途</label>
+	    	<div class="col-sm-9">
+	    		<div  class="dropdown rangeDiv addFormItem">
+					<div class="input-group rangeInput ">
+						<input type="hidden" name="houseUsesIds">
+						<input type="text" name="houseUses" class="form-control pull-left" style="background-color: #fff;" readonly >
+						<div class="input-group-addon">▼</div>
+					</div>
+					<ul class="dropdown-menu  multiCheckbox addFormUl" style="min-width:120px;">
+					<c:forEach var="item" items="${houseList}">
+						<li class="addFormLi" ><label><input  type="checkbox" value="${item.value}">${item.name}</label></li>
+					</c:forEach>
+					</ul>
+				</div>		      
+		    </div>
+		    </div>
+	    </div>
+	  </div>
+	  
+	  <div class="form-group form-group-sm">
+	    <div class="form-inline">
+	    	<div class="col-sm-3">
+	    	<div id="room" class="dropdown rangeDiv">
+	    			<label  class="pull-left control-label"><span class="bitian">*</span>需求户型</label>
+				  <div class="input-group rangeInput" style="margin-left:10px;">
+				      <input type="text"  class="form-control pull-left input" style="background-color: #fff;" readonly >
+				      <div class="input-group-addon">▼</div>
+				    </div>
+				  <ul class="dropdown-menu" >
+				    <li>
+				    <input type="number" name="minRoom" class="form-control lower"  placeholder="0">
+				    ——
+				    <input type="number" name="maxRoom" class="form-control upper"  placeholder="不限">
+				    </li>
+				    <li  class="divider"></li>
+				  </ul>
+				</div>	
+	    	</div>
+	    	
+		    <div class="col-sm-3">
+		    	<div id="price" class="dropdown rangeDiv">
+	    			<label  class="pull-left control-label"><span class="bitian">*</span>需求价格</label>
+				  <div class="input-group rangeInput" style="margin-left:10px;">
+				      <input type="text"  class="form-control pull-left input" style="background-color: #fff;" readonly   >
+				      <div class="input-group-addon">▼</div>
+				    </div>
+				  <ul class="dropdown-menu" >
+				    <li>
+				    <input name="minPrice" type="number" class="form-control lower"  placeholder="0">
+				    ——
+				    <input name="maxPrice" type="number" class="form-control upper"  placeholder="不限">
+				    </li>
+				    <li  class="divider"></li>
+				  </ul>
+				</div>
+		    </div>
+		    
+		    <div class="col-sm-3">
+		    	<div  id="space" class="dropdown rangeDiv">
+	    			<label  class="pull-left control-label"><span class="bitian">*</span>需求面积</label>
+				  <div class="input-group rangeInput" style="margin-left:10px;">
+				      <input type="text"  class="form-control pull-left input" style="background-color: #fff;" readonly   >
+				      <div class="input-group-addon">▼</div>
+				    </div>
+				  <ul class="dropdown-menu" >
+				    <li>
+				    <input name="minSpace" type="number" class="form-control lower"  placeholder="0">
+				    ——
+				    <input name="maxSpace" type="number" class="form-control upper"  placeholder="不限">
+				    </li>
+				    <li  class="divider"></li>
+				  </ul>
+				</div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label class="check"><input name="isUrgent" type="checkbox" value="1">急切</label>
+		    	<label class="check"><input name="isFullAmount" type="checkbox" value="1">全款</label>
+		    </div>
+	    </div>
+	  </div>
+	  
+	  <div class="form-group form-group-sm">
+	  	<div class="form-inline">
+	  	<div class="col-sm-3">
+		    	<div id="floorCount" class="dropdown rangeDiv">
+	    			<label  class="pull-left control-label"><span class="bitian">*</span>需求楼层</label>
+				 <div class="input-group rangeInput" style="margin-left:10px;">
+				      <input type="text"  class="form-control pull-left input" style="background-color: #fff;" readonly   >
+				      <div class="input-group-addon">▼</div>
+				    </div>
+				  <ul class="dropdown-menu" >
+				    <li>
+				    <input name="minFloorCount" type="number" class="form-control lower"  placeholder="0">
+				    ——
+				    <input name="maxFloorCount"  type="number" class="form-control upper"  placeholder="不限">
+				    </li>
+				    <li  class="divider"></li>
+				  </ul>
+				</div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label"><span class="bitian">*</span>朝向</label>
+		    	<div class="col-sm-9">
+		    		<div  class="dropdown rangeDiv addFormItem">
+						<div class="input-group rangeInput ">
+							<input type="hidden" name="orientationId">
+							<input type="text" name="orientation" class="form-control pull-left" style="background-color: #fff;" readonly >
+							<div class="input-group-addon">▼</div>
+						</div>
+						<ul class="dropdown-menu  multiCheckbox addFormUl" style="min-width:120px;">
+							 <li class="addFormLi" ><label><input data-value="1" type="checkbox" value="1">东</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="2">南</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="3">西</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="4">北</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="5">东西</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="6">南北</label></li>
+							     <li class="addFormLi"><label><input data-value="1" type="checkbox" value="7">东南</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="8">西南</label></li>
+							     <li class="addFormLi"><label><input data-value="1" type="checkbox" value="9">东北</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="10">西北</label></li>
+						</ul>
+					</div>		      
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<div id="buildDates" class="dropdown rangeDiv">
+	    			<label  class="pull-left control-label"><span class="bitian">*</span>需求房龄</label>
+				  <div class="input-group rangeInput" style="margin-left:10px;">
+				      <input type="text"  class="form-control pull-left input" style="background-color: #fff;" readonly >
+				      <div class="input-group-addon">▼</div>
+				    </div>
+				  <ul class="dropdown-menu" >
+				    <li>
+				    <input type="number" name="minBuildDates" class="form-control lower"  placeholder="0">
+				    ——
+				    <input type="number" name="maxBuildDates" class="form-control upper"  placeholder="不限">
+				    </li>
+				    <li  class="divider"></li>
+				  </ul>
+				</div>	
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label"><span class="bitian">*</span>装修</label>
+		    	<div class="col-sm-9">
+		    		<div  class="dropdown rangeDiv addFormItem">
+						<div class="input-group rangeInput ">
+							<input type="hidden" name="decorationIds">
+							<input type="text" name="decoration" class="form-control pull-left" style="background-color: #fff;" readonly >
+							<div class="input-group-addon">▼</div>
+						</div>
+						<ul class="dropdown-menu  multiCheckbox addFormUl" style="min-width:120px;">
+							 <li class="addFormLi" ><label><input data-value="1" type="checkbox" value="1">毛坯</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="2">简装</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="3">普装</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="4">精装</label></li>
+							    <li class="addFormLi"><label><input data-value="1" type="checkbox" value="5">豪装</label></li>
+						</ul>
+					</div>		      
+			    </div>
+		    </div>
+		    </div>
+	  </div>
+	  
+	  <div class="form-group form-group-sm">
+		  <div class="col-sm-6">
+			    	<label  class="pull-left control-label">配套</label>
+		    	<div class="col-sm-8">	    	
+				 <div  class="dropdown rangeDiv addFormItem">
+					<div class="input-group rangeInput">
+						<input type="hidden" name="matchingIds">
+						<input type="text" name="matching" class="form-control pull-left" style="width:400px;background-color: #fff;" readonly >
+						<div class="input-group-addon">▼</div>
+					</div>
+					<ul class="dropdown-menu  multiCheckbox addFormUl" >
+						<li class="addFormLi" ><label><input  type="checkbox" value="1">床</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="2">衣柜</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="3">空调</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="4">冰箱</label></li>
+					</ul>
+				</div>
+			    </div>
+			 </div>
+			 <div class="col-sm-6">
+		    	<label  class="pull-left control-label">需求原因</label>
+		    	<input name="reason" type="text" class="form-control pull-left" style="width:400px;" >
+		    </div>
+	  </div>
+	<div class="form-group form-group-sm">
+		<div class="col-sm-6">
+		    	<label  class="pull-left control-label"><span class="bitian">*</span>推荐标签</label>
+		    	<div class="col-sm-9">
+		    		<div  class="dropdown rangeDiv addFormItem">
+						<div class="input-group rangeInput ">
+							<input type="text" name="labeld" class="form-control pull-left" style="width:300px;background-color: #fff;" readonly >
+							<div class="input-group-addon">▼</div>
+						</div>
+						<ul class="dropdown-menu  multiCheckbox addFormUl" >
+							<li class="addFormLi" ><label><input  type="checkbox" value="1">满五年</label></li>
+							<li class="addFormLi"><label><input  type="checkbox" value="2">学区房</label></li>
+							<li class="addFormLi"><label><input  type="checkbox" value="3">地铁房</label></li>
+							<li class="addFormLi"><label><input  type="checkbox" value="4">满两年</label></li>
+						</ul>
+					</div>		      
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label"><span class="bitian">*</span>房屋类型</label>
+		    	<div class="col-sm-8">		    	
+				  <div  class="dropdown rangeDiv addFormItem">
+					<div class="input-group rangeInput ">
+						<input type="hidden" name="houseTypeIds">
+						<input type="text" name="houseType" class="form-control pull-left" style="width:110px;background-color: #fff;" readonly >
+						<div class="input-group-addon">▼</div>
+					</div>
+					<ul class="dropdown-menu  multiCheckbox addFormUl" >
+						<li class="addFormLi" ><label><input  type="checkbox" value="1">低层</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="2">高层</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="3">多层</label></li>
+					</ul>
+				</div>
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label class="check"><input name="one" type="checkbox" value="1">一手</label>
+		    	<label class="check"><input name="two" type="checkbox" value="1">二手</label>
+		    </div>
+	</div>  
+	</form>
+	<hr>
+	<form id="customerData" class="form-horizontal" style="margin:20px 0;">
+	<div class="form-group form-group-sm">
+		<div class="col-sm-3">
+		    	<label  class="pull-left control-label "><span class="bitian">*</span>沟通阶段</label>
+		    	<div class="col-sm-8">
+		    	<input type="hidden" name="communicateStage">
+			      <select  class="form-control oneselect" style="" name="communicateStageId">
+					  <option value="1">客户接待</option>
+					  <option value="2">信息匹配</option>
+					  <option value="3">首次带看</option>
+					  <option value="4">二次带看</option>
+					  <option value="5">守价阶段</option>
+					  <option value="6">杀价阶段</option>
+					  <option value="7">逼定阶段</option>
+					  <option value="8">签订合同</option>
+				 </select>
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label"><span class="bitian">*</span>来源</label>
+		    	<div class="col-sm-8">
+		    	<input type="hidden" name="sourceType">
+			      <select class="form-control oneselect" style="" name="sourceTypeId">
+					  <option value="1">上门</option>
+					  <option value="2">电话</option>
+					  <option value="3">公司网站</option>
+				 </select>
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+			    	<label  class="pull-left control-label">消费理念</label>
+		    	<div class="col-sm-8">		    	
+				  <div  class="dropdown rangeDiv addFormItem">
+					<div class="input-group rangeInput ">
+						<input type="hidden" name="consumptIdeaId">
+						<input type="text" name="consumptIdeaName" class="form-control pull-left" style="width:110px;background-color: #fff;" readonly >
+						<div class="input-group-addon">▼</div>
+					</div>
+					<ul class="dropdown-menu  multiCheckbox addFormUl" >
+						<li class="addFormLi" ><label><input  type="checkbox" value="1">生存型消费</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="2">发展型消费</label></li>
+						<li class="addFormLi"><label><input  type="checkbox" value="3">享受型消费</label></li>
+					</ul>
+				</div>
+			    </div>
+			    </div>
+			    <div class="col-sm-3">
+			    	<label  class="pull-left control-label">国籍</label>
+			    	<div class="col-sm-8">
+			    	<input type="hidden" name="censusRegister">
+				      <select  class="form-control oneselect" name="censusRegisterId">
+						 <option value="1">中国大陆</option>
+					  	<option value="2">中国香港</option>
+					  	<option value="3">中国澳门</option>
+					  	<option value="4">中国台湾</option>
+					  	<option value="5">外国</option>
+					 </select>
+				    </div>
+			    </div>
+	</div>	
+  
+	<div class="form-group form-group-sm">
+		<div class="col-sm-3">
+		    	<label  class="pull-left control-label">名族</label>
+			    	<div class="col-sm-8">
+			    	<input type="hidden"  name="nations">
+				      <select  class="form-control oneselect" name="nationsId">
+						 <option value="1">汉族</option>
+					  	<option value="2">回族</option>
+					  	<option value="3">满族</option>
+					  	<option value="4">朝鲜族</option>
+					  	<option value="5">其他族</option>
+					 </select>
+				    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label">证件号码</label>
+		    	<div class="col-sm-8">
+			      <input name="IDCard" type="text" class="form-control pull-left " style="width:100px;" >
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label">邮箱</label>
+		    	<div class="col-sm-8">
+			      <input name="email" type="text" class="form-control pull-left " style="width:100px;" >
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label">QQ</label>
+		    	<div class="col-sm-8">
+			      <input name="qqNum" type="text" class="form-control pull-left " style="width:100px;">
+			    </div>
+		    </div>
+	</div> 
+		<div class="form-group form-group-sm">
+		<div class="col-sm-3">
+		    	<label  class="pull-left control-label">微信</label>
+		    	<div class="col-sm-8">
+			      <input name="wxNum" type="text" class="form-control pull-left " style="width:100px;" >
+			    </div>
+		    </div>
+		<div class="col-sm-3">
+		    	<label  class="pull-left control-label">交通工具</label>
+			    	<div class="col-sm-8">
+			    	<input type="hidden" name="vehicle">
+				      <select  class="form-control oneselect" name="vehicleId" >
+						 <option value="1">自行车</option>
+					  	<option value="2">电动车</option>
+					  	<option value="3">汽车</option>
+					  	<option value="4">步行</option>
+					 </select>
+				    </div>
+		    </div>
+		    
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label">车型</label>
+		    	<div class="col-sm-8">
+			      <input name="carType" type="text" class="form-control pull-left " style="width:100px;" >
+			    </div>
+		    </div>
+		    <div class="col-sm-3">
+		    	<label  class="pull-left control-label">客源等级</label>
+		    	<div class="col-sm-8">
+			      <input name="levelType" type="text" class="form-control pull-left " readOnly style="width:100px;background-color: #fff;" >
+			    </div>
+		    </div>
+	</div>
+	<hr>  
+	<div class="form-group form-group-sm">
+			<div class="col-sm-12">
+			    	<label  class="pull-left control-label"><span class="bitian">*</span>备注</label>
+			    	<div class="col-sm-11">
+				      <input type="text" name="remark" class="form-control pull-left" style="width:900px;" >
+				    </div>
+			    </div>
+	</div>
+	</form>   
+	<form id="customData" class="form-horizontal" style="margin:20px 0;">
+		<div>
+			<ul class="custom-inline">
+			 <c:if test='${! empty customField}'>
+				 <c:forEach var="item" items="${customField}">
+						<li>
+							<label  class="pull-left control-label">
+							<c:if test='${item.fieldRequired!=null&&item.fieldRequired=="required"}'>
+							<span class="bitian">*</span>
+							</c:if>
+							${item.title}</label>
+						      <input  type="text" name="${item.field}"   class="form-control pull-left customColumn" value="" style="width:100px;" >
+						</li>
+				 </c:forEach>
+			 </c:if>
+			</ul>
+		</div>	     		     
+		
+	</form>
+	<!-- <div class="form-group form-group-sm">
+		<div class="col-sm-12">
+		    	<label  class="pull-left control-label">核心备注</label>
+		    	<div class="col-sm-11">
+			      <input type="text" name="remark" class="form-control pull-left" style="width:900px;" >
+			    </div>
+		    </div>
+	</div> -->
+	<hr style="border-top: 2px solid blue;">
+	
+	<div class="form-group form-group-sm text-center">
+		<button id="addFormBtn" type="button" class="btn btn-primary">确定</button>
+		<button id="canelBtn" type="button">取消</button>
+	</div>
+
+	</div> <!-- 第二页结束 -->
+</div>
+
+<%-- <script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/js/jquery-3.2.1.min.js"></script>  --%>
+<script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/bootstrap-3.3.7/js/bootstrap.min.js"></script> 
+<script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/easyform/easyform.js"></script>  
+<%-- <script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/layer/layer.js"></script>  --%>
+<script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/datatables/media/js/jquery.dataTables.min.js"></script> 
+<script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/datatables/media/js/dataTables.bootstrap.min.js"></script> 
+<%-- <script type="text/javascript" charset="utf-8" src="${staticfile_url}/common/frame/laydate/laydate.js"></script>  --%>
+<script type="text/javascript" charset="utf-8" src="${staticfile_url}/manage-platform/js/MultiSelection.js"></script> 
+
+<script>
+$(function(){
+	if('${type}'=='update'){
+		$('.secondPage').removeClass("hidden");
+	}
+	var priceDataRange={};
+	priceDataRange.lower=[0,150,175,200,250,300,350,450];
+	priceDataRange.upper=[200,300,400,500,600,700,800];
+	var areaDataRange={};
+	areaDataRange.lower=[0,50,60,70,80,100,120,140];
+	areaDataRange.upper=[70,90,110,130,150,170,190];
+	var roomRange={};
+	roomRange.lower=[0,1,2,3,4,5];
+	roomRange.upper=[2,3,4,5,6];
+	var buildDatesRange={};
+	buildDatesRange.lower=[0,2005,2006,2007,2008,2009,2010,2011];
+	buildDatesRange.upper=[2006,2007,2008,2009,2010,2011,2012,2013];
+	var floorRange={};
+	floorRange.lower=[0,1,2,3,4,5,6,7];
+	floorRange.upper=[2,3,4,5,6,7,8,9,10];
+	rangeBind("room","室",roomRange);
+	rangeBind("buildDates","年",buildDatesRange);
+	rangeBind("price","万元",priceDataRange);
+	rangeBind("space","平米",areaDataRange);
+	rangeBind("floorCount","层",floorRange);
+})
+
+function rangeBind(id,unit,datas){
+	$("body").on("click",function(event){
+		if($(event.target).parent().attr("class")!=null){
+			if($(event.target).parent().attr("class").indexOf("data")>-1){
+				return;
+			}
+			if($(event.target).parent().attr("class").indexOf("rangeInput")>-1){
+				return;
+			}
+		}
+		
+		if($(event.target).attr("class")!=null){
+			if($(event.target).attr("class").indexOf("lower")>-1){
+				return;
+			}
+			if($(event.target).attr("class").indexOf("upper")>-1){
+				return;
+			}
+		}
+		
+		$("#"+id+" ul.dropdown-menu").removeClass("show");
+	});
+	$("#"+id+" .rangeInput").on("click",function(){
+		$("ul.dropdown-menu").removeClass("show");
+		$(this).next().toggleClass("show");
+		var rangeValue=$("#"+id+" .rangeInput .input").val();
+		if(rangeValue.indexOf("以上")>0){
+			$("#"+id+" .lower").val(rangeValue.replace(unit+"以上",""));
+			$("#"+id+" .upper").val("");
+		}else if(rangeValue.indexOf("以下")>0){
+			$("#"+id+" .upper").val(rangeValue.replace(unit+"以下",""));
+			$("#"+id+" .lower").val("");
+		}else{
+			var range=rangeValue.replace(unit,"").split("-");
+			$("#"+id+" .upper").val(range[1]);
+			$("#"+id+" .lower").val(range[0]);
+		}
+		$("#"+id+" .lower").focus();
+	});
+	
+	$("#"+id+" .lower").on("focus",function(){
+		$("#"+id+" ul.dropdown-menu>li").remove(".data");
+		for(var i=0;i<datas.lower.length;i++){
+			$("#"+id+" ul.dropdown-menu").append('<li class="data"><a href="#">'+datas.lower[i]+'</a></li>');
+		}
+		$("#"+id+" ul.dropdown-menu>li.data").on("click",function(){
+			var upper=$("#"+id+" .upper").val();
+			var lower=$(this).find("a").text();
+			if(upper==""){
+				if(lower==0){
+					$("#"+id+" .rangeInput .input").val("");
+					
+				}else{
+					$("#"+id+" .rangeInput .input").val(lower+unit+"以上");
+					
+				}				
+			}else {
+				if(parseInt(lower)>parseInt(upper)){
+					lower=parseInt(upper)+"-"+parseInt(lower)+unit;
+				}else{
+					if(lower==0){
+						lower=parseInt(upper)+unit+"以下";
+					}else{
+						lower=parseInt(lower)+"-"+parseInt(upper)+unit;
+					}
+					
+				}
+				
+				$("#"+id+" .rangeInput .input").val(lower);
+			}
+			if($(this).find("a").text()==0){
+				$("#"+id+" .lower").val("");
+			}else{
+				$("#"+id+" .lower").val($(this).find("a").text());
+			}
+			
+			$("#"+id+" .upper").focus();
+		});
+	});
+	
+	
+	$("#"+id+" .upper").on("focus",function(){
+		$("#"+id+" ul.dropdown-menu>li").remove(".data");
+		for(var i=0;i<datas.upper.length;i++){
+			if(datas.upper[i]>$("#"+id+" .lower").val()){
+				$("#"+id+" ul.dropdown-menu").append('<li class="data text-right"><a href="#">'+datas.upper[i]+'</a></li>');
+			}			
+		}
+		$("#"+id+" ul.dropdown-menu").append('<li class="data text-right"><a href="#">不限</a></li>');
+		
+		$("#"+id+" ul.dropdown-menu>li.data").on("click",function(){
+			var lower=$("#"+id+" .lower").val();
+			if(lower==""){
+				if($(this).find("a").text()!="不限"){
+					$("#"+id+" .rangeInput .input").val($(this).find("a").text()+unit+"以下");
+					
+				}else{
+					$("#"+id+" .rangeInput .input").val("");
+					
+				}			
+			}else{
+				var upper=$(this).find("a").text();
+				if(upper!="不限"){
+					if(parseInt(upper)<parseInt(lower)){
+						lower=parseInt(upper)+"-"+parseInt(lower)+unit;
+					}else{
+						lower=parseInt(lower)+"-"+parseInt(upper)+unit;
+					}
+					
+					$("#"+id+" .rangeInput .input").val(lower);
+				}else{				
+					$("#"+id+" .rangeInput .input").val(lower+unit+"以上");
+				}
+			} 
+			if($(this).find("a").text()!="不限"){
+				$("#"+id+" .upper").val($(this).find("a").text());
+			}else{
+				$("#"+id+" .upper").val("");
+			}
+			
+			$(this).parent().toggleClass("show");
+		});
+	});
+	
+	
+	$("#"+id+" .lower").on("keyup",function(event){
+		if(event.keyCode==13){
+			$("#"+id+" .upper").focus();
+		}else{
+			var upper=$("#"+id+" .upper").val();
+			var lower=$(this).val();
+			if(lower==0){
+				$(this).val("");
+			}
+			if(upper==""){
+				if($(this).val()==""){
+					$("#"+id+" .rangeInput .input").val("");
+					
+				}else{
+					$("#"+id+" .rangeInput .input").val(parseInt($(this).val())+unit+"以上");
+					
+				}				
+			}else {
+				if(lower==""||lower=="0"){
+					lower=parseInt(upper)+unit+"以下";
+				}else{
+					if(parseInt(lower)>parseInt(upper)){
+						lower=parseInt(upper)+"-"+parseInt(lower)+unit;
+					}else{
+						lower=parseInt(lower)+"-"+parseInt(upper)+unit;
+					}
+				}								
+				$("#"+id+" .rangeInput .input").val(lower);
+			}
+		}
+	});
+	
+	$("#"+id+" .upper").on("keyup",function(event){
+		if(event.keyCode==13){
+			$(this).parent().parent().toggleClass("show");
+		}else{
+			var lower=$("#"+id+" .lower").val();
+			var upper=$(this).val();
+			if(upper==0){
+				$(this).val("");
+			}
+			if(lower==""){
+				if($(this).val()==""){
+					$("#"+id+" .rangeInput .input").val("");
+					
+				}else{
+					
+					$("#"+id+" .rangeInput .input").val(parseInt($(this).val())+unit+"以下");
+				}				
+			}else {
+				if($(this).val()==""){
+					lower=parseInt(lower)+unit+"以上";
+				}else{
+					if(parseInt(lower)>parseInt(upper)){
+						lower=parseInt(upper)+"-"+parseInt(lower)+unit;
+					}else{
+						lower=parseInt(lower)+"-"+parseInt(upper)+unit;
+					}
+				}								
+				$("#"+id+" .rangeInput .input").val(lower);
+			}
+		}
+	});
+}
+
+var customerInfo=JSON.parse('${customerInfo}');//客源信息
+var customValue=JSON.parse('${customValue}');//自定义字段的值
+console.log(customerInfo);
+if(customerInfo.transactionType=='求租'){
+	$(".title-text").text("求租转为求购")
+}else{
+	$(".title-text").text("求购转为求租")
+}
+
+$("#firstData input[name]").each(function(){
+	var a = $(this).attr("name");
+	if(customerInfo[$(this).attr("name")]!=null){
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+});
+$("#firstData select[name]").each(function(){
+	if(customerInfo[$(this).attr("name")]!=null){
+		var a = $(this).attr("name");
+		//alert(a);
+		var b = customerInfo[$(this).attr("name")];
+		//alert(b);
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+});
+
+$("#demandData input[name]").each(function(){
+	if(customerInfo[$(this).attr("name")]!=null){
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+	
+});
+$("#demandData select[name]").each(function(){
+	if(customerInfo[$(this).attr("name")]!=null){
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+});
+
+$("#customerData input[name]").each(function(){
+	if(customerInfo[$(this).attr("name")]!=null){
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+	
+});
+$("#customerData select[name]").each(function(){
+	if(customerInfo[$(this).attr("name")]!=null){
+		$(this).val(customerInfo[$(this).attr("name")]);
+	}
+});
+
+//下一页
+$("#nextBtn").click(function () {
+	  showNextForm();
+	  
+});  
+
+function showNextForm(){
+	  /* layer.closeAll();
+	  layerId=layer.open({
+		  type: 1,
+		  title: "新增房源", //不显示标题
+		  area:['1000px','550px'],
+		  content: $('#addDetailForm'), 
+		}); */
+	  $("#firstData").addClass("hidden");
+	  $('.secondPage').removeClass("hidden"); 
+	 
+	  $("#demandData select[name]").each(function(){
+		  $(this).prev().val($(this).find("option:selected").text());
+	  });
+	  $("#customerData select[name]").each(function(){
+		  $(this).prev().val($(this).find("option:selected").text());
+	  });
+	  
+	  $('#demandData input[name=custName]').val($("#custName").val());
+	  $('#demandData select[name=relateTypeId]').val($("#relateTypeId").val());
+	  $('#demandData input[name=relateTypeName]').val($("#relateTypeId option:selected").text());
+	  
+	 // $('#demandData select[name=transactionTypeId]').val(customerInfo.transactionTypeId);
+	 
+	  var lower = $("input[name='minRoom']").val();
+	  var upper = $("input[name='maxRoom']").val();
+	  if(upper==""){
+		  $("input[name='minRoom']").parent().parent().prev().find("input").val(lower+"以上");
+	  }else{
+		  $("input[name='maxRoom']").parent().parent().prev().find("input").val(lower+"-"+upper);
+	  }
+	  var lower = $("input[name='minPrice']").val();
+	  var upper = $("input[name='maxPrice']").val();
+	  if(upper==""){
+		  $("input[name='minPrice']").parent().parent().prev().find("input").val(lower+"以上");
+	  }else{
+		  $("input[name='maxPrice']").parent().parent().prev().find("input").val(lower+"-"+upper);
+	  }
+	  
+	  var lower = $("input[name='minSpace']").val();
+	  var upper = $("input[name='maxSpace']").val();
+	  if(upper==""){
+		  $("input[name='minSpace']").parent().parent().prev().find("input").val(lower+"以上");
+	  }else{
+		  $("input[name='maxSpace']").parent().parent().prev().find("input").val(lower+"-"+upper);
+	  }
+}
+
+//复选框
+$(".check").on("change",function(){
+	if($(this).is(":checked")){
+		$(this).val(1);
+	}else{
+		$(this).val(0);
+	}
+})
+
+//普通下拉值
+$(".oneselect").on("change",function(){
+	  $(this).prev().val($(this).find("option:selected").text());
+  });
+
+//选择复选框的下拉值
+$(".addFormItem .rangeInput").on("click",function(){
+	$(".addFormItem .addFormUl").removeClass("show");
+	$(this).next().toggleClass("show");
+});
+
+$(".addFormItem .addFormUl .addFormLi").on("click",function(){
+	var values="";
+	var names="";
+	
+	$(this).parent().find("input[type=checkbox]:checked").each(function(){
+		values+=$(this).val()+";";
+		names+=$(this).parent().text()+";";
+	});
+	$(this).parent().prev().find("input[type=text]").val(names);
+	if($(this).parent().prev().find("input[type=hidden]").length>0){
+		$(this).parent().prev().find("input[type=hidden]").val(values);
+	}	
+});
+
+
+$(document).on('click', function(e) {
+	var e = e || window.event; //浏览器兼容性
+	  var elem = e.target || e.srcElement;
+	while (elem) {
+	    //循环判断至跟节点，防止点击的是div子元素
+	    if ($(elem).attr("class")&&$(elem).attr("class").indexOf("addFormItem")>-1) {
+	      return;
+	    }
+	    elem = elem.parentNode;
+	  }
+	  //点击的不是div或其子元素
+	  $(".addFormItem .addFormUl").removeClass("show");
+
+});
+
+$("#addFormBtn").click(function(){
+	
+	/* var firstData = decodeURIComponent($("#firstData").serialize());
+	var demandData = decodeURIComponent($("#demandData").serialize());
+	var customerData = decodeURIComponent($("#customerData").serialize());
+	var customData  = decodeURIComponent($("#customData").serialize()); */
+	
+	var firstData = {};
+	var demandData = {};
+	var customerData = {};
+	var customData = {};
+	var data = {
+			demandData:demandData,
+			customerData:customerData,
+			customData:customData
+	}
+	if('${type}'=='exchange'){
+		data.firstData=firstData;
+	}
+	saveCustomerInfo(data);
+})
+
+function saveCustomerInfo(data){
+	
+	$.ajax({
+        type: "POST",//方法类型
+        dataType: "json",//预期服务器返回的数据类型
+        contentType: 'application/json',
+        data:JSON.stringify(data),
+        url: "<%=request.getContextPath()%>/customer/saveExchangeCustomerInfo" ,//url	                
+        success: function (result) {
+        	if(result.success){
+        		alert("保存成功！");
+        	}else{
+        		alert(result.msg);
+        	}
+        },
+        error : function() {
+        	
+        },
+        beforeSend : function() {
+        	
+        }
+    });  
+}
+
+</script>
+
+</body>
+</html>

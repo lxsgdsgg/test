@@ -1,0 +1,49 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  AgentServiceApiImpl.java   
+ * @Package com.bashiju.www.service.api.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年8月15日 下午3:04:10   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.service.api.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wapi.IAgentServiceApi;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.agent.AgentQueryParams;
+import com.bashiju.www.service.agent.AgentService;
+import com.github.pagehelper.Page;
+
+/**   
+ * 经纪人列表页服务
+ * @ClassName:  AgentServiceApiImpl   
+ * @Description:经纪人列表页服务   
+ * @author: yangz
+ * @date:   2018年8月15日 下午3:04:10   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class AgentServiceApiImpl implements IAgentServiceApi {
+
+	@Autowired
+	private AgentService agentService;
+	
+	/**
+	 * 条件查询经纪人列表信息
+	 * @Description: 条件查询经纪人列表信息  
+	 * @param params 查询条件
+	 * @return: Page<Agent>
+	 * @see com.bashiju.wapi.IAgentServiceApi#queryAgents(com.bashiju.www.pojo.service.agent.AgentQueryParams)   
+	 */
+	@Override
+	public Page<Agent> queryAgents(AgentQueryParams params) {
+		return agentService.queryAgents(params);
+	}
+
+}

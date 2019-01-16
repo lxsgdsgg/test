@@ -1,0 +1,126 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TransferProcessServiceApiImpl.java   
+ * @Package com.bashiju.manage.api   
+ * @Description:过户流程管理对外接口服务提供类
+ * @author: zuoyuntao     
+ * @date:   2018年6月23日 下午3:40:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.common.service.manageservice;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.TransferProcessServiceApi;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.common.global.BaseGlobal;
+import com.bashiju.common.mapper.TransferProcessMapper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 过户流程管理对外接口服务提供类
+ * @ClassName:TransferProcessServiceApiImpl
+ * @Description:过户流程管理对外接口服务提供类
+ * @author:zuoyuntao
+ * @date:2018年6月23日 下午3:40:39
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="过户流程接口")
+public class TransferProcessServiceApiImpl implements TransferProcessServiceApi{
+	/**
+	 * 过户方案管理映射接口
+	 */
+	@Autowired
+	private TransferProcessMapper mTransferProcessMapper;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 对外提供接口：返回过户流程方案所有数据
+	 * @Title: queryTransferProcessInfo
+	 * @author: zuoyuntao  
+	 * @Description:对外提供接口：返回过户流程方案所有数据
+	 * @param areaCode 行政区划编码，如：530100
+	 * @param companyId 公司ID
+	 * @param operatorId 用户ID
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{id=9, programmeName=预约合同过户流程, isValid=1, cityId=BSJ0102, cityName=大理市, valid=是, operator=测试人员, addTime=2018-05-23 13:57:41.0, updateOperator=测试人员, updateTime=2018-05-23 13:58:29.0, permissionArea=BSJ0103, operatorId=1}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询过户方案")
+	public List<Map<String, Object>> queryTransferProcessInfo(String areaCode
+			,String companyId,String operatorId) {
+		if(StringUtil.isEmpty(areaCode)) {
+			throw new BusinessException("参数areaCode为空！");
+		}
+		if(StringUtil.isEmpty(companyId)) {
+			throw new BusinessException("参数companyId为空！");
+		}
+		dataAuthHelper.auth(MenusEnum.MENU_65.getCode(),operatorId);
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("areaCode", areaCode);
+		paraMap.put("companyId", companyId);
+		String condition = buildFindSql(paraMap);
+		List<Map<String, Object>> retList = mTransferProcessMapper.queryDataInfoConfByConn(condition,
+				BaseGlobal.HOUSE_EXCHAGE_CONFIG);
+		ExecutionResult.descFormat(areaCode, "查询所有过户方案");
+		return retList;
+	}
+	/**
+	 * 根据主配置ID明细配置数据信息
+	 * @Title: queryTransferDetailByConfId   
+	 * @Description: 根据主配置ID明细配置数据信息  
+	 * @param: confId：主配置ID
+	 * @param: confType：配置类型（1：业主明细材料，2：客户明细材料，3：过户流程设置）
+	 * @return: List<Map<String,Object>> 
+	 * 返回数据其中一条的JSON格式：{id=52, detailName=策策, addTime=2018-05-09 10:00:07.0, operator=测试人员, updateOperator=测试人员, updateTime=2018-05-23 13:58:13.0, confType=1, isValid=1, operatorId=1, confId=13, sortId=25, permissionArea=BSJ0103}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询过户方案明细")
+	public List<Map<String,Object>> queryTransferDetailInfo(String confId,String confType){
+		List<Map<String, Object>> retList = mTransferProcessMapper
+				.queryTransferDetailByConfId(confId,confType);
+		ExecutionResult.descFormat(confId, "查询过户方案明细");
+		return retList;
+	}
+	/**
+	 * 组装查询条件
+	 * @Title: buildFindSql
+	 * @author: zuoyuntao  
+	 * @Description:组装查询条件
+	 * @param paraMap
+	 * @return      
+	 * String     
+	 * @throws
+	 */
+	private String buildFindSql(Map<String,Object> paraMap) {
+		Iterator<String> it = paraMap.keySet().iterator();
+		StringBuilder condition = new StringBuilder();
+		while(it.hasNext()) {
+			String key = it.next();
+			String value = String.valueOf(paraMap.get(key));
+			if(StringUtil.isNotEmpty(value) && !"null".equals(value)) {
+				condition.append(" and ").append(key).append(" = '").append(value).append("'");
+			}
+		}
+		return condition.toString();
+	}
+}

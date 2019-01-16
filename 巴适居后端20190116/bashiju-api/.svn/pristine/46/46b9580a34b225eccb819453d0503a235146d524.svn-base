@@ -1,0 +1,117 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FileTypeEnum.java   
+ * @Package com.bashiju.enums      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 下午5:48:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * 日志交易类型 枚举类
+ * @ClassName:LogTransactionTypeEnum
+ * @Description:文件类型 枚举类
+ * @author:wangkaifa
+ * @date:2018年8月7日 下午5:48:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public enum LogTransactionTypeEnum {
+	/**SELL_HOUSE("1","出售")**/
+	SELL_HOUSE("1","出售"),
+	/**RENT_HOUSE("2","出租")**/
+	RENT_HOUSE("2","出租"),
+	/**SELLANDRENT_HOUSE("3","租售")**/
+	SELLANDRENT_HOUSE("3","租售"),
+	/**SELL_CUSTOMER("4","求购")**/
+	SELL_CUSTOMER("4","求购"),
+	/**RENT_CUSTOMER("5","求租")**/
+	RENT_CUSTOMER("5","求租"),
+	/**SELL_DEAL("6","买卖")**/
+	SELL_DEAL("6","买卖"),
+	/**RENT_DEAL("7","租赁")**/
+	RENT_DEAL("7","租赁"),
+	/**NEW_DEAL("4","一手")**/
+	NEW_DEAL("4","一手");
+	
+	/**
+	 * 编码
+	 */
+	private String code;
+	/**
+	 * 描述
+	 */
+	private String desc;
+	/**
+	 * 枚举map对象
+	 */
+	public static Map<String , String> enumMap;
+	/**
+	 * 枚举list对象
+	 */
+	public static List<Map<String , String>> enumList;
+	/**
+	 * @Title:  TransferProcessEnum   
+	 * @Description: 构造器（外部塞入枚举值）  
+	 * @param:  @param code
+	 * @param:  @param desc  
+	 * @throws
+	 */
+	LogTransactionTypeEnum(String code,String desc){
+		this.code = code;
+		this.desc = desc;
+	}
+	
+	static {
+        enumMap = new TreeMap<String, String>();
+        
+        enumList=new ArrayList<>();
+        
+        for (LogTransactionTypeEnum item : LogTransactionTypeEnum.values()) {
+        	//将枚举值放入Map对象中
+            enumMap.put(item.getCode(), item.getDesc());
+            
+            Map<String,String> map = new HashMap<String,String>();
+            
+            map.put("value", item.getCode());
+            map.put("name", item.getDesc());
+            //将枚举值放入List集合中
+            enumList.add(map);
+        }
+    }
+	/**
+     * 枚举转换
+     */
+    public static LogTransactionTypeEnum parseOf(String value){
+        for(LogTransactionTypeEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+}

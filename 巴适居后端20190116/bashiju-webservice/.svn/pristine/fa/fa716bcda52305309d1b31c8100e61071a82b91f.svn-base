@@ -1,0 +1,5 @@
+rabbitmq.host=116.55.242.15
+rabbitmq.port=5672
+rabbitmq.username=bashiju
+rabbitmq.password=Bsj@2018@2019
+rabbitmq.vhost=/erp

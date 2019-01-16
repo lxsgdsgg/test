@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.RecruitInfoExpireMqMapper">
+	<select id="queryAllRecruitInfoList" resultType="map">
+		select a.id,a.workCityCode,a.`name`,a.count,a.education,a.majorSubject,a.minWorking,
+		a.maxWorking,a.wages,a.mobile,a.endTime,a.requirement,a.duty,a.publisherId,
+		a.publisher,a.publishTime,a.permissionArea,a.operatorId,a.operator,a.addTime,
+		a.updateTime,a.isValid from sys_recruitinfo as a where a.isValid = 1
+	</select>
+	<update id="updateRecruitInfoStatusById">
+		update sys_recruitinfo set isValid = 0,updateTime = #{updateTime} 
+		where id in(${id})
+	</update>
+</mapper>
+	

@@ -1,0 +1,216 @@
+package com.bashiju.anal.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.anal.mapper.OperationAnalysisMapper;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+/**
+ * 
+ *   运营分析报表接口
+ * @ClassName:  OperationAnalysisService   
+ * @Description:  运营分析报表接口
+ * @author: wangkaifa
+ * @date:   2018年11月26日 下午2:49:42       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class OperationAnalysisService {
+	@Autowired
+	private OperationAnalysisMapper mapper;
+	/**
+	 * 
+		 * 查询综合运营分析报表
+		 * @Description: 查询综合运营分析报表 
+		 * @param jsonData 查询条件{deptTypeId:3,deptId:'',beginDate:'',endDate:''}
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryComprehensiveReport(String beginDate
+			,String endDate,String deptId,String deptTypeId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryComprehensiveReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 查询动态下拉值列表
+		 * @Description: 查询动态下拉值列表
+		 * @param widgetCode 下拉控件编号
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, String>> queryWidgetList(String widgetCode){
+		List<Map<String, String>> result=mapper.queryWidgetList(widgetCode);
+		return result;
+	}
+	/**
+	 * 
+		 * 房源状态跟进统计
+		 * @Description: 房源状态跟进统计
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseStatusFollowUpReport(String beginDate
+			,String endDate,String deptId,String deptTypeId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryHouseStatusFollowUpReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 房源跟进方式跟进统计
+		 * @Description: 房源跟进方式跟进统计
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @param followType
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseFollowUpTypeReport(String beginDate
+			,String endDate,String deptId,String deptTypeId,List<String> followType){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("followType", followType);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryHouseFollowUpTypeReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 客源状态跟进统计
+		 * @Description: 客源状态跟进统计
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryCustomerStatusFollowUpReport(String beginDate
+			,String endDate,String deptId,String deptTypeId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryCustomerStatusFollowUpReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 客源跟进方式跟进统计
+		 * @Description: 客源跟进方式跟进统计
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @param followType
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryCustomerFollowUpTypeReport(String beginDate
+			,String endDate,String deptId,String deptTypeId,List<String> followType){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("followType", followType);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryCustomerFollowUpTypeReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 房源维护频率分析
+		 * @Description: 房源维护频率分析 
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseFollowUpCycleReport(String beginDate
+			,String endDate,String deptId,String deptTypeId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryHouseFollowUpCycleReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 客源维护频率分析
+		 * @Description: 客源维护频率分析 
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryCustomerFollowUpCycleReport(String beginDate
+			,String endDate,String deptId,String deptTypeId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("deptTypeId", deptTypeId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryCustomerFollowUpCycleReport(param);
+		return result;
+	}
+	/**
+	 * 
+		 * 社区精耕运营分析
+		 * @Description: 社区精耕运营分析
+		 * @param beginDate
+		 * @param endDate
+		 * @param deptId
+		 * @param deptTypeId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryCommunityDealReport(String beginDate
+			,String endDate,String deptId){
+		Map<String, Object> param=new HashMap<>();
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("deptId", deptId);
+		param.put("companyId", UserThreadLocal.get().get("companyId"));
+		List<Map<String, Object>> result=mapper.queryCommunityDealReport(param);
+		return result;
+	}
+}

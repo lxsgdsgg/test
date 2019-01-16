@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.CustomerMapper">
+
+	<select id="queryMainter" resultType="map">
+		select maintainId,maintainer,viewingCount from demand_customerBusinessInfo where id=#{demandId} and isValid = 1
+	</select>
+	<select id="queryHsMainter" resultType="map">
+		select maintainId,maintainer,viewingCount from hs_secondhandhouse where id=#{houseId} and isValid = 1
+	</select>
+	<select id="queryDemandByMainter" resultType="int">
+		select count(0) from demand_customerBusinessInfo where discStatusId=1 and maintainId=#{maintainId} and isValid = 1
+	</select>
+	<select id="queryDemand" resultType="map">
+		select transactionTypeId,operatorCityCode from demand_customerBusinessInfo where id=#{demandId} and isValid = 1
+	</select>
+	<select id="queryDeptName" resultType="map">
+		select a.companyId,a.deptId,a.realName,b.name as deptName,c.name as companyName,CONCAT(LEFT(a.areaCode,4),'00') as cityCode from sys_user a INNER JOIN sys_dept b on a.id=#{id} and a.deptId = b.id INNER JOIN sys_company c on a.companyId = c.id
+	</select>
+	
+	<select id="queryLookHouse" resultType="map">
+		select a.*,b.name as deptName,h.id as shhId,h.houseUsesId,h.houseId,'...' as img from demand_showedRecord a INNER JOIN sys_dept b on a.deptId = b.id INNER JOIN hs_secondhandhouse h on a.sourceId=h.id where a.demandId = #{demandId} and a.isValid = 1 
+	</select>
+	<update id="reduceLookHouseNum">
+		update demand_customerBusinessInfo set viewingCount = viewingCount-1 where id = #{demandId}
+	</update>
+	
+	<select id="queryImg" resultType="map">
+		select * from demand_showedRecordAttach where showedRecordId = #{showedRecordId} and isValid = 1
+	</select>
+	
+	<select id="queryLookHouseId" resultType="map">
+		select b.houseId,a.leader,a.addTime from demand_showedrecord a inner join hs_secondhandhouse b on a.sourceId = b.id where a.demandId=#{demandId} and DATE_FORMAT(a.addTime,'%Y-%m-%d') between #{startTime} and #{endTime} and a.isValid=1
+		<if test="deptId!=null and deptId!='' ">
+			and a.deptId=#{deptId}
+		</if>
+		<if test="peopleId!=null and peopleId!='' ">
+			and a.leaderId=#{peopleId}
+		</if>
+	</select>
+	
+	<select id="queryHouseCommunity" resultType="map">
+		select a.communityId,a.communityName,b.longitude,b.latitude from hs_housebaseinfo a INNER JOIN sys_community b on a.id = #{houseId} and a.communityId = b.id
+	</select>
+	<select id="queryFollowRecord" resultType="map">
+		select a.*,b.name as deptname from demand_followRecord a INNER JOIN sys_dept b on a.demandId = #{demandId} and a.isValid = 1 and a.deptId = b.id
+	</select>
+	
+	<select id="queryCustomerPhone" resultType="map">
+		SELECT id,phone,remark,ismainFlag FROM demand_custRelaterPhone WHERE isValid=1 AND demandId=#{demandId}
+	</select>
+	<select id="customerFindHouseList" resultType="map">
+		<![CDATA[ ${sql} ]]>
+	</select>
+	
+	<select id="queryCustomerHouse" resultType="map">
+		SELECT c.transactionType,c.status,c.houseId,c.room,c.hall,c.toilet,c.kitchen,c.balcony,c.buildSpace,c.sellingPrice,c.rentPrice,c.maintainer,d.communityName,d.buildingsName,d.buildingHouseName,d.floorCount from hs_secondhandhouse c inner join hs_housebaseinfo d on c.id in(select DISTINCT b.shhId from hs_houseownerrelate b WHERE b.phone in(select a.phone from demand_custrelaterphone a where a.demandId = #{demandId} and a.isValid=1) and b.isValid=1 and b.companyId=#{companyId}) and c.houseId = d.id
+	</select>
+	
+	<select id="queryCustomerDemand" resultType="map">
+		SELECT c.id as demandId, c.status,c.discStatus,c.areaNames,c.minSpace,c.maxSpace,c.minPrice,c.maxPrice,c.minRoom,c.maxRoom,c.orientation,c.minFloorCount,c.maxFloorCount,c.maintainer from demand_customerbusinessinfo c where c.id in(select DISTINCT b.demandId from demand_custrelaterphone b WHERE b.phone in(select a.phone from demand_custrelaterphone a where a.demandId = #{demandId} and a.isValid=1) and b.isValid=1 and b.companyId=#{companyId}) and c.transactionTypeId=#{transactionTypeId}
+	</select>
+	
+	<select id="queryCustomerInfo" resultType="map">
+		select a.id as demandId,a.statusId,a.titles,a.transactionTypeId,a.transactionType,a.areaCodes,a.areaNames,a.regionIds,a.regionNames,a.communityIds,a.communityNames,a.status,a.discStatusId,a.discStatus,a.taobaoStatusId,a.taobaoStatus,a.houseUsesIds,a.houseUses,
+		a.minRoom,a.maxRoom,a.minPrice,a.maxPrice,a.minSpace,a.maxSpace,a.minFloorCount,a.maxFloorCount,a.minBuildDates,a.maxBuildDates,a.decorationIds,a.decoration,a.matchingIds,a.matching,a.orientationId,a.orientation,a.reason,
+		a.houseTypeIds,a.houseType,a.housePropType,a.communicateStageId,a.communicateStage,a.sourceTypeId,a.sourceType,a.levelType,a.labeld,a.isSchoolRoom,a.isFullAmount,a.isUrgent,a.isCloseDisc,a.viewingCount,a.remark as custRemark,a.formName,a.permissionArea,a.operatorId,
+		b.custName,b.relateTypeId,b.relateTypeName,b.consumptIdeaId,b.consumptIdeaName,b.censusRegisterId,b.censusRegister,b.nationsId,b.nations,b.IDCard,b.email,b.qqNum,b.wxNum,b.vehicleId,b.vehicle,b.carType,c.phone,c.relateType,c.relateName,c.remark,d.isValid as isStore from demand_customerbusinessinfo a 
+		inner JOIN demand_custrelater b on a.id = #{demandId} and a.id = b.demandId inner JOIN demand_custrelaterphone c on a.id = c.demandId and c.ismainFlag = 1 left join demand_mycollection d on a.id=d.demandId and d.operatorId=#{userId}
+	</select>
+	<select id="queryFollowInfo" resultType="map">
+		select * from demand_followRecord where demandId = #{demandId} and isValid=1 limit 0,6
+	</select>
+	<select id="queryRelateagentInfo" resultType="map">
+		<if test="hasPhone==true">
+			select a.*,b.mobile from demand_custRelateAgent a INNER JOIN sys_user b on a.demandId = #{demandId} and a.agentId = b.id and a.isValid=1
+		</if>
+		<if test="hasPhone==false">
+			select a.* from demand_custRelateAgent a where a.demandId = #{demandId} and a.isValid=1
+		</if>
+	</select>
+	<select id="queryShowAndBrowseNum" resultType="map">
+		SELECT(select count(a.id) from demand_showedrecord a where a.demandId=c.id AND a.addTime > date_add(now(), interval -7 day) and a.isValid=1) as showNum ,(select count(b.id) FROM demand_browserecord b WHERE b.demandId=c.id AND b.addTime > date_add(now(), interval -7 day) and b.isValid=1) as browseNum
+        FROM demand_customerbusinessinfo AS c where c.id = #{demandId}
+	</select>
+	<select id="queryCustomValue" resultType="map">
+		select id,
+		<foreach item="value" index="key" collection="customField"   open=" " separator="," close=" ">
+		 	${key}
+		 </foreach>
+		 from sys_custom_column_value where formName = #{formName} and keyId = #{keyId}
+	</select>
+	<select id="queryDepositByShhId" resultType="int">
+		select count(0) from demand_bond where shhId = #{shhId} and dealId!='' and dealId is not null and isValid=1
+	</select>
+
+	<select id="queryCustomerLevel" resultType="map">
+		SELECT levelType,conditions,minPrice,maxPrice,minSpace,maxSpace FROM res_cust_level_condition 
+		WHERE isValid=1 AND lookCount = 0 AND cityCode=#{cityCode} AND companyId=#{companyId} AND transactionType=#{transactionType} 
+		ORDER BY levelType ASC
+	</select>
+	<select id="queryStore" resultType="map">
+		select * from demand_mycollection where demandId=#{demandId} and operatorId = #{userId}
+	</select>
+	
+	<select id="queryTaobaoTime" resultType="map">
+		select * from demand_customerbusinessinfo where id=#{id} and isValid=1 
+	</select>
+	
+	
+	<select id="queryCustomerListByIds" resultType="map">
+		SELECT sh.id,sh.houseId,sh.buildSpace,sh.sellingPrice/10000 AS sellingPrice,sh.rentPrice,hb.communityName,hb.buildingsName,hb.buildingsUnitName,hb.buildingHouseName
+	 FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.id IN (${ids})
+	</select>
+	<select id="queryCustomerList" resultType="map">
+		<![CDATA[ ${sql} ]]>
+	</select>
+	
+	<select id="matchingHousing" resultType="map">
+		SELECT  CASE WHEN sh.taoBaoStatusId=1 THEN sh.taoBaoStatus ELSE sh.discStatus END AS status,sh.id,sh.houseId,sh.houseUsesId,hb.communityName,sh.buildSpace,
+		CONCAT(sh.room,'室',sh.hall,'厅') AS room,FLOOR(sh.sellingPrice/1000000) AS sellingPrice,FLOOR(sh.rentPrice/100) AS rentPrice,sh.orientation,sh.maintainer,CONCAT(hb.floorCount,'/',hb.totalLayers) AS floorCount,sh.permissionArea,sh.operatorId 
+		FROM hs_secondhandhouse AS sh 
+		INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 and sh.statusId='1' 
+		<if test="transactionTypeId==5">
+			and	sh.transactionTypeId=2
+		</if>
+		<if test="transactionTypeId !=5">
+			and sh.transactionTypeId !=2
+		</if>
+		<if test="areas!=null and areas.size>0">
+		 	and 
+			<foreach collection="areas" item="item" open="(" separator="or" close=")">  
+	         <choose>
+	         	<when test="item.type==1">hb.areaCode=#{item.value}</when>
+	         	<when test="item.type==2">hb.regionId=#{item.value}</when>
+	         	<otherwise>hb.communityId=#{item.value}</otherwise>
+	         </choose>        
+	     	</foreach>  
+     	</if>
+     	<if test="minSpace!=null and minSpace!='' ">
+     	 and sh.buildSpace &gt;= #{minSpace}
+     	</if>
+     	<if test="maxSpace!=null and maxSpace!='' ">
+     	 and sh.buildSpace &lt;= #{maxSpace}
+     	</if>
+     	<if test="minSellingPrice!=null and minSellingPrice!='' ">
+     	 and FLOOR(sh.sellingPrice/1000000) &gt;= #{minSellingPrice}
+     	</if>
+     	<if test="maxSellingPrice!=null and maxSellingPrice!='' ">
+     	 and FLOOR(sh.sellingPrice/1000000) &lt;=#{maxSellingPrice}
+     	</if>
+     	<if test="minRentPrice!=null and minRentPrice!='' ">
+     	 and FLOOR(sh.rentPrice/100)  &gt;= #{minRentPrice}
+     	</if>
+     	<if test="maxRentPrice!=null and maxRentPrice!='' ">
+     	 and FLOOR(sh.rentPrice/100) &lt;=#{maxRentPrice}
+     	</if>
+     	<if test="minRoom!=null and minRoom!='' ">
+     	 and sh.room &gt;= #{minRoom}
+     	</if>
+     	<if test="maxRoom!=null and maxRoom!='' ">
+     	 and sh.room  &lt;= #{maxRoom}
+     	</if>
+     	<if test="minFloor!=null and minFloor!='' ">
+     	 and hb.floorCount &gt;= #{minFloor}
+     	</if>
+     	<if test="maxFloor!=null and maxFloor!='' ">
+     	 and hb.floorCount &lt;= #{maxFloor}
+     	</if>
+     	<if test="minBuildDate!=null and minBuildDate!='' ">
+     	 and hb.buildDates &gt;= #{minBuildDate}
+     	</if>
+     	<if test="maxBuildDate!=null and maxBuildDate!='' ">
+     	 and hb.buildDates &lt;= #{maxBuildDate}
+     	</if>
+	</select>
+	<select id="queryCountCustomerByPhone" resultType="int">
+		SELECT COUNT(*) FROM demand_customerbusinessinfo AS cb INNER JOIN demand_custrelaterphone AS crp ON cb.id = crp.demandId AND cb.isValid=1  AND cb.statusId='1' 
+		AND crp.isValid=1 AND crp.ismainFlag=1  AND crp.phone=#{phone} AND cb.transactionTypeId=#{transactionTypeId}
+		<if test="maintainId!=null and maintainId!='' "> AND cb.maintainId=#{maintainId}</if>
+		<if test="mainterDeptId!=null and mainterDeptId!='' ">AND cb.mainterDeptId LIKE '${mainterDeptId}%'</if>
+	</select>
+	
+	<select id="queryCountCustomerByDemandId" resultType="int">
+		SELECT COUNT(*) FROM demand_customerbusinessinfo AS cb INNER JOIN demand_custrelaterphone AS crp ON cb.id = crp.demandId AND cb.isValid=1 AND cb.statusId='1' 
+		AND crp.isValid=1 AND crp.ismainFlag=1  AND crp.phone=(SELECT a.phone FROM demand_custrelaterphone AS a where a.demandId = #{demandId} and a.isValid=1 and a.ismainFlag=1) AND cb.transactionTypeId=#{transactionTypeId}
+		<if test="maintainId!=null and maintainId!='' "> AND cb.maintainId=#{maintainId}</if>
+		<if test="mainterDeptId!=null and mainterDeptId!='' ">AND cb.mainterDeptId LIKE '${mainterDeptId}%'</if>
+	</select>
+	<select id="queryCustomerMainPhone" resultType="string">
+		SELECT phone FROM demand_custRelaterPhone WHERE ismainFlag=1 AND  demandId=#{demandId}
+	</select>
+	
+	<select id="queryContractCustomer" resultType="map">
+		SELECT c.companyId,c.companyName,c.id,custName,discStatus,discStatusId,taobaoStatusId,areaNames,regionNames,communityNames,CASE WHEN transactionTypeId=4 THEN FLOOR(minPrice/1000000) ELSE FLOOR(minPrice/100) END  AS minPrice,
+		CASE WHEN transactionTypeId=4 THEN FLOOR(maxPrice/1000000) ELSE FLOOR(maxPrice/100) END AS maxPrice,minSpace,maxSpace,maintainer,c.maintainId,c.permissionArea,c.operatorId  
+		FROM demand_customerbusinessinfo AS c 
+		<if test="phone!=null">
+		INNER JOIN demand_custrelaterphone AS cp ON cp.demandId=c.id AND cp.ismainFlag=1 AND cp.isValid=1 AND cp.phone LIKE CONCAT('%',#{phone},'%')
+		</if>		
+		WHERE c.isValid=1 AND statusId=1 
+		<if test="discStatusId!=null"> AND discStatusId=#{discStatusId} </if>
+		<if test="mainterDeptId!=null"> AND mainterDeptId LIKE CONCAT(#{mainterDeptId},'%') </if>
+		<if test="maintainId!=null"> AND maintainId = #{maintainId} </if>
+		<if test="minSpace!=null"> AND minSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> AND maxSpace &lt;= #{maxSpace} </if>
+		<if test="minPrice!=null"> AND minPrice &gt;=#{minPrice} </if>
+		<if test="maxPrice!=null">  AND maxPrice &lt;=#{maxPrice} </if>
+		<if test="code!=null"> AND c.id LIKE CONCAT('%',#{code},'%') </if>    
+		<if test="custName!=null"> AND custName LIKE CONCAT('%',#{custName},'%') </if>
+		<if test="taobaoStatusId!=null"> AND taobaoStatusId=1 </if>
+		<if test="transactionTypeId!=null"> AND transactionTypeId=#{transactionTypeId} </if>
+		ORDER BY c.id DESC  
+	</select>
+</mapper>

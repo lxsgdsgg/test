@@ -1,0 +1,87 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IHouseSeekByMapService.java   
+ * @Package com.bashiju.housing.service   
+ * @Description:地图找房服务层接口   
+ * @author: zuoyuntao     
+ * @date:   2018年6月7日 下午2:58:55   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.housing.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 地图找房服务层接口
+ * @ClassName:IHouseSeekByMapService
+ * @Description:地图找房服务层接口
+ * @author:zuoyuntao
+ * @date:2018年6月7日 下午2:58:55
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IHouseSeekByMapService {
+	/**
+	 * 获取小区信息
+	 * @Title: queryCommunityDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取小区信息
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryCommunityDataList(Map<String,Object> paraMap);
+	/**
+	 * 统计行政区划/片区级别数据集合
+	 * @Title: queryStatisticsAreaHouseInfo
+	 * @author: zuoyuntao  
+	 * @Description:统计行政区划/片区级别数据集合
+	 * @param paraMap 参数集合
+	 * @param level 查询的级次
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryStatisticsAreaHouseInfo(Map<String,Object> paraMap,String level);
+	/**
+	 * 获取房源明细数据集合
+	 * @Title: queryHouseSourceDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取房源数据集合   
+	 * @param paraMap
+	 * @param page 最小条数
+	 * @param limit 最大条数
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryHouseSourceDataList(Map<String,Object> paraMap,int page,int limit);
+	/**
+	 * 统计小区层面的房源信息
+	 * @Title: queryStatisticsCommunityHouseInfo
+	 * @author: zuoyuntao  
+	 * @Description:统计小区层面的房源信息
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryStatisticsCommunityHouseInfo(Map<String,Object> paraMap);
+	/**
+	 * 获取片区层面的房源信息
+	 * @Title: queryStatisticsRegionHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:获取房源数据集合   
+	 * @param paraMap
+	 * @return Page<Map<String,Object>> 
+	 * JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryStatisticsRegionHouseInfoByConn(Map<String,Object> paraMap);
+}

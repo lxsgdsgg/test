@@ -1,0 +1,862 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TestDataServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月10日 下午6:38:04   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.housing.service.impl;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.api.DealServiceApi;
+import com.bashiju.api.DecisionConfigurateServiceApi;
+import com.bashiju.api.DivideintoServiceApi;
+import com.bashiju.api.ErHousingServiceApi;
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.AgentTypeEnum;
+import com.bashiju.enums.CommissionStatusEnum;
+import com.bashiju.enums.CustomerStatusEnum;
+import com.bashiju.enums.CustomerTransactionEnum;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.enums.DecisionConfigurateEnum;
+import com.bashiju.enums.DiscStatusEnum;
+import com.bashiju.enums.DividiintoDealTypeEnum;
+import com.bashiju.enums.ExamineStatusEnum;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.HouseTransactionEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.enums.LabelTypeEnum;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.enums.NumberCount;
+import com.bashiju.enums.TaoBaoStatusEnum;
+import com.bashiju.housing.global.IdWorker;
+import com.bashiju.housing.mapper.ErHousingMapper;
+import com.bashiju.housing.mapper.FormMapper;
+import com.bashiju.housing.mapper.NewHousingMapper;
+import com.bashiju.housing.pojo.BusinessExamineHandleTypeEnum;
+import com.bashiju.housing.pojo.BusinessExamineTypeEnum;
+import com.bashiju.housing.pojo.HouseAttachTypeEnum;
+import com.bashiju.housing.pojo.HouseQueryEntity;
+import com.bashiju.housing.service.BusinessExamineService;
+import com.bashiju.housing.service.FormService;
+import com.bashiju.housing.service.IErHousingService;
+import com.bashiju.housing.service.INewHousingService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.FtpUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**   
+ * @ClassName:  NewHousingServiceImpl   
+ * @Description: 新房楼盘服务实现类   
+ * @author: liwen
+ * @date:   2018年8月17日 下午10:38:04   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="新房楼盘") 
+@Service
+public class NewHousingServiceImpl implements INewHousingService {
+	/**万元转分 **/
+	private static final int WANYUAN=1000000;
+	/**元转分 **/
+	private static final int YUAN=100;
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	@Autowired
+	RedisServiceApi redisServiceApi;
+	@Autowired
+	FormMapper formmapper;
+	@Autowired
+	NewHousingMapper newHousingMapper;
+	@Autowired
+	FormService formservice;
+	@Autowired
+	BusinessExamineService businessExamineServiceImpl;
+	@Autowired
+	BusinessExamineService businessExamineService;
+	@Autowired
+	DataAuthHelper dataAuthHelper;
+	@Autowired
+	DivideintoServiceApi divideintoServiceApi;
+	@Autowired
+	DealServiceApi dealServiceApi;
+	@Autowired 
+	DecisionConfigurateServiceApi decisionConfigurateServiceApi;
+	@Autowired 
+	ErHousingServiceApi erHousingServiceApi;
+	@Autowired
+	RedisGetIdServiceApi redisGetIdServiceApi;
+	@Autowired
+	ErHousingMapper erHousingMapper;
+	
+	@SystemServiceLog(operationType="查询部门")
+	@Override
+	public LinkedList<Map<String,Object>> queryDept(){
+		LinkedList<Map<String,Object>> depts = newHousingMapper.queryDept();
+		ExecutionResult.descFormat("", "查询部门用户");
+		return depts;
+	}
+	
+	@SystemServiceLog(operationType="查询新房楼盘详细信息")
+	@Override
+	public Map<String,Object> queryNewHouseInfo(int newHouseId){
+		Map<Object, Object> user = UserThreadLocal.get();
+		Long userid = Long.parseLong(user.get("id").toString());
+		
+		//dataAuthHelper.auth(MenusEnum.MENU_21.getCode(),UserThreadLocal.get().get("id").toString());
+		Map<String,Object> newHouseInfo = newHousingMapper.queryNewHouseInfo(newHouseId);//新房楼栋信息
+		ExecutionResult.descFormat("新房楼栋id："+newHouseId, "查询新房详细信息");
+		//ExecutionResult.descFormat("", sourceId, excuteContext);
+		return newHouseInfo;
+	}
+	
+	
+	
+	@SystemServiceLog(operationType="查询带看")
+	@Override
+	public Page<Map<String, Object>> queryLookHouse(int newHouseId,int page,int limit){
+		PageHelper.startPage(page, limit);
+		int houseType = 1;//新房楼盘
+		Page<Map<String, Object>> pageInfo = newHousingMapper.queryLookHouse(newHouseId,houseType);
+		
+		ExecutionResult.descFormat("新房楼盘id："+newHouseId+"", "查询房源带看信息");
+		return pageInfo;
+	}
+	
+
+
+
+	
+	@SystemServiceLog(operationType="设置全景看房")
+	@Override
+	public Long saveOverallview(int newHouseId,String address) {
+		Map<Object,Object> m = new HashMap<>();
+		m.put("id", newHouseId);
+		m.put("panoramaUrl", address);
+		Long res = commonSqlServie.commonOperationDatabase(m, "sys_community_project","id", false);
+		ExecutionResult.descFormat("新房楼栋id："+newHouseId+"", "设置全景看房地址");
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="上传户型图")
+	@Override
+	public Long saveHousetypeImg(HttpServletRequest request){
+		Long res = 0l;
+		int pictureType = 0;
+		
+		Map<Object, Object> imgInfo = JSON.parseObject(request.getParameter("imgInfo"), Map.class);
+		
+		// 将当前上下文初始化给 CommonsMutipartResolver （多部分解析器）
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+				request.getSession().getServletContext());
+		// 检查form中是否有enctype="multipart/form-data"
+		if (multipartResolver.isMultipart(request)) {
+			// 将request变成多部分request
+			MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+			// 获取multiRequest 中所有的文件名
+			Iterator iter = multiRequest.getFileNames();
+
+			if (iter.hasNext()) {
+				// 一次遍历所有文件
+				//List<MultipartFile> files = multiRequest.getFiles(iter.next().toString());
+				
+				MultipartFile file = multiRequest.getFile(iter.next().toString());
+				if (file != null) {
+					String  filepath = filepath = FtpUtil.uploadFile(file,1,true);
+					Map<Object, Object> user=UserThreadLocal.get();
+					Long userid = Long.parseLong(user.get("id").toString());//操作人id
+					String username = user.get("realName").toString();//操作人
+					String deptid = user.get("deptId").toString();
+					//保存户型图表
+					imgInfo.put("url", filepath);
+					imgInfo.put("operatorId", userid);
+					imgInfo.put("operator", username);
+					imgInfo.put("departmentId", deptid);
+					res = commonSqlServie.commonOperationDatabase(imgInfo, "sys_community_project_huxing", false);
+					ExecutionResult.descFormat("", "保存户型图");
+				}
+			}
+		}
+		
+		return res;
+	}
+
+	@SystemServiceLog(operationType="查询户型图")
+	@Override
+	public List<Map<String,Object>> queryHousetypeImg(int newHouseId){
+		List<Map<String,Object>> res =  newHousingMapper.queryHousetypeImg(newHouseId);
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="修改户型图信息")
+	@Override
+	public Long updateHousetypeImg(Map<String,Object> data){
+		Map<Object,Object> imgInfo = (Map)data;
+		Long res = commonSqlServie.commonOperationDatabase(imgInfo, "sys_community_project_huxing", false);
+		return res;
+	}
+	@SystemServiceLog(operationType="删除户型图")
+	@Override
+	public boolean delHousetypeImg(String ids){
+		boolean res = commonSqlServie.delData("sys_community_project_huxing", "id", ids, false);
+		return res;
+	}
+	@SystemServiceLog(operationType="修改新房楼盘信息")
+	@Override
+	public int updateHousing(Map<Object, Object> data) {
+		if(data==null||data.get("id")==null) {
+			return 0;
+		}
+		Map<Object, Object> user=UserThreadLocal.get();
+		if (data.get("isSynchron")!=null) {
+			data.put("isSynchron", 1);
+		}else {
+			data.put("isSynchron", 0);
+		}
+		
+		String decorationIds=null;//装修id
+		String decorationNames=null;//装修名称			
+		if (data.get("decorationIds")!=null) {
+			decorationIds=data.get("decorationIds").toString();			
+			data.remove("decorationIds");							
+		}
+		if (data.get("decorationNames")!=null) {
+			decorationNames=data.get("decorationNames").toString();
+			data.remove("decorationNames");
+		}
+		String labeldIds=null;//标签id,包含颜色
+		String labeldNames=null;//标签名称
+		if (data.get("labeldIds")!=null) {
+			labeldIds=data.get("labeldIds").toString();			
+			data.remove("labeldIds");							
+		}
+		if (data.get("labeldNames")!=null) {
+			labeldNames=data.get("labeldNames").toString();
+			data.remove("labeldNames");
+		}
+		if (data.get("propertyFees")!=null) {
+			Double free=Double.parseDouble(data.get("propertyFees").toString());
+			data.put("propertyFees",free*YUAN);
+		}
+		this.commonSqlServie.commonOperationDatabase(data, "sys_community_project","id", false);
+		Integer id=Integer.parseInt(data.get("id").toString());
+		commonSqlServie.delData("sys_community_project_decoration", "projectId", id.toString(), false);
+		commonSqlServie.delData("sys_labeld", "sourceId", id.toString(), false);
+		//插入装修数据
+		if (StringUtils.isNotEmpty(decorationIds)&&StringUtils.isNotEmpty(decorationNames)) {
+			List<String> decorations=new ArrayList<>();
+			String[] ids=decorationIds.split(",");
+			String[] names=decorationNames.split(",");
+			for (int i = 0; i < ids.length; i++) {
+				if (StringUtils.isNotEmpty(ids[i])) {
+					StringBuilder item=new StringBuilder();
+					item.append(id);
+					item.append(",'");
+					item.append(ids[i]);
+					item.append("','");
+					item.append(names[i]);
+					item.append("','");
+					item.append(user.get("deptId"));
+					item.append("',");
+					item.append(user.get("id"));
+					decorations.add(item.toString());
+				}
+			}
+			if (decorations.size()>0) {
+				String values="projectId,code,descs,permissionArea,operatorId";
+				commonSqlServie.batchAdd(values, "sys_community_project_decoration", decorations, false);
+			}
+		}
+		//插入标签数据
+		if (StringUtils.isNotEmpty(labeldIds)&&StringUtils.isNotEmpty(labeldNames)) {
+			List<String> labelds=new ArrayList<>();
+			String[] ids=labeldIds.split(",");
+			String[] names=labeldNames.split(",");
+			for (int i = 0; i < ids.length; i++) {
+				if (StringUtils.isNotEmpty(ids[i])) {
+					String[] datas=ids[i].split(",");
+					StringBuilder item=new StringBuilder();
+					item.append(2);
+					item.append(",");
+					item.append(id);
+					item.append(",'");
+					item.append(datas[0]);
+					item.append("','");
+					item.append(names[i]);
+					item.append("','");
+					if (datas.length==2) {
+						item.append(datas[1]);
+					}else {
+						item.append("");
+					}
+					item.append("','");
+					item.append(user.get("deptId"));
+					item.append("',");
+					item.append(user.get("id"));
+					labelds.add(item.toString());
+				}
+			}
+			if (labelds.size()>0) {
+				String values="type,sourceId,code,name,color,permissionArea,operatorId";
+				commonSqlServie.batchAdd(values, "sys_labeld", labelds, false);
+			}
+		}
+		newHousingMapper.newHouseSynchron(id.toString());
+		ExecutionResult.descFormat(data.get("id").toString(), "修改楼盘信息");
+		return 1;
+		
+	}
+	
+
+
+
+
+	/**
+	 * 
+		 * 将万元或元转换成分
+		 * @Description: 将万元或元转换成分
+		 * @param value 待转换的值
+		 * @param unit 万元或元换算单位
+		 * @return  整数
+		 * Integer
+	 */
+	private Integer convertFen(String value,Integer unit) {
+		Double d=Double.parseDouble(value);
+		d=d*unit;
+		d=Math.floor(d);
+		return d.intValue();
+	}
+
+
+
+	@SystemServiceLog(operationType="查询小区的座栋信息")
+	@Override
+	public Page<Map<String, Object>> queryBuildingsByCommunity(Long cid,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		ExecutionResult.descFormat(cid.toString(), "查询小区的座栋信息");
+		return newHousingMapper.queryBuildingsByCommunity(cid);
+	}
+
+	@SystemServiceLog(operationType="查询座栋的单元信息")
+	@Override
+	public Page<Map<String, Object>> queryBuildingUnitsByBuild(Long bid,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		ExecutionResult.descFormat(bid.toString(), "查询座栋的单元信息");
+		return newHousingMapper.queryBuildingUnitsByBuild(bid);
+	}
+	@SystemServiceLog(operationType="查询座栋单元的房号信息")
+	@Override
+	public List<Map<String, Object>> queryHouseByUnit(Long buid) {
+		ExecutionResult.descFormat(buid.toString(), "查询座栋单元的房号信息");
+		return newHousingMapper.queryHouseByUnit(buid);
+	}
+	
+	@SystemServiceLog(operationType="查询楼栋单元成交一手房源")
+	@Override
+	public List<Map<String,Object>> querySellHouseInfo(Long bulidingUnitId){
+		
+		List<Map<String,Object>> res = newHousingMapper.querySellHouseInfo(bulidingUnitId);
+		return res;
+		
+	}
+	@SystemServiceLog(operationType="查询楼栋的用户能看销控")
+	@Override
+	public List<Map<String,Object>> querySellHouseInfoByUser(Long bulidingUnitId){
+		//加权限
+		//dataAuthHelper.auth(MenusEnum.MENU_21.getCode(),UserThreadLocal.get().get("id").toString());
+		List<Map<String,Object>> res = newHousingMapper.querySellHouseInfo(bulidingUnitId);
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="新增楼盘")
+	@Override
+	public Integer addNewHouse(String param) {
+		Map data=JSON.parseObject(param, Map.class);
+		if (data.get("communityData")!=null&&data.get("newHouseData")!=null) {
+			Integer cid=saveCommunity((Map)data.get("communityData"));
+			Map newHouseMap=(Map)data.get("newHouseData");
+			Map<Object, Object> user=UserThreadLocal.get();
+			newHouseMap.put("permissionArea", user.get("deptId"));
+			newHouseMap.put("operatorId", user.get("id"));
+			if (newHouseMap.get("isSynchron")!=null) {
+				newHouseMap.put("isSynchron", 1);
+			}else {
+				newHouseMap.put("isSynchron", 0);
+			}
+			newHouseMap.put("communityId", cid);
+			
+			String decorationIds=null;//装修id
+			String decorationNames=null;//装修名称			
+			if (newHouseMap.get("decorationIds")!=null) {
+				decorationIds=newHouseMap.get("decorationIds").toString();			
+				newHouseMap.remove("decorationIds");							
+			}
+			if (newHouseMap.get("decorationNames")!=null) {
+				decorationNames=newHouseMap.get("decorationNames").toString();
+				newHouseMap.remove("decorationNames");
+			}
+			String labeldIds=null;//标签id,包含颜色
+			String labeldNames=null;//标签名称
+			if (newHouseMap.get("labeldIds")!=null) {
+				labeldIds=newHouseMap.get("labeldIds").toString();			
+				newHouseMap.remove("labeldIds");							
+			}
+			if (newHouseMap.get("labeldNames")!=null) {
+				labeldNames=newHouseMap.get("labeldNames").toString();
+				newHouseMap.remove("labeldNames");
+			}
+			if (newHouseMap.get("propertyFees")!=null) {
+				Double free=Double.parseDouble(newHouseMap.get("propertyFees").toString());
+				newHouseMap.put("propertyFees",free*YUAN);
+			}
+			Long id=this.commonSqlServie.commonOperationDatabase(newHouseMap, "sys_community_project", false);
+			//插入装修数据
+			if (StringUtils.isNotEmpty(decorationIds)&&StringUtils.isNotEmpty(decorationNames)) {
+				List<String> decorations=new ArrayList<>();
+				String[] ids=decorationIds.split(",");
+				String[] names=decorationNames.split(",");
+				for (int i = 0; i < ids.length; i++) {
+					if (StringUtils.isNotEmpty(ids[i])) {
+						StringBuilder item=new StringBuilder();
+						item.append(id);
+						item.append(",'");
+						item.append(ids[i]);
+						item.append("','");
+						item.append(names[i]);
+						item.append("','");
+						item.append(user.get("deptId"));
+						item.append("',");
+						item.append(user.get("id"));
+						decorations.add(item.toString());
+					}
+				}
+				if (decorations.size()>0) {
+					String values="projectId,code,descs,permissionArea,operatorId";
+					commonSqlServie.batchAdd(values, "sys_community_project_decoration", decorations, false);
+				}
+			}
+			//插入标签数据
+			if (StringUtils.isNotEmpty(labeldIds)&&StringUtils.isNotEmpty(labeldNames)) {
+				List<String> labelds=new ArrayList<>();
+				String[] ids=labeldIds.split(",");
+				String[] names=labeldNames.split(",");
+				for (int i = 0; i < ids.length; i++) {
+					if (StringUtils.isNotEmpty(ids[i])) {
+						String[] datas=ids[i].split(",");
+						StringBuilder item=new StringBuilder();
+						item.append(2);
+						item.append(",");
+						item.append(id);
+						item.append(",'");
+						item.append(datas[0]);
+						item.append("','");
+						item.append(names[i]);
+						item.append("','");
+						if (datas.length==2) {
+							item.append(datas[1]);
+						}else {
+							item.append("");
+						}
+						item.append("','");
+						item.append(user.get("deptId"));
+						item.append("',");
+						item.append(user.get("id"));
+						labelds.add(item.toString());
+					}
+				}
+				if (labelds.size()>0) {
+					String values="type,sourceId,code,name,color,permissionArea,operatorId";
+					commonSqlServie.batchAdd(values, "sys_labeld", labelds, false);
+				}
+			}
+			newHousingMapper.newHouseSynchron(id.toString());
+			ExecutionResult.descFormat(id.toString(), "新增楼盘信息");
+			return id.intValue();
+		}
+		return null;
+	}
+	//小区信息保存
+	private Integer saveCommunity(Map data) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		Map<Object, Object> map=new HashMap<>();
+		
+		map.put("permissionArea", user.get("deptId"));
+		map.put("operatorId", user.get("id"));
+		map.put("name", data.get("name"));
+		map.put("recordName", data.get("recordName"));
+		map.put("pinyin", data.get("pinyin"));
+		map.put("areaCode", data.get("areaCode"));
+		map.put("regionId", data.get("regionId"));
+		map.put("address", data.get("address"));
+		map.put("communityProfile", "");
+		Map<Object, Object> mapInfo=new HashMap<>();
+		Integer price=Integer.parseInt(data.get("salePrice").toString());
+		
+		mapInfo.put("salePrice", price*YUAN);
+		mapInfo.put("isHot", data.get("isHot")); 
+		mapInfo.put("permissionArea", user.get("deptId"));
+		mapInfo.put("operatorId", user.get("id"));
+		if (data.get("id")==null) {					
+			Long id=this.commonSqlServie.commonOperationDatabase(map, "sys_community", false);
+			mapInfo.put("communityId", id);
+			mapInfo.put("isUse", 0);
+			this.commonSqlServie.commonOperationDatabase(mapInfo, "sys_community_second", false);
+			return id.intValue();
+		}else {
+			map.put("id", data.get("id"));
+			commonSqlServie.commonOperationDatabase(map, "sys_community", "id", false);
+			mapInfo.put("communityId", data.get("id"));
+			commonSqlServie.commonOperationDatabase(mapInfo, "sys_community_second", "communityId", false);
+			return Integer.parseInt(data.get("id").toString());
+		}
+	}
+	@SystemServiceLog(operationType="查询小区基本信息")
+	@Override
+	public Map<String, Object> queryCommunityByName(String areaCode,String name) {
+		Map<String, Object> result=newHousingMapper.queryCoummunityInfoByName(areaCode, name);
+		ExecutionResult.descFormat(name, "查询小区基本信息");
+		return result;
+	}
+	@SystemServiceLog(operationType="删除楼盘")
+	@Override
+	public boolean deleteNewHouse(Integer id) {
+		boolean result=commonSqlServie.delData("sys_community_project", "id", id.toString(), false);
+		newHousingMapper.newHouseSynchron(id.toString());
+		ExecutionResult.descFormat(id.toString(), "删除楼盘");
+		return result;
+	}
+	@SystemServiceLog(operationType="设置楼盘同步状态")
+	@Override
+	public Integer setSynchron(Integer id, Integer result) {
+		Map<Object, Object> param=new HashMap<>();
+		param.put("id", id);
+		param.put("isSynchron", result);
+		commonSqlServie.commonOperationDatabase(param, "sys_community_project", "id", false);
+		newHousingMapper.newHouseSynchron(id.toString());
+		ExecutionResult.descFormat(id.toString(), "设置楼盘同步状态为"+result);
+		return 1;
+	}
+	@SystemServiceLog(operationType="查询楼盘列表")
+	@Override
+	public Page<Map<String, Object>> queryNewHouseList(String param,int page,int limit) {
+		Map<String, Object> paramMap=JSON.parseObject(param, Map.class);
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> result=newHousingMapper.queryNewHouseList(paramMap);
+		ExecutionResult.descFormat("", "查询楼盘列表");
+		return result;
+	}
+	@SystemServiceLog(operationType="查询当前用户公司的用户列表")
+	@Override
+	public List<Map<String, Object>> queryUserByCompanyId() {
+		String companyId=UserThreadLocal.get().get("companyId").toString();
+		List<Map<String, Object>> results=newHousingMapper.queryUserByCompanyId(companyId);
+		ExecutionResult.descFormat(companyId, "查询当前用户公司的用户列表");
+		return results;
+	}
+	@SystemServiceLog(operationType="新房成交")
+	@Override
+	public boolean dealNewHousing(String dataJson, String commissionsJson) {
+		if (StringUtils.isNotEmpty(dataJson)) {
+			Map user = UserThreadLocal.get();
+			String companyId=user.get("companyId").toString();
+			String companyName=user.get("comName").toString();
+			Map<Object, Object> data = JSON.parseObject(dataJson, Map.class);
+			Long houseId=Long.parseLong(data.get("buildingHouseId").toString());
+			Map<String, Object> buildHouseInfo=newHousingMapper.queryBuildHouseInfo(houseId);	
+			Map<Object, Object> dealInfo=new HashMap<>();
+			dealInfo.put("buildingHouseId", houseId);
+			dealInfo.put("areaCode", buildHouseInfo.get("areaCode"));
+			dealInfo.put("areaName", buildHouseInfo.get("areaName"));
+			dealInfo.put("regionId", buildHouseInfo.get("regionId"));
+			dealInfo.put("regionName", buildHouseInfo.get("regionName"));
+			dealInfo.put("communityId", buildHouseInfo.get("communityId"));
+			dealInfo.put("communityName", buildHouseInfo.get("communityName"));
+			dealInfo.put("buildingsId", Long.parseLong(buildHouseInfo.get("buildingsId").toString()));
+			dealInfo.put("buildingsName", buildHouseInfo.get("buildingsName"));
+			dealInfo.put("bulidingUnitId", Long.parseLong(buildHouseInfo.get("bulidingUnitId").toString()));
+			dealInfo.put("buildingsUnitName", buildHouseInfo.get("buildingsUnitName"));
+			dealInfo.put("buildingHouseId", Long.parseLong(buildHouseInfo.get("buildingHouseId").toString()));
+			dealInfo.put("buildingHouseName", buildHouseInfo.get("buildingHouseName"));
+			dealInfo.put("elevatorCount", Long.parseLong(buildHouseInfo.get("elevatorCount").toString()));
+			dealInfo.put("householdCount", Long.parseLong(buildHouseInfo.get("householdCount").toString()));
+			dealInfo.put("floorCount", Long.parseLong(buildHouseInfo.get("floorCount").toString()));
+			dealInfo.put("totalLayers", Long.parseLong(buildHouseInfo.get("totalLayers").toString()));
+			dealInfo.put("companyId", companyId);
+			dealInfo.put("companyName", companyName);
+			dealInfo.put("houseUsesId", data.get("houseUsesId"));//用途编号
+			dealInfo.put("houseUses", data.get("houseUses"));//用途
+			dealInfo.put("buildSpace", data.get("buildSpace"));//建筑面积
+			dealInfo.put("useSpace", data.get("useSpace"));//使用面积
+			dealInfo.put("orientationId", data.get("orientationId"));//朝向id
+			dealInfo.put("orientation", data.get("orientation"));//朝向
+			dealInfo.put("decorationId", data.get("decorationId"));//装修id
+			dealInfo.put("decoration", data.get("decoration"));//装修
+			dealInfo.put("propertyTypeId", data.get("propertyTypeId"));//产权id
+			dealInfo.put("propertyType", data.get("propertyType"));//产权
+			dealInfo.put("room", data.get("room"));//几室				
+			dealInfo.put("hall", data.get("hall"));//几厅
+			dealInfo.put("toilet", data.get("toilet"));//几卫
+			dealInfo.put("kitchen", data.get("kitchen"));//几厨
+			dealInfo.put("balcony", data.get("balcony"));//几阳
+			dealInfo.put("buildDates", data.get("buildDates"));//建筑年代
+			dealInfo.put("dealType", DealTypeEnum.NEWHOUSEDEAL.getCode());//成交类型
+			dealInfo.put("cityCode", user.get("cityCode"));
+			dealInfo.put("agreementId", data.get("agreementId"));//合同编号
+			dealInfo.put("demandId", data.get("demandId"));//客源编号
+			dealInfo.put("owner", data.get("owner"));
+			dealInfo.put("custName", data.get("custName"));
+			dealInfo.put("traderId", data.get("traderId"));
+			Integer price = Integer.parseInt(data.get("price").toString());
+			dealInfo.put("price", price*WANYUAN);
+			dealInfo.put("dealTime", data.get("dealTime"));
+			dealInfo.put("landCertifcate", data.get("landCertifcate"));
+			dealInfo.put("propCertificate", data.get("propCertificate"));
+			dealInfo.put("commissionPrice", Integer.parseInt(data.get("commissionPrice").toString())*YUAN);
+			dealInfo.put("supplementInfo", data.get("supplementInfo"));
+			dealInfo.put("isautoDivide", 0);
+			//增加二手房
+			Map<Object, Object> houseInfo=addHousing(dealInfo);
+			dealInfo.put("houseId", houseInfo.get("houseId"));
+			dealInfo.put("shhid", houseInfo.get("id"));
+			
+			List<Map<String, Object>> commList=null;
+			if (StringUtils.isNotEmpty(commissionsJson)) {
+				List<Object> commissions = JSON.parseArray(commissionsJson);
+				commList=new ArrayList<>();
+				//补充佣金城市信息
+				for (Object item : commissions) {
+					Map<String, Object> param= (Map<String, Object>) item;
+					param.put("companyId", houseInfo.get("companyId"));
+					param.put("companyName", houseInfo.get("companyName"));
+					param.put("price", Integer.parseInt(param.get("price").toString())*YUAN);
+					param.put("permissionArea", user.get("deptId"));
+					param.put("operatorId", user.get("id"));
+					param.put("status", CommissionStatusEnum.PLAN.getCode());
+					commList.add(param);
+				}
+			}
+			dealInfo.put("permissionArea", user.get("deptId"));
+			dealInfo.put("operatorId", user.get("id"));
+						
+			String demandId = data.get("demandId").toString();
+			
+			CustomerStatusEnum dealCoutomerStatus=CustomerStatusEnum.MY_SELL;
+			dealInfo.remove("decorationId");//装修id
+			dealInfo.remove("decoration");//装修
+			dealInfo.remove("useSpace");
+			//调用成交接口增加成交信息
+			dealServiceApi.saveDealInfo(dealInfo, commList);
+			
+			Map<Object, Object> updateParam=new HashMap<>();
+			updateParam.put("id", demandId);
+			updateParam.put("statusId", dealCoutomerStatus.getCode());
+			updateParam.put("status", dealCoutomerStatus.getDesc());
+			//修改客源成交状态
+			commonSqlServie.commonOperationDatabase(updateParam, "demand_customerBusinessInfo", "id", false);
+			ExecutionResult.descFormat(houseId+","+demandId, "新房成交");
+		}
+		return true;
+	}
+	
+	 private Map<Object, Object> addHousing(Map<Object, Object> dealInfo) {
+		 	Map<Object, Object> data=new HashMap<>();
+		 	if (dealInfo.get("buildingHouseId")==null) {
+				throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+			}
+		 	data.put("buildingHouseId", dealInfo.get("buildingHouseId"));
+			Map<Object, Object> user=UserThreadLocal.get();
+			String companyId=user.get("companyId").toString();
+			String companyName=user.get("comName").toString();
+			Long houseId=Long.parseLong(data.get("buildingHouseId").toString());
+			Map<String, Object>base=erHousingMapper.getErHousingCode(houseId);
+			
+			if (base!=null&&base.get("id")!=null) {
+				data.put("houseId", base.get("id"));
+				int count=newHousingMapper.queryhouseCountByCompany(base.get("id").toString(),companyId);
+				if (count>0) {
+					throw new BusinessException("该房间已经由你公司其他人创建二手房源，请删除后再成交！");
+				}
+			}else {
+		
+				String code=dealInfo.get("areaCode").toString();
+				
+				String houseCode=redisGetIdServiceApi.getHouseId(code);
+				long communityId=Long.parseLong(dealInfo.get("communityId").toString());
+				boolean school=newHousingMapper.querySchoolCountByCommunity(communityId)>0;
+				long schoolBiaozhi=0;
+				if (school) {
+					schoolBiaozhi=1;
+				}
+				int metroCount=erHousingMapper.queryIsMetroRoom(communityId);
+				int isSubwayRoom=0;
+				if (metroCount>0) {
+					isSubwayRoom=1;
+				}
+				/** 添加房源基础表**/
+				Map<Object, Object> houseBase =new HashMap<>();
+				houseBase.put("id", houseCode);
+				String cityCode=code.substring(0, 4)+"00";
+				houseBase.put("cityCode", cityCode);
+				houseBase.put("areaCode", code);
+				houseBase.put("operatorId", user.get("id"));
+				//houseBase.put("operator", user.get("realName"));
+				houseBase.put("permissionArea", user.get("deptId"));
+				houseBase.put("areaName", dealInfo.get("areaName"));
+				houseBase.put("isSchoolRoom", schoolBiaozhi);
+				houseBase.put("isSubwayRoom", isSubwayRoom);
+				houseBase.put("regionId", dealInfo.get("regionId"));
+				houseBase.put("regionName", dealInfo.get("regionName"));
+				houseBase.put("communityId", dealInfo.get("communityId"));
+				houseBase.put("communityName", dealInfo.get("communityName"));
+				houseBase.put("buildingsId", Long.parseLong(dealInfo.get("buildingsId").toString()));
+				houseBase.put("buildingsName", dealInfo.get("buildingsName"));
+				houseBase.put("bulidingUnitId", Long.parseLong(dealInfo.get("bulidingUnitId").toString()));
+				houseBase.put("buildingsUnitName", dealInfo.get("buildingsUnitName"));
+				houseBase.put("buildingHouseId", Long.parseLong(dealInfo.get("buildingHouseId").toString()));
+				houseBase.put("buildingHouseName", dealInfo.get("buildingHouseName"));
+				houseBase.put("elevatorCount", Long.parseLong(dealInfo.get("elevatorCount").toString()));
+				houseBase.put("householdCount", Long.parseLong(dealInfo.get("householdCount").toString()));
+				houseBase.put("floorCount", Long.parseLong(dealInfo.get("floorCount").toString()));
+				houseBase.put("totalLayers", Long.parseLong(dealInfo.get("totalLayers").toString()));
+				commonSqlServie.idCustomOperationDatabase(houseBase, "hs_housebaseinfo", false);
+				data.put("houseId", houseCode);
+			}
+			
+				data.remove("buildingHouseId");
+				/** 添加房源主表**/			
+				data.put("companyId", companyId);
+				data.put("companyName", companyName);
+				data.put("operatorId", user.get("id"));
+				data.put("maintainId", user.get("id"));
+				data.put("maintainer", user.get("realName"));
+				data.put("recordTime", new Date());
+				data.put("permissionArea", user.get("deptId"));
+				data.put("levelType", HouseLevelEnum.D.getCode());
+				data.put("mainterDept", user.get("depName"));
+				data.put("mainterDeptId", user.get("deptId"));
+				data.put("mainterFllowTime", new Date());
+				data.put("allFollowTime", new Date());
+				data.put("openPlateDate", new Date());
+				data.put("transactionTypeId", HouseTransactionEnum.SELL.getCode());
+				data.put("transactionType", HouseTransactionEnum.SELL.getDesc());
+				data.put("resourceTypeId", 0);
+				data.put("resourceType", "其他");
+				data.put("houseUsesId", dealInfo.get("houseUsesId"));//用途编号
+				data.put("houseUses", dealInfo.get("houseUses"));//用途
+				data.put("buildSpace", dealInfo.get("buildSpace"));//建筑面积
+				data.put("useSpace", dealInfo.get("useSpace"));//使用面积
+				data.put("orientationId", dealInfo.get("orientationId"));//朝向id
+				data.put("orientation", dealInfo.get("orientation"));//朝向
+				data.put("decorationId", dealInfo.get("decorationId"));//装修id
+				data.put("decoration", dealInfo.get("decoration"));//装修
+				data.put("propertyTypeId", dealInfo.get("propertyTypeId"));//产权id
+				data.put("propertyType", dealInfo.get("propertyType"));//产权
+				data.put("isSynchron", 0);//外网同步
+				data.put("room", dealInfo.get("room"));//几室				
+				data.put("hall", dealInfo.get("hall"));//几厅
+				data.put("toilet", dealInfo.get("toilet"));//几卫
+				data.put("kitchen", dealInfo.get("kitchen"));//几厨
+				data.put("balcony", dealInfo.get("balcony"));//几阳
+				data.put("buildDates", dealInfo.get("buildDates"));//建筑年代
+				
+				//售价转换成分
+				data.put("sellingPrice", convertFen(dealInfo.get("price").toString(),WANYUAN));
+				
+				data.put("statusId", HouseStatusEnum.MY_SELL.getCode());
+				data.put("status", HouseStatusEnum.MY_SELL.getDesc());
+				data.put("examineStatus", ExamineStatusEnum.EXAMINED.getCode());
+			
+				data.put("taobaoStatusId", TaoBaoStatusEnum.NOT_TAOBAO.getCode());
+				data.put("taobaoStatus", TaoBaoStatusEnum.NOT_TAOBAO.getDesc());
+				data.put("discStatusId", DiscStatusEnum.PUBLICDISC.getCode());
+				data.put("discStatus", DiscStatusEnum.PUBLICDISC.getDesc());
+				
+				Map<String, Object> customer=newHousingMapper.queryCustomerInfo(dealInfo.get("demandId").toString());
+				Map<Object, Object> houseOwnerRelate =new HashMap<>();
+				houseOwnerRelate.put("companyId", companyId);
+				houseOwnerRelate.put("companyName", companyName);
+				houseOwnerRelate.put("phone", customer.get("phone"));
+				houseOwnerRelate.put("relateType", customer.get("relateType"));
+				houseOwnerRelate.put("relateName", customer.get("relateName"));
+				houseOwnerRelate.put("remark", customer.get("relateName"));
+				houseOwnerRelate.put("isMainFlag", 1);
+				
+				data.put("owner", customer.get("custName"));
+				data.put("nameType", customer.get("relateTypeId"));
+				data.put("nameTitle", customer.get("relateTypeName"));
+				long id=commonSqlServie.commonOperationDatabase(data, "hs_secondHandHouse", false);
+				
+				/** 添加业主联系人**/
+				houseOwnerRelate.put("shhId", id);
+				commonSqlServie.commonOperationDatabase(houseOwnerRelate, "hs_houseOwnerRelate", false);
+				/** 添加录入人、开盘人、维护人**/
+				List<String> agentList=new ArrayList<>();
+
+				String columns="companyId,companyName,shhId,agentId,agentName,operatorId,departmentId,departmentName,agentType,agentTypeName";
+				StringBuilder value=new StringBuilder();
+				value.append("'");
+				value.append(companyId);
+				value.append("','");
+				value.append(companyName);
+				value.append("',");
+				value.append(id);
+				value.append(",");
+				value.append(user.get("id"));
+				value.append(",'");
+				value.append(user.get("realName"));
+				value.append("',");
+				value.append(user.get("id"));
+				value.append(",'");
+				value.append(user.get("deptId"));
+				value.append("','");
+				value.append(user.get("depName"));
+				value.append("'");
+				agentList.add(value.toString()+",'"+AgentTypeEnum.HOUSERECORDER.getCode()+"','"+AgentTypeEnum.HOUSERECORDER.getDesc()+"'");
+				agentList.add(value.toString()+",'"+AgentTypeEnum.HOUSEMAINTAINER.getCode()+"','"+AgentTypeEnum.HOUSEMAINTAINER.getDesc()+"'");
+				commonSqlServie.batchAdd(columns, "hs_houseRelateAgent", agentList, false);
+				Map<Object, Object> result=new HashMap<>();
+				result.put("id", id);
+				result.put("houseId", data.get("houseId"));
+			ExecutionResult.descFormat(id+"", "新增房源");
+			return result;
+		}
+	
+}

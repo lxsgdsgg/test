@@ -1,0 +1,11 @@
+package com.bashiju.www.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.bashiju.www.pojo.CustCustomer;
+
+public interface CustCustomerMapper {
+	public List<CustCustomer> queryAllCustomer();
+	public Long saveCustomer(CustCustomer custCustomer);
+}

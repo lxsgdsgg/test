@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.RentHouseMapper">
+	<!-- 租房按区域查询列表 -->
+	<select id="queryRentHouseByArea" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult" parameterType="com.bashiju.www.pojo.service.input.house.RentHouseParam">	
+		SELECT id,titles AS title,url,room,hall,toilet,orientation,buildSpace,useSpace,decoration,floorDes,totalFloor,buildDates,FLOOR(rentPrice/100) AS price,
+		attentionCount,communityName AS community,region,areaName,communityId,regionId,areaCode,lastViewingCount,metroLabel,schoolLabel,dutyFreeName,twoYearName,fiveYearName,houseCardName,allTimeName
+		FROM sys_client_rentHouseQueryInfos
+		WHERE cityCode=#{cityCode} 
+		<if test="areaCode!=null"> AND areaCode=#{areaCode}</if>
+		 <if test="regionId!=null and regionId>0"> AND regionId=#{regionId}</if>
+		<if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="rentType!=null and rentType.size()>0">
+		 and 
+		<foreach collection="rentType" item="item" separator="or" open="(" close=")">
+		<if test="item==0"> id>0 </if>
+		<if test="item==1"> id>0 </if>
+		<if test="item==2"> id=0 </if>
+		<if test="item==3"> id=0 </if>
+		</foreach>
+		</if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		 <if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>     
+		<if test="elevator!=null and elevator.size()>0">
+			AND  
+			<foreach collection="elevator" item="item" separator="or" open="(" close=")">
+				<if test="item==1">elevatorCount &gt;0</if>
+				<if test="item==2">elevatorCount=0</if>
+			</foreach>		
+		</if>      
+		<if test="sort>0">
+			ORDER BY   			
+			<if test="sort==1">openPlateDate</if>
+			<if test="sort==2">rentPrice</if>
+			<if test="sort==3">buildSpace</if>
+			<if test="sort==4">browsingCount</if>
+			<if test="asc==0"> DESC</if>
+		</if>
+	</select>
+	<!-- 租房按地铁查询列表 -->
+	<select id="queryRentHouseByMetro" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult" parameterType="com.bashiju.www.pojo.service.input.house.RentHouseParam">
+		SELECT scs.id,titles AS title,url,room,hall,toilet,orientation,buildSpace,useSpace,decoration,floorDes,totalFloor,buildDates,FLOOR(rentPrice/100) AS price,
+		attentionCount,scs.communityName AS community,region,areaName,scs.communityId,regionId,areaCode,lastViewingCount,metroLabel,schoolLabel,dutyFreeName,twoYearName,fiveYearName,houseCardName,allTimeName
+		FROM sys_client_rentHouseQueryInfos AS scs INNER JOIN sys_station_block_community AS sbc ON scs.communityId=sbc.communityId 
+		<if test="stationId!=null and stationId >0"> AND sbc.stationId=#{stationId}</if>
+		INNER JOIN sys_metro_station AS msm ON msm.id=sbc.stationId 
+		<if test="metroId!=null and metroId>0 "> AND msm.metroId=#{metroId} </if>
+		WHERE cityCode=#{cityCode} 
+		<if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="rentType!=null and rentType.size()>0">
+		 and 
+		<foreach collection="rentType" item="item" separator="or" open="(" close=")">
+		<if test="item==0"> id>0 </if>
+		<if test="item==1"> id>0 </if>
+		<if test="item==2"> id=0 </if>
+		<if test="item==3"> id=0 </if>
+		</foreach>
+		</if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		 <if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>      
+		<if test="elevator!=null and elevator.size()>0">
+			AND  
+			<foreach collection="elevator" item="item" separator="or" open="(" close=")">
+				<if test="item==1">elevatorCount &gt;0</if>
+				<if test="item==2">elevatorCount=0</if>
+			</foreach>		
+		</if>      
+		<if test="sort>0">
+			ORDER BY   
+			<if test="sort==1">openPlateDate</if>
+			<if test="sort==2">rentPrice</if>
+			<if test="sort==3">buildSpace</if>
+			<if test="sort==4">browsingCount</if>
+			<if test="asc==0"> DESC</if>
+		</if>
+	</select>
+	<select id="queryRentHouseByCoummunity" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		SELECT id,titles AS title,url,room,hall,toilet,orientation,buildSpace,useSpace,decoration,floorDes,totalFloor,buildDates,FLOOR(rentPrice/100) AS price,
+		attentionCount,communityName AS community,region,areaName,communityId,regionId,areaCode,lastViewingCount,metroLabel,schoolLabel,dutyFreeName,twoYearName,fiveYearName,houseCardName,allTimeName
+		FROM sys_client_rentHouseQueryInfos
+		WHERE match(cityCode, titles,communityName, areaName, region) against(concat('+',#{cityCode},' +',#{communityName}) in boolean mode)		
+	</select>
+	<select id="queryRentMapHouseArea" resultType="com.bashiju.www.pojo.service.out.house.HouseMapPointResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapParam">
+		SELECT areaCode as code,areaName as name,a.latitude,a.longitude,COUNT(*)AS total 
+		FROM sys_client_rentHouseQueryInfos AS s INNER JOIN sys_area AS a ON s.areaCode=a.`code` 
+		 WHERE cityCode=#{cityCode} 
+		 <if test="communityName!=null"> and communityName like #{communityName}</if>
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>     
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if> 
+		 GROUP BY s.areaCode
+	</select>
+	<select id="queryRentMapHouseRegion" resultType="com.bashiju.www.pojo.service.out.house.HouseMapPointResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapParam">
+		SELECT regionId as code,region as name,r.latitude,r.longitude,COUNT(*)AS total  
+		FROM sys_client_rentHouseQueryInfos AS s INNER JOIN sys_region AS r ON s.regionId=r.id
+		 WHERE cityCode=#{cityCode} 
+		 <if test="areaCode!=null"> AND s.areaCode=#{areaCode}</if>
+		 <if test="communityName!=null"> and communityName like #{communityName}</if>
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if> 
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		 GROUP BY regionId
+	</select>
+	<select id="queryRentMapHouseCommunity" resultType="com.bashiju.www.pojo.service.out.house.HouseMapPointResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapParam">
+		SELECT communityId as code,communityName as name,c.latitude,c.longitude,COUNT(*)AS total  
+		FROM sys_client_rentHouseQueryInfos AS s INNER JOIN sys_community AS c ON s.communityId=c.id
+		 WHERE cityCode=#{cityCode} 
+		 <if test="areaCode!=null"> AND s.areaCode=#{areaCode}</if>
+		 <if test="regionId!=null and regionId>0"> AND s.regionId=#{regionId}</if>
+		 <if test="communityName!=null"> and s.communityName like #{communityName}</if>
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>    
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if> 
+		 GROUP BY s.communityId
+	</select>
+	
+	<select id="queryRentHouseMapList" resultType="com.bashiju.www.pojo.service.out.house.HouseMapListResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapListParam">
+		SELECT DISTINCT id,titles AS title,url,room,hall,toilet,orientation,FLOOR(rentPrice/100) AS price,
+		region,areaName,metroLabel,schoolLabel,dutyFreeName,twoYearName,fiveYearName,houseCardName,allTimeName 
+		FROM sys_client_rentHouseQueryInfos 
+		 WHERE cityCode=#{cityCode} 
+		 <if test="areaCode!=null"> AND areaCode=#{areaCode}</if>
+		 <if test="regionId!=null and regionId>0"> AND regionId=#{regionId}</if>
+		 <if test="communityName!=null"> and communityName like #{communityName}</if>
+		 <if test="communityId!=null and communityId>0"> AND communityId=#{communityId}</if>
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>    
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="sort>0">
+			ORDER BY   
+			<if test="sort==1">rentPrice</if>
+			<if test="sort==2">buildSpace</if>
+			<if test="sort==3">openPlateDate</if>
+			<if test="asc==0"> DESC</if>
+		</if>  
+	</select>
+	<!-- 地图找房二手房地铁线路房源统计 -->
+	<select id="queryRentMapHouseMetro" resultType="com.bashiju.www.pojo.service.out.house.HouseMapPointResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapParam">
+		SELECT m.id as code,m.stationName as name,m.lontitude as longitude,m.latitude,
+		(SELECT COUNT(*) FROM sys_station_block_community AS s INNER JOIN sys_client_rentHouseQueryInfos AS h ON s.communityId=h.communityId 
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if> 		
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		 WHERE s.stationId=m.id AND h.cityCode=m.rgCode) AS total	
+		FROM sys_metro_station AS m
+		 WHERE m.rgCode=#{cityCode} AND m.metroId=#{metroId}		      		 
+	</select>
+	<!-- 地图找房二手房地铁线路小区房源数量统计 -->
+	<select id="queryRentMapHouseCommunityMetro" resultType="com.bashiju.www.pojo.service.out.house.HouseMapPointResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapParam">
+		SELECT m.communityId AS code,m.communityName AS name,c.longitude,c.latitude,COUNT(*) AS total
+		FROM sys_client_rentHouseQueryInfos AS m INNER JOIN sys_community AS c ON c.id=m.communityId 
+		AND m.communityId IN (SELECT DISTINCT s.communityId FROM sys_station_block_community AS s 
+		INNER JOIN sys_metro_station AS ms ON ms.id=s.stationId WHERE ms.rgCode=m.cityCode 
+		<if test="metroId!=null"> AND ms.metroId=#{metroId}</if> 
+		<if test="stationId!=null and stationId>0"> AND ms.id=#{stationId}</if>
+		 <if test="stationName!=null"> and ms.stationName like #{stationName} </if>
+		)
+		 WHERE m.cityCode=#{cityCode} 
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>   
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>  
+		 GROUP BY m.communityId
+	</select>
+	<!-- 地图找房二手房地铁线路房源列表查询 -->
+	<select id="queryRentHouseMapMetroList" resultType="com.bashiju.www.pojo.service.out.house.HouseMapListResult" parameterType="com.bashiju.www.pojo.service.input.house.HouseMapListParam">
+		SELECT DISTINCT m.id,titles AS title,url,room,hall,toilet,orientation,FLOOR(rentPrice/100) AS price,
+		region,areaName,metroLabel,schoolLabel,dutyFreeName,twoYearName,fiveYearName,houseCardName,allTimeName 
+		FROM sys_client_rentHouseQueryInfos AS m INNER JOIN sys_station_block_community AS s ON m.communityId=s.communityId  
+		INNER JOIN sys_metro_station AS ms ON ms.id=s.stationId AND ms.rgCode=m.cityCode AND ms.metroId=#{metroId}
+		<if test="stationId!=null and stationId>0"> AND ms.id=#{stationId}</if>
+		<if test="communityName!=null"> and m.communityName like CONCAT('%',#{communityName},'%')</if>
+		 <if test="stationName!=null"> and ms.stationName like #{stationName} </if>
+		 where m.cityCode=#{cityCode} 
+		 <if test="communityId!=null and communityId>0"> AND m.communityId=#{communityId}</if>
+		 <if test="minPrice!=null"> and rentPrice &gt;=#{minPrice}*100 </if>
+		<if test="maxPrice!=null"> and rentPrice &lt;=#{maxPrice}*100 </if>
+		<if test="minSpace!=null"> and buildSpace &gt;=#{minSpace} </if>
+		<if test="maxSpace!=null"> and buildSpace &lt;=#{maxSpace} </if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="rooms!=null and rooms.size()>0">
+			AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="orientationIds!=null and orientationIds.size()>0">
+			AND orientationId IN
+			<foreach collection="orientationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0">
+			AND decorationId IN
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="fllorDesIds!=null and fllorDesIds.size()>0">
+			AND floorDesId IN
+			<foreach collection="fllorDesIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>    
+		<if test="buildYearCodes!=null and buildYearCodes.size()>0">
+			AND  ageQueryParam in
+			<foreach collection="buildYearCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>    
+		<if test="houseUses!=null and houseUses.size()>0">
+			AND houseUsesId IN
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if> 
+		<if test="sort>0">
+			ORDER BY   
+			<if test="sort==1">rentPrice</if>
+			<if test="sort==2">buildSpace</if>
+			<if test="sort==3">openPlateDate</if>
+			<if test="asc==0"> DESC</if>
+		</if>  
+	</select>
+	<select id="queryRentGoodHouses" resultType="com.bashiju.www.pojo.service.out.house.GoodHouseListResult">
+		select b.communityName as community,b.region,b.areaName,
+		floor(b.rentPrice/100) as price,b.buildDates,b.decoration,b.buildSpace,b.toilet,b.hall,b.room,b.titles as title,b.id,b.url
+		FROM sys_client_rentHouseQueryInfos AS b where b.isGood=1 AND b.cityCode=#{cityCode} ORDER BY openPlateDate DESC
+	</select>
+</mapper>

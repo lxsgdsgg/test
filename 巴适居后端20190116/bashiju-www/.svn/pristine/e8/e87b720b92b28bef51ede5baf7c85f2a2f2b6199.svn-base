@@ -1,0 +1,162 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentTest.java   
+ * @Package com.bashiju.www.test.usercentraltest      
+ * @author: zuoyuntao     
+ * @date:   2018年8月1日 下午3:16:38   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test.usercentraltest;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.service.user.ICustomerEntrustmentService;
+import com.bashiju.www.test.BaseServiceTest;
+
+/**
+ * 房源委托、需求委托测试类
+ * @ClassName:CustomerEntrustmentTest
+ * @Description:房源委托、需求委托测试类
+ * @author:zuoyuntao
+ * @date:2018年8月1日 下午3:16:38
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerEntrustmentTest extends BaseServiceTest {
+	private String verifyCode = "";
+	/**
+	 * 委托服务层接口
+	 */
+	@Autowired
+	private ICustomerEntrustmentService mICustomerEntrustmentService;
+	
+	private CustomerDemandEntrustmentEntity demandEntity = new CustomerDemandEntrustmentEntity();
+	
+	private CustomerHouseEntrustmentEntity houseEntity = new CustomerHouseEntrustmentEntity();
+	/**
+	 * 查询客源数据
+	 * @Title: queryHouseEntrustmentDataList
+	 * @author: zuoyuntao  
+	 * @Description:查询客源数据       
+	 * void JSON 格式为：
+	 */
+//	@Test
+//	public void queryHouseEntrustmentDataList() {
+//		List<CustomerHouseEntrustmentEntity>  list = 
+//				mICustomerEntrustmentService.queryHouseEntrustmentDataList("1","1", 0, 10);
+//		System.out.println(list);
+//	}
+	/**
+	 * 测试查询需求委托数据
+	 * @Title: queryDemandEntrustmentDataList
+	 * @author: zuoyuntao  
+	 * @Description:测试查询需求委托数据      
+	 * void JSON 格式为：
+	 */
+//	@Test
+//	public void queryDemandEntrustmentDataList() {
+//		List<CustomerDemandEntrustmentEntity> list = mICustomerEntrustmentService.queryDemandEntrustmentDataList("1", "4", 0, 10);
+//		System.out.println(list);
+//	}
+//	@Test
+//	public void queryHouseVerifyCode() {
+//		verifyCode = mICustomerEntrustmentService.queryHouseVerifyCode("14787468304");
+//		System.out.println(verifyCode);
+//		
+//	}
+	@Test
+	public void saveHouseEntrustmentData() {
+		//交易类型 1 出售 2 出租
+//		houseEntity.setTransactionType(1);
+		houseEntity.setTransactionType(2);
+		//区域
+		houseEntity.setAreaCode("530100");
+		houseEntity.setAreaName("昆明市");
+		//城市
+		houseEntity.setCityCode(530100);
+		//0--标识非出租(默认) 1--整租 2--合租
+		houseEntity.setLeaseType(1);
+		//小区
+		houseEntity.setCommunityId(1);
+		houseEntity.setCommunityName("星泽园");
+		//片区
+		houseEntity.setRegionId(2);
+		houseEntity.setRegionName("新亚洲体育城");
+		//座栋
+		houseEntity.setBuildingsId(1);
+		houseEntity.setBuildingsName("8号楼");
+		//单元
+		houseEntity.setBulidingUnitId(11);
+		houseEntity.setBuildingsUnitName("三单元");
+		//房号
+		houseEntity.setBuildingHouseId(11);
+		houseEntity.setBuildingHouseName("2010");
+		//户型
+		houseEntity.setRoom(3);
+		houseEntity.setHall(2);
+		houseEntity.setToilet(2);
+		//建筑面积
+		houseEntity.setBuildSpace(102);
+		//售价
+//		houseEntity.setSellingPrice(160);//出售价格
+		houseEntity.setRentPrice(1600);//出租价格
+		
+		houseEntity.setPayTypeId(3);
+		houseEntity.setPayType("押一年付");
+		//客户称呼
+		houseEntity.setClienteleName("Mr.Wu");
+		houseEntity.setMobile("14787468304");
+		//备注
+		houseEntity.setDescs("急着出售");
+		//客户ID
+		houseEntity.setCustId("1");
+		verifyCode = mICustomerEntrustmentService.queryHouseVerifyCode("14787468304");
+		mICustomerEntrustmentService.saveHouseEntrustmentData(houseEntity,verifyCode);
+	}
+	/**
+	 * 测试付款方式下拉选项读取
+	 * @Title: queryPayOffMethod
+	 * @author: zuoyuntao  
+	 * @Description:测试付款方式下拉选项读取     
+	 * void
+	 */
+//	@Test
+//	public void queryPayOffMethod() {
+//		mICustomerEntrustmentService.queryPayOffMethod();
+//	}
+//	@Test
+//	public void saveDemandEntrusData() {
+//		//区域
+//		demandEntity.setAreaCode("530100");
+//		demandEntity.setAreaName("昆明市");
+//		//城市
+//		demandEntity.setCityCode(530100);
+//		//小区
+//		demandEntity.setCommunityId(1);
+//		demandEntity.setCommunityName("星泽园");
+//		//片区
+//		demandEntity.setRegionId(2);
+//		demandEntity.setRegionName("新亚洲体育城");
+//		//户型
+//		demandEntity.setRoom(3);
+//		demandEntity.setHall(2);
+//		demandEntity.setToilet(2);
+//		//建筑面积
+//		demandEntity.setBuildSpace(102);
+//		//客户称呼
+//		demandEntity.setClienteleName("Mr.Wu");
+//		demandEntity.setMobile("13641963535");
+//		demandEntity.setDescs("");
+//		//客户ID
+//		demandEntity.setCustId("1");
+//		mICustomerEntrustmentService.saveDemandEntrusData(demandEntity);
+//	}
+}

@@ -1,0 +1,119 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年8月2日 下午3:03:41   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+
+/**
+ * 个人中心服务接口
+ * @ClassName:CustomerPersonalCentralService
+ * @Description:个人中心服务接口
+ * @author:zuoyuntao
+ * @date:2018年8月2日 下午3:03:41
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerPersonalCentralService {
+	/**
+	 * 获取【个人信息】 
+	 * @Title: queryPersonalInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取【个人信息】
+	 * @param custId 客户ID
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryPersonalInfo(String custId);
+	/**
+	 * 查询客户个人详细信息 
+	 * @Title: queryPersonalDetailInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询客户个人详细信息   
+	 * @param custId 客户ID
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryPersonalDetailInfo(String custId);
+	/**
+	 * 获取客户房源过户进度详细
+	 * @Title: queryTransitScheduleHouseDetail
+	 * @author: zuoyuntao  
+	 * @Description:获取客户房源过户进度详细
+	 * @param custId 客户ID
+	 * @return      
+	 * List<CustCustomerEntity>
+	 */
+	public List<CustomerHouseTransitScheduleEntity> queryTransitScheduleHouseDetail(
+			String custId);
+	/**
+	 * 客户修改手机号码
+	 * @Title: updatePersonalMobile
+	 * @author: zuoyuntao  
+	 * @Description:客户修改手机号码
+	 * @param custId 客户ID
+	 * @param mobile 客户手机号码
+	 * void
+	 */
+	public void updatePersonalMobile(String custId,String mobile);
+	/**
+	 * 发送手机验证码
+	 * @Title: sendMobileVerfyCode
+	 * @author: zuoyuntao  
+	 * @Description:获取验证码   
+	 * @param mobile 手机号码  
+	 * void
+	 */
+	public void sendMobileVerfyCode(String mobile);
+	/**
+	 * 客户修改密码
+	 * @Title: modifyCustomerPassword
+	 * @author: zuoyuntao  
+	 * @Description:客户修改密码
+	 * @param custId 客户ID
+	 * @param finalPassword 客户最终密码      
+	 * void 
+	 */
+	public void modifyCustomerPassword(String custId,String finalPassword);
+	/**
+	 * 查询客户收藏的经纪人
+	 * @Title: queryMyselfAgentList
+	 * @author: zuoyuntao  
+	 * @Description:查询客户收藏的经纪人
+	 * @param custId 客户ID
+	 * @param agentType 经纪人类型（0：我聊过的经纪人 1：带看过的经纪人）   
+	 * void JSON 格式为：
+	 */
+	public List<Agent> queryMyselfAgentList(String custId,String agentType);
+	/**
+	 * 查询我的预约
+	 * @Title: queryMyselfApointmentList
+	 * @author: zuoyuntao  
+	 * @Description:查询我的预约  
+	 * @param custId 客户ID
+	 * @return      
+	 * List<?> 
+	 */
+	public List<?> queryMyselfAppointmentList(String custId);
+	/**
+	 * 取消预约
+	 * @Title: concelMyselfAppointment
+	 * @author: zuoyuntao  
+	 * @Description:取消预约
+	 * @param id 预约ID
+	 * void 
+	 */
+	public void concelMyselfAppointment(String id);
+}

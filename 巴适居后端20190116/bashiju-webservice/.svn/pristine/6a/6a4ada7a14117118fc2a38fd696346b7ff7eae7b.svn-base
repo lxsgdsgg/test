@@ -1,0 +1,120 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FootPrintServiceImpl.java   
+ * @Package com.bashiju.www.service.FootPrint.Impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月11日 下午4:23:26   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.FootPrint.Impl;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.webservice.mapper.FootPrintMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity;
+import com.bashiju.www.service.FootPrint.FootPrintService;
+import com.bashiju.www.service.api.impl.usercentral.CustomerPersonalCentralBaseServiceApi;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  FootPrintServiceImpl   
+ * @Description:我的足迹服务  
+ * @author: wangpeng
+ * @date:   2018年8月11日 下午4:23:26   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class FootPrintServiceImpl extends CustomerPersonalCentralBaseServiceApi implements FootPrintService{
+	
+	@Autowired
+	private FootPrintMapper footPrintMapper;
+	
+
+	/**   
+	 * <p>Title: queryFootPrintByCustId</p>   
+	 * <p>Description: 条件查询我的足迹 </p>   
+	 * @param houseId 房源id
+	 * @param type 房源类型
+	 * @see com.bashiju.www.service.FootPrint.FootPrintService#queryFootPrintByCustId(java.lang.String)   
+	 */
+	@Override
+	public WebPage<FootPrintToQueryEntity> queryFootPrintByCustId(String key,String type,int page,int limit) {
+		
+		if(StringUtils.isEmpty(key))
+			throw new BusinessException("用户信息i不能为空");
+		if(StringUtils.isEmpty(type))
+			throw new BusinessException("房源类型不能为空");
+		PageHelper.startPage(page, limit);
+		String custId = this.getUserIdByRedisKey(key);
+		Page<FootPrintToQueryEntity> footPrint =null;
+		if("1".equals(type)) {
+		    //出售
+		    footPrint = footPrintMapper.querySaleFootPrintByCustId(custId);
+		}else if("2".equals(type)){
+			//出租
+			footPrint = footPrintMapper.queryRentFootPrintByCustId(custId);
+		}else {
+            //新房
+		    footPrint = footPrintMapper.queryNewHouseFootPrintByCustId(custId);
+		}
+		return new WebPage<FootPrintToQueryEntity>(footPrint);
+	}
+
+	/**   
+	 * <p>Title: saveFootPrint</p>   
+	 * <p>Description:新增我的足迹 </p>   
+	 * @param footPrintToSaveEntity
+	 * @see com.bashiju.www.service.FootPrint.FootPrintService#saveFootPrint(com.bashiju.www.pojo.service.FootPrint.FootPrintToSaveEntity)   
+	 */
+	@Override
+	public boolean saveFootPrint(FootPrintToSaveEntity footPrintToSaveEntity) {
+		if(StringUtils.isEmpty(footPrintToSaveEntity.getKey()))
+			throw new BusinessException("用用户登录信息不能为空");
+		String custId = this.getUserIdByRedisKey(footPrintToSaveEntity.getKey());
+		if(StringUtils.isEmpty(footPrintToSaveEntity.toString()))
+			throw new BusinessException("参数不能为空");
+		footPrintToSaveEntity.setIsValid(true);
+		footPrintToSaveEntity.setCust_id(custId);
+		long result = footPrintMapper.saveFootPrint(footPrintToSaveEntity);
+		if(result>0)
+			return true;
+		return false;
+	}
+
+	/**   
+	 * <p>Title: queryFootPrintCountByCustId</p>   
+	 * <p>Description: 条件查询用户足迹数量</p>   
+	 * @param custId 用户id
+	 * @see com.bashiju.www.service.FootPrint.FootPrintService#queryFootPrintCountByCustId(java.lang.String)   
+	 */
+	
+	@Override
+	public FootPrintToQueryEntity queryFootPrintCountByCustId(String key) {
+		if(StringUtils.isEmpty(key))
+			throw new BusinessException("用户信息不能为空");
+		String custId = this.getUserIdByRedisKey(key);
+		FootPrintToQueryEntity footPrintToQueryEntity  = footPrintMapper.queryFootPrintCountByCustId(custId);
+		return footPrintToQueryEntity;
+	}
+
+	
+	@Override
+	public boolean deleteFootPrint(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("足跡编号不能为空");
+		long result = footPrintMapper.deleteFootPrint(id);
+		if(result>0)
+			return true;
+		return false;
+	}
+}

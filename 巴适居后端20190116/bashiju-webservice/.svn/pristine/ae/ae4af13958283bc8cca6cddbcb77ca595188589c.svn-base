@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.NewHouseMapper">
+	
+	<select id="queryNewHouseDynamicByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseDynamicResult" parameterType="string">
+		select title ,content,addTime as time from sys_community_project_news where projectId = #{projectId} order by addTime desc limit 4
+	</select>	
+
+	<select id="selectNewHouseDetailInfo" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseDetailResult">
+		select 
+		(select openDate from sys_community_project_openDate where projectId=#{newHouseId} order by id desc limit 1) as openDate,
+		(select deliverDate from sys_community_project_deliverdate where projectId=#{newHouseId} order by id desc limit 1) as deliverDate,
+		(select price from sys_community_project_priceTrend where projectId=#{newHouseId} order by id desc limit 1) as avgPrice,
+		(select name from sys_community_project_prePermit where projectId=#{newHouseId} order by id desc limit 1) as preSellNo,
+		(select GROUP_CONCAT(descs) from sys_community_project_decoration where projectId=#{newHouseId} ) as decoration,
+		(select GROUP_CONCAT(name) from sys_community_property where communityId=b.id and type=0 and isvalid=1) as propertyType,
+		(SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM sys_metro_station AS msm INNER JOIN sys_station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 WHERE communityId=b.id) AS metroLabel,
+		(SELECT GROUP_CONCAT(si.schoolName) FROM school_block_community sbc INNER JOIN school_info si ON sbc.schoolId=si.id AND sbc.isValid=1 AND si.isValid=1 WHERE sbc.communityId=b.id) as schoolLabel,
+		a.parkCnt,a.salesDeptAdd,a.propertyName,b.name,b.longitude,b.latitude,b.propertyLimit,b.developers,b.address,b.floorArea,b.capacityRatio,b.greenRate,c.realName as agentName,c.id as agentId,
+		(SELECT CONCAT(pm.virtualNum,'-', pm.virtualExtensionNum) FROM sys_phoneSecurityManage AS pm WHERE pm.isvalid=1 AND pm.realNum=c.mobile ORDER BY id DESC LIMIT 1) AS agentPhone, 
+		c.profilePhoto as agentUrl,d.name as areaName,d.`code` AS areaCode,f.`name` AS region,f.id AS regionId from sys_community_project a 
+		INNER JOIN sys_community b on a.id = #{newHouseId} and a.communityId = b.id and a.isvalid=1 and b.isvalid =1 INNER JOIN sys_user c on a.custServicerId = c.id INNER JOIN sys_area d on b.areaCode = d.`code`
+		INNER JOIN sys_region AS f ON f.id=b.regionId
+	</select>
+	
+	<update id="updateBrowseCnt">
+		UPDATE ${updateTable} set browseCnt = browseCnt+1 where id=#{newHouseId}
+	</update>
+	
+	<select id="selectNewHouseType" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList">
+		select name,buildingArea,FLOOR(totalPrice/1000000) as totalPrice,room,hall,toilet,characteristicName,url,panoramaUrl,videoUrl,saleType,evaluate from sys_community_project_huxing where projectId=#{projectId}
+		and isvalid = 1 order by updateTime
+	</select>
+
+	<select id="selectNewHouseImgs" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseImgList">
+		select pictureType as pictureTypeId,pictureTypeName,path from sys_community_attachment a INNER JOIN sys_community_project b on a.communityId = b.communityId and b.id=#{newHouseId} and a.isvalid=1 ORDER BY a.updateTime desc
+	</select>
+	
+	<select id="querySameNewHouseList" resultType="com.bashiju.www.pojo.service.out.newhouse.SameNewHouseList">
+		select name,address,imageUrl,avgPrice AS avgPrice from sys_client_communityProjectQueryInfos where avgPrice=#{avgPrice}*100 order by openDate desc limit #{limit}
+	</select>
+
+	
+	
+	<select id="queryPresalePermitByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.PresalePermitResult" parameterType="string">
+
+		select name,remark from sys_community_project_prePermit where projectId = #{projectId}  and isvalid = 1 ORDER BY name desc
+	</select>
+	
+	<select id="queryRoomTimeByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.RoomTimeResult" parameterType="string">
+		select deliverDate,remark from sys_community_project_deliverdate where projectId = #{projectId}  and isvalid = 1 order by deliverDate 
+	</select>
+	
+	<select id="queryOpenDateByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.OpenDateResult" parameterType="string">
+		select openDate,remark from sys_community_project_openDate where projectId = #{projectId} 
+		 and isvalid = 1 order by openDate 
+	</select>
+	
+	<select id="queryNewHousePriceDetailByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHousePriceDetailResult" parameterType="string">
+		select price as price,descs as remark from sys_community_project_priceTrend where 
+		 projectId =#{projectId} and isvalid=1  ORDER BY price desc
+	</select>
+
+	<select id="queryNewHouseList" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseListResult" parameterType="com.bashiju.www.pojo.service.input.newhouse.NewHouseQueryParam">
+		SELECT DISTINCT q.id,q.name,address,avgPrice AS avgPrice,openDate,deliverDate,labeld,attentionCount,lastViewingCount,huxingDesc,q.imageUrl,q.isVR,q.isVideo FROM sys_client_communityProjectQueryInfos  AS q
+		<if test="rooms!=null and rooms.size()>0 ">
+			INNER JOIN sys_community_project_huxing AS h ON h.projectId=q.id AND h.isvalid=1 AND 
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="houseUses!=null and houseUses.size()>0 ">
+			INNER JOIN sys_community_property AS p ON q.communityId=p.communityId AND p.isvalid=1 AND p.type=0 AND p.code IN 
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0 ">
+			INNER JOIN sys_community_project_decoration AS d ON d.projectId=q.id AND d.isvalid=1 AND d.code IN 
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>	
+		WHERE cityCode=#{cityCode} 
+		<if test="areaCode!=null"> AND areaCode=#{areaCode}</if>
+		<if test="regionId!=null and regionId>0"> AND regionCode=#{regionId}</if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		<if test="spaceCodes!=null and spaceCodes.size()>0">
+			and spaceQueryParam in
+			<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+			</foreach>
+		</if>
+		<if test="sort>0">
+			ORDER BY q.avgPrice
+			<if test="asc==0"> DESC</if>
+		</if>
+	</select>
+	
+	<select id="queryNewHouseListByArea" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseListResult" parameterType="com.bashiju.www.pojo.service.input.newhouse.NewHouseQueryParam">
+		SELECT  q.id,q.name,address,avgPrice AS avgPrice,openDate,deliverDate,labeld,attentionCount,lastViewingCount,q.imageUrl,q.isVR,q.isVideo,
+		ifnull(group_concat( DISTINCT concat(h.room,'室',h.hall,'厅',h.toilet,'卫 ',h.buildingArea,'㎡')),'') huxingDesc FROM sys_client_communityProjectQueryInfos  AS q
+		INNER JOIN sys_community_project_huxing AS h ON h.projectId=q.id AND h.isvalid=1 
+		and h.spaceQueryParam in
+		<foreach collection="spaceCodes" item="item" separator="," open="(" close=")">
+				CRC32(CONCAT(#{cityCode},#{item}))
+		</foreach> 
+		<if test="rooms!=null and rooms.size()>0">
+				AND
+			<foreach collection="rooms" item="item" separator="or" open="(" close=")">
+				<if test="item &lt;=5">room=#{item}</if>
+				<if test="item &gt;5">room &gt;=5</if>
+			</foreach>
+		</if>
+		<if test="houseUses!=null and houseUses.size()>0 ">
+			INNER JOIN sys_community_property AS p ON q.communityId=p.communityId AND p.isvalid=1 AND p.type=0 AND p.code IN 
+			<foreach collection="houseUses" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+		<if test="decorationIds!=null and decorationIds.size()>0 ">
+			INNER JOIN sys_community_project_decoration AS d ON d.projectId=q.id AND d.isvalid=1 AND d.code IN 
+			<foreach collection="decorationIds" item="item" separator="," open="(" close=")">#{item}</foreach>
+		</if>	
+		WHERE cityCode=#{cityCode} 
+		<if test="areaCode!=null"> AND areaCode=#{areaCode}</if>
+		<if test="regionId!=null and regionId>0"> AND regionCode=#{regionId}</if>
+		<if test="priceCodes!=null and priceCodes.size()>0">
+			 and priceQueryParam in
+			<foreach collection="priceCodes" item="item" separator="," open="(" close=")">CRC32(CONCAT(#{cityCode},#{item}))</foreach>
+		</if>
+		GROUP BY q.id
+		<if test="sort>0">
+			ORDER BY q.avgPrice
+			<if test="asc==0"> DESC</if>
+		</if>
+	</select>
+	<select id="queryNewHouseListByName" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseListResult">
+		SELECT DISTINCT q.id,q.name,address,avgPrice AS avgPrice,openDate,deliverDate,labeld,attentionCount,lastViewingCount,huxingDesc,q.imageUrl,q.isVR,q.isVideo FROM sys_client_communityProjectQueryInfos  AS q
+		WHERE match(cityCode, name, areaName, regionName) against(concat('+',#{cityCode},' +',#{name}) in boolean mode)
+	</select>	
+		
+	<select id="queryGoodProjects" resultType="com.bashiju.www.pojo.service.out.newhouse.GoodNewHouseListResult">
+		SELECT  id,name,address,avgPrice AS avgPrice,imageUrl FROM sys_client_communityProjectQueryInfos  WHERE isGood=1 AND cityCode=#{cityCode} ORDER BY recordTime DESC LIMIT #{limit}
+	</select>
+	<select id="queryHotProjects" resultType="com.bashiju.www.pojo.service.out.newhouse.HotNewHouseListResult">
+		SELECT  id,name,avgPrice AS avgPrice FROM sys_client_communityProjectQueryInfos  WHERE cityCode=#{cityCode} ORDER BY browseCnt DESC LIMIT #{limit}
+	</select>
+</mapper>

@@ -1,0 +1,246 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>用户管理</title>
+
+	<link rel="Shortcut Icon" href="/favicon.ico" />
+	<!-- load css -->
+	
+    <link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/css/gobal.css" media="all">
+    <link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/css/animate.css" media="all">
+    <link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/css/common.css" media="all">
+    <!-- load dropdowncss -->
+     <link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/dropdown/dropdown.css" media="all">
+</head>
+<body>
+<div class="layui-fluid larry-wrapper animated bounceIn">
+    	<div class="layui-col-lg12 layui-col-md12 layui-col-sm12 layui-col-xs12">
+            <div class="layui-btn-group larry-group" id="larry_group">
+                <button class="layui-btn"  data-type="add"><i class="layui-icon">&#xe61f;</i><cite>增加</cite></button>
+             </div>
+    	</div>
+
+    	<div class="layui-col-lg12 layui-col-md12 layui-col-sm12 layui-col-xs12">
+    		<div class="user-tables">
+    		<div id="employee-list-title" hidden="hidden" data-table-title=${getEmployeeInfoTitleJson}></div>
+    			<table id="employee-list" lay-filter="employee-lists"></table>
+    		</div>
+    	</div>
+    </div>
+    <!-- 下面的代码为显示用户详情信息的表单 -->
+	<div id='displayemployeeinfo' hidden="hidden" style="margin:10px;">
+	<form class="layui-form layui-form-pane" action="" id="usrform">
+			<input type="text" name="id" id="employee_id" hidden="hidden" value=""/>	<!-- 存放该用户ID;	 -->    
+		  <div class="layui-form-item">
+		    <label class="layui-form-label">员工姓名</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="realname" id="realname" lay-verify="" placeholder="必填项"  value="ZHAOBINDAXIA" class="layui-input">
+		    </div>
+		     <label class="layui-form-label">员工编号</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="user_number" id="user_number" lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input" value="1234567890">
+		    </div>
+		  </div>   
+	  	<div class="layui-form-item">
+		   <label class="layui-form-label">手机号码</label>
+		    <div class="layui-input-inline">
+		      <input type="tel" name="userPhone" id="userPhone" lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input" value="13577000399">
+		    </div>
+			<label class="layui-form-label">400座机</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="tel"id="tel" lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input" value="400">
+		    </div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">身份证号码</label>
+	    	<div class="layui-input-inline">
+	      		<input type="text" name="cid" id="cid" lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input" value="51138119861005915X">
+	    	</div>
+			 <label class="layui-form-label">性别</label>
+			    <div class="layui-input-inline">
+			       <select name="sex" id="sex">
+			        <option value="1" selected="selected">男</option>
+			        <option value="0" >女</option>
+			      </select>			    
+			    </div>	
+		</div>
+		<div class="layui-form-item">
+		      <label class="layui-form-label">出生日期</label>
+		      <div class="layui-input-inline">
+		        <input type="text" name="birthday" id="birthday" lay-verify="required|date" autocomplete="off" class="layui-input"> 
+		    </div>
+		      <label class="layui-form-label">入职日期</label>
+			<div class="layui-input-inline">
+		        <input type="text" name="inthetime" id="inthetime" lay-verify="required|date" autocomplete="off" class="layui-input"> 
+			</div>
+		</div>
+		<div class="layui-form-item">
+		    <label class="layui-form-label">职务</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="positionid" id="positionid" lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input">
+		    </div>
+		     <label class="layui-form-label">介绍人</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="introduce" id="introduce"  autocomplete="off" class="layui-input">
+		    </div>
+	  </div>
+	  <div class="layui-form-item">
+		    <label class="layui-form-label">邮箱地址</label>
+		    <div class="layui-input-inline">
+		      <input type="text" name="email" id="email" >
+		    </div>
+		     <label class="layui-form-label">微信号码</label>
+		        <div class="layui-input-inline">
+		      <input type="text" name="wxnumber" id="wxnumber"   autocomplete="off" class="layui-input">
+		    </div>
+
+	  </div>
+	  <div class="layui-form-item">
+			 <label class="layui-form-label">外网同步</label>
+			    <div class="layui-input-inline">			    
+     			 <input type="checkbox" name="isinternetdisplay" id="isinternetdisplay" value="1" lay-skin="switch" lay-text="是|否">
+			    </div>	
+			<label class="layui-form-label">排序</label>
+			    <div class="layui-input-inline">
+			      <input type="text" name="sorting" id="sorting"  lay-verify="" placeholder="必填项" autocomplete="off" class="layui-input">
+			    </div>
+		</div>
+		<div class="layui-form-item">
+			 <label class="layui-form-label">热门经纪人</label>
+			    <div class="layui-input-inline">
+			      <input type="checkbox" name="ishotagent" id="ishotagent" value="1" lay-skin="switch" lay-text="是|否">
+			    </div>	
+			 <label class="layui-form-label">生日弹窗</label>
+			    <div class="layui-input-inline">
+			       <input type="checkbox" name="isdisbirthday" id="isdisbirthday" value="1"  lay-skin="switch" lay-text="是|否">
+			    </div>	
+		</div>
+		<div class="layui-form-item" style="text-align: center;">
+			  <button class="layui-btn" lay-submit="" lay-filter="submit">提交</button>
+		</div>
+	</form>
+</div>
+   <!-- 显示用户详情信息的表单结束 -->
+   
+<!-- 加载js文件 -->
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/dropdown/vue.min.js"></script> 
+ 
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/js/common.js"></script> 
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/js/employee-list.js"></script> 
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/dropdown/index.js"></script> 
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/dropdown/city-data.js"></script>
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/dropdown/dropdown.js"></script> 
+
+
+<!-- 工具条-锁定用户 -->
+<script type="text/html" id="lockuser">
+		{{#  if(d.department_id.indexOf('${lockEmployeePermission}')>-1||d.company_id.indexOf('${lockEmployeePermission}')>-1||d.city_id.indexOf('${lockEmployeePermission}')>-1||${lockEmployeePermission=='all'}||${lockEmployeePermission==d.id}){ }} 
+  						{{#  if(d.employee_status=="1"){ }}
+     			 			<div style='margin:0 2px 0 0'><input type="checkbox" name="employee_status" id="employee_status" lay-filter="employee_status" lay-skin="switch" value={{d.id}} lay-text="正常|锁定" checked></div>
+						{{#  } else { }}
+  							<input type="checkbox" name="employee_status" id="employee_status" lay-filter="employee_status" lay-skin="switch" value={{d.id}} lay-text="正常|锁定">
+						{{#  } }}
+  			{{#  }
+		}}
+</script>
+<!-- 工具条 -常用操作-->
+<script type="text/html" id="userbar">
+		{{# 
+ 			if(d.department_id.indexOf('${updateEmployeePermission}')>-1||d.company_id.indexOf('${updateEmployeePermission}')>-1||d.city_id.indexOf('${updateEmployeePermission}')>-1||${updateEmployeePermission=='all'}||${updateEmployeePermission==d.id}){ }} 
+  				<a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>   			 
+  			{{#  } 
+
+		}}
+ 			<a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="shouquan">授权</a>
+</script>
+
+<!-- 性别-->
+<script type="text/html" id="sex">
+     	{{#  if(d.employee_sex=="1"){ }}
+   			 <span style='color:blue'>男</span>
+  		{{#  } else { }}
+    		<span style='color:red'>女</span>
+  		{{#  } }}
+</script>
+<!-- 账户状态 -->
+<script type="text/html" id="lockuser">
+     	{{#  if(d.employee_status=="1"){ }}
+   			 <span style='color:blue'>正常</span>
+  		{{#  } else { }}
+    		<span style='color:red'>锁定</span>
+  		{{#  } }}
+</script>
+<!-- 是否热门经纪 -->
+<script type="text/html" id="ishotagent">
+		{{#  if(d.employee_ishotagent=="1"){ }}
+   			 <span style='color:blue'>是</span>
+  		{{#  } else { }}
+    		<span style='color:red'>否</span>
+  		{{#  } }}
+</script>
+<!-- 是否外网同步-->
+<script type="text/html" id="isinternetdisplay">
+			{{#  if(d.employee_isinternetdisplay=="1"){ }}
+   			 <span style='color:blue'>是</span>
+  		{{#  } else { }}
+    		<span style='color:red'>否</span>
+  		{{#  } }}
+</script>
+<!-- 是否生日弹窗-->
+<script type="text/html" id="isbirthday-display">
+		{{#  if(d.employee_isbirthday_display=="1"){ }}
+   			 <span style='color:blue'>是</span>
+  		{{#  } else { }}
+    		<span style='color:red'>否</span>
+  		{{#  } }}
+</script>
+
+<script>
+layui.use(['jquery','form', 'layedit', 'laydate'], function(){
+  var $ = layui.jquery
+		,form = layui.form
+		,layer = layui.layer
+		,layedit = layui.layedit
+	  	,laydate = layui.laydate;
+  
+  //日期
+  laydate.render({
+    elem: '#employee_birthday'
+  });
+  laydate.render({
+    elem: '#employee_Inthetime'
+  });
+  
+  //创建一个编辑器
+  var editIndex = layedit.build('LAY_demo_editor');
+ 
+  //自定义验证规则
+  form.verify({
+    title: function(value){
+      if(value.length < 5){
+        return '标题至少得5个字符啊';
+      }
+    }
+    ,pass: [/(.+){6,12}$/, '密码必须6到12位']
+    ,content: function(value){
+      layedit.sync(editIndex);
+    }
+  });
+  
+
+  
+  
+});
+
+
+</script>
+<script src="http://pv.sohu.com/cityjson?ie=utf-8"></script> 
+<script>       document.write(returnCitySN["cip"]+','+returnCitySN["cname"]) 
+</script>
+</body>
+</html>

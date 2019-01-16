@@ -1,0 +1,14 @@
+com\bashiju\anal\service\DeptIncomeSortService.class
+com\bashiju\anal\service\DeptAchievementService.class
+com\bashiju\anal\service\impl\OperationAnalysisService.class
+com\bashiju\anal\service\impl\UserAchievementServiceImpl.class
+com\bashiju\anal\service\IDealComprehensiveAnalysisService.class
+com\bashiju\anal\service\impl\UserIncomeServiceImpl.class
+com\bashiju\anal\service\impl\DealComprehensiveAnalysisServiceImpl.class
+com\bashiju\anal\service\UserAchievementService.class
+com\bashiju\anal\service\impl\DeptAchievementServiceImpl.class
+com\bashiju\anal\service\UserIncomeService.class
+com\bashiju\anal\global\AnalGlobal.class
+com\bashiju\anal\interceptors\SsoHandlerInterceptor.class
+com\bashiju\anal\service\impl\DeptIncomeSortServiceImpl.class
+com\bashiju\anal\mq\RabbitExcute.class

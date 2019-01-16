@@ -1,0 +1,185 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>佣金查看</title>
+<style type="text/css">
+.layui-form-select .layui-input {
+    padding-right: 30px;
+    cursor: pointer;
+    width: 120px;
+}
+
+layui-input, .layui-textarea {
+    display: block;
+    width: 50%;
+    padding-left: 10px;
+}
+</style>
+</head>
+<body>
+	<div class="toolBar layui-form">
+	  	<div class="layui-inline">
+			<select name="status" id="status">
+			<option value="">收取状态</option>
+				<c:forEach var="CommissionStatus" items="${CommissionStatus}">
+					<option value="${CommissionStatus.key}">${CommissionStatus.value}</option>
+				</c:forEach>
+			</select>
+		</div>
+	  	<div class="layui-inline">
+			<select name="dealType" id="dealType">
+				<option value="">交易类型</option>
+				<c:forEach var="DealTypeEnum" items="${DealTypeEnum}">
+					<option value="${DealTypeEnum.key}">${DealTypeEnum.value}</option>
+				</c:forEach>
+			</select>
+		</div>
+			<div class="layui-inline">
+					<select name="timeType" id="timeType">
+						<option value="">时间类型</option>
+						<option value="1">计划时间</option>
+						<option value="2">收取时间</option>
+						<option value="3">确认时间</option>
+					</select>
+		</div>
+		  	<div class="layui-inline">
+			        <input type="text" class="layui-input" id="beginTime" placeholder="起始日期">
+		    </div>
+		    <div class="layui-inline">
+			        <input type="text" class="layui-input" id="endTime" placeholder="结束日期">
+		    </div>
+			<div class="layui-inline">
+				<select name="traderId" id="traderId">
+					<option value="">成交人</option>
+					<option value="13156">测试人员<option>
+				</select>
+			</div>
+			<div class="layui-inline">
+				<select name="communityId" id="communityId">
+					<option value="">小区</option>
+					<option value="1">玛卡切片<option>
+				</select>
+			</div>
+			<div class="layui-inline">
+					<input class="layui-input" name="Keyword" placeholder="模糊" id="Keyword" autocomplete="off">
+			</div>
+		 <c:if test="${onlyBtnMenus.searchBtn!=''&& onlyBtnMenus.searchBtn!=null}">
+	  		<button class="layui-btn" data-type="reload" id="searchBtn" name="searchBtn">查询</button>
+	  	</c:if>
+	  	<c:if test="${onlyBtnMenus.clear!='' && onlyBtnMenus.clear!=null}">
+			<button class="layui-btn"  type="button"  name="clear">清空</button>
+	  	</c:if>
+	</div>
+	<table class="layui-table" id="table_dealCommissionRecord" lay-filter="table_dealCommissionRecord"></table>
+<%@include file="/common/common.jsp" %>
+<script>
+layui.use(['table','laydate','form'], function(){
+  var table = layui.table;
+	var laydate = layui.laydate;//时间控件
+	var form = layui.form;
+	var endDate= laydate.render({
+        elem: '#endTime',//选择器结束时间
+        type: 'datetime',
+        min:"1970-1-1",//设置min默认最小值
+        done: function(value,date){
+        	date.month = date.month-1;
+            startDate.config.max=date;
+        }
+    });
+    //日期范围
+    var startDate=laydate.render({
+        elem: '#beginTime',
+        type: 'datetime',
+        max:"2099-12-31",//设置一个默认最大值
+        done: function(value, date){
+        	date.month = date.month-1;
+            endDate.config.min =date;
+        }
+    });
+  
+    layui.laytpl={
+			 //转换描述
+			toMoneyProjStr : function(moneyProj){
+			  var dd = ${moneyProj};
+				if('${moneyProj}'!='')
+					return dd[moneyProj]
+				else
+					return moneyProj;
+			},
+			toSettlementTypeStr : function(settlementType){
+				  var dd = ${settlementType};
+					if('${settlementType}'!='')
+						return dd[settlementType]
+					else
+						return settlementType;
+				},
+			toStatusStr : function(status){
+				debugger;
+				  var dd = ${status};
+					if('${status}'!='')
+						return dd[status]
+					else
+						return status;
+				}
+	  }
+  table.render({
+    elem: '#table_dealCommissionRecord'
+    ,height:'full-100'
+    ,url: 'queryDealCommissionRecordData'
+   	,method:'post'
+    ,page: true //开启分页
+    ,cols: [[ //表头
+      {field: 'dealId', title: '合同号', sort: true, fixed: 'left'}
+      ,{field: 'areaName', title: '区', sort: true}
+      ,{field: 'regionName', title: '片区', sort: true}
+      ,{field: 'communityName', title: '小区'}
+      ,{field: 'buildingsName', title: '座栋'}
+      ,{field: 'buildingHouseName', title: '房号'}
+      ,{field: 'billNo', title: '票据编号'}
+      ,{field: 'moneyProj', title: '费用项目',templet: '<div>{{ layui.laytpl.toMoneyProjStr(d.moneyProj) }}</div>'}
+      ,{field: 'price', title: '金额'}
+      ,{field: 'settlementType', title: '结算方式',templet: '<div>{{ layui.laytpl.toSettlementTypeStr(d.settlementType) }}</div>'}
+      ,{field: 'payerType', title: '缴费人'}
+      ,{field: 'status', title: '收取状态',templet: '<div>{{ layui.laytpl.toStatusStr(d.status) }}</div>'}
+      ,{field: 'remark', title: '驳回原因'}
+      ,{field: 'estimatePayTime', title: '计划时间',templet: '<div>{{ common.toDateString(d.estimatePayTime,"yyyy-MM-dd HH:mm:ss") }}</div>'}
+      ,{field: 'actualPayTime', title: '收取时间',templet: '<div>{{ common.toDateString(d.actualPayTime,"yyyy-MM-dd HH:mm:ss") }}</div>'}
+      ,{field: 'sureTime', title: '确认时间',templet: '<div>{{ common.toDateString(d.sureTime,"yyyy-MM-dd HH:mm:ss") }}</div>'}     
+    ]]
+  });
+  
+    var $ = layui.$, active = {
+    reload: function(){
+     //执行重载
+      table.reload('table_dealCommissionRecord', {
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+        	status:$("#status").val(),
+        	dealType:$("#dealType").val(),
+        	beginTime:$("#beginTime").val(),
+        	endTime:$("#endTime").val(),
+        	traderId:$("#traderId").val(),
+        	communityId:$("#communityId").val(),
+        	Keyword:$("#Keyword").val()
+        }
+      });
+    }
+  };
+  $('#searchBtn').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+  
+});
+</script> 
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.AnalCommonMapper">
+	
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryCompanyCityInfo" resultType="map">
+		select provinceCode,provinceName,cityCode,cityName from 
+		sys_companyCityOpenInfo where companyId='liwen' and isOpen=1 and isvalid=1 
+	</select>
+	
+	<select id="getDeptTypeById" resultType="int">
+		select depttypeId from sys_dept where id=#{deptId}
+	</select>
+</mapper>

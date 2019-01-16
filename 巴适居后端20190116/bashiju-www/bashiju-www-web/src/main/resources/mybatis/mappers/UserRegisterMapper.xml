@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.UserRegisterMapper">
+	<cache/>
+	<select id="queryIsExistMobile" resultType="long">
+		select count(0) from  cust_customer where mobile = #{mobile}
+	</select>
+	
+	<insert id="saveCustCustomer" parameterType="com.bashiju.www.pojo.service.user.CustCustomerParam">
+		INSERT INTO cust_customer( name, mobile, password, solt, sex, operator, addTime, updateTime, isValid) 
+		VALUES (#{name}, #{mobile}, #{password},#{solt}, #{sex},#{operator}, #{addTime}, #{updateTime}, #{isValid})
+	</insert>
+	
+	<update id="updateCustCustomer"  parameterType="map">
+		update cust_customer 
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name!=null"> name=#{name},</if>
+			<if test="newMobile!=null"> mobile=#{newMobile},</if>
+			<if test="password!=null">password=#{password},</if>
+			<if test="solt!=null"> solt =#{solt},</if>
+			<if test="operator!=null">operator=#{operator},</if>
+			<if test="updateTime!=null">updateTime=#{updateTime},</if>
+			<if test="isValid!=null">isValid=#{isValid},</if>
+		</trim>
+		where mobile =#{mobile}
+	</update>
+	<select id="userMobileCheck" resultType="long">
+		select count(0) from cust_customer where mobile=#{mobile} and solt =#{solt}
+	</select>
+</mapper>

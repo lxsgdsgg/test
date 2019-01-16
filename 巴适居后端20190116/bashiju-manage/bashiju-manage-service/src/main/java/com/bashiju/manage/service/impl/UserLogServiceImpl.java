@@ -1,0 +1,55 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.UserLogMapper;
+import com.bashiju.manage.service.UserLogService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  UserLogServiceImpl   
+ * @Description:用户日志服务层  
+ * @author: wangpeng
+ * @date:   2018年5月10日 下午2:57:47   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="用户日志管理")
+@Service
+public class UserLogServiceImpl implements UserLogService{
+	@Autowired
+	private UserLogMapper userLogMapper;
+	
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryUserLog</p>   
+	 * <p>Description: 条件查询用户日志 </p>   
+	 * @param paramMap 查询参数 
+	 * @param pageNum 当前页数
+	 * @param pageSize 每页总条数
+	 * @return   
+	 * @see com.bashiju.manage.service.UserLogService#queryUserLog(java.util.Map, int, int)
+	 */
+	@SystemServiceLog(operationType="查询用户日志")
+	@Override
+	public Page<Map<String, Object>> queryUserLog(Map<String,Object> paramMap,int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+//		dataAuthHelper.auth(MenuEnum.MENU_38.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> page=userLogMapper.queryUserLog(paramMap);
+		return page;
+	}
+
+}

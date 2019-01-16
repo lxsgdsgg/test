@@ -1,0 +1,48 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerStarCommentsService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:11:13   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 客户评价接口
+ * @ClassName:ICustomerStarCommentsService
+ * @Description:客户评价接口
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:11:13
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerStarCommentsService {
+	/**
+	 * 获取我的评价
+	 * @Title: queryMyComments
+	 * @author: zuoyuntao  
+	 * @Description:获取我的评价
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * void JSON 格式为：
+	 */
+	public Page<CustomerStarCommentsEntity> queryCustomerComments(
+			String custId,int page,int limit);
+	/**
+	 * 保存客户评价
+	 * @Title: saveCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:（详细描述）   
+	 * @param commentEntity      
+	 * void JSON 格式为：
+	 */
+	public void saveCustomerComments(CustomerStarCommentsEntity commentEntity);
+}

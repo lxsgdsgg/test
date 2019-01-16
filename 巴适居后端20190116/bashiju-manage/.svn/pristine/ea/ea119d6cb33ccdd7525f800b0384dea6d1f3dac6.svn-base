@@ -1,0 +1,97 @@
+package com.bashiju.manage.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONArray;
+import com.bashiju.enums.CustomerTransactionEnum;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.manage.service.ResCustReturnCycleService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+/**
+ * 
+ * @ClassName:  ResCustReturnCycleController   
+ * @Description:客源回访周期控制层 
+ * @author: wangpeng
+ * @date:   2018年6月1日 上午9:53:48   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="resCustReturnCycle")
+public class ResCustReturnCycleController  extends BaseController{
+	@Autowired
+	private ResCustReturnCycleService resCustReturnCycleService;
+	/**
+	 * 
+	 * @Title: enterResCustReturnCyclePage   
+	 * @Description:进入客源回访周期页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResCustReturnCyclePage")
+	public ModelAndView enterResCustReturnCyclePage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView  mv=getModelAndView(request, response, "resCustReturnCycle/resCustReturnCycle");
+		List<Map<String,Object>> map=resCustReturnCycleService.queryResCustReturnCycleData();
+		mv.addObject("map",map);
+		mv.addObject("transactionType",CustomerTransactionEnum.enumMap);
+		mv.addObject("levelType",HouseLevelEnum.enumMap);
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: enterResCustReturnCycleEditorPage   
+	 * @Description: 进入客源回访周期编辑页面  
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResCustReturnCycleEditorPage")
+	public ModelAndView enterResCustReturnCycleEditorPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv=getModelAndView(request, response, "resCustReturnCycle/resCustReturnCycleDetail");
+		List<Map<String,Object>> maps=resCustReturnCycleService.queryResCustReturnCycleData();
+		mv.addObject("transactionType",CustomerTransactionEnum.enumMap);
+		mv.addObject("levelType",HouseLevelEnum.enumMap);
+		mv.addObject("maps",maps);	
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: saveOrUpdateResCustReturnCycle   
+	 * @Description: 批量修改客源回访周期 
+	 * @param request
+	 * @param response
+	 * @param jsonData 页面要修改的参数
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="saveOrUpdateResCustReturnCycle")
+	@ResponseBody
+	public BashijuResult saveOrUpdateResCustReturnCycle(HttpServletRequest request,HttpServletResponse response,String jsonData){
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要更新的数据");
+		List<Map<String,Object>>map=(List<Map<String, Object>>) JSONArray.parse(jsonData);
+		boolean result=resCustReturnCycleService.saveOrUpdateResCustReturnCycle(map);
+		if(result)
+			return BashijuResult.ok();
+		else
+		 	throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+}

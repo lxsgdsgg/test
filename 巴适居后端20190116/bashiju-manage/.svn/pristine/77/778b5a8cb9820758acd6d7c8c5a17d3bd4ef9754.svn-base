@@ -1,0 +1,187 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.ExamineStatusEnum;
+import com.bashiju.manage.mapper.ContentmanageMapper;
+import com.bashiju.manage.service.ContentmanageService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.FtpUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  ContentmanageServiceImpl   
+ * @Description:TODO(内容管理具体实现)   
+ * @author: liwen
+ * @date:   2018年7月20日 上午11:21:32   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="内容管理") 
+@Service
+public class ContentmanageServiceImpl implements ContentmanageService{
+	
+	@Autowired
+	 private CommonSqlServie commonSqlServie;
+	@Autowired
+	 private ContentmanageMapper contentmanageMapper;
+	
+	
+	@SystemServiceLog(operationType="保存文章")
+	@Override
+	public Long saveArticle(Map<String,Object> data) {
+		Long res = null;
+		Map<Object,Object> mm = (Map)data;
+		mm.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		mm.put("operatorId", UserThreadLocal.get().get("id"));
+		mm.put("operator", UserThreadLocal.get().get("realName"));
+		if(data.containsKey("id") && !"".equals(data.get("id")) && data.get("id")!=null) {//修改
+			res = commonSqlServie.commonOperationDatabase(mm, "sys_article","id", false);
+		}else {//新增
+			mm.remove("id");
+			res = commonSqlServie.commonOperationDatabase(mm, "sys_article", false);
+		}
+		
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="查询文章列表")
+	@Override
+	public Page<Map<String, Object>> queryArticleList(String conditions,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo = null;
+		Map<String,Object> conditionsMap = JSON.parseObject(conditions);
+		String type = conditionsMap.get("type").toString();
+		if("information".equals(type)) {
+			conditionsMap.put("type", "1");
+		}else if("encyclopedias".equals(type)) {
+			conditionsMap.put("type", "2");
+		}else if("ourselves".equals(type)) {
+			List<String> types = new ArrayList<>();
+			types.add("0");
+			types.add("1");
+			types.add("2");
+			if(conditionsMap.containsKey("classesname") && !"".equals(conditionsMap.get("classesname"))) {
+				types = new ArrayList<>();
+				types.add(conditionsMap.get("classesname").toString());
+			}
+			
+			conditionsMap.put("types", types);
+			pageInfo = contentmanageMapper.queryOurselvesList(conditionsMap);
+			return pageInfo;
+		}
+		
+		pageInfo = contentmanageMapper.queryArticleList(conditionsMap);
+		
+		ExecutionResult.descFormat("", "查询文章列表");
+		return pageInfo;
+	}
+
+		
+	//上传带看图片
+	@SystemServiceLog(operationType="上传")
+	@Override
+	public String saveImg(HttpServletRequest request) throws Exception{
+		String  filepath = "";
+		// 将当前上下文初始化给 CommonsMutipartResolver （多部分解析器）
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+				request.getSession().getServletContext());
+		// 检查form中是否有enctype="multipart/form-data"
+		if (multipartResolver.isMultipart(request)) {
+			// 将request变成多部分request
+			MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+			// 获取multiRequest 中所有的文件名
+			Iterator iter = multiRequest.getFileNames();
+
+			if (iter.hasNext()) {
+				// 一次遍历所有文件
+				//List<MultipartFile> files = multiRequest.getFiles(iter.next().toString());
+				
+				MultipartFile file = multiRequest.getFile(iter.next().toString());
+				if (file != null) {
+					filepath = FtpUtil.uploadFile(file,1,true);
+					
+				}
+			}
+		}
+		
+		return filepath;
+	}
+	
+	
+	@SystemServiceLog(operationType="删除")
+	@Override
+	public boolean delArticle(Long id) {
+		return commonSqlServie.delData("sys_article", "id", id+"", false);
+	}
+	
+	@SystemServiceLog(operationType="查询内容审核列表")
+	@Override
+	public Page<Map<String, Object>> queryExamineList(String conditions,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Map<String,Object> conditionsMap = JSON.parseObject(conditions);
+		Page<Map<String, Object>> pageInfo = contentmanageMapper.queryExamineList(conditionsMap);
+		
+		ExecutionResult.descFormat("", "查询内容审核列表");
+		return pageInfo;
+	}
+	
+	@SystemServiceLog(operationType="确定内容")
+	@Override
+	public Long sureArticle(Long id) {
+		Map<Object,Object> mm = new HashMap<>();
+		mm.put("examineStatus",ExamineStatusEnum.EXAMINED.getCode());
+		mm.put("auditorId", UserThreadLocal.get().get("id"));
+		mm.put("auditor", UserThreadLocal.get().get("realName"));
+		mm.put("auditTime", new Date());
+		mm.put("isPublished", 1);//发布
+		mm.put("id", id);
+		Long res = commonSqlServie.commonOperationDatabase(mm, "sys_article","id", false);
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="驳回内容")
+	@Override
+	public Long rejectArticle(Long id,String reason) {
+		Map<Object,Object> mm = new HashMap<>();
+		mm.put("examineStatus",ExamineStatusEnum.REJECT.getCode());
+		mm.put("reason", reason);
+		mm.put("auditorId", UserThreadLocal.get().get("id"));
+		mm.put("auditor", UserThreadLocal.get().get("realName"));
+		mm.put("auditTime", new Date());
+		mm.put("id", id);
+		Long res = commonSqlServie.commonOperationDatabase(mm, "sys_article","id", false);
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="查授权城市")
+	@Override
+	public List<Map<String,Object>> queryCity(Long userId){
+		List<Map<String,Object>> res = contentmanageMapper.queryCityByUser(userId);
+		if(res.size()>0) {
+			return res;
+		}else {
+			 res = contentmanageMapper.queryCityByRole(userId);
+			 return res;
+		}
+	}
+}

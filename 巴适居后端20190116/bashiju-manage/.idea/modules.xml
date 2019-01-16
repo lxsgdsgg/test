@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage.iml" filepath="$PROJECT_DIR$/bashiju-manage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-mapper/bashiju-manage-mapper.iml" filepath="$PROJECT_DIR$/bashiju-manage-mapper/bashiju-manage-mapper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-pojo/bashiju-manage-pojo.iml" filepath="$PROJECT_DIR$/bashiju-manage-pojo/bashiju-manage-pojo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-service/bashiju-manage-service.iml" filepath="$PROJECT_DIR$/bashiju-manage-service/bashiju-manage-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-web/bashiju-manage-web.iml" filepath="$PROJECT_DIR$/bashiju-manage-web/bashiju-manage-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-service/src/main/main.iml" filepath="$PROJECT_DIR$/bashiju-manage-service/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-web/src/main/main1.iml" filepath="$PROJECT_DIR$/bashiju-manage-web/src/main/main1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-pojo/src/main/main2.iml" filepath="$PROJECT_DIR$/bashiju-manage-pojo/src/main/main2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bashiju-manage-mapper/src/main/main3.iml" filepath="$PROJECT_DIR$/bashiju-manage-mapper/src/main/main3.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.AnalCommonMapper">
+	
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryCompanyCityInfo" resultType="map">
+		<choose>
+			<when test="roleGroup=='01'">
+				select provinceCode,provinceName,cityCode,cityName 
+				from sys_cityopeninfo where isvalid=1 
+			</when>
+			<when test="roleGroup=='02'">
+				set @num := (select count(*) from sys_city_responsibility where userId=#{userId});
+				set @roleId :=(select roleId from sys_user where id=#{userId});
+				select distinct a.provinceCode,a.provinceName,a.cityCode,a.cityName from 
+				sys_cityopeninfo a 
+				right join sys_city_responsibility b on find_in_set(a.cityCode,b.cityCode)
+				where if(@num &gt; 0,b.userId=#{userId},b.roleId=@roleId)
+			</when>
+			<otherwise>
+				select provinceCode,provinceName,cityCode,cityName from 
+				sys_companyCityOpenInfo where companyId=#{companyId} and isOpen=1 and isvalid=1 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="getDeptTypeById" resultType="int">
+		select depttypeId from sys_dept where id=#{deptId}
+	</select>
+	
+	<select id="queryCompanyByRoleGroup" resultType="map">
+		<choose>
+			<when test="roleGroup=='02'">
+				set @num := (select count(*) from sys_city_responsibility where userId=#{userId});
+				set @roleId :=(select roleId from sys_user where id=#{userId});
+				select b.id,b.name from sys_city_responsibility a 
+				left join sys_company b on find_in_set(b.regaddrcity,a.cityCode)
+				where if(@num &gt; 0,a.userId=#{userId},a.roleId=@roleId)
+			</when>
+			<otherwise>
+				select id,name from sys_company where isvalid=1
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

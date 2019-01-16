@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.AdminPermissionMapper">
+	<select id="queryUserPermissions" resultType="java.util.LinkedHashMap">
+		<choose>
+			<when test=" userId != null and userId != '' ">
+				select b.id,b.name,b.btnName,b.functionType,queryMenuBtnParentIds(b.id)as parentId, 
+				ifnull(a.permissions,'on') as permission,b.permissionArea,b.operatorId,
+				b.level,b.roleGroup as groups 
+				from sys_permission_admin a 
+				left join sys_menu b on a.menuId = b.id 
+				where b.isvalid=1 and (b.level =3 or b.level=4) and if((select count(id) from sys_permission where userId=#{userId})>0,a.userId=#{userId},
+				a.roleId=(select roleId from sys_user where id=#{userId}))
+				<if test="permissions !=null and permissions!='' "> and a.permissions=#{permissions}</if>
+			</when>
+			<otherwise>
+				select b.id,b.name,b.btnName,b.functionType,queryMenuBtnParentIds(b.id)as parentId,
+				ifnull(a.permissions,'on') as permission,b.permissionArea,b.operatorId,b.level,b.roleGroup as groups   
+				from sys_permission_admin a 
+				left join sys_menu b on a.menuId = b.id 
+				where b.isvalid=1 and (b.level =3 or b.level=4) and a.roleId=#{roleId} and (a.userId is null or a.userId='')
+				<if test="permissions !=null and permissions!='' "> and a.permissions=#{permissions}</if>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryResponsibility" resultType="java.util.LinkedHashMap">
+		<choose>
+			<when test=" userId != null and userId != '' ">
+				select a.*,b.name as cityName from sys_city_responsibility a 
+				left join sys_area b on a.cityCode = b.code  
+				where userId=#{userId}
+			</when>
+			<otherwise>
+				select a.*,b.name as cityName from sys_city_responsibility a 
+				left join sys_area b on a.cityCode = b.code  
+				where roleId=#{roleId} 
+				and IFNULL(length(userId),0)=0
+			</otherwise>
+		</choose>
+	</select>
+	
+	<delete id="deletePermissionByUserId" parameterType = "String">
+		delete from sys_permission_admin where userId=#{userId}
+		<if test="permissions !=null and permissions!='' "> and permissions=#{permissions}</if>
+	</delete>
+	<delete id="deletePermissionByRoleId" parameterType = "String">
+		delete from sys_permission_admin where roleId=#{roleId}
+		<if test="permissions !=null and permissions!='' "> and permissions=#{permissions}</if>
+	</delete>
+	
+	<delete id="deletePermissionByMenuViewGroups" parameterType = "String">
+		delete a from sys_permission_admin a 
+		left join sys_role b on a.roleId = b.id
+		left join (select id,name,parentId,roleGroup from sys_menu where id=#{menuId}
+		union
+		select b.id,b.name,b.parentId,a.roleGroup from sys_menu a 
+		left join sys_menu b on a.id = b.parentId 
+		where a.id = #{menuId}) c on a.menuId= c.id
+		where (c.id=#{menuId} or c.parentId=#{menuId}) and find_in_set(b.groups,c.roleGroup)=0; 
+				
+	</delete>
+	
+	<insert id="savePermissions" parameterType="java.util.Map">
+		insert into sys_permission_admin(roleId,userId,menuId,permissions,permissionArea,operatorId,operator,addTime,isValid)values
+		 <foreach collection="list" item="item" index="index" separator="," >  
+			(#{item.roleId},#{item.userId},#{item.menuId},#{item.permissions},#{item.permissionArea},#{item.operatorId},#{item.operator},now(),1)
+	    </foreach>
+	</insert>
+	
+</mapper>

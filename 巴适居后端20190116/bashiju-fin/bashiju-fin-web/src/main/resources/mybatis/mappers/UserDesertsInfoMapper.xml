@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.UserDesertsInfoMapper">
+
+	<select id="queryUserDesertsInfos" resultType="map">
+		select a.id,a.companyId,d.name as companyName,a.userId,a.userName,c.name as deptName,a.type,a.amount,a.classesId,a.classesName,a.desertsDate,a.reason,a.auditorId,
+		a.auditor,a.auditTime,a.examineStatus,a.rejectReason,a.permissionArea,a.operatorId,a.operator,a.addTime 
+		from finance_userDesertsInfo a inner join sys_user b on a.userId = b.id inner join sys_dept c on b.deptId = c.id inner join sys_company d on a.companyId = d.id
+		where a.isvalid=1 
+		<if test="userId != null and userId !='' ">
+			and a.userId = #{userId}
+		</if>
+		<if test="deptId != null and deptId !='' ">
+			and b.deptId = #{deptId}
+		</if>
+		<if test="type != null and type!='' ">
+			and a.type=#{type}
+		</if>
+		<if test="classesId != null and classesId !='' ">
+			and a.classesId=#{classesId}
+		</if>
+		<if test="months != null and months !='' ">
+			and DATE_FORMAT(a.desertsDate,'%Y-%m') = #{months}
+		</if>
+		
+		order by a.id desc
+	</select>
+	
+	<select id="getUserDesertsInfo" resultType="map">
+		select id,companyId,companyName,userId,userName,type,classesId,classesName,desertsDate,reason,auditorId,
+		auditor,auditTime,examineStatus,rejectReason,permissionArea,operatorId,operator,addTime 
+		from finance_userDesertsInfo a where id = #{userDesertsId}
+	</select>
+</mapper>

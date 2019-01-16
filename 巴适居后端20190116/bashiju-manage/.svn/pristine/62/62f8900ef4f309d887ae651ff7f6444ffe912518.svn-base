@@ -1,0 +1,179 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%-- <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%> --%>
+<%-- <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%> --%>
+<%-- <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%> --%>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>经纪人受理页面</title>
+	<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/manage-platform/css/MultiSelection.css" media="all">	
+	<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/manage-platform/js/MultiSelection.js"></script>
+</head>
+<body>
+	<%@include file="/common/common.jsp" %>
+	
+	<div class="toolBar layui-form">
+		客户名称
+	  	<div class="layui-inline">
+	    	<input class="layui-input"  placeholder="客户名称" id="clienteleName" autocomplete="off">
+	  	</div>
+	  	处理状态
+	  	<div class="layui-inline">
+	  		<select id="status">
+	  			<option value="">--选择状态---</option>
+	  			<option value="0">未处理</option>
+	  			<option value="1">已处理</option>
+	  			<option value="2">已失效</option>
+	  		</select>
+	  	</div>
+	  	选择片区
+	  	<div class="layui-inline">
+	  		<input type="hidden" id="regionId" name="regionId">
+	    	<input class="layui-input"  placeholder="选择片区" id="regionName" autocomplete="off">
+	  	</div>
+	  	选择小区
+	  	<div class="layui-inline">
+	  		<input type="hidden" id="communityId" name="communityId">
+	    	<input class="layui-input"  placeholder="选择小区" id="communityName" autocomplete="off">
+	  	</div>
+	  	<c:if test="${onlyBtnMenus.searchBtn!=''&& onlyBtnMenus.searchBtn!=null}">
+	  		<button class="layui-btn" data-type="reload" id="searchBtn" name="searchBtn">查询</button>
+	  	</c:if>
+	</div>
+	<table id="t_agent_acceptance" class="lay-table" lay-filter="t_agent_acceptance"></table>
+	
+	<script type="text/html" id="operationBar">
+  		{{# if(d.showDetailBtn !='' && d.showDetailBtn !=null){ }}
+	  		<a class="layui-btn layui-btn-xs" lay-event="edit" name="showDetailBtn">查看详情</a>
+  		{{# } }}
+		{{# if(d.refuseBtn !='' && d.refuseBtn !=null){ }}
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" name="refuseBtn">拒绝</a>
+  		{{# } }}
+	</script>
+	<%@include file="/common/common.jsp" %>
+	<script type="text/javascript">
+
+		var regionInfo = JSON.parse('${regionList}');
+		var communityInfo = JSON.parse('${communityList}');
+		debugger;
+		var region = new MultiSelection(regionInfo,function(code,name){
+			$("#regionName").val(name);
+			$("#regionId").val(code);
+			region.hidden();
+		},3,$("#regionName"));
+		$("#regionName").on("change",function(){
+			if($(this).val()==""){
+				$("#regionId").val("");
+			}
+		});
+		
+		var community = new MultiSelection(communityInfo,function(code,name){
+			$("#communityName").val(name);
+			$("#communityId").val(code);
+			rgArea.hidden();
+		},3,$("#communityName"));
+		$("#communityName").on("change",function(){
+			if($(this).val()==""){
+				$("#communityId").val("");
+			}
+		});
+		
+		var form;
+		var table;
+		layui.use(['table','form','layer'],function(){
+			form = layui.form;
+			table = layui.table;
+			var $ = layui.$;
+			
+			table.render({
+				id: 't_agent_acceptance'
+				,elem: '#t_agent_acceptance'
+				,method: 'post'
+				,url: 'queryAgentAcceptanceList'
+				,page: true
+				,cols: [[
+					{field : 'id',title: 'ID',width:80,fixed : 'left'}
+					,{field : 'statusName',title: '处理状态',width: 90}
+					,{field : 'userName',title : '经纪人名称'}
+					,{field : 'clienteleName',title: '业主称呼'}
+					,{field : 'mobile',title: '业主电话'}
+					,{field : 'areaName',title: '城市名称'}
+					,{field : 'regionName',title: '片区名称'}
+					,{field : 'communityName',title: '小区名称'}
+					,{field : 'buildingsName',title: '座栋'}
+					,{field : 'buildingsUnitName',title: '房屋单元'}
+					,{field : 'houseType',title: '户型'}
+					,{field : 'sellingPriceName',title: '出售价格'}
+					,{field : 'rentPriceName',title: '出租价格'}
+					,{field : 'addTime',title: '受理时间',sort: true,templet: '<div>{{ common.toDateString(d.addTime,"yyyy-MM-dd HH:mm:ss")}}</div>'}
+					,{fixed: 'right',title: '操作区域', width: 150,align:'center',toolbar: '#operationBar'}
+				]]
+			});
+			var $ = layui.$, active = {
+				reload : function() {
+					table.reload('t_user_info', {//执行重载
+						//重新从第 1 页开始
+						page : {curr : 1 },
+						where : {    
+							deptId : $("#deptCode").val(),
+							roleId: $("#roleCode").val(),
+							userName: $("#userName").val(),
+							mobile: $("#mobile").val(),
+							employeeNum: $("#employeeNum").val(),
+							isLocked: $("#isLocked").val()
+						}
+					});
+				}
+			};
+			//查询事件
+			$('#searchBtn').on('click', function() {
+				var type = $(this).data('type');
+				active[type] ? active[type].call(this) : '';
+			});
+			// 监听工具条
+			// 注：tool是工具条事件名，t_transfer_proc_mgr是table原始容器的属性 lay-filter="对应的值"
+			table.on('tool(t_agent_acceptance)', function(obj) {
+				//获得当前行数据
+				var data = obj.data;
+				//获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+				var layEvent = obj.event; 
+				var userId = data.id;
+				//删除事件
+				if (layEvent === 'showDetailBtn') { //修改用户
+					showEntrustDetail('修改用户',data);
+				}else if (layEvent === 'lockedUser') { //锁定用户
+					layer.confirm('确定要锁定用户吗？', function(index) {
+						lockedUser(data);
+					})
+				}  
+			});
+		});
+		
+		function showEntrustDetail(data){
+			
+		}
+		
+		// 经纪人拒绝客户委托
+		function refuseCustEntrust(data){
+			$.ajax({
+				type: 'post'
+				,url: ''
+				,dataType: 'json'
+				,success: function(result){
+					if(result.success){
+						layer.msg(result.msg);
+						location.reload();
+					}else{
+						layer.msg(result.msg);
+					}
+				}
+				,error: function(a,b,c){
+					layer.msg("系统操作异常");
+				}
+			});
+		}
+	</script>
+</body>
+</html>

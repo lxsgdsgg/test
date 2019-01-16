@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DeptIncomeSortMapper">
+	
+	<select id="queryAllUser" resultType="map">
+		
+		select a.id,a.name deptName from sys_dept a where a.isvalid=1 and a.deptTypeId in(4,5)
+		group by a.id order by a.id
+	</select>
+		
+	<!-- 查实收 -->
+	<select id="queryIncome" resultType="map">	
+		    select
+			sum(case when dd.businessType = 2 then floor(dd.amount/100) end ) as sellIncome
+			,sum(case when dd.businessType = 3 then floor(dd.amount/100) end ) as rentIncome
+			,sum(case when dd.businessType = 1 then floor(dd.amount/100) end ) as newHouseIncome
+			,sum(case when dd.businessType = 4 then floor(dd.amount/100) end ) as financeIncome
+			,(sum(case when dd.businessType = 2 then floor(dd.amount/100) end )
+			 +sum(case when dd.businessType = 3 then floor(dd.amount/100) end )
+			 +sum(case when dd.businessType = 1 then floor(dd.amount/100) end )
+			 +sum(case when dd.businessType = 4 then floor(dd.amount/100) end )) as incomeSum
+			from sys_user b left join finance_employeeCommissions dd on dd.userId=b.id
+			and dd.isvalid=1 and dd.months = #{month}
+			where  b.deptId = #{deptId}
+	</select>	
+		
+	
+	
+</mapper>

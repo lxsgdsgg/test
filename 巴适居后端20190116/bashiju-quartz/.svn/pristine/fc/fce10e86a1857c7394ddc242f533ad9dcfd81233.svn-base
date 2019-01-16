@@ -1,0 +1,255 @@
+package com.bashiju.quartz.service.mq;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.enums.CustomerStatusEnum;
+import com.bashiju.enums.DiscStatusEnum;
+import com.bashiju.enums.TaoBaoStatusEnum;
+import com.bashiju.quartz.mapper.HouseAndCustomerStatusTaskMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+
+/**   客源定时任务
+ * @ClassName  StatusChange   
+ * @DescriptionTODO(这里用一句话描述这个类的作用)   
+ * @author zhaobin
+ * @date   2018年5月30日 下午2:43:37   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class CustomerStatusChangeMq extends CommonSqlServie {
+@Autowired
+HouseAndCustomerStatusTaskMapper customerTaskMapper;
+
+		static final String yxCode=CustomerStatusEnum.EFFECTIVE.getCode();
+		static final String taobaoCode=TaoBaoStatusEnum.TAOBAO.getCode();
+		static final String privateDiscCode=DiscStatusEnum.PRIVATEDISC.getCode();
+		static final String publicDiscCode=DiscStatusEnum.PUBLICDISC.getCode();
+		static final String taoBaoDesc=TaoBaoStatusEnum.TAOBAO.getDesc();
+		static final String publicDiscDesc=DiscStatusEnum.PUBLICDISC.getDesc();
+		static final String tableName="demand_customerbusinessinfo";
+
+	public void customerAutoStatusChange(String companyId) {	
+		long starttime=System.currentTimeMillis();
+		String queryCondition="companyId='"+companyId+"' and updateTime >= DATE_SUB(now(),interval 1 DAY)";
+		Page<Map<String, Object>> result=this.querySingleTable(
+				"id,companyId,levelType,transactionType,privateAllBack,privateAdminBack,pubicAllBack,"
+				+ "publicAdminBack,privateAllLook,privateAdminLook,publicAllLook,publicAdminLook",
+				"res_cust_return_cycle", queryCondition, 1, 100);
+		List<Map<String,Object>> list=result.getResult();
+		if(list.isEmpty()) {
+			System.out.println("公司代码为["+companyId+"]的客源状态无需更新");	
+		} 
+		else {
+			for(int i=0;i<list.size();i++) {	
+				
+				String transactionType=list.get(i).get("transactionType").toString();
+				String levelType=list.get(i).get("levelType").toString();
+				/**有效私客全员回访超时Id列表**/
+				int privateCustomerAllBackDay=Integer.parseInt(list.get(i).get("privateAllBack").toString());
+
+				List<String> privateCustomerAllBackIdlist=customerTaskMapper.getAllFllowTimeOutId(tableName,privateCustomerAllBackDay,		
+						transactionType,yxCode,taobaoCode, privateDiscCode,levelType,companyId);
+				
+				/**有效私客维护人回访超时Id列表**/
+				int privateCustomermainterBackDay=Integer.parseInt(list.get(i).get("privateAdminBack").toString());
+				List<String> privateCustomermainterBackIdlist=customerTaskMapper.getMainterFllowTimeOutId(tableName,privateCustomermainterBackDay,			
+						transactionType,yxCode,taobaoCode, privateDiscCode,levelType,companyId);
+	
+				/**有效公客回访全员超时Id列表**/
+				int publicHousAllBackDay=Integer.parseInt(list.get(i).get("pubicAllBack").toString())+privateCustomerAllBackDay;
+				List<String> publicHousAllBackIdlist=	customerTaskMapper.getAllFllowTimeOutId(tableName,publicHousAllBackDay,						
+						transactionType,yxCode,taobaoCode, publicDiscCode,levelType,companyId);
+				
+				/**有效公客回访维护人超时Id列表**/
+				int publicHousMainterBackDay=Integer.parseInt(list.get(i).get("publicAdminBack").toString())+privateCustomermainterBackDay;
+				List<String> publicHousMainterBackIdlist=	customerTaskMapper.getMainterFllowTimeOutId(tableName,publicHousMainterBackDay,	
+						transactionType,yxCode,taobaoCode, publicDiscCode,levelType,companyId);
+	
+				/**有效私客全员带看超时Id列表**/
+				int privateCustomerAllLookDay=Integer.parseInt(list.get(i).get("privateAllLook").toString());
+				List<String> privateCustomerAllLookIdlist=customerTaskMapper.getAllLookTimeOutId(tableName,privateCustomerAllLookDay,
+						transactionType,yxCode,taobaoCode, privateDiscCode,levelType,companyId);
+				
+				/**有效私客维护人带看超时Id列表**/
+				int privateCustomerMainterLookDay=Integer.parseInt(list.get(i).get("privateAdminLook").toString());
+				List<String> privateCustomerMainterLookIdlist=customerTaskMapper.getMainterLookTimeOutId(tableName,privateCustomerMainterLookDay,
+						transactionType,yxCode,taobaoCode, privateDiscCode,levelType,companyId);
+	
+				/**有效公客全员带看超时Id列表**/
+				int publicCustomerAllLookDay=Integer.parseInt(list.get(i).get("publicAllLook").toString())+privateCustomerAllLookDay;
+				List<String> publicCustomerAllLookIdlist=	customerTaskMapper.getAllLookTimeOutId(tableName,publicCustomerAllLookDay,
+						transactionType,yxCode,taobaoCode, publicDiscCode,levelType,companyId);
+	
+				/**有效公客维护人带看超时Id列表**/
+				int publicCustomerMainterLookDay=Integer.parseInt(list.get(i).get("publicAdminLook").toString())+privateCustomerMainterLookDay;
+				List<String> publicCustomerMainterLookIdlist=	customerTaskMapper.getMainterLookTimeOutId(tableName,publicCustomerMainterLookDay,
+						transactionType,yxCode,taobaoCode, publicDiscCode,levelType,companyId);
+				
+				updatePrivateDiscCustomerBackStatus(privateCustomerAllBackIdlist,companyId,levelType,privateCustomerAllBackDay,true);
+				updatePrivateDiscCustomerBackStatus(privateCustomermainterBackIdlist,companyId,levelType,privateCustomermainterBackDay,false);
+				updatePrivateDiscCustomerLookStatus(privateCustomerAllLookIdlist,companyId,levelType,privateCustomerAllLookDay,true);
+				updatePrivateDiscCustomerLookStatus(privateCustomerMainterLookIdlist,companyId,levelType,privateCustomerMainterLookDay,false);
+				updatePulicDiscCustomerBackStatus(publicHousAllBackIdlist,companyId,levelType,publicHousAllBackDay-privateCustomerAllBackDay,true);
+				updatePulicDiscCustomerBackStatus(publicHousMainterBackIdlist,companyId,levelType,publicHousMainterBackDay-privateCustomermainterBackDay,false);
+				updatePulicDiscCustomerLookStatus(publicCustomerAllLookIdlist,companyId,levelType,publicCustomerAllLookDay-privateCustomerAllLookDay,true);
+				updatePulicDiscCustomerLookStatus(publicCustomerMainterLookIdlist,companyId,levelType,publicCustomerMainterLookDay-privateCustomerMainterLookDay,false);
+			}
+			long endtime=System.currentTimeMillis();
+			System.out.println(new Date()+"------------------------------->客源状态定时改变执行耗时="+(endtime-starttime)+"毫秒");
+		}
+	}
+	/**
+	 * 批量更新私客回访超时状态 
+	 * @Title updatePrivateDiscCustomerBackStatus   
+	 * @Description 批量更新私客回访超时状态     
+	 * @param  list 客源ID列表
+	 * @param  levelType  客源等级
+	 * @return void
+	 */
+	private void updatePrivateDiscCustomerBackStatus(List<String> list,String companyId,String levelType,int day,Boolean isAllBackTimeOut) {
+		
+		if(list.size()>0)
+		{
+			/*List 转String*/
+			String privateIdString ="'"+ StringUtils.join(list, "\',\'")+"'";
+			Map<String,Object> map=new HashMap<>();
+				map.put("discStatusId",publicDiscCode);
+				map.put("discStatus",publicDiscDesc);
+				System.out.println("------------------------------->私客ID="+privateIdString);
+			this.batchcommonUpdate(map, tableName, "id", privateIdString,"companyId='"+companyId+"'");
+			String fieldString="companyId,sourceType,sourceId,excuteContext";
+			List<String> listString=new ArrayList<>();
+			for(int i=0;i<list.size();i++) {
+				
+				StringBuilder sb=new StringBuilder();
+				if(isAllBackTimeOut)
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','私客进公客("+levelType+"类客源):全员回访期限超过"+day+"天'");	
+				else
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','私客进公客("+levelType+"类客源):维护人回访期限超过"+day+"天'");	
+				listString.add(sb.toString());
+			}
+			 batchAdd( fieldString, "user_log",listString, true);
+		}
+	
+	}
+	
+	
+	/**
+	 * 批量更新私客带看超时状态 
+	 * @Title updatePrivateDiscCustomerBackStatus   
+	 * @Description 批量更新私客回访超时状态     
+	 * @param  list 客源ID列表
+	 * @param  levelType  客源等级
+	 * @return void
+	 */
+	private void updatePrivateDiscCustomerLookStatus(List<String> list,String companyId,String levelType,int day,Boolean isAllLookTimeOut) {
+		
+		if(list.size()>0)
+		{
+			/*List 转String*/
+			String privateIdString ="'"+ StringUtils.join(list, "\',\'")+"'";
+			Map<String,Object> map=new HashMap<>();
+				map.put("discStatusId",publicDiscCode);
+				map.put("discStatus",publicDiscDesc);
+				System.out.println("------------------------------->私客客源ID="+privateIdString);
+			this.batchcommonUpdate(map, tableName, "id", privateIdString,"companyId='"+companyId+"'");
+			String fieldString="companyId,sourceType,sourceId,excuteContext";
+			List<String> listString=new ArrayList<>();
+			for(int i=0;i<list.size();i++) {
+				StringBuilder sb=new StringBuilder();
+				if(isAllLookTimeOut)
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','私客进公客("+levelType+"类客源):全员带看期限超过"+day+"天'");	
+				else
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','私客进公客("+levelType+"类客源):维护人带看期限超过"+day+"天'");			
+				listString.add(sb.toString());
+			}
+			 batchAdd( fieldString, "user_log",listString, true);
+		}
+	
+	}
+	
+	/**
+	 * 批量更新公客客源回访超时状态
+	 * @Title updateCustomerBackStatus   
+	 * @Description 批量更新公客客源回访超时状态   
+	 * @param  list 客源ID列表
+	 * @param  levelType  客源等级
+	 * @return void
+	 */
+	private void updatePulicDiscCustomerBackStatus(List<String> list,String companyId,String levelType,int day,Boolean isAllBackTimeOut) {
+		
+		if(list.size()>0)
+		{
+			/*List 转String*/
+			String privateIdString ="'"+ StringUtils.join(list, "\',\'")+"'";
+
+			Map<String,Object> map=new HashMap<>();
+				map.put("taoBaoStatusId", taobaoCode);
+				map.put("taoBaoStatus",taoBaoDesc);
+				System.out.println("------------------------------->公客客源ID="+privateIdString);
+			this.batchcommonUpdate(map, tableName, "id", privateIdString,"companyId='"+companyId+"'");
+			String fieldString="companyId,sourceType,sourceId,excuteContext";
+			List<String> listString=new ArrayList<>();
+			for(int i=0;i<list.size();i++) {
+				StringBuilder sb=new StringBuilder();
+				if(isAllBackTimeOut)
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','公客进淘宝池("+levelType+"类客源):全员回访期限超过"+day+"天'");
+				else
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','公客进淘宝池("+levelType+"类客源):维护人回访期限超过"+day+"天'");
+				listString.add(sb.toString());
+			}
+			 batchAdd( fieldString, "user_log",listString, true);
+		}
+	
+	}
+	
+	/**
+	 * 批量更新公客客源回访超时状态
+	 * @Title updateCustomerBackStatus   
+	 * @Description 批量更新公客客源回访超时状态   
+	 * @param  list 客源ID列表
+	 * @param  levelType  客源等级
+	 * @return void
+	 */
+	private void updatePulicDiscCustomerLookStatus(List<String> list,String companyId,String levelType,int day,Boolean isAllLookTimeOut) {
+		
+		if(list.size()>0)
+		{
+			/*List 转String*/
+			String privateIdString ="'"+ StringUtils.join(list, "\',\'")+"'";
+
+			Map<String,Object> map=new HashMap<>();
+				map.put("taoBaoStatusId", taobaoCode);
+				map.put("taoBaoStatus",taoBaoDesc);
+				System.out.println("------------------------------->公客客源ID="+privateIdString);
+			this.batchcommonUpdate(map,tableName, "id", privateIdString,"companyId='"+companyId+"'");
+			String fieldString="companyId,sourceType,sourceId,excuteContext";
+			List<String> listString=new ArrayList<>();
+			for(int i=0;i<list.size();i++) {
+				
+				StringBuilder sb=new StringBuilder();
+				if(isAllLookTimeOut)
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','公客进淘宝池("+levelType+"类客源):全员带看期限超过"+day+"天'");
+				else
+					sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','公客进淘宝池("+levelType+"类客源):维护人带看期限超过"+day+"天'");							
+				listString.add(sb.toString());
+			}
+			 batchAdd( fieldString, "user_log",listString, true);
+		}
+	
+	}
+	
+
+}

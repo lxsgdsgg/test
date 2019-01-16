@@ -1,0 +1,107 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralQueryParamEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.comm      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午4:23:46   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.comm;
+
+import java.io.Serializable;
+
+/**
+ * 个人中心查询参数封装实体类
+ * 
+ * @ClassName: CustomerPersonalCentralQueryParamEntity
+ * @Description:个人中心查询参数封装实体类
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午4:23:46
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ *             本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerPersonalCentralQueryParamEntity implements Serializable{
+	/* 登陆用户ID */
+	private String custId;
+	/* 客户房源绑定码 */
+	private String bindCode;
+	/* 页面显示最少条数 */
+	private int curPage;
+	/* 页面显示最大条数 */
+	private int limitPage;
+	
+	/**  
+	 * @Title:  getCustId <BR>  
+	 * @Description:  获取登陆用户ID<BR>  
+	 * @return: String <BR>  
+	 */
+	public String getCustId() {
+		return custId;
+	}
+	
+	/**  
+	 * @Title:  setCustId <BR>  
+	 * @Description: 设置登陆用户ID<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setCustId(String custId) {
+		this.custId = custId;
+	}
+	
+	/**  
+	 * @Title:  getBindCode <BR>  
+	 * @Description: 获取绑定码 <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getBindCode() {
+		return bindCode;
+	}
+	
+	/**  
+	 * @Title:  setBindCode <BR>  
+	 * @Description: 设置绑定码<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setBindCode(String bindCode) {
+		this.bindCode = bindCode;
+	}
+	
+	/**  
+	 * @Title:  getCurPage <BR>  
+	 * @Description: 获取页面显示最小条数 <BR>  
+	 * @return: int <BR>  
+	 */
+	public int getCurPage() {
+		return curPage;
+	}
+	
+	/**  
+	 * @Title:  setCurPage <BR>  
+	 * @Description:设置页面显示最小条数 <BR>  
+	 * @return: int <BR>  
+	 */
+	public void setCurPage(int curPage) {
+		this.curPage = curPage;
+	}
+	
+	/**  
+	 * @Title:  getLimitPage <BR>  
+	 * @Description: 获取页面显示最大条数 <BR>  
+	 * @return: int <BR>  
+	 */
+	public int getLimitPage() {
+		return limitPage;
+	}
+	
+	/**  
+	 * @Title:  setLimitPage <BR>  
+	 * @Description: 设置页面显示最大条数<BR>  
+	 * @return: int <BR>  
+	 */
+	public void setLimitPage(int limitPage) {
+		this.limitPage = limitPage;
+	}
+}

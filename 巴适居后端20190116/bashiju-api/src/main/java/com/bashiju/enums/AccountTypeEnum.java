@@ -1,0 +1,101 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  AccountTypeEnum.java   
+ * @Package com.bashiju.enums   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年11月7日 上午11:31:16   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**   
+ * 账号类型
+ * @ClassName:  AccountTypeEnum   
+ * @Description:账号类型
+ * @author: wangpeng
+ * @date:   2018年11月7日 上午11:31:16   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public enum AccountTypeEnum {
+	/**
+	 * 本系统
+	 */
+	LOCAL("00","本系统"),
+	/**
+	 * QQ
+	 */
+	QQ("01","QQ"),
+	/**
+	 *微信 
+	 */
+	WECHAT("02","微信"),
+	/**
+	 * 支付宝
+	 */
+	ALIPAY("03","支付宝"),
+	/**
+	 * 微博
+	 */
+	MICROBLOG("04","微博"),
+	/**
+	 * 微信小程序
+	 */
+	WECHATAPPLE("05","微信小程序");
+	
+    private String code;
+    private String desc;
+    
+    
+	public String getCode() {
+		return code;
+	}
+	public String getDesc() {
+		return desc;
+	}
+	private AccountTypeEnum(String code, String desc) {
+		this.code = code;
+		this.desc = desc;
+	}
+	
+	public static Map<String , String> enumMap;
+    public static List<Map<String , String>> enumList;
+    
+    
+	static {
+		
+		enumMap = new TreeMap<String, String>();
+		enumList = new ArrayList<Map<String,String>>();
+		
+		for(AccountTypeEnum  item: AccountTypeEnum.values()) {
+			enumMap.put(item.code,item.desc);
+			Map<String, String> map = new  HashMap<String, String>();
+			map.put("name",item.desc);
+			map.put("value", item.code);
+			enumList.add(map);
+		}
+	}
+	  /**
+     * 枚举转换
+     */
+    public static AccountTypeEnum parseOf(String value){
+        for(AccountTypeEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+    
+    
+	
+}

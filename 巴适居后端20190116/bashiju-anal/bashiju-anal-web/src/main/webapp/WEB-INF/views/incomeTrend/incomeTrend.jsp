@@ -1,0 +1,126 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<% request.setAttribute("staticfile_url", "/src");%>
+<!DOCTYPE html >
+<html>
+	<head>
+	<title>收入走势分析</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+		<jsp:include page="../../common/common.jsp"></jsp:include> 
+	<style type="text/css">
+		.layui-form-item .layui-input-inline {
+		    float: left;
+		    width: 109px;
+		    margin-right: 10px;
+		}
+		.layui-input, .layui-textarea {
+		    display: block;
+		    width: 100%;
+		    padding-left: 10px;
+		    border: none;
+		    border-bottom: 1px solid #DDDD;
+		    /* width: 55%; */
+		}
+		.layui-table-tool-temp {
+		    padding-right: 120px;
+		    font-size: large;
+		    font-weight: unset;
+		}
+		.layui-form-select dl dd.layui-this {
+		    background-color: #e8532b;
+		    color: #fff;
+		}
+	</style>
+	</head>
+	<body>
+	<div class="layui-form">
+		<div class="layui-form-item">
+			
+		    <div class="layui-input-inline">
+			    <select id="year">
+			    	<option value="2015">2015</option>
+			    	<option value="2016">2016</option>
+			    	<option value="2017">2017</option>
+			    	<option value="2018">2018</option>
+			    	<option value="2019">2019</option>
+			    </select>
+		    </div>
+<!-- 			<label class="layui-form-label">横向维度</label> -->
+		    <div class="layui-input-inline">
+		      <select name="transverse" id="transverse">
+		      	<c:forEach var="transverse" items="${transverse}">
+		      		<option value="${transverse.key}">${transverse.value}</option>
+		      	</c:forEach>
+		      </select>
+		    </div>
+		    
+<!-- 		    <label class="layui-form-label">门店</label> -->
+		    <div class="layui-inline">
+	  			<div class="layui-input-inline" style="width:120px;"> 
+					<input type="hidden" id="deptCode" name="deptCode">
+					<input class="layui-input" id="deptName" name="deptName" placeholder="请选择门店" readonly="readonly" autocomplete="off">
+				</div>
+			</div>
+			<div class="layui-input-inline">
+			    <select id="moneyType">
+			    	<option value="0">业绩</option>
+			    	<option value="1">实收</option>
+			    </select>
+		    </div>
+
+		    
+		    <button class="layui-btn layui-btn-danger" name="searchBtn" data-type="reload" id="searchBtn">查询</button>
+	  </div>
+	</div>
+	<div id="table_div"></div>
+<!-- 	<table id="test" class="layui-table" lay-size="sm" lay-filter="test"></table> --> 
+	<script type="text/javascript">
+	
+		var deptInfo = JSON.parse('${deptInfo}');
+		//部门选择控件
+		var dept = new MultiSelection(deptInfo,function(code,name){
+			$("#deptName").val(name);
+			$("#deptCode").val(code);
+			dept.hidden();
+		},null,$("#deptName"),true);
+		
+		
+		layui.use(['table','laydate'], function() {
+			table = layui.table;
+			laydate = layui.laydate;
+			
+			
+			getReportDetailInfo = function(){
+				var data = {
+					year:$("#year").val(),
+					deptTypeId:$("#transverse").val(),
+					deptId:$("#deptCode").val(),
+					moneyType:$("#moneyType").val()	
+				}
+				
+				
+				$.ajax({
+					type:"post",
+					url:"getReportDetailInfo",
+					data:data,
+					dataType:"html",
+					success:function(html){
+						$("#table_div").html(html);
+					},
+					error:function(a,b,c){
+						layer.alert("操作异常，请联系管理员");
+					}
+				});
+			}
+			getReportDetailInfo();
+			
+			$('#searchBtn').on('click', function(){
+				getReportDetailInfo();
+			  });
+		});
+	</script>
+	</body>	
+</html>

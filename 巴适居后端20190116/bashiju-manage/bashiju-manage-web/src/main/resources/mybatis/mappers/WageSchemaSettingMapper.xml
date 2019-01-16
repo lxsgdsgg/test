@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.WageSchemaSettingMapper">
+	<select id="queryAllWageSchemaSetingInfoByMap" resultType="map">
+		SELECT sys_salary_config.id,sys_salary_config.extractName,sys_salary_config.areaCode,sys_area.`name` as areaName,
+		sys_salary_config.updateOperator,sys_salary_config.baseSalary,sys_salary_config.endowmentInsurance,
+		sys_salary_config.medicalInsurance,sys_salary_config.unemploymentInsurance,
+		sys_salary_config.employmentInjuryInsurance,sys_salary_config.maternityInsurance,
+		sys_salary_config.otherInsurance,sys_salary_config.accumulationaFund,sys_salary_config.remark,
+		sys_salary_config.companyId,sys_salary_config.operatorId,sys_salary_config.operator,
+		sys_salary_config.addTime,sys_salary_config.updateTime,sys_salary_config.permissionArea,
+		sys_salary_config.isValid FROM sys_salary_config INNER JOIN sys_area 
+		ON sys_salary_config.areaCode = sys_area.`code` where sys_salary_config.isValid = 1
+		<if test="null != areaCode and areaCode != ''">
+			and areaCode = #{areaCode}			
+		</if>
+		<if test="null != extractName and extractName != ''">
+			and extractName like '%${extractName}%'			
+		</if>
+	</select>
+	
+	<select id="queryAllWageSchemaSetingInfoByCondition" resultType="map">
+		SELECT sys_salary_config.id,sys_salary_config.extractName,sys_salary_config.areaCode,sys_area.`name` as areaName,
+		sys_salary_config.updateOperator,sys_salary_config.baseSalary,sys_salary_config.endowmentInsurance,
+		sys_salary_config.medicalInsurance,sys_salary_config.unemploymentInsurance,
+		sys_salary_config.employmentInjuryInsurance,sys_salary_config.maternityInsurance,
+		sys_salary_config.otherInsurance,sys_salary_config.accumulationaFund,sys_salary_config.remark,
+		sys_salary_config.companyId,sys_salary_config.operatorId,sys_salary_config.operator,
+		sys_salary_config.addTime,sys_salary_config.updateTime,sys_salary_config.permissionArea,
+		sys_salary_config.isValid FROM sys_salary_config INNER JOIN sys_area 
+		ON sys_salary_config.areaCode = sys_area.`code` where sys_salary_config.isValid = 1
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+	
+	<select id="countWageSchemaInfoByCondition" resultType="long">
+		select count(1) from sys_salary_config where isValid = 1  
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+</mapper>

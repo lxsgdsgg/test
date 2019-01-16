@@ -1,0 +1,168 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  MetroController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月11日 上午11:40:05   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.MetroService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  MetroController   
+ * @Description:城市地铁线路控制层
+ * @author: wangpeng
+ * @date:   2018年8月11日 上午11:40:05   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="metro")
+public class MetroController extends BaseController {
+	@Autowired
+	private MetroService metroService;
+	
+	@Autowired	
+	private ICommunityService communityService;
+	
+	/**
+	 * @Title: enterMetroPage   
+	 * @Description: 进入城市地铁线路管理页面
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterMetroPage")
+ 	public  ModelAndView enterMetroPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "metro/metro");
+		//城市数据源
+		List<Map<String,Object>> areaList = communityService.queryAreaSelect();
+		if(areaList!=null && areaList.size()>0) {
+			mv.addObject("areaList", JSON.toJSONString(areaList));
+		}
+		return mv;
+	}
+	/**
+	 * @Title: enterMetroDetailPage   
+	 * @Description: 进入城市地铁线路详情页   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterMetroDetailPage")
+	public  ModelAndView enterMetroDetailPage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "metro/metroDetail");
+		Map<String,Object> metroInfo = metroService.queryMetroById(id);
+		if(metroInfo!=null && metroInfo.size()>0)
+			mv.addObject("metroInfo", metroInfo);
+		//城市数据源
+		List<Map<String,Object>> areaList = communityService.queryAreaSelect();
+		if(areaList!=null && areaList.size()>0) {
+			mv.addObject("areaList", JSON.toJSONString(areaList));
+		}
+		return mv;
+	}
+	/**
+	 * @Title: queryMetro   
+	 * @Description: 条件查询城市铁线路信息
+	 * @param name 地铁线路名称
+	 * @param cityCode 城市编码
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryMetro")
+	@ResponseBody
+	public Map<String,Object> queryMetro(String name,String cityCode,int page,int limit){
+		Page<Map<String,Object>> map =  metroService.queryMetro(name, cityCode, page, limit);
+		
+		Map<String,Object> metro = getPageResult(map);
+		return metro;
+	}
+	/**
+	 * @Title: delMetroById   
+	 * @Description: 逻辑删除城市地忒线路
+	 * @param id
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delMetroById")
+	@ResponseBody
+	public BashijuResult delMetroById(String id){
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("城市地铁线路id不能为空");
+		boolean result = metroService.delMetroById(id);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * @Title: saveOrUpdateMetro   
+	 * @Description: 新增或修改城市地铁线路
+	 * @param jsonData 参数
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateMetro")
+	@ResponseBody
+	public BashijuResult saveOrUpdateMetro(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存参数不能为空");
+		Map<String,Object> paramMap = (Map<String,Object>) JSONObject.parse(jsonData);
+		boolean result = metroService.saveOrUpdateMetro(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * @Title: queryMetro   
+	 * @Description: 条件查询城市铁线路信息
+	 * @param name 地铁线路名称
+	 * @param cityCode 城市编码
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryMetroForSelect")
+	@ResponseBody
+	public Object queryMetroForSelect(String cityCode){
+		return  metroService.queryMetro(null, cityCode, 0, 0);
+	}
+	/**
+	 * 根据当前登陆人的城市查询地铁线路  
+	 * @Title: queryMetroByCityCode   
+	 * @Description: 根据当前登陆人的城市查询地铁线路  
+	 * @return: Object
+	 */
+	@RequestMapping(value="queryMetroByCityCode")
+	@ResponseBody
+	public Object queryMetroByCityCode() {
+		return metroService.queryMetroByCityCode();
+	}
+}

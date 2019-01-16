@@ -1,0 +1,30 @@
+package com.bashiju.manage.service;
+
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  NavigationBarService   
+ * @Description:导航栏管理接口 
+ * @author: wangpeng
+ * @date:   2018年7月24日 上午9:33:33   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface NavigationBarService {
+	
+	public Page<Map<String,Object>> queryNavigationBarData(int page,int limit);	
+	
+	/**
+	 * 
+	 * @Title: queryNavigationBarById   
+	 * @Description: 条件查询 导航栏
+	 * @param navigationBarId id
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	public Map<String, Object> queryNavigationBarById(String navigationBarId);
+}

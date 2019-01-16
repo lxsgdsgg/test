@@ -1,0 +1,42 @@
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 
+ *   公用接口
+ * @ClassName:  CommMapper   
+ * @Description:   （详细描述）
+ * @author: wangkaifa
+ * @date:   2018年9月13日 上午11:55:03       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CommMapper {
+	/**
+	 * 
+		 * 查询省、市所有数据
+		 * @Description: 查询省、市所有数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllCity();
+	/**
+	 * 
+		 * 查询省、市开通数据
+		 * @Description: 查询省、市开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCity();
+	/**
+	 * 
+		 * 查询省、市、县开通数据
+		 * @Description: 查询省、市、县开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCityCounty();
+
+}

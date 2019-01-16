@@ -1,0 +1,240 @@
+package com.bashiju.quartz.service.mq;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.HouseTransactionEnum;
+import com.bashiju.quartz.mapper.HousingCrawlerMapper;
+import com.bashiju.quartz.util.HttpClientUtil;
+import com.bashiju.utils.service.CommonSqlServie;
+/**
+ * 
+ *   根据url解析房源页面，获取房源数据添加进数据库
+ * @ClassName:  HousingCrawlerConsumerMq   
+ * @Description:   根据url解析房源页面，获取房源数据添加进数据库
+ * @author: wangkaifa
+ * @date:   2018年7月3日 上午11:34:07       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class HousingCrawlerConsumerMq {
+	@Autowired
+	HousingCrawlerMapper housingCrawlerMapper;	
+	@Autowired
+	AmqpTemplate amqpTemplate;
+	@Autowired
+	CommonSqlServie commonSqlServie;
+	//编码格式
+	private String charset="UTF-8";
+	/**
+	 * 
+		 * 根据url访问页面，添加房源数据
+		 * @Description: 根据url访问页面，添加房源数据
+		 * @param json
+		 * @throws InterruptedException 
+		 * void
+	 */
+	public void addCrawlerData(String json) throws InterruptedException {	
+		System.out.println("*********************解析单页面开始*****************");
+		System.out.println("*****参数："+json);
+		//Thread.sleep(2000);
+		try {
+			if (StringUtils.isNotEmpty(json)) {
+				Map map=JSON.parseObject(json, Map.class);
+				//判断页面处理次数是否小于0
+				Integer maxCount=Integer.parseInt(map.get("crawlerCount").toString());
+				maxCount--;
+				Long configureId=Long.parseLong(map.get("crawlerConfigureId").toString());
+				Long templateId=Long.parseLong(map.get("templateId").toString());
+				String url=map.get("url").toString();
+				Integer count=housingCrawlerMapper.queryCountByUrl(url);
+				//判断url是否已采集
+				if (count.intValue()==0&&maxCount>=0) {
+					Map<String, Object> configure=housingCrawlerMapper.queryHouseCrawlerConfigureById(configureId);
+					Map<String, Object> template=housingCrawlerMapper.queryHouseCrawlerTemplateById(templateId);
+					//判断模板配置、url配置在数据库是否有值
+					if (configure!=null&&template!=null) {
+						//访问url页面
+						String html=HttpClientUtil.getResult(urlParamEncoder(url), charset);
+						//转换成Document对象
+						Document doc = Jsoup.parse(html);
+						System.out.println("爬网页面title："+doc.title());
+						//页面出现需要验证码，将url重新放入队列
+						if (doc.title().contains("验证码")) {						
+							if (map.containsKey("routingKey")) {
+								map.put("crawlerCount", maxCount);
+								String routingKey=map.get("routingKey").toString();
+								//页面出现验证码，将url重新放进队列
+								amqpTemplate.convertAndSend(routingKey, JSON.toJSONString(map));
+							}
+							
+						}else {
+							Map<Object, Object> param=new HashMap<>();
+							//页面获取房源标题
+							String title=doc.title();
+							Elements element=null;
+							if (template.get("titleSelector")!=null&&!"".equals(template.get("titleSelector").toString())) {
+								element=doc.select(template.get("titleSelector").toString());
+								if (isNotNull(element)) {
+									title=element.first().text();
+								}	
+							}
+							param.put("title", title);
+							//页面获取小区名称
+							if (template.get("communitySelector")!=null&&!"".equals(template.get("communitySelector").toString())) {
+								element=doc.select(template.get("communitySelector").toString());
+								if (isNotNull(element)) {
+									param.put("communityName", element.first().text());
+								}	
+							}
+							//页面获取楼层
+							if (template.get("floorSelector")!=null&&!"".equals(template.get("floorSelector").toString())) {
+								element=doc.select(template.get("floorSelector").toString());
+								if (isNotNull(element)) {
+									param.put("floor", element.first().text());
+								}	
+							}
+							//页面获取面积
+							if (template.get("buildSpaceSelector")!=null&&!"".equals(template.get("buildSpaceSelector").toString())) {
+								element=doc.select(template.get("buildSpaceSelector").toString());
+								if (isNotNull(element)) {
+									//提取数字
+									Double space=getDouble(element.first().text());
+									param.put("buildSpace", space);
+								}	
+							}
+							//页面获取朝向
+							if (template.get("orientationSelector")!=null&&!"".equals(template.get("orientationSelector").toString())) {
+								element=doc.select(template.get("orientationSelector").toString());
+								if (isNotNull(element)) {
+									param.put("orientation", element.first().text());
+								}	
+							}
+							//页面获取装修
+							if (template.get("decorationSelector")!=null&&!"".equals(template.get("decorationSelector").toString())) {
+								element=doc.select(template.get("decorationSelector").toString());
+								if (isNotNull(element)) {
+									param.put("decoration", element.first().text());
+								}	
+							}
+							//页面获取价格
+							if (template.get("priceSelector")!=null&&!"".equals(template.get("priceSelector").toString())) {
+								element=doc.select(template.get("priceSelector").toString());
+								if (isNotNull(element)) {
+									String price=element.first().text();
+									int priceFen=0;
+									//将价格换算成分
+									if (HouseTransactionEnum.SELL.getCode().equals(configure.get("transactionTypeId").toString())) {
+										Double d=getDouble(price);
+										d=d*1000000;
+										priceFen=d.intValue();
+									}else {
+										Double d=getDouble(price);
+										d=d*100;
+										priceFen=d.intValue();
+									}
+									param.put("price", priceFen);
+								}	
+							}
+							//页面获取联系电话
+							if (template.get("phoneSelector")!=null&&!"".equals(template.get("phoneSelector").toString())) {
+								element=doc.select(template.get("phoneSelector").toString());
+								if (isNotNull(element)) {
+									param.put("phone", element.first().text());
+								}	
+							}
+							//页面获取户型
+							if (template.get("roomSelector")!=null&&!"".equals(template.get("roomSelector").toString())) {
+								element=doc.select(template.get("roomSelector").toString());
+								if (isNotNull(element)) {
+									param.put("room", element.first().text());
+								}	
+							}
+							//页面获取房源类型
+							if (template.get("houseTypeSelector")!=null&&!"".equals(template.get("houseTypeSelector").toString())) {
+								element=doc.select(template.get("houseTypeSelector").toString());
+								if (isNotNull(element)) {
+									param.put("houseType", element.first().text());
+								}	
+							}
+														
+							param.put("cityCode", configure.get("cityCode"));
+							param.put("sourceId", template.get("id"));
+							param.put("sourceName", template.get("templateName"));
+							param.put("areaCode", configure.get("areaCode"));
+							param.put("areaName", configure.get("areaName"));
+							param.put("transactionTypeId", configure.get("transactionTypeId"));
+							param.put("transactionType", configure.get("transactionType"));
+							param.put("regionId", configure.get("regionId"));
+							param.put("regionName", configure.get("regionName"));
+							param.put("houseUrl", url);																														
+							param.put("recordTime", new Date());
+							param.put("lookStatus", 0);
+							param.put("inputStatus", 0);
+							param.put("checkStatus", 0);
+							//数据库插入采集房源数据
+							commonSqlServie.commonOperationDatabase(param, "hs_houseCrawler", true);
+							System.out.println("*************页面："+url+"采集成功***************");
+						}
+					}
+				}								
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private String urlParamEncoder(String url) throws UnsupportedEncodingException {
+		if (url.indexOf("?")>-1) {
+			String param=url.substring(url.indexOf("?")+1);
+			param=URLEncoder.encode(param, "UTF-8");
+			String result=url.substring(0,url.indexOf("?")+1);
+			result=result+param;
+			return result;
+		}
+		return url;
+	}
+	/**
+	 * 
+		 * 字符串中提取数字
+		 * @Description: 字符串中提取数字
+		 * @param value 待提取字符串
+		 * @return 
+		 * Double
+	 */
+	private  Double getDouble(String value) {
+		String regEx="[^0-9.]";   
+		Pattern p = Pattern.compile(regEx);   
+		Matcher m = p.matcher(value); 
+		String replace=m.replaceAll("").trim();
+		System.out.println(replace);
+		if (StringUtils.isNotEmpty(replace)) {
+			return Double.parseDouble(replace);
+		}
+		
+		return Double.parseDouble("0");
+	}
+
+	private boolean isNotNull(Elements element) {
+		if (element!=null&&element.size()>0) {
+			return true;
+		}
+		return false;
+	}
+}

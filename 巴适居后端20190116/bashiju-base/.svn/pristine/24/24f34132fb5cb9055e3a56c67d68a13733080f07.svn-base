@@ -1,0 +1,11 @@
+#短信验证码模板Id
+msgAuthCodeTemplateId=SMS_146803389
+#房源认领码模板Id
+houseTemplateId=SMS_146808479
+#需求认领码模板Id
+customerTemplateId=SMS_146808481
+#成交过户短信通知模板id
+dealTemplateId=SMS_151547011
+
+#签名
+signName=巴适居

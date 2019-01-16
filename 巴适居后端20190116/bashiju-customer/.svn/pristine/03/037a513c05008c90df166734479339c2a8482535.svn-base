@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.CustFollowRecordMapper">
+	<select id="queryCustFollowRecordData" resultType="map">
+	select df.id,df.companyName,dcb.id as demandId,dcb.status as status,dcb.statusId as statusId,dcb.transactionType as transactionType,dcb.transactionTypeId as transactionTypeId,
+		df.companyId,df.followType,df.follower,df.followTime,
+		df.followTypeName,df.followerId as followerId,
+		df.permissionArea,df.operatorId,df.operator ,df.deptId,df.addTime,df.updateTime,df.content,df.isValid from  demand_followrecord df
+		right join (select max(id) id from demand_followrecord group by demandId)a on df.id = a.id 
+		inner join demand_customerbusinessinfo dcb on dcb.id=df.demandId
+		<if test="transactionType!=null and transactionType!='' ">and dcb.transactionTypeId=#{transactionType}</if>
+		<if test="followTypeName!=null and followTypeName!='' ">and df.followTypeName=#{followTypeName}</if>
+		<if test="followerId!=null and followerId!='' ">and df.followerId=#{followerId}</if>
+		<if test="operatorId!=null and operatorId!='' ">and df.operatorId=#{operatorId}</if>
+		<if test="beginTime!=null and beginTime!='' ">and df.addTime&gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' ">and df.addTime&lt;=#{endTime}</if>
+		<if test="custIdAndFollowfollower!=null and custIdAndFollowfollower!=''">and dcb.id like'%${custIdAndFollowfollower}%' or cf.follower like'%${custIdAndFollowfollower}%'</if>
+	</select>
+	
+	<select id="queryCustFollowRecordByDemandId" resultType="map">
+	select df.id,df.companyName,dcb.id as demandId,dcb.status as status,dcb.statusId as statusId,dcb.transactionType as transactionType,dcb.transactionTypeId as transactionTypeId,
+		df.companyId,df.followType,df.follower,df.followTime,
+		df.followTypeName,df.followerId as followerId,
+		df.permissionArea,df.operatorId,df.operator ,df.deptId,df.addTime,df.updateTime,df.content,df.isValid from  demand_followrecord df
+		inner join demand_customerbusinessinfo dcb on dcb.id=df.demandId
+		where dcb.id=#{demandId} order by df.addTime desc
+	</select>
+</mapper>

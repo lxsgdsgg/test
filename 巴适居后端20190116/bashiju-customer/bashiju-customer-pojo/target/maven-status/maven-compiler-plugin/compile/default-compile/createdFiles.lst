@@ -1,0 +1,10 @@
+com\bashiju\customer\pojo\CommunityEntity.class
+com\bashiju\customer\pojo\CustomerQueryEntity.class
+com\bashiju\customer\pojo\RangeQuery.class
+com\bashiju\customer\pojo\CommunityQueryEntity.class
+com\bashiju\customer\pojo\HouseStatus.class
+com\bashiju\customer\pojo\RepeatTypeEbum.class
+com\bashiju\customer\pojo\StringRangeQuery.class
+com\bashiju\customer\pojo\BusinessExamineTypeEnum.class
+com\bashiju\customer\pojo\AccurateEntity.class
+com\bashiju\customer\pojo\CustomerFindHouseEntity.class

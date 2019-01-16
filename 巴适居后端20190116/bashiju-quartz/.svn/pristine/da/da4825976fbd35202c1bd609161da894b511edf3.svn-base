@@ -1,0 +1,140 @@
+package com.bashiju.quartz.service;
+
+import java.util.List;
+
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
+import org.springframework.stereotype.Service;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import com.bashiju.quartz.mapper.GetScheduleJobs;
+import com.bashiju.quartz.pojo.ScheduleJob;
+import com.bashiju.quartz.util.QuartzUtil;
+import com.bashiju.quartz.util.SpringContextUtil;
+/**
+ * 定时任务运行工厂类
+ * 
+ * @author zb
+ */
+@DisallowConcurrentExecution
+@Service
+public class QuartzJobFactory {// 实现的是无状态的Job
+
+	private static final Logger logger = LogManager.getLogger(LogManager.ROOT_LOGGER_NAME); 
+	
+	@Autowired
+	GetScheduleJobs getScheduleJobs;
+	
+	/**
+	 * @Note : 扫面数据库,查看是否有计划任务的变动
+	 */
+	public void arrageScheduleJob() {		
+		try {
+			
+			List<ScheduleJob> jobList = getScheduleJobs.getAllScheduleJobs();
+			if (jobList.size() != 0) {
+				for (ScheduleJob job : jobList) {
+					// Keys are composed of both a name and group, and the name  must be unique within the group
+					TriggerKey triggerKey = TriggerKey.triggerKey(job.getJobName(), job.getJobGroup());
+					// 获取trigger
+					CronTrigger trigger = (CronTrigger) QuartzUtil.scheduler.getTrigger(triggerKey);
+					// 不存在，创建一个
+					if (null == trigger) {
+						createSheduler(QuartzUtil.scheduler, job);
+					} else {// Trigger已存在，那么更新相应的定时设置
+						updateScheduler(QuartzUtil.scheduler, job, triggerKey, trigger);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 更新相应的定时设置 根据job_status做相应的处理
+	 * 
+	 * @param scheduler
+	 * @param job
+	 * @param triggerKey
+	 * @param trigger
+	 * @throws SchedulerException
+	 */
+	private void updateScheduler(Scheduler scheduler, ScheduleJob job, TriggerKey triggerKey, CronTrigger trigger)
+			throws SchedulerException {
+		if (job.getisValid().equals("1")) {// 0禁用 1启用
+			if (!trigger.getCronExpression().equalsIgnoreCase(job.getCronExpression())) {
+				// 表达式调度构建器
+				CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(job.getCronExpression());
+				// 按新的cronExpression表达式重新构建trigger
+				trigger = trigger.getTriggerBuilder().withIdentity(triggerKey).withSchedule(scheduleBuilder).build();
+				// 按新的trigger重新设置job执行
+				scheduler.rescheduleJob(triggerKey, trigger);
+				logger.info(job.getJobGroup() + "." + job.getJobName() + " 更新完毕,目前cron表达式为:" + job.getCronExpression()
+						+ " isSpringBean：" + job.getIsSpringBean() + " concurrent: " + job.getConcurrent());
+			}
+		} else if (job.getisValid().equals("0")) {
+			scheduler.pauseTrigger(triggerKey);// 停止触发器
+			scheduler.unscheduleJob(triggerKey);// 移除触发器
+			scheduler.deleteJob(trigger.getJobKey());// 删除任务
+			logger.info(job.getJobGroup() + "." + job.getJobName() + "删除完毕");
+		}
+
+	}
+
+	/**
+	 * 创建一个定时任务，并做安排
+	 * 
+	 * @param scheduler
+	 * @param job
+	 * @throws SchedulerException
+	 * @throws Exception
+	 */
+	public void createSheduler(Scheduler scheduler, ScheduleJob job) throws Exception {
+		// 在工作状态可用时,即job_status = 1 ,开始创建
+		if (job.getisValid().equals("1")) {
+			// 新建一个基于Spring的管理Job类
+			MethodInvokingJobDetailFactoryBean methodInvJobDetailFB = new MethodInvokingJobDetailFactoryBean();
+			// 设置Job名称
+			methodInvJobDetailFB.setName(job.getJobName());
+			// 定义的任务类为Spring的定义的Bean则调用 getBean方法
+			if (job.getIsSpringBean().equals("1")) {// 是Spring中定义的Bean
+				methodInvJobDetailFB
+						.setTargetObject(SpringContextUtil.getApplicationContext().getBean(job.getTargetObject()));
+			} else {// 不是
+				methodInvJobDetailFB.setTargetObject(Class.forName(job.getClazz()).newInstance());
+			}
+			// 设置任务方法
+			methodInvJobDetailFB.setTargetMethod(job.getTargetMethod());
+			// 将管理Job类提交到计划管理类
+			methodInvJobDetailFB.afterPropertiesSet();
+			/** 并发设置 */
+			methodInvJobDetailFB.setConcurrent(job.getConcurrent().equals("1") ? true : false);
+			
+			JobDetail jobDetail = methodInvJobDetailFB.getObject();// 动态
+			jobDetail.getJobDataMap().put("scheduleJob", "test……");
+			//jobName存入到队列 每隔一段时间就会扫描所以需要时检测
+			if(!QuartzUtil.jobNames.contains(job.getJobName())){
+				QuartzUtil.jobNames.add(job.getJobName());
+			}
+			
+			// 表达式调度构建器
+			CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(job.getCronExpression());
+			// 按新的cronExpression表达式构建一个新的trigger
+			CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(job.getJobName(), job.getJobGroup())
+					.withSchedule(scheduleBuilder).build();
+
+			scheduler.scheduleJob(jobDetail, trigger);// 注入到管理类
+			logger.info(job.getJobGroup() + "." + job.getJobName() + "创建完毕");
+		}
+	}
+
+}

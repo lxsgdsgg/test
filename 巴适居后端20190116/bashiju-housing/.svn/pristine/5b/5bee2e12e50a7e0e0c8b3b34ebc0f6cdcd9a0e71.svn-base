@@ -1,0 +1,70 @@
+package com.bashiju.housing.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.housing.mapper.HsFollowRecordMapper;
+import com.bashiju.housing.service.HsFollowRecordService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  HsFollowRecordServiceImpl   
+ * @Description:房源跟进服务   
+ * @author: wangpeng
+ * @date:   2018年6月5日 下午2:55:55   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房源跟进服务")
+public class HsFollowRecordServiceImpl implements HsFollowRecordService {
+	@Autowired
+	private  HsFollowRecordMapper  hsFollowRecordMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryHsFollowRecord</p>   
+	 * <p>Description:查询房源跟进信息(分页)  </p>   
+	 * @param paramMap 查询参数
+	 * @param page
+	 * @param limit
+	 * @return   
+	 * @see com.bashiju.housing.service.HsFollowRecordService#queryHsFollowRecord(java.util.Map, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询房源跟进")
+	public Page<Map<String, Object>> queryHsFollowRecord(Map<String,Object> paramMap,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenuEnum.MENU_88.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> maps=hsFollowRecordMapper.queryHsFollowRecord(paramMap);
+		return maps;
+	}
+	/**
+	 * 
+	 * <p>Title: queryAllHsFollowRecordByHouseId</p>   
+	 * <p>Description: 通过房源编号查询房源跟进(分页)</p>   
+	 * @param houseId 房源编号
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return   
+	 * @see com.bashiju.housing.service.HsFollowRecordService#queryAllHsFollowRecordByHouseId(java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="通过房源编号查询房源跟进")
+	public Page<Map<String, Object>> queryAllHsFollowRecordByHouseId(String houseId, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		Page<Map<String,Object>>maps=hsFollowRecordMapper.queryAllHsFollowRecordByHouseId(houseId);
+		return maps;
+	}
+
+}

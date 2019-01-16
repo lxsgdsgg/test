@@ -1,0 +1,99 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealMapper.java   
+ * @Package com.bashiju.customer.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月21日 上午9:43:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+/**   
+ * @ClassName:  DealMapper   
+ * @Description:成交管理持久服务  
+ * @author: yangz
+ * @date:   2018年6月21日 上午9:43:08   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface DealMapper {
+
+	/**
+	 * @Description: 根据成交id获取成交信息  
+	 * @param dealId 成交id
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getDeals(@Param("dealId")String dealId);
+	
+	/**
+	 * @Description: 条件查询成交信息   
+	 * @param params 查询信息的条件
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryDeals(Map<String,Object> params);
+
+	/**     
+	 * @Description: 根据成交编号查询中介类分成信息  
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	public List<Map<String, Object>> queryDividenInfos(@Param("dealId")String dealId);
+
+	/**     
+	 * @Description: 根据成交编号查询过户进度信息   
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	public List<Map<String, Object>> queryTransferSchedules(@Param("dealId")String dealId);
+
+	/**     
+	 * @Description: 更新成交信息的过户状态   
+	 * @param dealId 成交编号     
+	 * @return: long      
+	 */ 
+	public long updateTransactionStatus(@Param("dealId")String dealId);
+	
+	/**
+	 * @Description: 获取中介类佣金统计金额  
+	 * @param dealId 成交编号
+	 * @return: Map<String,Object>
+	 */
+	public Map<String,Object> getAgentCommissionStatistics(@Param("dealId")String dealId);
+
+	/**     
+	 * @Description: 根据id查询佣金记录   
+	 * @param id 佣金记录id     
+	 * @return: Map<String, Object>      
+	 */ 
+	public Map<Object, Object> queryCommissionById(@Param("id")String id);
+
+	/**     
+	 * @Description: 条件查询附件信息   
+	 * @param dealId 成交编号
+	 * @param attachType 附件类型
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	public List<Map<String, Object>> queryAttachData(@Param("dealId")String dealId, @Param("attachType")String attachType);
+
+	/**     
+	 * @Description: 根据成交编号查询跟进信息
+	 * @param dealId
+	 * @return: List<Map<String,Object>>         
+	 */ 
+	public List<Map<String, Object>> queryFollowRecordByDealId(@Param("dealId")String dealId);
+
+	/**     
+	 * @Description: 根据成交编号查询代收付款记录   
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	public List<Map<String, Object>> queryPayRecordsByDealId(@Param("dealId")String dealId);
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.DataacquMapper">
+  
+  	<select id="queryAnalysisTemplet" resultType="map">
+  		select * from hs_houseCrawlerTemplate where isvalid = 1
+  		<if test="templateName!=null and templateName!='' ">
+  			and templateName = #{templateName}
+  		</if>
+  	</select>
+
+  	<select id="queryTempletName" resultType="map">
+  		select id,templateName from hs_houseCrawlerTemplate where isvalid = 1
+  	</select>
+  	
+  	<select id="queryAddressConf" resultType="map">
+  		select * from hs_houseCrawlerConfigure where isvalid = 1
+  		<if test="templateName!=null and templateName!='' ">
+  			and templateName = #{templateName}
+  		</if>
+  	</select>
+	
+	<select id="queryJobConf" resultType="map">
+  		select id,jobName,replace(replace(isValid,0,'暂停'),1,'运行中') as isValid ,cronExpression,JobDescription,jobGroup,routingKey,targetParam from job 
+  	</select>
+  </mapper>
+  
+   

@@ -1,0 +1,192 @@
+<template>
+  <div>
+    <el-form :model="form" ref="form" label-width="100px" class="demo-form">
+
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="员工姓名" prop="name">
+            <el-input v-model="form.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="手机号码" prop="mobile">
+            <el-input v-model="form.mobile"></el-input>
+          </el-form-item>
+
+          <el-form-item label="所属部门">
+            <base-dept-cascader v-model="form.deptName"></base-dept-cascader>
+          </el-form-item>
+
+          <el-form-item label="出生日期">
+            <el-date-picker
+              style="width: 100%"
+              v-model="form.birthDate"
+              type="date"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="职务">
+            <el-select style="width: 100%" v-model="form.item1" placeholder="请选择员工状态">
+              <el-option label="总经理" value="1"></el-option>
+              <el-option label="区域负责人" value="2"></el-option>
+              <el-option label="店长" value="2"></el-option>
+              <el-option label="组长" value="2"></el-option>
+              <el-option label="经纪人" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="外网同步">
+            <el-select style="width: 100%" v-model="form.item2" placeholder="请选择员工状态">
+              <el-option label="是" value="1"></el-option>
+              <el-option label="否" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="热门经纪人">
+            <el-select style="width: 100%" v-model="form.item3" placeholder="请选择员工状态">
+              <el-option label="是" value="1"></el-option>
+              <el-option label="否" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="员工编号">
+            <el-input v-model="form.userNo"></el-input>
+          </el-form-item>
+
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="性别">
+            <el-select style="width: 100%" v-model="form.gender" placeholder="请选择员工状态">
+              <el-option label="男" value="1"></el-option>
+              <el-option label="女" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="电话号码">
+            <el-input v-model="form.item4"></el-input>
+          </el-form-item>
+
+          <el-form-item label="用户角色">
+            <el-select style="width: 100%" v-model="form.role" placeholder="请选择员工状态">
+              <el-option label="总经理" value="1"></el-option>
+              <el-option label="区域负责人" value="2"></el-option>
+              <el-option label="店长" value="2"></el-option>
+              <el-option label="组长" value="2"></el-option>
+              <el-option label="经纪人" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="入职时间">
+            <el-date-picker
+              style="width: 100%"
+              v-model="form.item5"
+              type="date"
+              placeholder="选择日期">
+            </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="电子邮箱">
+            <el-input v-model="form.email"></el-input>
+          </el-form-item>
+
+          <el-form-item label="介绍人">
+            <base-cascader v-model="form.item6" :url="getCascaderOptionsUrl" :props="cascaderProps" :dataProps="cascaderDataProps"></base-cascader>
+          </el-form-item>
+
+          <el-form-item label="排序">
+            <el-input-number style="width: 100%" v-model="form.seqNum" :min="1"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="生日弹出">
+            <el-select style="width: 100%" v-model="form.item7" placeholder="请选择员工状态">
+              <el-option label="是" value="1"></el-option>
+              <el-option label="否" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <div class="btn-group">
+        <el-button type="primary" @click="handleSubmit">确认</el-button>
+        <el-button @click="handleCancel">取消</el-button>
+      </div>
+
+    </el-form>
+  </div>
+</template>
+
+<script>
+import BaseDeptCascader from '@/components/BaseCascader/dept'
+import BaseCascader from '@/components/BaseCascader'
+
+export default {
+  name: 'UserEdit',
+  components: {BaseDeptCascader, BaseCascader},
+  data () {
+    return {
+      form: {
+        item1: '',
+        item2: '',
+        item3: '',
+        item4: '',
+        item5: '',
+        item6: [],
+        item7: '',
+        name: '',
+        mobile: '',
+        deptName: [],
+        birthDate: '',
+        userNo: '',
+        gender: '',
+        role: '',
+        seqNum: '',
+        email: ''
+      },
+      rules: {
+        name: [
+          {required: true, message: '请输入活动名称', trigger: 'blur'},
+          {min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur'}
+        ],
+        region: [
+          {required: true, message: '请选择活动区域', trigger: 'change'}
+        ],
+        date1: [
+          {type: 'date', required: true, message: '请选择日期', trigger: 'change'}
+        ],
+        date2: [
+          {type: 'date', required: true, message: '请选择时间', trigger: 'change'}
+        ],
+        type: [
+          {type: 'array', required: true, message: '请至少选择一个活动性质', trigger: 'change'}
+        ],
+        resource: [
+          {required: true, message: '请选择活动资源', trigger: 'change'}
+        ],
+        desc: [
+          {required: true, message: '请填写活动形式', trigger: 'blur'}
+        ]
+      },
+      getCascaderOptionsUrl: 'manage/commonselect/queryReferenceUserSelect',
+      cascaderDataProps: {id: 'code', parent: 'parentCode'}, // 级联数据源配置选项
+      cascaderProps: { // 级联下拉组件配置选项
+        value: 'code', // 指定选项的值为选项对象的某个属性值
+        children: 'children', // 指定选项的子选项为选项对象的某个属性值
+        label: 'name' // 指定选项标签为选项对象的某个属性值
+      }
+    }
+  },
+  methods: {
+    handleCancel () {
+      this.$emit('handleClick', 2)
+    },
+    handleSubmit () {
+      this.$emit('handleClick', 1)
+      console.log(this.form.deptName)
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

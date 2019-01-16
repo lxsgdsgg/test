@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.StatisticsMqMapper">
+	<select id="queryCompanys" resultType="map">
+		select id,name from sys_company where isvalid=1
+	</select>
+	<select id="queryCityOpenInfo" resultType="map">
+		select cityCode,cityName from sys_cityOpenInfo where isvalid=1
+	</select>
+	<insert id="statisticsAgentCommunityDeal" parameterType="String">
+		insert into sys_agent_community_cnt(id,userId,agentId,communityId,community,areaName,region
+		,saleDealCnt,rentDealCnt,sortNo,addTime)
+		select c.id,a.traderId userId,b.id agentId ,a.communityId,a.communityName,a.areaName,a.regionName,
+		ifnull(case when a.dealType='00' then count(*) end,0)+ifnull(c.saleDealCnt,0) as saleDealCnt,
+		ifnull(case when a.dealType='01' then count(*) end,0)+ifnull(c.rentDealCnt,0) as rentDealCnt,1 sortNo,now() addTime
+		from deal_transactionInfo a 
+		right join sys_agent_details b on b.userId=a.traderId 
+		left join sys_agent_community_cnt c on a.traderId = c.userId
+		left join (select addTime from sys_agent_community_cnt order by id desc limit 1) d on 1=1 and a.addTime>d.addTime
+		where a.dealType in('00','01') 
+		<if test="companyId!=null and companyId!='' "> and a.companyId=#{companyId}</if>
+		group by a.communityId,a.traderId
+		on duplicate key update 
+		communityId = values(communityId),community = values(community),areaName = values(areaName),
+		region = values(region),saleDealCnt = values(saleDealCnt) ,
+		rentDealCnt = values(rentDealCnt),sortNo = values(sortNo),addTime=now()
+	</insert>
+	
+	<insert id="statisticsCommunityRoomType" parameterType="String">
+		insert into sys_community_statistics(id,communityId,onSaleCnt,leaseCnt,dealCnt,browseCnt
+		,saleRoom1,saleRoom2,saleRoom3,saleRoom4,saleRoom5,leaseRoom1,leaseRoom2,leaseRoom3,leaseRoom4,leaseRoom5
+		,permissionArea,operatorId,operator,addTime,updateTime,isValid)
+		select e.id, a.id as communityId,ifnull(count(distinct b.id),0)onSaleCnt,ifnull(count(distinct c.id),0)leaseCnt
+		,ifnull(count(distinct d.id),0)dealCnt,ifnull(sum(b.browsingCount),0)+ifnull(sum(c.browsingCount),0)browseCnt,
+		ifnull(case when b.room=1 then count(b.id) end,0) saleRoom1,
+		ifnull(case when b.room=2 then count(b.id) end,0) saleRoom2,
+		ifnull(case when b.room=3 then count(b.id) end,0) saleRoom3,
+		ifnull(case when b.room=4 then count(b.id) end,0) saleRoom4,
+		ifnull(case when b.room>4 then count(b.id) end,0) saleRoom5,
+		ifnull(case when c.room=1 then count(c.id) end,0) leaseRoom1,
+		ifnull(case when c.room=2 then count(c.id) end,0) leaseRoom2,
+		ifnull(case when c.room=3 then count(c.id) end,0) leaseRoom3,
+		ifnull(case when c.room=4 then count(c.id) end,0) leaseRoom4,
+		ifnull(case when c.room>4 then count(c.id) end,0) leaseRoom5,
+		'BSJ00101'permissionArea,'1' operatorId,'' operator,now(),now(),1 
+		from sys_client_communityQueryInfos a 
+		left join sys_client_saleHouseQueryInfos b on a.id = b.communityId
+		left join sys_client_rentHouseQueryInfos c on a.id = c.communityId
+		left join deal_transactioninfo d on a.id = d.communityId
+		left join sys_community_statistics e on a.id = e.communityId
+		where a.cityCode=#{cityCode}
+		group by a.id
+		on duplicate key update 
+		communityId=values(communityId),onSaleCnt=values(onSaleCnt),leaseCnt=values(leaseCnt)
+		,dealCnt=values(dealCnt),browseCnt=values(browseCnt),saleRoom1=values(saleRoom1)
+		,saleRoom2=values(saleRoom2),saleRoom3=values(saleRoom3),saleRoom4=values(saleRoom4)
+		,saleRoom5=values(saleRoom5),leaseRoom1=values(leaseRoom1),leaseRoom2=values(leaseRoom2)
+		,leaseRoom3=values(leaseRoom3),leaseRoom4=values(leaseRoom4),leaseRoom5=values(leaseRoom5)
+		,permissionArea=values(permissionArea),operatorId=values(operatorId)
+		,operator=values(operator),updateTime=values(updateTime),isValid=values(isValid)
+	</insert>
+	
+	<update id="updateClientCommunityHouseCnt">
+		update sys_client_communityqueryinfos a 
+		left join sys_community_statistics b on a.id = b.communityId
+		set a.onSaleCnt = ifnull(b.onSaleCnt,0),a.leaseCnt = ifnull(b.leaseCnt,0)
+		where a.cityCode=#{cityCode}
+	</update>
+	
+	<update id="updateAgentDetailsQueryInfo">
+		update sys_agent_details t 
+		left join (
+		select a.userId,count(distinct b.id)showedRdCnt,count(distinct c.id)histShowedRdCnt,count(distinct d.id)dealCnt,count(distinct e.id)histDealCnt  
+		,truncate(ifnull(sum(distinct f.star)/count(distinct f.id),0),1)StarRating,count(distinct f.id)commentCnt,g.content
+		,ifnull(round((to_days(now())-to_days(g.entryDate))/365),0) seniority
+		from sys_user g
+		inner join sys_agent_details a  on g.id = a.userId
+		left join demand_showedRecord b on a.userId = b.leaderId and b.isvalid=1 and b.leadTime > date_add(now(),interval -31 day)
+		left join demand_showedRecord c on a.userId = c.leaderId and c.isvalid=1
+		left join deal_transactioninfo d on a.userId = d.traderId and d.isvalid=1 and d.dealTime > date_add(now(),interval -31 day) 
+		left join deal_transactioninfo e on a.userId = e.traderId and e.isvalid=1 
+		left join sys_cust_starRating f on a.userId = f.userId and f.isvalid=1 
+		left join (select aa.content,aa.userId from sys_cust_starrating aa 
+		inner join (select max(id)id from sys_cust_starRating group by userId) bb on aa.id = bb.id) g on a.userId = g.userId
+		where a.isvalid=1 
+		<if test="companyId != null and companyId!='' "> and g.companyId=#{companyId} </if>
+		group by a.userId)t1 on t.userId = t1.userId
+		set t.showedRdCnt=ifnull(t1.showedRdCnt,0),t.histShowedRdCnt=ifnull(t1.histShowedRdCnt,0),t.dealCnt = ifnull(t1.dealCnt,0) ,
+		t.histDealCnt = ifnull(t1.histDealCnt,0),t.StarRating = ifnull(t1.StarRating,0)
+		,t.commentCnt = ifnull(t1.commentCnt,0),t.lastComment = ifnull(t1.content,0),t.seniority = t1.seniority
+
+	</update>
+</mapper>
+	

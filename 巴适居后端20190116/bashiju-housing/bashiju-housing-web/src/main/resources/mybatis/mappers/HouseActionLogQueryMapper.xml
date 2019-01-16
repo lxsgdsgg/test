@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.housing.mapper.HouseActionLogQueryMapper">
+	<select id="auxHouseActionLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,IFNULL(a.logContent,a.operatTypeName) as logContent
+		,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 1
+		<if test="null != houseType and houseType != ''">
+			and a.sourceTypeId = ${houseType}
+		</if>
+		<if test="null != actionType and actionType != ''">
+			and a.operatTypeId = #{actionType}
+		</if>
+		
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="departmentId != null and departmentId != ''">
+			and a.departmentId like concat(#{departmentId},'%')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="sourceCode != null and sourceCode.trim != ''">
+			and a.sourceCode = #{sourceCode}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and a.logContent like concat('%',#{logContent},'%') or a.operatTypeName like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+	<select id="auxOneHandHouseActionLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 3
+		<if test="null != houseType and houseType != ''">
+			and a.sourceTypeId = ${houseType}
+		</if>
+		<if test="null != actionType and actionType != ''">
+			and a.operatTypeId = #{actionType}
+		</if>
+		
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="departmentId != null and departmentId != ''">
+			and a.departmentId like concat(#{departmentId},'%')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="sourceCode != null and sourceCode.trim != ''">
+			and a.sourceCode = #{sourceCode}
+		</if>
+		<if test="logContent != null and logContent.trim!= ''">
+			and a.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+	<select id="auxTelephoneViewLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.operatTypeId in(39,222,431)
+		<if test="null != houseType and houseType != ''">
+			and a.businessTypeId = ${houseType}
+		</if>
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="departmentId != null and departmentId != ''">
+			and a.departmentId like concat(#{departmentId},'%')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="sourceCode != null and sourceCode.trim != ''">
+			and a.sourceCode = #{sourceCode}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and a.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+		
+	<select id="auxHouseActionLogByHouseId" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 1
+		<if test="null != houseId and houseId != '' ">
+			and a.sourceId = #{houseId}
+		</if>
+		order by a.id desc
+	</select>
+	
+	<select id="auxHouseActionLogByHouseType" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 1
+		<if test="null != houseType and houseType != ''">
+			and a.sourceTypeId = ${houseType}
+		</if>
+		order by a.id desc
+	</select>
+</mapper>

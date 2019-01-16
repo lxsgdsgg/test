@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.ContractMapper">
+	
+	<select id="queryContractList" resultType="map">
+		SELECT id,templateName,companyId,companyName,remark,permissionArea,operatorId,templateType as templateTypeId,(CASE WHEN templateType=1 THEN '买卖合同' ELSE '出租合同' END) AS templateType,codePrefix 
+		FROM contract_template_main WHERE isValid=1 order by id desc
+	</select>
+	<select id="queryContract" resultType="map">
+		SELECT id,templateName,templateType,remark,companyName,declaration,codePrefix FROM contract_template_main WHERE isValid=1 AND id=#{templateId}
+	</select>
+	<select id="queryTerms" resultType="map">
+		SELECT id,templateId,title,number FROM contract_template_term WHERE isValid=1 AND templateId=#{templateId}
+	</select>
+	<select id="queryItems" resultType="map">
+		SELECT id,templateId,termId,itemType,number,tag,css,`value`,text FROM contract_template_termitem WHERE isValid=1 AND templateId=#{templateId}
+	</select>
+	
+	<delete id="deleteItem">
+		DELETE FROM contract_template_termitem WHERE templateId=#{templateId}
+	</delete>
+	<delete id="deleteTerm">
+		DELETE FROM contract_template_term WHERE templateId=#{templateId}
+	</delete>
+	
+	<select id="queryContractByHouseId" resultType="map">
+		SELECT id,`code`,houseId,shhId,custId,agreementType,price,partyA,mobileA,cardNoA,partyAType,addressA,commissionA,partyB,
+		mobileB,cardNoB,partyBType,addressB,commissionB,agency,propertyRrightNO,attachment,signPerson,signTime,beginTime,endTime,
+		permissionArea,operatorId,operator,totalMoney,`status`,approver,approvalTime,approvalResult
+		FROM oa_agreement  WHERE id IN (SELECT MAX(id) FROM oa_agreement WHERE isValid=1 AND shhId=#{shhId} AND agreementType=#{agreementType}) 
+	</select>
+	<select id="queryContractByCode" resultType="map">
+		SELECT id,`code`,houseId,shhId,custId,agreementType,price,partyA,mobileA,cardNoA,partyAType,addressA,commissionA,partyB,
+		mobileB,cardNoB,partyBType,addressB,commissionB,agency,propertyRrightNO,attachment,signPerson,signTime,beginTime,endTime,
+		permissionArea,operatorId,operator,totalMoney,`status`,approver,approvalTime,approvalResult
+		FROM oa_agreement  WHERE code = #{code}
+	</select>
+	<select id="queryContractPitureByHouseId" resultType="map">
+		SELECT contractPicture FROM oa_agreement WHERE id IN (SELECT MAX(id) FROM oa_agreement WHERE isValid=1 AND shhId=#{id})
+	</select>
+	<select id="queryContractPitureByCode" resultType="map">
+		SELECT contractPicture FROM oa_agreement where isValid=1  AND `code`=#{code} ORDER BY id DESC LIMIT 1
+	</select>
+	<select id="queryContractListByType" resultType="map">
+		SELECT id AS value,templateName AS label,permissionArea,operatorId FROM contract_template_main 
+		WHERE isValid=1 AND templateType=#{templateType} order by id desc
+	</select>
+	<select id="queryContractMan" resultType="map">
+		SELECT partyA,mobileA,cardNoA,partyB,mobileB,cardNoB FROM oa_agreement WHERE `code`=#{code}
+	</select>
+</mapper>

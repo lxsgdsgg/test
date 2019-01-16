@@ -1,0 +1,163 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.NavigationBarMapper;
+import com.bashiju.manage.service.NavigationBarService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  NavigationBarServiceImpl   
+ * @Description:导航栏管理服务 
+ * @author: wangpeng
+ * @date:   2018年7月24日 上午9:36:40   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="导航栏管理服务 ")
+public class NavigationBarServiceImpl extends CommonSqlServie implements NavigationBarService {
+	@Autowired
+	private NavigationBarMapper  navigationBarMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	/**
+	 * 
+	 * <p>Title: queryNavigationBarData</p>   
+	 * <p>Description: 查詢導航欄數據 </p>   
+	 * @param page 当前条数
+	 * @param limit 每页总条数
+	 * @return   
+	 * @see com.bashiju.manage.service.NavigationBarService#queryNavigationBarData(int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查詢导航栏数据")
+	public Page<Map<String, Object>> queryNavigationBarData(int page,int limit,Map<String,Object> paramMap) {
+		PageHelper.startPage(page, limit);
+//		dataAuthHelper.auth(MenuEnum.MENU_54.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String, Object>>  map = navigationBarMapper.queryNavigationBarData(paramMap);
+		return map;
+	}
+	
+	/**
+	 * 
+	 * <p>Title: queryNavigationBarById</p>   
+	 * <p>Description:  通过id查询导航栏</p>   
+	 * @param navigationBarId id
+	 * @return   
+	 * @see com.bashiju.manage.service.NavigationBarService#queryNavigationBarById(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="通过id查询导航栏")
+	public Map<String, Object> queryNavigationBarById(String navigationBarId) {
+		Map<String,Object> map = navigationBarMapper.queryNavigationBarById(navigationBarId);
+		return map;
+	}
+
+	/**
+	 * @Description: 查询导航树信息  
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.manage.service.NavigationBarService#queryNavigationBarTrees()   
+	 */
+	@Override
+	public List<Map<String, Object>> queryNavigationBarTrees(String cityOpenInfoId) {
+		return navigationBarMapper.queryNavigationBarTrees(cityOpenInfoId);
+	}
+	/**
+	 * 
+	 * <p>Title: delNavigationBarById</p>   
+	 * <p>Description:逻辑删除导航条 </p>   
+	 * @param navigationBarId id
+	 * @return   
+	 * @see com.bashiju.manage.service.NavigationBarService#delNavigationBarById(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="逻辑删除导航条")
+	public boolean delNavigationBarById(String navigationBarId) {
+		boolean result = this.delData("sys_navigationbar", "id", navigationBarId, false);
+		if(result)
+			return true;
+		return false;
+	}
+	/**
+	 * 
+	 * <p>Title: saveOrUpdataNavigationBar</p>   
+	 * <p>Description:  新增或编辑导航条</p>   
+	 * @param map
+	 * @return   
+	 * @see com.bashiju.manage.service.NavigationBarService#saveOrUpdataNavigationBar(java.util.Map)
+	 */
+	@Override
+	@SystemServiceLog(operationType="新增或编辑导航条")
+	public boolean saveOrUpdataNavigationBar(Map<Object, Object> map) {
+		if(	!map.containsKey("id")||map.get("id")==null||StringUtils.isEmpty(map.get("id").toString())) {
+			//新增
+			map.remove("id");
+			map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			map.put("operatorId", UserThreadLocal.get().get("id"));
+			map.put("operator", UserThreadLocal.get().get("realName"));
+			map.put("addTime", new Date());
+			long result = this.commonOperationDatabase(map, "sys_navigationbar", false);
+			ExecutionResult.descFormat(Long.toString(result),"修改导航栏");
+			if(result>0)
+				return true;
+			return false;
+				
+		}else {
+			long result = this.commonOperationDatabase(map, "sys_navigationbar", "id", false);
+			ExecutionResult.descFormat(Long.toString(result),"修改导航栏");
+			if(result>0)
+				return true;
+			return false;
+		}
+	}
+	
+	/**
+	 * 
+	 * <p>Title: queryAllNavigationNameByLevel</p>   
+	 * <p>Description:通过等级查询所有导航条名称 </p>   
+	 * @param level 等级
+	 * @return   
+	 * @see com.bashiju.manage.service.NavigationBarService#queryAllNavigationNameByLevel(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="通过等级查询所有导航条名称")
+	public List<Map<String, Object>> queryAllNavigationNameByLevel(String level) {
+		List<Map<String,Object>> navigation =  navigationBarMapper.queryAllNavigationNameByLevel(level);
+		return navigation;
+	}
+
+	/**   
+	 * <p>Title: queryIsExistNavigateCode</p>   
+	 * <p>Description: 条件查询导航栏编号是否已存在</p>   
+	 * @param navigateCode 导航栏编号
+	 * @see com.bashiju.manage.service.NavigationBarService#queryIsExistNavigateCode(java.lang.String)   
+	 */
+	@Override
+	public boolean queryIsExistNavigateCode(String navigateCode) {
+		if(StringUtils.isEmpty(navigateCode))
+			throw new BusinessException("导航编号不能为空");
+		long result = navigationBarMapper.queryIsExistNavigateCode(navigateCode);
+		if(result>0)
+			return true;
+		return false;
+	}
+
+}

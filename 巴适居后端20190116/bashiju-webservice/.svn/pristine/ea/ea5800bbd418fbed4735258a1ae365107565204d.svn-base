@@ -1,0 +1,101 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseEntrustPageServiceApiImpl.java   
+ * @Package com.bashiju.www.service.api.impl.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 下午2:38:34   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.api.impl.usercentral;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.service.user.ICustomerEntrustmentService;
+
+/**
+ * 个人中心-----房源委托页面服务
+ * @ClassName:CustomerHouseEntrustPageServiceApiImpl
+ * @Description:个人中心-----房源委托页面服务
+ * @author:zuoyuntao
+ * @date:2018年8月15日 下午2:38:34
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerHouseEntrustPageServiceApiImpl
+		extends CustomerPersonalCentralBaseServiceApi implements ICustomerHouseEntrustPageServiceApi {
+	/**
+	 * 房源委托服务接口
+	 */
+	@Autowired
+	private ICustomerEntrustmentService mICustomerEntrustmentService;
+	/**   
+	 * <p>Title: queryHouseEntrustPageList</p>   
+	 * <p>Description: </p>   
+	 * @param key 客户登陆标记
+	 * @param entrustType 委托类型（1：房源出售 2：房源出租 3：求租 4：求购）
+	 * @param page 每页显示最少条数（不分页传入 0）
+	 * @param limit 每页显示最大条数（不分页传入 0） 
+	 * @see com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi#queryHouseEntrustPageList(java.lang.String, int, int)   
+	 */
+	@Override
+	public WebPage<CustomerHouseEntrustmentEntity> queryHouseEntrustPageList(
+			String key,String entrustType, int page, int limit) {
+		String custId = this.getUserIdByRedisKey(key);
+		return mICustomerEntrustmentService.queryHouseEntrustmentDataList(custId, entrustType, page, limit);
+	}
+	/**
+	 * <p>Title: saveHouseEntrustmentData</p>   
+	 * <p>Description:保存房源委托信息 </p>   
+	 * @param houseEntity 房源委托实体对象
+	 * @param verifyCode 短信验证码  
+	 * @see com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi#saveHouseEntrustmentData(com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity, java.lang.String)
+	 */
+	@Override
+	public void saveHouseEntrustmentData(CustomerHouseEntrustmentEntity houseEntity, String verifyCode) {
+		mICustomerEntrustmentService.saveHouseEntrustmentData(houseEntity, verifyCode);
+		
+	}
+	/**
+	 * <p>Title: sendHouseVerifyCode</p>   
+	 * <p>Description: 发送手机验证码 </p>   
+	 * @param mobile   
+	 * @see com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi#queryHouseVerifyCode(java.lang.String)
+	 */
+	@Override
+	public void sendHouseVerifyCode(String mobile) {
+		mICustomerEntrustmentService.queryHouseVerifyCode(mobile);
+		
+	}
+	/**
+	 * <p>Title: queryPayOffMethod</p>   
+	 * <p>Description: 获取付款方式 </p>   
+	 * @return   
+	 * @see com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi#queryPayOffMethod()
+	 */
+	@Override
+	public Map<String, List<SelectItemResult>> queryPayOffMethod() {
+		return mICustomerEntrustmentService.queryPayOffMethod();
+	}
+	/**
+	 * <p>Title: cancelEntrust</p>   
+	 * <p>Description: 取消房源委托</p>   
+	 * @param houseEntity 房源实体对象    
+	 * @see com.bashiju.wapi.usercentral.ICustomerHouseEntrustPageServiceApi#cancelEntrust(com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity)
+	 */
+	@Override
+	public void cancelEntrust(CustomerHouseEntrustmentEntity houseEntity) {
+		mICustomerEntrustmentService.concelEntrust(houseEntity);
+	}
+
+}

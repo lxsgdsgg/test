@@ -1,0 +1,125 @@
+package com.bashiju.housing.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.housing.mapper.HsKeyMapper;
+import com.bashiju.housing.pojo.KeyStatusEnum;
+import com.bashiju.housing.service.HsKeyService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  HsKeySeviceImpl   
+ * @Description:钥匙管理服务
+ * @author: wangpeng
+ * @date:   2018年6月6日 下午5:52:13   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="钥匙管理")
+public class HsKeySeviceImpl extends CommonSqlServie  implements HsKeyService{
+	
+	@Autowired
+	private HsKeyMapper hsKeyMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	@Override
+	@SystemServiceLog(operationType="查询钥匙信息")
+	public Page<Map<String, Object>> queryHsKeyData(Map<String,Object> paramMap, int pageNum,int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		dataAuthHelper.auth(MenuEnum.MENU_87.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>>map=hsKeyMapper.queryHsKeyData(paramMap);
+		return map;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="更新钥匙状态")
+	public boolean hsKeyStatusUpdate(Map<Object,Object> map) {
+		
+		Map<String,Object> user = UserThreadLocal.get();
+		//新增钥匙日志
+		Map<Object,Object>logMap=new HashMap<Object,Object>();
+		logMap.put("keyId", map.get("id"));//钥匙id
+		logMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+	
+		//封存
+		if(KeyStatusEnum.SEAL.getCode().equals(map.get("status"))) {
+			long result=this.commonOperationDatabase(map, "hs_key", "id",false);
+			if(result>0) {
+				ExecutionResult.descFormat((map.get("id").toString()), "封存钥匙");
+				logMap.put("operatType", "封存钥匙");
+				logMap.put("operator", user.get("realName"));
+				logMap.put("operatorId", user.get("id"));
+				logMap.put("content","操作人:"+user.get("realName"));
+				long LogResult=this.commonOperationDatabase(logMap, "hs_keylog",false);
+			}else { 
+				return false;
+			}	
+		//已还
+		}else if(KeyStatusEnum.RECIVED.getCode().equals(map.get("status"))) {
+			long result=this.commonOperationDatabase(map, "hs_key", "id",false);
+			if(result>0) {
+				ExecutionResult.descFormat((map.get("id").toString()), "已还钥匙");
+				logMap.put("operatType", "已还钥匙");
+				logMap.put("content","操作人:"+user.get("realName")+";"+"归还人:"+map.get("borrower"));
+				logMap.put("operatorId",user.get("id"));
+				logMap.put("operator",user.get("realName"));
+				long LogResult=this.commonOperationDatabase(logMap, "hs_keylog",false);
+			}else { 
+				return false;
+			}
+		}
+		//借出
+		else if(KeyStatusEnum.BORROWED.getCode().equals(map.get("status"))) {
+			long result=this.commonOperationDatabase(map, "hs_key", "id",false);
+			if(result>0) {
+				ExecutionResult.descFormat((map.get("id").toString()), "钥匙借出");
+				logMap.put("operatType", "借出钥匙");
+				logMap.put("operator", map.get("borrower"));
+				logMap.put("operatorId", user.get("id"));
+				String borrower=map.get("borrower").toString();
+				Map<String,Object>maps=hsKeyMapper.queryUser(borrower);
+				if(maps!=null&&maps.size()>0) {
+					logMap.put("content","操作人:"+user.get("realName")+";"+"借出人："+maps.get("realName"));
+				}else {
+					logMap.put("content","操作人:"+user.get("realName")+";"+"借出人："+map.get("borrower"));
+				}
+				long LogResult=this.commonOperationDatabase(logMap, "hs_keylog",false);
+			}else { 
+				return false;
+			}
+		}
+		return true;	
+	}
+	@Override
+	@SystemServiceLog(operationType="查询钥匙日志")
+	public Page<Map<String, Object>> queryHsKeyLog(String hsKeyId,int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String, Object>>map=hsKeyMapper.queryHsKeyLog(hsKeyId);
+		return map;
+	}
+	
+	@Override
+	@SystemServiceLog(operationType="查询用户")
+	public Map<String,Object> queryUserById (String borrower) {
+		Map<String,Object> map=hsKeyMapper.queryUser(borrower);
+		if(map!=null &&map.size()>0)
+			return map;
+		return null;
+	}
+	
+	
+	
+}

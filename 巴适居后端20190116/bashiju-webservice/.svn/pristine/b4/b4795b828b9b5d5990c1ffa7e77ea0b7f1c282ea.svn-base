@@ -1,0 +1,49 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralBaseServiceApi.java   
+ * @Package com.bashiju.www.service.api.impl.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:00:10   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.api.impl.usercentral;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.redis.ICacheService;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心服务接口基类
+ * @ClassName:CustomerPersonalCentralBaseServiceApi
+ * @Description:个人中心服务接口基类
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:00:10
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerPersonalCentralBaseServiceApi {
+	/**
+	 * Redis缓存处理接口服务
+	 */
+	private ICacheService mICacheService;
+	/**
+	 * 根据key从Redis缓存中获取客户ID
+	 * @Title: getUserIdByRedisKey
+	 * @author: zuoyuntao  
+	 * @Description:根据key从Redis缓存中获取客户ID
+	 * @param key Redis的key
+	 * @return      
+	 * String 
+	 */
+	public String getUserIdByRedisKey(String key) {
+		String custId = mICacheService.getCache(key);
+		if(StringUtil.isNotEmpty(custId)) {
+			return custId;
+		}else {
+			throw new BusinessException("用户登陆异常!");
+		}
+	}
+}

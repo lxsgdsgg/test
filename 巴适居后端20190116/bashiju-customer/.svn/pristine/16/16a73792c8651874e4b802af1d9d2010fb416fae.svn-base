@@ -1,0 +1,12 @@
+package com.bashiju.customer.service.impl;
+
+import org.springframework.stereotype.Service;
+
+import com.bashiju.customer.service.CustomerService;
+import com.bashiju.utils.log.SystemServiceLog;
+
+@SystemServiceLog(sourceType="客源") 
+@Service
+public class CustomerServiceImpl implements CustomerService{
+
+}

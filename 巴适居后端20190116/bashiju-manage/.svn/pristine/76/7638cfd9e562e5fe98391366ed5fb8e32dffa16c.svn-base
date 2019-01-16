@@ -1,0 +1,223 @@
+﻿<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<% request.setAttribute("staticfile_url", "/src");%>
+<!DOCTYPE html >
+<html>
+	<head>
+	<title><%=application.getInitParameter("systemtitle")%></title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/layui/css/layui.css">
+	<%-- <link rel="stylesheet" type="text/css" href="${staticfile_url}/housing-platform/css/deptSelect.css"> --%>
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/manage-platform/css/MultiSelection.css" >
+	<link rel="stylesheet" type="text/css" href="${staticfile_url}/manage-platform/css/AreaSelect.css" media="all">
+	<script type="text/javascript" src="${staticfile_url}/common/js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="${staticfile_url}/common/frame/layui/layui.js"></script>
+	<%-- <script type="text/javascript" src="${staticfile_url}/housing-platform/js/deptSelect.js"></script> --%>
+	<script type="text/javascript" charset="utf-8" src="${staticfile_url}/manage-platform/js/MultiSelection.js"></script>
+	<script type="text/javascript" charset="utf-8" src="${staticfile_url}/manage-platform/js/AreaSelect.js"></script>  
+	</head>
+	
+	<style>
+		
+	</style>
+	
+	<body class="">
+		<div class="layui-form templet-form" style="padding-top: 10px;">
+			<input type="hidden" name="id" class="layui-input id">
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">模板名称</label>
+		       <input type="text" name="templateName"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">爬网a标签选择器</label>
+		       <input type="text" name="aSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">爬网下一页a标签选择器</label>
+		       <input type="text" name="nextSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">标题选择器</label>
+		       <input type="text" name="titleSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">小区名称选择器</label>
+		       <input type="text" name="communitySelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">楼层选择器</label>
+		       <input type="text" name="floorSelector"  value="" class="layui-input">
+		    </div>
+		   <div class="layui-inline ">
+		       <label class="layui-form-label">建筑面积选择器</label>
+		       <input type="text" name="buildSpaceSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">朝向选择器</label>
+		       <input type="text" name="orientationSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">装修选择器</label>
+		       <input type="text" name="decorationSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">价格选择器</label>
+		       <input type="text" name="priceSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">户型选择器</label>
+		       <input type="text" name="roomSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">房屋户型选择器</label>
+		       <input type="text" name="houseTypeSelector"  value="" class="layui-input"> 
+		    </div>
+		    <div class="layui-inline ">
+		       <label class="layui-form-label">联系电话选择器</label>
+		       <input type="text" name="phoneSelector"  value="" class="layui-input">
+		    </div>
+		    <div class="layui-inline ">
+		    	<label class="layui-form-label"></label>
+		     	<button type="button" class="layui-btn saveData" name="">保存</button>
+		    </div>
+		    <div class="layui-inline ">
+		    	<label class="layui-form-label"></label>
+		     	<button type="button" class="layui-btn" name="">取消</button>
+		    </div>
+		</div>
+		
+		<div>
+			<table id="templetList" lay-filter="templetList" ></table>
+		</div>
+		
+		<script>
+		
+		
+		layui.use(['element','form','table','layer','laydate'], function(){
+			  var element = layui.element;
+			  form = layui.form;
+			  var table = layui.table;
+			  layer = layui.layer;
+			 
+			  
+			  
+			  cols = [
+			  		 {field:"templateName",title:"模板名称",width:'180'},
+			 		 {field:"aSelector",title:"爬网a标签选择器",width:'80'},
+			 		 {field:"nextSelector",title:"爬网下一页a标签选择器",width:'100'},
+			 		 {field:"titleSelector",title:"标题选择器"},
+			 		 {field:"communitySelector",title:"小区名称选择器"},
+			 		 {field:"floorSelector",title:"楼层选择器"},
+			 		 {field:"buildSpaceSelector",title:"建筑面积选择器"},
+			 		 {field:"orientationSelector",title:"朝向选择器"},
+			 		 {field:"decorationSelector",title:"装修选择器"},
+			 		 {field:"priceSelector",title:"价格选择器"},
+			 		 {field:"roomSelector",title:"户型选择器"},
+			 		 {field:"houseTypeSelector",title:"房屋性质选择器"},
+			 		 {field:"phoneSelector",title:"联系电话选择器"},
+			 		 {fixed: 'right', width:180, align:'center', toolbar: '#barDemo'}
+			  		];
+			  table.render({
+			    elem: '#templetList'
+			    ,height: 500
+			    ,url:"<%=request.getContextPath()%>/manage/getAnalysisTemplet" //数据接口
+			    ,page: true //开启分页
+			    ,cols: [cols]
+		  		,method:'post'
+		  		,cellMinWidth:100
+		  		,done: function(res, curr, count){
+		  			
+		  		}
+			  });
+			  
+			
+			 
+			 //监听操作
+			 table.on('tool(templetList)', function(obj){
+				 	var data = obj.data;
+				 	var id = data.id;
+				    if(obj.event === 'del'){
+				    	layer.confirm('要确认吗?', {icon: 3, title:'提示'}, function(index){
+				    		  $.post("<%=request.getContextPath()%>/manage/delAnalysisTemplet",{id:id},function(d){
+				    			  if(d.success){
+					            		alert("成功！");
+					            		
+					            	}else{
+					            		alert(d.msg);
+					            	}
+				    		  })
+				    		  
+				    		  layer.close(index);
+				    	});
+				    }else if(obj.event === 'update'){
+				    	for(var key in data){
+				    		//alert(key);
+				    		$("input[name="+key+"]").val(data[key]);
+				    	}
+				    }
+			});
+			 $(".saveData").click(function(){
+				 var inputs = $(".templet-form").find("input");
+				 var data = {};
+				 for(var i=0;i<inputs.length;i++){
+					 var name = $(inputs[i]).attr("name");
+					 var value = $(inputs[i]).val();
+					 data[name] = value;
+				 }
+				 
+				 $.ajax({
+			            type: "POST",//方法类型
+			            dataType: "json",//预期服务器返回的数据类型
+			            contentType: 'application/json',
+			            data:JSON.stringify(data),
+			            url: "<%=request.getContextPath()%>/manage/saveAnalysisTemplet" ,//url	                
+			            success: function (result) {
+			            	if(result.success){
+			            		alert("成功！");
+			            		table.render({
+			        			    elem: '#templetList'
+			        			    ,height: 500
+			        			    ,url:"<%=request.getContextPath()%>/manage/getAnalysisTemplet" //数据接口
+			        			    ,page: true //开启分页
+			        			    ,cols: [cols]
+			        		  		,method:'post'
+			        		  		,cellMinWidth:100
+			        		  		,done: function(res, curr, count){
+			        		  			
+			        		  		}
+			        			 });
+			            		
+			            	}else{
+			            		alert(result.msg);
+			            	}
+			            },
+			            error : function() {
+			            	
+			            },
+			            beforeSend : function() {
+			            	
+			            }
+			       }); 
+			 })
+			 
+			  
+		});
+		
+		
+		
+		</script>
+		
+		<script type="text/html" id="barDemo" >
+			<a class="layui-btn layui-btn-xs" style="color:#fff;" lay-event="del">删除</a>
+		    <a class="layui-btn layui-btn-xs" style="color:#fff;" lay-event="update">修改</a>
+         
+        </script>
+        
+	</body>	
+	
+	
+</html>

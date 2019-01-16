@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ReservationWatchHouseMapper">
+	
+	<select id="queryReservationWatchHouseByAgenId" resultType="map">
+		SELECT cr.id,cr.name,cr.custId,cr.remark,cr.mobile,cr.shhId,cr.companyId,cr.maintainId,cr.reservationTime,
+		cr.reservationDate,cr.`status`,cr.handelTime,cr.handelerId,cr.handelResult,cr.permissionArea,cr.operatorId,
+		cr.operator,cr.addTime,cr.updateTime,cr.isvalid FROM cust_reservations AS cr where cr.maintainId=#{userId}
+	</select>
+	<update id="updateReservationsInfo" parameterType="map">
+		UPDATE cust_reservations 
+			<trim prefix="set" suffixOverrides=",">
+				<if test="custId!=null"> custId=#{custId},</if>	
+				<if test="name!=null"> name=#{name},</if>	
+				<if test="remark!=null"> remark=#{remark},</if>	
+				<if test="mobile!=null"> mobile=#{mobile},</if>	
+				<if test="shhId!=null"> shhId=#{shhId},</if>	
+				<if test="companyId!=null"> companyId=#{companyId},</if>	
+				<if test="maintainId!=null"> maintainId=#{maintainId},</if>	
+				<if test="reservationDate!=null"> reservationDate=#{reservationDate},</if>	
+				<if test="reservationTime!=null"> reservationTime=#{reservationTime},</if>	
+				<if test="status!=null"> status=#{status},</if>	
+				<if test="handelTime!=null"> handelTime=#{handelTime},</if>	
+				<if test="handelerId!=null"> handelerId=#{handelerId},</if>	
+				<if test="handelResult!=null">handelResult=#{handelResult},</if>	
+				<if test="permissionArea!=null"> permissionArea=#{permissionArea},</if>	
+				<if test="operatorId!=null"> operatorId=#{operatorId},</if>	
+				<if test="operator!=null"> operator=#{operator},</if>	
+				<if test="updateTime!=null"> updateTime=#{updateTime},</if>	
+				<if test="isvalid!=null"> isvalid=#{isvalid},</if>	
+			</trim>
+ 			WHERE id=#{reservationsId}
+	</update>
+	
+	<select id="queryReservationWatchHouseById" resultType="map">
+			SELECT cr.id,cr.name,cr.custId,cr.remark,cr.mobile,cr.shhId,cr.companyId,cr.maintainId,cr.reservationTime,
+			cr.reservationDate,cr.`status`,cr.handelTime,cr.handelerId,cr.handelResult,cr.permissionArea,cr.operatorId,
+			cr.operator,cr.addTime,cr.updateTime,cr.isvalid FROM cust_reservations AS cr where cr.id=#{id}
+	</select>
+	
+</mapper>

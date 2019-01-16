@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerOwnerHouseMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity" 
+			id="ownerHouseEntity">
+		<id property="id" column="id"/>
+        <result property="houseId" column="houseId"/>
+        <result property="transactionTypeId" column="transactionTypeId"/>
+        <result property="transactionType" column="transactionType"/>
+        <result property="custId" column="custId"/>
+        <result property="titles" column="titles"/>
+        <result property="custName" column="custName"/>
+        <result property="isValid" column="isValid"/>
+        <result property="companyId" column="companyId"/>
+        <result property="companyName" column="companyName"/>
+        <result property="houseSequence" column="houseSequence"/>
+        <result property="matching" column="matching"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="cityCode" column="cityCode"/>
+        <result property="regionId" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="communityId" column="communityId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="buildingsId" column="buildingsId"/>
+        <result property="buildingsName" column="buildingsName"/>
+        <result property="bulidingUnitId" column="bulidingUnitId"/>
+        <result property="buildingsUnitName" column="buildingsUnitName"/>
+        <result property="buildingHouseName" column="buildingHouseName"/>
+        <result property="buildingHouseId" column="buildingHouseId"/>
+        <result property="agentMobile" column="agentMobile"/>
+        <result property="label" column="label"/>
+        <result property="entrustTime" column="entrustTime"/>
+        <result property="lastShowTime" column="lastShowTime"/>
+        <result property="status" column="status"/>
+        <result property="statusId" column="statusId"/>
+        <result property="statusName" column="statusName"/>
+        <result property="profilePhoto" column="profilePhoto"/>
+     </resultMap>
+     
+	<select id="queryMyOwnerHouseDataList" resultMap="ownerHouseEntity">
+		select a.id,a.custId,b.id as houseId,b.companyName,b.transactionTypeId,b.transactionType
+		,b.houseId as houseSequence,b.titles,b.matching,b.addTime as entrustTime,b.`status`
+		,d.realName as agentName,d.profilePhoto,e.name as postName,
+		CONCAT(ff.virtualNum,'-',ff.virtualExtensionNum) as agentMobile,e.name as label,b.statusId
+		,case when a.isValid = 0 then '已撤销' when a.isValid = 1 then (
+		case when b.statusId in(1,12) then '挂牌中' when b.statusId in(2,3) then 
+		 		(case when b.transactionTypeId=1 then '已出售' when b.transactionTypeId=2
+		 then '已出租' else '已租售' end) else '暂缓' end) else '' end as statusName
+		,case when a.isValid = 0 then '1' when a.isValid = 1 then (
+			case when b.statusId in(1,12) then '2' when b.statusId in(2,3) then 
+		 		(case when b.transactionTypeId=1 then '3' when b.transactionTypeId=2
+		 then '4' else '5' end)else '6' end) else '' end as statusCode
+		,f.areaCode,f.areaName,f.cityCode,f.regionId,f.regionName,f.communityId,f.communityName,f.buildingsId,f.buildingsName
+		,f.bulidingUnitId,f.buildingsUnitName,f.buildingHouseName,b.openPlateDate,b.lastAllShowedTime as lastShowTime
+ 		from sys_custBindInfo a 
+		left join hs_secondhandhouse b on a.sourcesId = b.id 
+		left join hs_housebaseinfo f on f.id = b.houseId
+		inner join sys_user d on d.id = b.maintainId
+		left join sys_post e on d.postId = e.id
+		left join deal_transactioninfo c on b.id = c.shhId 
+		left join sys_agent_details dd on d.id = dd.userId
+		left join (select * from sys_phonesecuritymanage where isvalid = 1)  ff on dd.id = ff.agentId
+		where a.type = 0 and a.custId = #{custId}
+	</select>
+	
+	<select id="countAlreadyBindHouse">
+		select count(1) from sys_custBindInfo where isValid = 1 and custId = #{custId} 
+		and type = #{transactionType} and sourcesId = #{sourcesId}
+	</select>
+	
+	<insert id="saveBindingHouseResult" parameterType="map">
+	 	insert into sys_custBindInfo
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+	
+	<select id="queryMyHouseDetailByHouseID" resultType="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseDetailEntity">
+		select a.id as houseId,a.houseId as houseSequence,a.room,a.hall,a.kitchen,a.toilet,a.balcony
+		,a.sellingPrice,a.matching,a.entrustCode,'' as tax,a.actuality,a.structure,a.propertyType
+		,a.certificateDate,a.titles,a.payType,a.orientation,a.decoration,a.buildSpace,a.useSpace
+		,a.houseType,a.buildDates,a.propRightsLen,a.labeld,a.isSynchron,a.verificationCode,a.lastTradingTime
+		,CONCAT(b.floorCount,'/',b.totalLayers) as elevatorroomcount,b.floorCount
+		,b.areaCode,b.areaName,b.regionId,b.regionName,b.communityId,b.communityName
+		from hs_secondhandhouse a inner join hs_housebaseinfo b on a.houseId = b.id where a.isValid = 1 
+		and a.id = #{houseId}
+	</select>
+	
+	<delete id="deleteMyHouseByBindId">
+		delete from sys_custBindInfo where id = ${id} 
+	</delete>
+	
+	<update id="cancelBindMyHouseByBindId">
+		update sys_custBindInfo set isValid = 0 where id = ${id}
+	</update>
+	
+	<insert id="againEntrustMyHouseById">
+		insert into cust_houseentrust(transactionType,leaseType,joinRentStyle,cityCode,areaCode,
+		areaName,regionId,regionName,communityId,communityName,buildingsId,buildingsName,
+		bulidingUnitId,buildingsUnitName,buildingHouseId,buildingHouseName,room,hall,kitchen,
+		toilet,buildSpace,floorDesc,sellingPrice,rentPrice,payTypeId,payType,custId,mobile,
+		clienteleName,clienteleSex,addTime,descs,handleFlag,isvalid) 
+		SELECT 
+		a.transactionType,a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,a.areaName,a.regionId,
+		a.regionName,a.communityId,a.communityName,a.buildingsId,a.buildingsName,a.bulidingUnitId,
+		a.buildingsUnitName,a.buildingHouseId,a.buildingHouseName,a.room,a.hall,a.kitchen,a.toilet,
+		a.buildSpace,a.floorDesc,a.sellingPrice,a.rentPrice,a.payTypeId,a.payType,a.custId,a.mobile,
+		a.clienteleName,a.clienteleSex,a.addTime,a.descs,'0' as handleFlag,'1' as isvalid
+		FROM cust_houseentrust AS a where custId = ${custId} and id = ${houseId};
+	</insert>
+	
+	<select id="queryHoueseDetailById" resultType="com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity">
+		select a.id,a.custId,b.id as houseId,b.companyName,b.transactionTypeId,b.transactionType,b.houseId as houseSequence
+		,b.titles,b.matching,b.addTime as entrustTime,b.`status`,b.statusId
+		,d.realName as agentName,e.name as postName,CONCAT(ff.virtualNum,'-'
+				,ff.virtualExtensionNum) as agentMobile,e.name as label
+		,case when b.statusId in(1,12) then '挂牌中' when b.statusId in(2,3) then 
+		(case when c.transferStatus='00' then '已成交' 
+		when c.transferStatus='01' then '过户中' when c.transferStatus='02' then '已完成' end)
+		 else '已失效' end as statusName,f.areaCode,f.areaName,f.cityCode,f.regionId,f.bulidingUnitId
+		,f.regionName,f.communityId,f.communityName,f.buildingsId,f.buildingsName
+		,f.buildingsUnitName,f.buildingHouseId,f.buildingHouseName,b.room,b.hall,b.toilet
+		,b.balcony,b.kitchen,b.buildDates,b.buildSpace,b.rentPrice/100 as rentPrice
+		,b.sellingPrice/1000000 as sellingPrice,b.minRentPrice/100 as minRentPrice,b.minSellingPrice/1000000 as minSellingPrice
+		,b.openPlateDate,b.lastAllShowedTime as lastShowTime from sys_custBindInfo a 
+		left join hs_secondHandHouse b on a.sourcesId = b.id 
+		left join deal_transactioninfo c on b.id = c.shhId 
+		left join sys_user d on d.id = b.maintainId
+		inner join sys_agent_details dd on d.id = dd.userId
+		left join sys_post e on d.postId = e.id
+		left join hs_housebaseinfo f on f.id = b.houseId
+		LEFT JOIN sys_phonesecuritymanage ff on dd.id = ff.agentId
+		where a.type = 0 and a.custId = ${custId} and a.id=${id}
+	</select>
+	
+</mapper>

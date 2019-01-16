@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.HouseSeekByMapMapper">
+	<select id="queryHouseInfoByCondition" resultType="map">
+		SELECT
+		hs_secondhandhouse.transactionType,hs_secondhandhouse.`status`,hs_secondhandhouse.houseId,
+		hs_secondhandhouse.buildSpace,hs_secondhandhouse.sellingPrice,hs_secondhandhouse.rentPrice,
+		hs_secondhandhouse.operator,hs_housebaseinfo.communityName,hs_secondhandhouse.mainterDept,
+		hs_secondhandhouse.maintainer,hs_secondhandhouse.`owner`,hs_housebaseinfo.areaName,
+		hs_housebaseinfo.areaCode,hs_housebaseinfo.buildingsName,hs_housebaseinfo.buildingHouseName,
+		hs_secondhandhouse.id,hs_housebaseinfo.isValid,hs_housebaseinfo.operatorId,hs_secondhandhouse.houseUsesId,
+		hs_housebaseinfo.permissionArea,hs_secondhandhouse.statusId,hs_secondhandhouse.transactionTypeId,
+		hs_housebaseinfo.communityId FROM hs_secondhandhouse INNER JOIN hs_housebaseinfo ON 
+		hs_secondhandhouse.houseId = hs_housebaseinfo.id where hs_housebaseinfo.isValid = 1
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+		<!-- 拼接房源状态查询条件 -->
+		<choose>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 1">
+				and ( statusId = '1'  and transactionTypeId = 1 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 2">
+				and ( statusId = '1'  and transactionTypeId = 2 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 3">
+				and ( statusId = '2' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 4">
+				and ( statusId = '3' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 5">
+				and ( statusId not in('1','2','3') )
+			</when>
+			<otherwise></otherwise>
+		</choose>
+		<if test="null != paraMap.houseUsesId and '' != paraMap.houseUsesId ">
+			and houseUsesId = '${paraMap.houseUsesId}'
+		</if>
+		<!--拼接面积区间查询条件 -->
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower 
+						and null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper">
+			and (buildSpace between '${paraMap.areaRangeLower}' and '${paraMap.areaRangeUpper}')
+		</if>
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower and null == paraMap.areaRangeUpper ">
+			and buildSpace &gt; '${paraMap.areaRangeLower}'
+		</if>
+		<if test="null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper and null == paraMap.areaRangeLower">
+			and buildSpace &lt; '${paraMap.areaRangeUpper}'
+		</if>
+			<!--拼接价格区间查询条件 -->
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower
+					and null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper">
+			and (sellingPrice between '${paraMap.priceRangeLower}' and '${paraMap.priceRangeUpper}')
+		</if>
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower and null == paraMap.priceRangeUpper ">
+			and sellingPrice &gt; '${paraMap.priceRangeLower}'
+		</if>
+		<if test="null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper and null == paraMap.priceRangeLower">
+			and sellingPrice &lt; '${paraMap.priceRangeUpper}'
+		</if>
+		<!--拼接类似域行政区划多选的条件，用IN的方式 -->
+		<if test=" null != paraMap.areaCode">
+			<foreach collection="paraMap.areaCode" index="index" item="item" open=" and areaCode in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.regionId">
+			<foreach collection="paraMap.regionId" index="index" item="item" open=" and regionId in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.communityId">
+			<foreach collection="paraMap.communityId" index="index" item="item" open=" and communityId in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		group by operatorId,permissionArea,areaName,areaCode,transactionTypeId,
+		statusId,houseUsesId,buildSpace,sellingPrice,rentPrice,communityId
+	</select>
+	
+	<select id="statisticsCommunityHouseInfoByConn"  resultType="map">
+		select a.areaCode,a.areaName,c.id as communityId,c.name as communityName,c.permissionArea,c.operatorId
+		,count(1) as count,c.longitude,c.latitude,b.statusId,b.`status`,b.houseUsesId,b.houseUses
+		 from hs_housebaseinfo a inner join (select * from hs_secondhandhouse where companyId = #{paraMap.companyId}) b 
+		on a.id = b.houseId inner join sys_community c on a.communityId = c.id
+		where a.isValid= 1 
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+		<!-- 拼接房源状态查询条件 -->
+		<choose>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 1">
+				and ( b.statusId = '1'  and b.transactionTypeId = 1 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 2">
+				and ( b.statusId = '1'  and b.transactionTypeId = 2 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 3">
+				and ( b.statusId = '2' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 4">
+				and ( b.statusId = '3' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 5">
+				and ( b.statusId not in('1','2','3') )
+			</when>
+			<otherwise></otherwise>
+		</choose>
+		<if test="null != paraMap.houseUsesId and '' != paraMap.houseUsesId ">
+			and b.houseUsesId = '${paraMap.houseUsesId}'
+		</if>
+		<!--拼接面积区间查询条件 -->
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower 
+						and null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper">
+			and (b.buildSpace between '${paraMap.areaRangeLower}' and '${paraMap.areaRangeUpper}')
+		</if>
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower and null == paraMap.areaRangeUpper ">
+			and b.buildSpace &gt; '${paraMap.areaRangeLower}'
+		</if>
+		<if test="null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper and null == paraMap.areaRangeLower">
+			and b.buildSpace &lt; '${paraMap.areaRangeUpper}'
+		</if>
+			<!--拼接价格区间查询条件 -->
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower
+					and null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper">
+			and (b.sellingPrice between '${paraMap.priceRangeLower}' and '${paraMap.priceRangeUpper}')
+		</if>
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower and null == paraMap.priceRangeUpper ">
+			and b.sellingPrice &gt; '${paraMap.priceRangeLower}'
+		</if>
+		<if test="null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper and null == paraMap.priceRangeLower">
+			and b.sellingPrice &lt; '${paraMap.priceRangeUpper}'
+		</if>
+		<!--拼接类似域行政区划多选的条件，用IN的方式 -->
+		<if test=" null != paraMap.areaCode">
+			<foreach collection="paraMap.areaCode" index="index" item="item" open=" and a.areaCode in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.regionId">
+			<foreach collection="paraMap.regionId" index="index" item="item" open=" and a.regionId in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.communityId">
+			<foreach collection="paraMap.communityId" index="index" item="item" open=" and a.communityId in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		group by a.communityId,a.communityName
+	</select>
+	
+	<select id="statisticsAreaHouseInfoByConn"  resultType="map">
+		select c.code as areaCode,c.name as areaName,a.communityId,a.communityName,c.permissionArea,c.operatorId
+		,count(1) as count,c.longitude,c.latitude,b.statusId,b.`status`,b.houseUsesId,b.houseUses
+		 from hs_housebaseinfo a inner join (select * from hs_secondhandhouse where companyId = #{paraMap.companyId}) b 
+		on a.id = b.houseId inner join sys_area c on a.areaCode = c.code
+		where a.isValid= 1 
+		<!-- 拼接房源状态查询条件 -->
+		<choose>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 1">
+				and ( b.statusId = '1'  and b.transactionTypeId = 1 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 2">
+				and ( b.statusId = '1'  and b.transactionTypeId = 2 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 3">
+				and ( b.statusId = '2' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 4">
+				and ( b.statusId = '3' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 5">
+				and ( b.statusId not in('1','2','3') )
+			</when>
+			<otherwise></otherwise>
+		</choose>
+		<if test="null != paraMap.houseUsesId and '' != paraMap.houseUsesId ">
+			and b.houseUsesId = '${paraMap.houseUsesId}'
+		</if>
+		<!--拼接面积区间查询条件 -->
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower 
+						and null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper">
+			and (b.buildSpace between '${paraMap.areaRangeLower}' and '${paraMap.areaRangeUpper}')
+		</if>
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower and null == paraMap.areaRangeUpper ">
+			and b.buildSpace &gt; '${paraMap.areaRangeLower}'
+		</if>
+		<if test="null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper and null == paraMap.areaRangeLower">
+			and b.buildSpace &lt; '${paraMap.areaRangeUpper}'
+		</if>
+			<!--拼接价格区间查询条件 -->
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower
+					and null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper">
+			and (b.sellingPrice between '${paraMap.priceRangeLower}' and '${paraMap.priceRangeUpper}')
+		</if>
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower and null == paraMap.priceRangeUpper ">
+			and b.sellingPrice &gt; '${paraMap.priceRangeLower}'
+		</if>
+		<if test="null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper and null == paraMap.priceRangeLower">
+			and b.sellingPrice &lt; '${paraMap.priceRangeUpper}'
+		</if>
+		<!--拼接类似域行政区划多选的条件，用IN的方式 -->
+		<if test=" null != paraMap.areaCode">
+			<foreach collection="paraMap.areaCode" index="index" item="item" open=" and a.areaCode in(" separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+		<if test=" null != paraMap.regionId">
+			<foreach collection="paraMap.regionId" index="index" item="item" open=" and a.regionId in(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.communityId">
+			<foreach collection="paraMap.communityId" index="index" item="item" open=" and a.communityId in(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		group by a.areaCode,a.areaName
+	</select>
+	
+	<select id="statisticsRegionHouseInfoByConn"  resultType="map">
+		select a.areaCode,a.communityId,a.communityName,a.regionId,a.regionName as areaName,c.permissionArea,c.operatorId
+		,count(1) as count,c.longitude,c.latitude,b.statusId,b.`status`,b.houseUsesId,b.houseUses
+		 from hs_housebaseinfo a inner join (select * from hs_secondhandhouse where companyId = #{paraMap.companyId}) b 
+		on a.id = b.houseId inner join sys_region c on a.regionId = c.id where a.isValid= 1
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+		<!-- 拼接房源状态查询条件 -->
+		<choose>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 1">
+				and ( b.statusId = '1'  and b.transactionTypeId = 1 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 2">
+				and ( b.statusId = '1'  and b.transactionTypeId = 2 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 3">
+				and ( b.statusId = '2' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 4">
+				and ( b.statusId = '3' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 5">
+				and ( b.statusId not in('1','2','3') )
+			</when>
+			<otherwise></otherwise>
+		</choose>
+		<if test="null != paraMap.houseUsesId and '' != paraMap.houseUsesId ">
+			and b.houseUsesId = '${paraMap.houseUsesId}'
+		</if>
+		<!--拼接面积区间查询条件 -->
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower 
+						and null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper">
+			and (b.buildSpace between '${paraMap.areaRangeLower}' and '${paraMap.areaRangeUpper}')
+		</if>
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower and null == paraMap.areaRangeUpper ">
+			and b.buildSpace &gt; '${paraMap.areaRangeLower}'
+		</if>
+		<if test="null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper and null == paraMap.areaRangeLower">
+			and b.buildSpace &lt; '${paraMap.areaRangeUpper}'
+		</if>
+			<!--拼接价格区间查询条件 -->
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower
+					and null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper">
+			and (b.sellingPrice between '${paraMap.priceRangeLower}' and '${paraMap.priceRangeUpper}')
+		</if>
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower and null == paraMap.priceRangeUpper ">
+			and b.sellingPrice &gt; '${paraMap.priceRangeLower}'
+		</if>
+		<if test="null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper and null == paraMap.priceRangeLower">
+			and b.sellingPrice &lt; '${paraMap.priceRangeUpper}'
+		</if>
+		<!--拼接类似域行政区划多选的条件，用IN的方式 -->
+		<if test=" null != paraMap.areaCode">
+			<foreach collection="paraMap.areaCode" index="index" item="item" open=" and a.areaCode in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.regionId">
+			<foreach collection="paraMap.regionId" index="index" item="item" open=" and a.regionId in(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		<if test=" null != paraMap.communityId">
+			<foreach collection="paraMap.communityId" index="index" item="item" open=" and a.communityId in(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		group by a.regionId,a.regionName
+	</select>
+	
+	<select id="queryCommunityDataList" resultType="map">
+		select name,areaCode,houseCount,operatorId,permissionArea from sys_community where isValid = 1 
+		<if test="null != areaCode and '' != areaCode">
+			and areaCode = #{areaCode}
+		</if>
+		group by name,areaCode,houseCount,operatorId,permissionArea
+	</select>
+</mapper>

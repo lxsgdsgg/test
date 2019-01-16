@@ -1,0 +1,37 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseTransitScheduleTest.java   
+ * @Package com.bashiju.www.test.usercentraltest      
+ * @author: zuoyuntao     
+ * @date:   2018年8月6日 下午3:23:29   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test.usercentraltest;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.service.user.ICustomerHouseTransitScheduleService;
+import com.bashiju.www.test.BaseServiceTest;
+
+/**
+ * 过户进度测试类
+ * @ClassName:CustomerHouseTransitScheduleTest
+ * @Description:过户进度测试类
+ * @author:zuoyuntao
+ * @date:2018年8月6日 下午3:23:29
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerHouseTransitScheduleTest extends BaseServiceTest {
+	@Autowired
+	private ICustomerHouseTransitScheduleService mICustomerHouseTransitScheduleService;
+	@Test
+	public void test() {
+		mICustomerHouseTransitScheduleService.queryHouseTransitScheculeDataList("1", 0, 10);
+	}
+
+}

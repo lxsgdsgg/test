@@ -1,0 +1,108 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerSeeHouseRecordServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:13:56   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.CustomerSeeHouseRecordMapper;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseRecordEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.user.ICustomerSeeHouseRecordService;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 根据用户ID查询该用户所有看房记录
+ * @ClassName:CustomerSeeHouseRecordServiceImpl
+ * @Description:根据用户ID查询该用户所有看房记录
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:13:56
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerSeeHouseRecordServiceImpl implements ICustomerSeeHouseRecordService{
+	/**
+	 * Redis数据读取服务接口
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	/**
+	 * 看房记录持久层接口
+	 */
+	@Autowired
+	private CustomerSeeHouseRecordMapper mCustomerSeeHouseRecordMapper;
+	/**
+	 * 对象映射
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * <p>Title: queryAllCustomerSeeHouseRecord</p>   
+	 * <p>Description:查询所有看房记录 </p>   
+	 * @param custId 用户ID
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerSeeHouseRecordService#queryAllCustomerSeeHouseRecord(java.lang.String, int, int)
+	 */
+	@Override
+	public Page<CustomerSeeHouseRecordEntity> queryAllCustomerSeeHouseRecord(
+			String custId, int page, int limit) {
+		//生成Redis唯一key
+		String redisKey = Md5EncryptUtils.md5Encrypt("queryAllCustomerSeeHouseRecord" 
+				+ custId.trim() + page + limit);
+		Page<CustomerSeeHouseRecordEntity> pageList = querySesHouseRecordListFromRedis(redisKey);
+		if(pageList.size() == 0) {
+			PageHelper.startPage(page, limit);
+			pageList = mCustomerSeeHouseRecordMapper.queryAllCustomerSeeHouseRecord(custId);
+			//保存结果到Redis
+			mICacheService.saveCache(redisKey, pageList, WebGlobal.OTHER_EXPTIME);
+		}
+		return pageList;
+	}
+	/**
+	 * 优先读取Redis存储的数据信息
+	 * @Title: querySesHouseRecordListFromRedis
+	 * @author: zuoyuntao  
+	 * @Description:优先读取Redis存储的数据信息
+	 * @param key
+	 * @return      
+	 * Page<CustomerSeeHouseRecordEntity>
+	 */
+	@SuppressWarnings({ "unchecked", "resource" })
+	private Page<CustomerSeeHouseRecordEntity> querySesHouseRecordListFromRedis(String key){
+		Page<CustomerSeeHouseRecordEntity> retPage = new Page<CustomerSeeHouseRecordEntity>();
+		String retStr = mICacheService.getCache(key);
+		if(StringUtil.isEmpty(retStr)) {
+			return new Page<CustomerSeeHouseRecordEntity>();
+		}else {
+			try {
+				retPage = MAPPER.readValue(retStr, Page.class);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return retPage;
+	}
+}

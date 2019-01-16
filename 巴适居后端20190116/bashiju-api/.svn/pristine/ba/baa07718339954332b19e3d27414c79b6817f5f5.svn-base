@@ -1,0 +1,87 @@
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public enum ResHouseLevelConditionEnum {
+	/**
+	 * 淘宝池
+	 */
+	TAOBAOPOOL("1","淘宝池"),
+	/**
+	 * 图片
+	 */
+	PHOTO("2","图片"),
+	/**
+	 * 钥匙
+	 */
+	KEY("3","钥匙"),
+	/**
+	 * 独家
+	 */
+	SOLE("4","独家"),
+	/**
+	 * 封盘
+	 */
+	SEALING("5","封盘"),
+	/**
+	 * 急切
+	 */
+	EAGER("6","急切"),
+	/**
+	 * 满两年
+	 */
+	FORTWOYEARS("7","满两年"),
+	/**
+	 * 唯一住房
+	 */
+	ONLYHOUSING("8","唯一住房");
+	
+	private String value;
+	private String displayName;
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
+	}
+	public String getDisplayName() {
+		return displayName;
+	}
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+	 ResHouseLevelConditionEnum(String value, String displayName) {
+		this.value = value;
+		this.displayName = displayName;
+	}
+	//map
+	public static Map<String,String> resHouseLevelConditionMap=new TreeMap<String,String>();
+	//list
+	public static List<Map<String,String>> resHouseLevelConditionList=new ArrayList<>();
+	
+	static {
+		for(ResHouseLevelConditionEnum _enum:ResHouseLevelConditionEnum.values()) {
+			resHouseLevelConditionMap.put(_enum.value, _enum.displayName);
+			Map<String,String>map=new HashMap<>();
+			map.put("name", _enum.displayName);
+			map.put("value", _enum.value);
+			resHouseLevelConditionList.add(map);
+		}
+	}
+	
+	
+	/**
+	 * 枚举转换
+	 */
+	
+	public static ResHouseLevelConditionEnum parseOf(String value) {
+		for(ResHouseLevelConditionEnum item:values())
+			if(item.getValue().equals(value))
+				return item;
+		throw new IllegalArgumentException("异常错误代码["+value+"]不匹配！");
+	}
+}

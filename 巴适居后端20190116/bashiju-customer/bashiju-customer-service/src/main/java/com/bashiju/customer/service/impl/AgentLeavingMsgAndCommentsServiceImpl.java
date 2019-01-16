@@ -1,0 +1,189 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  AgentLeavingMsgAndCommentsServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月21日 上午10:37:18   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.customer.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.customer.mapper.AgentLeavingMsgAndCommentsMapper;
+import com.bashiju.customer.service.IAgentLeavingMsgAndCommentsService;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 客户对经纪人的留言/评价管理服务
+ * @ClassName:AgentLeavingMsgAndCommentsServiceImpl
+ * @Description:客户对经纪人的留言/评价管理服务
+ * @author:zuoyuntao
+ * @date:2018年7月21日 上午10:37:18
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="留言评价")
+public class AgentLeavingMsgAndCommentsServiceImpl 
+		extends CommonSqlServie implements IAgentLeavingMsgAndCommentsService {
+	/**
+	 * 客户留言/评价映射接口
+	 */
+	@Autowired
+	private AgentLeavingMsgAndCommentsMapper mAgentLeavingMsgAndCommentsMapper;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	
+	/**   
+	 * <p>Title: queryAllAgentInfoPages</p>   
+	 * <p>Description: 获取所有经纪人信息--带分页</p>   
+	 * @param paraMap 参数对象
+	 * @param page 每页最少条数
+	 * @param limit 每页最大条数
+	 * @return   
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#queryAllAgentInfoPages(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryAllAgentInfoPages(
+			Map<String, Object> paraMap, int page, int limit) {
+		PageHelper.startPage(page,limit);
+		return (Page<Map<String, Object>>) queryDataList(paraMap);
+	}
+
+	/**   
+	 * <p>Title: queryAllCustomerLeavingMsg</p>   
+	 * <p>Description: 获取所有客户留言 --带分页</p>   
+	 * @param paraMap 参数对象
+	 * @param page 每页最少条数
+	 * @param limit 每页最大条数
+	 * @return   
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#queryAllCustomerLeavingMsg(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryAllCustomerLeavingMsg(
+			Map<String, Object> paraMap, int page, int limit) {
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_82.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) mAgentLeavingMsgAndCommentsMapper
+				.queryAllAgentLeavingMsgInfo(paraMap);
+	}
+
+	/**   
+	 * <p>Title: queryAllCustomerComments</p>   
+	 * <p>Description: 获取所有客户评价--带分页</p>   
+	 * @param paraMap 参数对象
+	 * @param page 每页最少条数
+	 * @param limit 每页最大条数
+	 * @return   
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#queryAllCustomerComments(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryAllCustomerComments(
+			Map<String, Object> paraMap, int page, int limit) {
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_82.getCode()
+				, String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) mAgentLeavingMsgAndCommentsMapper
+				.queryAllAgentCommentsInfo(paraMap);
+	}
+	/**
+	 * 查询所有经纪人详细信息--返回对象为List 
+	 * @Title: queryDataList
+	 * @author: zuoyuntao  
+	 * @Description:查询所有经纪人详细信息--返回对象为List
+	 * @param paraMap 参数对象
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String,Object>> queryDataList(Map<String,Object> paraMap){
+		mDataAuthHelper.auth(MenuEnum.MENU_82.getCode()
+				, String.valueOf(UserThreadLocal.get().get("id")));
+		return mAgentLeavingMsgAndCommentsMapper.queryAllAgentInfo(paraMap);
+	}
+	
+	/**   
+	 * <p>Title: checkCustmerComments</p>   
+	 * <p>Description: </p>   
+	 * @param paraMap   
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#checkCustmerComments(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="审核客户评价")
+	public void checkCustmerComments(Map<String,Object> paraMap) {
+		String commentId = String.valueOf(paraMap.get("id"));
+		commonOperationDatabase(paraMap, "sys_cust_starRating","id", false);
+		ExecutionResult.descFormat(commentId, "审核客户评价");
+	}
+
+	/**   
+	 * <p>Title: deleteCustmerComments</p>   
+	 * <p>Description: 删除客户评价</p>   
+	 * @param paraMap  参数对象
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#deleteCustmerComments(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除评价")
+	public void deleteCustmerComments(Map<String, Object> paraMap) {
+		String msgId = String.valueOf(paraMap.get("id"));
+		delData("sys_cust_starRating", "id"
+				,msgId, false);
+		ExecutionResult.descFormat(msgId, "删除客户评价");
+	}
+
+	/**   
+	 * <p>Title: deleteCustmerLeavingMsg</p>   
+	 * <p>Description: 删除客户留言</p>   
+	 * @param paraMap 参数对象
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#deleteCustmerLeavingMsg(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除留言")
+	public void deleteCustmerLeavingMsg(Map<String, Object> paraMap) {
+		String msgId = String.valueOf(paraMap.get("id"));
+		delData("sys_guestMessage", "id"
+				,msgId, false);
+		ExecutionResult.descFormat(msgId, "删除客户留言");
+	}
+
+	/**   
+	 * <p>Title: markInfoReaded</p>   
+	 * <p>Description: 标记留言/评价为已读</p>   
+	 * @param id 留言/评价的ID
+	 * @param type 类型：1 评价 2 留言
+	 * @see com.bashiju.manage.service.IAgentLeavingMsgAndCommentsService#markInfoReaded(java.lang.String, java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="标记已读")
+	public void markInfoReaded(String id, String type) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		String tableName = "";
+		paraMap.put("id", id);
+		if(type.equals("1")) {
+			tableName = "sys_cust_starRating";
+		}else if(type.equals("2")) {
+			paraMap.put("isRead", "1");
+			tableName = "sys_guestMessage";
+		}
+		commonOperationDatabase(paraMap, tableName, "id", false);
+		ExecutionResult.descFormat(id, "标记留言/评价为已读");
+	}
+
+}

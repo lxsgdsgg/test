@@ -1,0 +1,198 @@
+package com.bashiju.quartz.util;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bashiju.quartz.service.mq.CustomHttpRequest;
+
+import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
+import cn.edu.hfut.dmic.webcollector.model.Page;
+import cn.edu.hfut.dmic.webcollector.net.HttpRequest;
+
+/**
+ * Created by dy02 on 2016/7/1.
+ */
+public class PoolingHttpClient extends Thread{
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private CloseableHttpClient client;
+    private PoolingHttpClientConnectionManager cm;
+    //连接超时时间，默认20秒
+    private int socketTimeout = 20000;
+
+    //传输超时时间，默认300秒
+    private int connectTimeout = 300000;
+    /**
+     * 线程不活动时间
+     */
+    private static final long NOTACTIVETIME = 120;
+    /**
+     * 线程等待时间
+     */
+    private static final long THREADWAITTIME = 60000;
+    private volatile boolean shutdown;
+
+    public PoolingHttpClient() {
+
+        cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(200);
+        cm.setDefaultMaxPerRoute(20);
+        //连接超时配置
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(socketTimeout)
+                .setConnectTimeout(socketTimeout)
+                .setConnectionRequestTimeout(connectTimeout)
+                .build();
+
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(cm)
+                .build();
+
+        this.client = httpclient;
+        /*shutdown=true;
+        this.start();*/
+    }
+    /**
+     * 关闭失效的线程
+     */
+    @Override
+    public void run() {
+        try {
+            while (shutdown) {
+                synchronized (this) {
+                    wait(THREADWAITTIME);
+                    //logger.info("开始清理失效线程");
+                    // 关闭失效的连接
+                    cm.closeExpiredConnections();
+                    // 可选的, 关闭30秒内不活动的连接
+                    cm.closeIdleConnections(NOTACTIVETIME, TimeUnit.SECONDS);
+                }
+            }
+        } catch (InterruptedException ex) {
+            logger.error("线程异常：" + ex.getMessage());
+        }
+    }
+
+    public String post(String url, String content, String charset) throws IOException {
+        HttpPost post = new HttpPost(url);
+        StringEntity entity = new StringEntity(content, ContentType.create("application/json",charset));
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        logger.info("请求" + url + "，参数：" + content);
+        CloseableHttpResponse res = this.client.execute(post);
+        int statusCode = res.getStatusLine().getStatusCode();
+        logger.info("请求" + url + "，返回状态：" + statusCode);
+        if (statusCode != 200) {
+            res.close();
+            throw new IOException("error statusCode is " + statusCode);
+        } else {
+            String s = EntityUtils.toString(res.getEntity(),"utf-8");
+            logger.info("请求" + url + "，返回结果：" + s);
+            res.close();
+            return s;
+        }
+    }
+
+    public String postText(String url, String content, String charset) throws IOException {
+        HttpPost post = new HttpPost(url);
+        StringEntity entity = new StringEntity(content, ContentType.create("text/plain",charset));
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        logger.info("请求" + url + "，参数：" + content);
+        CloseableHttpResponse res = this.client.execute(post);
+        int statusCode = res.getStatusLine().getStatusCode();
+        logger.info("请求" + url + "，返回状态：" + statusCode);
+        if (statusCode != 200) {
+            res.close();
+            throw new IOException("error statusCode is " + statusCode);
+        } else {
+            String s = EntityUtils.toString(res.getEntity(),"utf-8");
+            logger.info("请求" + url + "，返回结果：" + s);
+            res.close();
+            return s;
+        }
+    }
+
+
+    public String postForm(String url, Map<String, String> content, String charset) throws IOException {
+        HttpPost post = new HttpPost(url);
+        List<BasicNameValuePair> values = new ArrayList<>();
+        for (Map.Entry<String, String> entry : content.entrySet()) {
+            values.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+        }
+        HttpEntity entity= new UrlEncodedFormEntity(values, "utf-8");
+//        StringEntity entity = new StringEntity(content, ContentType.create("application/json",charset));
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        logger.info("请求" + url + "，参数：" + content);
+        CloseableHttpResponse res = this.client.execute(post);
+        int statusCode = res.getStatusLine().getStatusCode();
+        logger.info("请求" + url + "，返回状态：" + statusCode);
+        if (statusCode != 200) {
+            res.close();
+            throw new IOException("error statusCode is " + statusCode);
+        } else {
+            String s = EntityUtils.toString(res.getEntity(),"utf-8");
+            logger.info("请求" + url + "，返回结果：" + s);
+            res.close();
+            return s;
+        }
+    }
+
+    public String get(String url) throws IOException {
+        HttpGet get = new HttpGet(url);
+//        get.setHeader("Connection","keep-alive");
+//        get.setHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+//        get.setHeader("Accept-Encoding","gzip, deflate, sdch, br");
+//        get.setHeader("Accept-Language","zh-CN,zh;q=0.8");
+//        get.setHeader("Cache-Control","no-cache");
+//        get.setHeader("Host","www.fangstar.com");
+//        get.setHeader("Pragma","no-cache");
+//        get.setHeader("Upgrade-Insecure-Requests","1");
+//        get.setHeader("Cookie","city_code=530100");
+//        get.setHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+
+
+        logger.info("请求" + url);
+        CloseableHttpResponse response = this.client.execute(get);
+        int statusCode = response.getStatusLine().getStatusCode();
+        logger.info("请求" + url + "，返回状态：" + statusCode);
+        if (statusCode != 200) {
+            response.close();
+            throw new IOException(" error statusCode is " + statusCode);
+        } else {
+            String s = EntityUtils.toString(response.getEntity(),"utf-8");
+            logger.info("请求" + url + "，返回结果：" + s);
+            response.close();
+            return s;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        PoolingHttpClient httpClient=new PoolingHttpClient();
+        String url="https://www.fangstar.com/ershoufang";
+        CrawlDatum datum = new CrawlDatum(url);
+        HttpRequest request = new CustomHttpRequest(datum);
+        Page page=request.responsePage();
+System.out.println(page.html());
+    }
+}

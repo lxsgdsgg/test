@@ -1,0 +1,33 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerEntrustmentService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:09:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+/**
+ * 用户房源委托服务接口
+ * @ClassName:ICustomerEntrustmentService
+ * @Description:用户房源委托服务接口
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:09:28
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerEntrustmentService {
+	/**
+	 * 查询用户发布的个人房源委托
+	 * @Title: queryMyEntrustment
+	 * @author: zuoyuntao  
+	 * @Description:查询用户发布的个人房源委托
+	 * @param custId 登陆用户Id 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyEntrustment(String custId);
+}

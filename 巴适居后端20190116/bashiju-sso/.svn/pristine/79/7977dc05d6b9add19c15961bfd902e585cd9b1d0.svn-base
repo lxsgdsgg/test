@@ -1,0 +1,36 @@
+package com.bashiju.sso.service.mq;
+
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.utils.pojo.BusinessLogModel;
+
+
+@Service
+public class HouseLogSSOService {
+	@Autowired
+	RabbitTemplate  reRabbitTemplate;
+	
+	public void addSource(BusinessLogModel param) {
+		reRabbitTemplate.convertAndSend("HouseLogAdd",param);
+
+	}
+
+	
+	public void updateSource(BusinessLogModel param) {
+		reRabbitTemplate.convertAndSend("HouseLogUpdate",param);
+
+	}
+
+	
+	public void deleteSource(BusinessLogModel param) {
+		reRabbitTemplate.convertAndSend("HouseLogDel",param);
+	}
+
+	
+	public void querySource(BusinessLogModel param) {
+		reRabbitTemplate.convertAndSend("HouseLogQuery",param);
+	}
+	
+}

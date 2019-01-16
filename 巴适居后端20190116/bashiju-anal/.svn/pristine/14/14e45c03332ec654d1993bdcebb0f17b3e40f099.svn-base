@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.UserIncomeMapper">
+	
+	<select id="queryUserIncome" resultType="map">
+		select su.companyId,su.deptId,su.id,su.realName,sd.`name` as deptName
+		,sum(case when fe.businessType = 2 then floor(fe.amount/100) end) as sellIncome
+		,sum(case when fe.businessType = 3 then floor(fe.amount/100) end) as rentIncome
+		,sum(case when fe.businessType = 1 then floor(fe.amount/100) end) as newHouseIncome
+		,sum(case when fe.businessType = 4 then floor(fe.amount/100) end) as financeIncome
+		,(sum(case when fe.businessType = 2 then floor(fe.amount/100) end)
+     	 +sum(case when fe.businessType = 3 then floor(fe.amount/100) end)
+		 +sum(case when fe.businessType = 1 then floor(fe.amount/100) end)
+         +sum(case when fe.businessType = 4 then floor(fe.amount/100) end)) as incomeSum
+     
+		from sys_user su left join sys_dept sd on su.deptId = sd.id left join finance_employeeCommissions fe on fe.userId=su.id and fe.months='2018-10' and fe.isValid=1 
+		where su.companyId=#{companyId}
+   		<if test="userId!=null and userId!='' ">
+   			and su.id = #{userId}
+   		</if>
+   		group by su.id order by incomeSum;
+	</select>
+	<select id="queryPerMonthUserIncome" resultType="map">
+		select companyId,deptId,userId,sellIncome,rentIncome,newHouseIncome,financeIncome,(sellIncome+rentIncome+newHouseIncome+financeIncome) as incomeSum from anal_incomestatistics where companyId=#{companyId} and months='2018-10' 
+		<if test="userId!=null and userId!='' ">
+   			and userId = #{userId}
+   		</if>
+		ORDER BY incomeSum
+	</select>
+</mapper>

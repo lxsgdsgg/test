@@ -1,0 +1,270 @@
+package com.bashiju.manage.global;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.bashiju.enums.AgentTypeEnum;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.enums.DividiintoDealTypeEnum;
+import com.bashiju.enums.TransferProcessEnum;
+
+/**   
+ * 管理后台全局变量类
+ * @ClassName  ManageGlobal   
+ * @Description 本全局类的变量仅存放对后台管理模块范围类使用的变量，针对整个系统的全局变量存放到bashiju-utils工程中     
+ * @author zhaobin
+ * @date   2018年5月30日 下午1:57:05   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class ManageGlobal {
+
+	/*------左云涛建立的全局类 开始------*/
+	/**
+	 * 用户性别
+	 */
+	public static Map<String,String> USER_SEX = new HashMap<String,String>();
+	/**
+	 * 是否可用缓存对象
+	 */
+	public static Map<String,String> VALID = new HashMap<String,String>();
+	/**
+	 * 临时的过户流程名称（以后通过接口读取）
+	 */
+	public static Map<String,String> PROC_NAMES = new HashMap<String,String>();
+	/**
+	 * 操作角色缓存对象
+	 */
+	public static Map<String,Object> ACTION_ROLE_MAP = new HashMap<String,Object>();
+	/**
+	 * 操作角色与表字段对应关系
+	 */
+	public static Map<String,Object> ACTION_ROLE_MAP_MAPPER = new HashMap<String,Object>();
+	/**
+	 * 配置缓存
+	 */
+	public static Map<String,Object> CONFIG_TYPE = new HashMap<String,Object>();
+	/**
+	 * 处理类型缓存
+	 */
+	public static Map<String,Object> DEAL_TYPE = new HashMap<String,Object>();
+	/**
+	 * 0、1枚举
+	 */
+	public static Map<String,Object> ZERO_OR_ONE = new HashMap<String,Object>();
+	/**
+	 * 默认密码
+	 */
+	public static String PASSWORD = "123456";
+	/**
+	 * 学校信息表
+	 */
+	public static String SCHOOL_INFO = "SCHOOL_INFO";
+	/**
+	 * 学校周边小区信息表
+	 */
+	public static String SCHOOL_BLOCK_COMMUNITY = "SCHOOL_BLOCK_COMMUNITY";
+	/**
+	 * 过户方案配置信息表
+	 */
+	public static String HOUSE_EXCHAGE_CONFIG = "HOUSE_EXCHANGE_CONFIG";
+	/**
+	 * 业绩类型配置表名称
+	 */
+	public static String PERFORMANCE_TYPE_CONFIG = "VW_PERFORMANCE_TYPE_CONFIG";
+	/**
+	 * 业绩类型配置表名称
+	 */
+	public static String T_PERFORMANCE_TYPE_CONFIG = "PERFORMANCE_TYPE_CONFIG";
+	/**
+	 * 业绩类型配置明细表名称
+	 */
+	public static String PERFORMANCE_TYPE_CONFIG_DETAIL = "PERFORMANCE_TYPE_CONFIG_DETAIL";
+	/**
+	 * 分成信息配置主表名称
+	 */
+	public static String CONFIG_TABLE_NAME = "CONFIG_DIVIDE_INTO_INFO";
+	/**
+	 * 过户方案配置信息表
+	 */
+	public static String HOUSE_EXCHAGE_DETAIL = "HOUSE_EXCHANGE_DETAIL";
+	/**
+	 * 分成信息配置表主键字段
+	 */
+	public static String PRI_FIELD = "id";
+	/**
+	 * 用户信息表
+	 */
+	public static String T_USER = "SYS_USER";
+	/**
+	 * 用户注册审核信息表
+	 */
+	public static String T_USER_REGISTER_CHECK_INFO = "USER_REGISTER_CHECK_INFO";
+	/**
+	 * 公司硬件绑定信息表
+	 */
+	public static String UESR_REGISTER_CHECK_HARDWARE_BIND = "UESR_REGISTER_CHECK_HARDWARE_BIND";
+	/**
+	 * 地铁线路管理表
+	 */
+	public static String T_METRO_STATION_MANAGE = "METRO_STATION_MANAGE";
+	/**
+	 * 地铁和小区的关系表
+	 */
+	public static String T_STATION_BLOCK_COMMUNITY = "STATION_BLOCK_COMMUNITY";
+	/**
+	 * 工资方案配置表
+	 */
+	public static String T_SYS_SALARY_CONFIG = "SYS_SALARY_CONFIG";
+	/**
+	 * 提成方案配置主表
+	 */
+	public static String T_SYS_EXTRACT = "SYS_EXTRACT";
+	/**
+	 * 提成方案配置明细表
+	 */
+	public static String T_SYS_EXTRACT_DETAIL = "SYS_EXTRACT_DETAIL";
+	/**
+	 * 工资提成方案配置表
+	 */
+	public static String T_SYS_SALARY_EXTRACT_USER_CONFIG = "SYS_SALARY_EXTRACT_USER_CONFIG";
+	
+	static {
+		/*左云涛的常量初始化开始*/
+		USER_SEX.put("1", "女");
+		USER_SEX.put("2", "男");
+
+		ZERO_OR_ONE.put("0", "否");
+		ZERO_OR_ONE.put("1", "是");
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_CONTRACT.getCode()
+				,TransferProcessEnum.PROC_CONTRACT.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_ONLINE_SIGN.getCode()
+				,TransferProcessEnum.PROC_ONLINE_SIGN.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_TAX.getCode()
+				,TransferProcessEnum.PROC_TAX.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_SHOW_CITIFCATY.getCode()
+				,TransferProcessEnum.PROC_SHOW_CITIFCATY.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_WAIT_NEW_CITIFICATE.getCode()
+				,TransferProcessEnum.PROC_WAIT_NEW_CITIFICATE.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_EXCHANGE_WUYE.getCode()
+				,TransferProcessEnum.PROC_EXCHANGE_WUYE.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_SIGN_LOAN_CONTRACT.getCode(),
+				TransferProcessEnum.PROC_SIGN_LOAN_CONTRACT.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_MAKE_CONTRACT.getCode(),
+				TransferProcessEnum.PROC_MAKE_CONTRACT.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_MORTGAGE.getCode(),
+				TransferProcessEnum.PROC_MORTGAGE.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_WART_MONEY.getCode(),
+				TransferProcessEnum.PROC_WART_MONEY.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_GET_CITIFCATY.getCode(),
+				TransferProcessEnum.PROC_GET_CITIFCATY.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_APPOINTMENT_NOTARIZATION.getCode(),
+				TransferProcessEnum.PROC_APPOINTMENT_NOTARIZATION.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_APPLY_BUSSINESSS_LOAN.getCode(),
+				TransferProcessEnum.PROC_APPLY_BUSSINESSS_LOAN.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_APPLY_ACCUMULATION_FUND_LOAN.getCode(),
+				TransferProcessEnum.PROC_APPLY_ACCUMULATION_FUND_LOAN.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_APPLY_COMBINATION_LOAN.getCode()
+				,TransferProcessEnum.PROC_APPLY_COMBINATION_LOAN.getDesc());
+		
+		PROC_NAMES.put(TransferProcessEnum.PROC_END.getCode()
+				,TransferProcessEnum.PROC_END.getDesc());
+		
+		//1:房源录入人,2:房源开盘人,3:房源维护人,4:客源录入人,5:客源维护人,
+		//6:合同成交人,7:房源委托人,8:拿钥匙人,9:签独家人,10:传照片人
+		ACTION_ROLE_MAP.put(AgentTypeEnum.HOUSERECORDER.getCode()
+				, AgentTypeEnum.HOUSERECORDER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.OPENDISCER.getCode()
+				,AgentTypeEnum.OPENDISCER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.HOUSEMAINTAINER.getCode()
+				,AgentTypeEnum.HOUSEMAINTAINER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.CUSTRECORDER.getCode()
+				,AgentTypeEnum.CUSTRECORDER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.CUSTMAINTAINER.getCode()
+				,AgentTypeEnum.CUSTMAINTAINER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.AGREEMENTTRADER.getCode()
+				,AgentTypeEnum.AGREEMENTTRADER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.HOUSEENTRUSTER.getCode()
+				,AgentTypeEnum.HOUSEENTRUSTER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.RECIVEKEYER.getCode()
+				,AgentTypeEnum.RECIVEKEYER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.EXCLUSIVER.getCode()
+				,AgentTypeEnum.EXCLUSIVER.getDesc());
+		
+		ACTION_ROLE_MAP.put(AgentTypeEnum.PICTURER.getCode()
+				,AgentTypeEnum.PICTURER.getDesc());
+		
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.HOUSERECORDER.getCode(), "actionRoleIptRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.OPENDISCER.getCode(), "actRoleOpMgrRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.HOUSEMAINTAINER.getCode(), "actRoleHouseMsgRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.CUSTRECORDER.getCode(), "actRoleCusIptRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.CUSTMAINTAINER.getCode(), "actRoleCusMgrRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.AGREEMENTTRADER.getCode(), "actRoleContractMgrRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.HOUSEENTRUSTER.getCode(), "actHouseEntrustMgrRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.RECIVEKEYER.getCode(), "actRoleKeyMgrRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.EXCLUSIVER.getCode(), "actRoleSignUkRate");
+		ACTION_ROLE_MAP_MAPPER.put(AgentTypeEnum.PICTURER.getCode(), "actRolePivUploadRate");
+		
+		DEAL_TYPE.put(DividiintoDealTypeEnum.DEAL_RESIDENCE.getCode()
+				,DividiintoDealTypeEnum.DEAL_RESIDENCE.getDesc());
+		DEAL_TYPE.put(DividiintoDealTypeEnum.DEAL_BUSINESS.getCode()
+				,DividiintoDealTypeEnum.DEAL_BUSINESS.getDesc());
+		
+		CONFIG_TYPE.put(DealTypeEnum.BUSINESSDEAL.getCode()
+				, DealTypeEnum.BUSINESSDEAL.getDesc());
+		CONFIG_TYPE.put(DealTypeEnum.LEASEDEAL.getCode()
+				,DealTypeEnum.LEASEDEAL.getDesc());
+		CONFIG_TYPE.put(DealTypeEnum.NEWHOUSEDEAL.getCode()
+				,DealTypeEnum.NEWHOUSEDEAL.getDesc());
+		/*左云涛的常量初始化结束*/
+	}
+	
+	/*左云涛建立的全局类 结束*/
+
+/*------王开发建立的全局类 开始------*/
+
+
+/*王开发建立的全局类 结束*/
+
+
+/*------杨智建立的全局类 开始------*/
+
+
+/*杨智建立的全局类 结束*/
+
+
+/*------王鹏建立的全局类 开始------*/
+
+
+/*王鹏建立的全局类 结束*/
+
+
+/*-----李雯建立的全局类 开始-----*/
+
+
+/*李雯建立的全局类 结束*/
+}

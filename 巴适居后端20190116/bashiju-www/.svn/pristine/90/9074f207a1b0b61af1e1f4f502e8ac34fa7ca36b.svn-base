@@ -1,0 +1,148 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerStarCommentsServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:14:14   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.mapper.CustomerStarCommentsMapper;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.user.ICustomerStarCommentsService;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 客户评价服务
+ * @ClassName:CustomerStarCommentsServiceImpl
+ * @Description:客户评价服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:14:14
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerStarCommentsServiceImpl implements ICustomerStarCommentsService{
+	/**
+	 * 阿里巴巴对象映射对象
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * Redis操作服务
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	/**
+	 * 客户星级评价持久层接口对象
+	 */
+	@Autowired
+	private CustomerStarCommentsMapper mCustomerStarCommentsMapper;
+	/**
+	 * <p>Title: queryCustomerComments</p>   
+	 * <p>Description:查询客户的所有评价 </p>   
+	 * @param custId 登陆用户ID
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerStarCommentsService#queryCustomerComments(java.lang.String)
+	 */
+	@Override
+	public Page<CustomerStarCommentsEntity> queryCustomerComments(
+			String custId,int page,int limit) {
+		String redisKey = Md5EncryptUtils.md5Encrypt("queryCustomerComments" 
+				+ custId + page + limit);
+		List<CustomerStarCommentsEntity> retList 
+				= this.readCustomerCommentsFromRedisByKey(redisKey);
+		if(retList.size() == 0) {
+			PageHelper.startPage(page,limit);
+			retList = mCustomerStarCommentsMapper.queryCustomerCommentsDataList(custId);
+			updateRedisData(redisKey, retList);
+		}
+		return (Page<CustomerStarCommentsEntity>) retList;
+	}
+	/**
+	 * <p>Title: saveCustomerComments</p>   
+	 * <p>Description:保存用户评价 </p>   
+	 * @param commentEntity 要保存的评价数据对象 
+	 * @see com.bashiju.www.service.user.ICustomerStarCommentsService#saveCustomerComments(com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity)
+	 */
+	@Override
+	public void saveCustomerComments(CustomerStarCommentsEntity commentEntity) {
+		if(StringUtil.isEmpty(String.valueOf(commentEntity.getUserId()))) {
+			throw new BusinessException("传入经纪人ID为空");
+		}
+		List<Map<String,Object>> userList = mCustomerStarCommentsMapper.queryUserInfoById(
+				commentEntity.getUserId());
+		if(userList.size() != 1) {
+			throw new BusinessException("经纪人数据异常");
+		}
+		String now = new Date().toString();
+		Map<String,Object> userMap = userList.get(0);
+		commentEntity.setOperator(String.valueOf(userMap.get("operator"))); 
+		commentEntity.setOperatorId(String.valueOf(userMap.get("operatorId"))); 
+		commentEntity.setPermissionArea(String.valueOf(userMap.get("permissionArea"))); 
+		commentEntity.setIsValid(1); 
+		commentEntity.setAddTime(now);
+		commentEntity.setUpdateTime(now);
+		mCustomerStarCommentsMapper.saveCustomerComments(commentEntity);
+		
+		//TODO 这里需要删除redis数据，重新赋值
+//		String redisKey = Md5EncryptUtils.md5Encrypt("queryCustomerComments" 
+//				+ commentEntity.getCustId());
+//		this.updateRedisData(redisKey, dataList);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private List<CustomerStarCommentsEntity> readCustomerCommentsFromRedisByKey(String key){
+		List<CustomerStarCommentsEntity> retList = new ArrayList<CustomerStarCommentsEntity>();
+		String retStr = mICacheService.getCache(key);
+		if(StringUtil.isNotEmpty(retStr)) {
+			try {
+				retList = MAPPER.readValue(retStr, List.class);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return retList;
+	}
+	/**
+	 * 更新或保存Redis服务器数据 
+	 * @Title: updateRedisData
+	 * @author: zuoyuntao  
+	 * @Description:更新或保存Redis服务器数据   
+	 * @param key
+	 * @param dataList 缓存数据对象   
+	 * void 
+	 */
+	private void updateRedisData(String key,List<CustomerStarCommentsEntity> dataList) {
+		try {
+			mICacheService.saveCache(key, 
+					MAPPER.writeValueAsString(dataList), 60*60);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	} 
+}

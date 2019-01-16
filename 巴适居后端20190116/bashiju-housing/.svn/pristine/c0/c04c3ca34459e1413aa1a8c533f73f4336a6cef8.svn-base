@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.AgentHouseEntrustAcceptanceDealMapper">
+	<select id="queryAgentAcceptanceList" resultType="map">
+		select a.id,a.entrustType,a.sourceId,a.userId,a.`status`,
+		(case when a.`status` = 0 then '未处理' when a.`status` = 1 then 
+		'已处理' when a.`status` = 2 then '已失效' else '未知状态' end) as statusName,
+		a.handelTime,a.resultId,a.handelResult,a.permissionArea,a.operatorId,a.operator,
+		a.addTime,a.updateTime,a.isvalid,b.transactionType,b.leaseType,b.joinRentStyle,
+		b.cityCode,b.areaCode,b.areaName,b.regionId,b.regionName,b.communityId,b.communityName,
+		b.buildingsId,b.buildingsName,b.bulidingUnitId,b.buildingsUnitName,b.buildingHouseId,
+		b.buildingHouseName,b.room,b.hall,b.toilet,
+		concat(b.room , '室' , b.hall , '厅' ,b.kitchen,'厨', b.toilet , '卫' ) as houseType,
+		concat(FLOOR(b.sellingPrice/1000000),'万元') as sellingPriceName,
+		concat(FLOOR(b.rentPrice/100),'元') as rentPriceName,b.buildSpace,b.floorDesc,
+		b.sellingPrice,b.rentPrice,b.payTypeId,b.payType,b.custId,b.mobile,b.clienteleName,
+		if(b.transactionType = 1 ,'出售','出租') as transactionTypeName,
+		(case when b.leaseType=0 then '' when b.leaseType = '1' then '整租' when b.leaseType=2 then '合租' else '其他' end) as leaseTypeName,
+		(case when b.joinRentStyle=0 then '' when b.joinRentStyle = '1' then '主卧' when b.joinRentStyle='2' then '次卧' when b.joinRentStyle='3' then '单间' else '其他' end) as joinRentStyleName,
+		b.clienteleSex,b.descs,b.handleFlag,c.realName as userName from sys_agentacceptance AS a
+		inner join cust_houseentrust AS b ON a.sourceId = b.id
+		inner join sys_user AS c ON c.id = a.userId where a.isvalid = 1
+		<if test="null != clienteleName and clienteleName != ''">
+			and b.clienteleName like '%${clienteleName}%'
+		</if>
+		<if test="null != status and status != ''">
+			and a.status = #{status}
+		</if>
+		<if test="null != regionId and regionId != ''">
+			and b.regionId = #{regionId}
+		</if>
+		<if test="null != communityId and communityId != ''">
+			and b.communityId = #{communityId}
+		</if>
+
+	</select>
+	<select id="queryCustomerHouseEntrust" resultType="map">
+		select a.id,a.transactionType,a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,
+		a.areaName,a.regionId,a.regionName,a.communityId, a.communityName,a.buildingsId,
+		a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,a.buildingHouseId,
+		a.buildingHouseName,a.room,a.hall,a.toilet,a.buildSpace,a.floorDesc,a.sellingPrice,
+		a.rentPrice,a.payTypeId,a.payType,a.custId,a.mobile,a.clienteleName,a.clienteleSex,
+		a.addTime,a.descs,a.handleFlag from cust_houseentrust as a
+	</select>
+</mapper>

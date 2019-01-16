@@ -1,0 +1,142 @@
+package com.bashiju.www.service.user;
+
+import java.util.Map;
+
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerInsertBingdingParam;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+import com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingParam;
+/**
+ * 用户服务接口
+ * @ClassName:  CustCustomerService   
+ * @Description:用户服务接口
+ * @author: wangpeng
+ * @date:   2018年8月15日 下午1:38:50   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustCustomerService  {
+
+
+	/**
+	 * 查询手机号码是否已存在
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否已存在  
+	 * @param mobile 手机号码
+	 * @return: boolean
+	 */
+	public boolean queryIsExistMobile(String mobile);
+	
+	/**
+	 *  保存用户在注册时输入信息 
+	 * @Title: saveCustCustomer   
+	 * @Description: 保存用户在注册时输入信息 
+	 * @param CustCustomerParam 用户输入参数
+	 * @return: long
+	 */
+	public boolean  saveCustCustomer(CustCustomerParam custCustomerParam);
+	
+	  /**
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param custCustomerEntity 要修改的参数
+     * @return: boolean
+     */
+    public boolean updateCustCustomer(CustCustomerEntity custCustomerEntity);
+    
+    /**
+     * 用户登录
+     * @Title: customerLogin   
+     * @Description:用户登录
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: String 用于查询登录用户信息，注销时用的参数
+     */
+    public String customerLogin(String mobile,String password);
+    /**
+     * 发送短信验证码
+     * @Title: sendMobileMsgVerfyCode   
+     * @Description: 发送短信验证码
+     * @param mobile 电话号码
+     * @return: String  
+     */
+    public String sendMobileMsgVerfyCode(String mobile);
+    /**
+     * @Title: customerMobileLogin   
+     * @Description: 短信登录
+     * @param mobile 电话号码
+     * @param msgCode 短信验证码
+     * @return:String 用于查询登录用户信息，注销时用的参数
+     * 
+     */
+    public String customerMobileLogin(String mobile,String msgCode);
+ 
+    /***
+     * 退出登陆
+     * @Title: customerLoginout   
+     * @Description: 退出登陆
+     * @param redisKey 用户登录成功后的返回值，用于清空用户信息
+     * @return: boolean
+     */
+    public boolean customerLoginout(String redisKey);
+    
+    /**
+     *  通过手机号码修改用户密码
+     * @Title: updateCustomerPwdByMobile   
+     * @Description: 通过手机号码修改用户密码
+     * @param mobile 手机号码
+     * @param password 密码
+     * @return: boolean
+     */
+    public boolean updateCustomerPwdByMobile(String mobile,String password);
+    
+    /***
+     *  短信验证手机号码
+     * @Title: mobileMsgCheck   
+     * @Description: 短信验证手机号码
+     * @param mobile 手机号码
+     * @param msgCode 手机短信验证码
+     * @return: boolean true:已存在,false:不存在
+     */
+    public boolean mobileMsgCheck(String mobile,String msgCode);
+    
+
+    
+    /**
+     * 通过用户登录成功返回的key去查询用户Id
+     * @Title: getCustIdByKey   
+     * @Description: 通过用户登录成功返回的key去查询用户Id  
+     * @param key 登录成功后的Id
+     * @return: Map<String,Object>
+     */
+    public String getCustIdByKey(String key );
+    
+    /**
+     * 绑定第三方账号 
+     * @Title: thirdPartyBing   
+     * @Description:绑定第三方账号  
+     * @param insertParam 
+     * @return: Map<String,Object>
+     */
+    public Map<String,Object> bindingThirdparty(CustCustomerInsertBingdingParam insertParam);
+    
+    /**
+     * 修改第三方账号
+     * @Title: updateBingding   
+     * @Description: 修改第三方账号
+     * @param custCustomerUpdateBingdingEntity
+     * @return: boolean true:修改成功，false修改失败
+     */
+    public String updateBingding(CustCustomerUpdateBingdingParam custCustomerUpdateBingdingParam);
+    
+    /**
+     * 第三方登录接口
+     * @Title: thirdPartyLogin   
+     * @Description: 第三方登录接口
+     * @param code 
+     * @param numType 登录类型:wx：微信,qq：腾讯qq 
+     * @return: String
+     */
+    public String thirdPartyLogin(String code,String numType);
+}

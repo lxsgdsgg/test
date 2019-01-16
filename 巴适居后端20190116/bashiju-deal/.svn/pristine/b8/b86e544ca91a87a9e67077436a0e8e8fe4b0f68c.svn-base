@@ -1,0 +1,129 @@
+package com.bashiju.deal.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ *  合同模板管理
+ * @ClassName:  ContractMapper   
+ * @Description:  合同模板管理
+ * @author: wangkaifa
+ * @date:   2018年9月20日 下午4:55:46       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ContractMapper {
+	/**
+	 * 
+		 * 查询合同模板列表
+		 * @Description: 查询合同模板列表 
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	Page<Map<String, Object>> queryContractList();
+	/**
+	 * 
+		 * 根据模板id查询模板
+		 * @Description: 根据模板id查询模板
+		 * @param templateId 模板id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContract(@Param("templateId")Long templateId);
+	/**
+	 * 
+		 * 根据合同模板id查询条款列表
+		 * @Description: 根据模板列表查询条款列表 
+		 * @param templateId 模板id
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryTerms(@Param("templateId")Long templateId);
+	/**
+	 * 
+		 * 根据合同模板id查询条款子项列表
+		 * @Description:根据模板id查询条款子项列表
+		 * @param templateId 模板id
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryItems(@Param("templateId")Long templateId);
+	/**
+	 * 
+		 * 删除条款子项
+		 * @Description: 删除条款子项 
+		 * @param templateId 模板id
+		 * @return 
+		 * int
+	 */
+	int deleteItem(@Param("templateId")Long templateId);
+	/**
+	 * 
+		 * 删除条款
+		 * @Description: 删除条款
+		 * @param templateId 模板名称
+		 * @return 
+		 * int
+	 */
+	int deleteTerm(@Param("templateId")Long templateId);
+	/**
+	 * 
+		 * 查询合同图片流
+		 * @Description: 查询合同图片流） 
+		 * @param id 房源id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractPitureByHouseId(@Param("id")Long id);
+	/**
+	 * 
+		 * 根据合同编号查询合同信息
+		 * @Description: 根据合同编号查询合同信息
+		 * @param code
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractByCode(@Param("code")String code);
+	/**
+	 * 
+		 * 根据合同编号查询合同图片
+		 * @Description: 根据合同编号查询合同图片 
+		 * @param code 合同编号
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractPitureByCode(@Param("code")String code);
+	/**
+	 * 
+		 * 查询合同信息
+		 * @Description: 查询合同信息 
+		 * @param shhId 房源id
+		 * @param agreementType 合同类型
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractByHouseId(@Param("shhId")Long shhId,@Param("agreementType")String agreementType);
+	/**
+	 * 
+		 * 根据合同类型查询合同下拉列表
+		 * @Description: 根据合同类型查询合同下拉列表
+		 * @param templateType 合同类型
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryContractListByType(@Param("templateType")String templateType);
+	/**
+	 * 
+		 * 根据合同编号查询合同签订人信息
+		 * @Description: 根据合同编号查询合同签订人信息 
+		 * @param code 合同编号
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractMan(@Param("code")String code);
+	
+}

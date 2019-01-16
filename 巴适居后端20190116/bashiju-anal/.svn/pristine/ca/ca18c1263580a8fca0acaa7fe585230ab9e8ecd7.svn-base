@@ -1,0 +1,12 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+<!-- css load  -->  
+	<link rel="stylesheet" href="https://s.bashiju.com/l/css/layui.css"media="all">
+	<link rel="stylesheet" type="text/css" href="https://s.bashiju.com/c/anal/MultiSelection.css" media="all">
+		<link rel="stylesheet" type="text/css" href="https://s.bashiju.com/c/anal/AreaSelect.css" media="all">
+	<!-- js load -->
+	<script type="text/javascript" src="https://s.bashiju.com/j/jquery-3.1.1.min.js"></script>
+	<script type="text/javascript" src="https://s.bashiju.com/l/layui.js"></script>
+	<script type="text/javascript" src="https://s.bashiju.com/j/anal/report.js"></script>
+	<script type="text/javascript" charset="utf-8" src="https://s.bashiju.com/j/anal/MultiSelection.js"></script> 

@@ -1,0 +1,107 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerEntrustmentService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:09:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import java.util.List;
+import java.util.Map;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+
+/**
+ * 用户房源委托服务接口
+ * @ClassName:ICustomerEntrustmentService
+ * @Description:用户房源委托服务接口
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:09:28
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerEntrustmentService {
+	/**
+	 * 查询用户发布的个人房源委托
+	 * @Title: queryMyEntrustment
+	 * @author: zuoyuntao  
+	 * @Description:查询用户发布的个人房源委托
+	 * @param custId 登陆用户Id 【custId必填】
+	 * @param entrustType 委托类型（1：房源出售 2：房源出租 3：求租 4：求购）
+	 * @param page 每页显示最少条数（不分页传入 0）
+	 * @param limit 每页显示最大条数（不分页传入 0）
+	 * void JSON 格式为：
+	 */
+	public WebPage<CustomerHouseEntrustmentEntity> queryHouseEntrustmentDataList(
+			String custId,String entrustType,int page,int limit);
+	
+	/**
+	 * 查询用户发布的个人客源委托
+	 * @Title: queryMyEntrustment
+	 * @author: zuoyuntao  
+	 * @Description:查询用户发布的个人客源委托
+	 * @param custId 登陆用户Id 【custId必填】
+	 * @param entrustType 委托类型（1：房源出售 2：房源出租 3：求租 4：求购）
+	 * @param page 每页显示最少条数（不分页传入 0）
+	 * @param limit 每页显示最大条数（不分页传入 0）
+	 * void JSON 格式为：
+	 */
+	public WebPage<CustomerDemandEntrustmentEntity> queryDemandEntrustmentDataList(
+			String custId,String entrustType,int page,int limit);
+	/**
+	 * 保存客户房源委托数据信息
+	 * @Title: saveHouseEntrustmentData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户房源委托数据信息
+	 * @param houseEntity 房源委托实体类     
+	 * @param verifyCode 手机验证码
+	 * void
+	 */
+	public void saveHouseEntrustmentData(CustomerHouseEntrustmentEntity houseEntity
+			,String verifyCode);
+	/**
+	 * 保存客户需求委托数据信息 
+	 * @Title: saveDemandEntrusData
+	 * @author: zuoyuntao  
+	 * @Description:保存客户需求委托数据信息   
+	 * @param demandEntity      
+	 * void JSON 格式为：
+	 */
+	public void saveDemandEntrusData(CustomerDemandEntrustmentEntity demandEntity);
+	/**
+	 * 根据手机号码获取验证码 
+	 * @Title: queryHouseVerifyCode
+	 * @author: zuoyuntao  
+	 * @Description:根据手机号码获取验证码  
+	 * @param mobile 手机号码
+	 * @return      
+	 * String
+	 */
+	public void queryHouseVerifyCode(String mobile);
+	/**
+	 * 获取付款方式下拉
+	 * @Title: queryPayOffMethod
+	 * @author: zuoyuntao  
+	 * @Description:获取付款方式下拉
+	 * @return      
+	 * Map<String,List<SelectItemResult>>
+	 */
+	public Map<String,List<SelectItemResult>> queryPayOffMethod();
+	/**
+	 * 房源撤销委托
+	 * @Title: concelEntrust
+	 * @author: zuoyuntao  
+	 * @Description:房源撤销委托
+	 * @param houseEntity 房源实体对象   
+	 * void
+	 */
+	public void concelEntrust(CustomerHouseEntrustmentEntity houseEntity);
+}

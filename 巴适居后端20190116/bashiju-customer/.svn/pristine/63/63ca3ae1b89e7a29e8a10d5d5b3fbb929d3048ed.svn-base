@@ -1,0 +1,351 @@
+package com.bashiju.customer.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.bashiju.customer.pojo.BusinessExamineTypeEnum;
+import com.bashiju.enums.ExamineStatusEnum;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  CustomerService   
+ * @Description:TODO(客源接口)   
+ * @author: liwen
+ * @date:   2018年6月12日 下午2:03:42   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustomerService {
+	/**
+	 * 
+	 * @Title: queryCustomerInfo   
+	 * @Description: TODO(查询客源需求详细页面的各信息：基本信息，跟进信息等)   
+	 * @param: @param demandId ：需求ID
+	 * @param: @param formName :表单名
+	 * @param: @param type ：类型是用来区分该查询是显示信息用，还是修改信息时回显用
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String,Object> queryCustomerInfo(String demandId,String formName,String type,String transactionTypeId);
+	/**
+	 * 
+	 * @Title: queryLookHouse   
+	 * @Description: TODO(查询带看记录)   
+	 * @param: @param demandId ：需求ID
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryLookHouse(String demandId,int page,int limit);
+	/**
+	 * 
+	 * @Title: queryLookHousePath   
+	 * @Description: TODO(查询看房轨迹)   
+	 * @param: @param data（demandId：需求ID,startTime:开始时间，endTime：结束时间）
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryLookHousePath(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: queryFollowRecord   
+	 * @Description: TODO(查询跟进记录)   
+	 * @param: @param demandId：需求ID
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryFollowRecord(String demandId,int page,int limit);
+	
+	/**
+	 * 
+	 * @Title: delFollow   
+	 * @Description: TODO(删除跟进记录)   
+	 * @param: @param id（跟进记录id）
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	public boolean delFollow(Long id);
+	/**
+	 * 
+	 * @Title: queryCustomerPhone   
+	 * @Description: TODO(查看客户电话)   
+	 * @param: @param demandId：需求ID
+	 * @param: @return      
+	 * @return: List      
+	 * @throws
+	 */
+	public List queryCustomerPhone(String demandId);
+	/**
+	 * 
+	 * @Title: businessExamine   
+	 * @Description: TODO(业务审批)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: String      
+	 * @throws
+	 */
+	public String businessExamine(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: changeSomeStatus   
+	 * @Description: TODO(更改一些状态，如：淘汰状态，盘状态等)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: String      
+	 * @throws
+	 */
+	public String changeSomeStatus(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: saveLookhouse   
+	 * @Description: TODO(保存带看记录)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long saveLookhouse(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: delLookhouse   
+	 * @Description: TODO(删除带看记录)   
+	 * @param: @param id
+	 * @param: @param demandId
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	public boolean delLookhouse(Long id,String demandId);
+	/**
+	 * 
+	 * @Title: saveImg   
+	 * @Description: TODO(保存带看图片)   
+	 * @param: @param request
+	 * @param: @return
+	 * @param: @throws Exception      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Map<String,Object> saveImg(HttpServletRequest request);
+	/**
+	 * 
+	 * @Title: queryImg   
+	 * @Description: TODO(查询带看图片)   
+	 * @param: @param id
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryImg(Long id);
+	/**
+	 * 
+	 * @Title: saveDeposit   
+	 * @Description: TODO(保存下定记录)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public String saveDeposit(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: DepositSureOp   
+	 * @Description: TODO(下定审核后操作)   
+	 * @param: @param demandId：需求ID
+	 * @param: @param houseId:二手房ID
+	 * @param: @param status:下定状态（通过，还是驳回）
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long DepositSureOp(String demandId,Long houseId,String status);
+	/**
+	 * 
+	 * @Title: saveExchangeCustomerInfo   
+	 * @Description: TODO(租售转换)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long saveExchangeCustomerInfo(String dataJson,String type);
+	/**
+	 * 
+	 * @Title: updateStore   
+	 * @Description: TODO(收藏或取消收藏)   
+	 * @param: @param demandId：需求ID
+	 * @param: @param status(收藏：1，取消收藏：0)
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long updateStore(String demandId,int status);
+	/**
+	 * 
+	 * @Title: saveCustomerFollow   
+	 * @Description: TODO(保存跟进)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long saveCustomerFollow(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: queryArchives   
+	 * @Description: TODO(查询客户档案)   
+	 * @param: @param demandId
+	 * @param: @param type
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryArchives(String demandId,String type,int page,int limit);
+	/**
+	 * 
+	 * @Title: saveCustomerPhone   
+	 * @Description: TODO(保存客户电话)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long saveCustomerPhone(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: updateCustomerPhone   
+	 * @Description: TODO(修改客户电话)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	public Long updateCustomerPhone(Map<String,Object> data);
+	/**
+	 * 
+	 * @Title: delCustomerPhone   
+	 * @Description: TODO(删除客户电话)   
+	 * @param: @param id
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	public boolean delCustomerPhone(Long id);
+	/**
+	 * 
+	 * @Title: doExamine   
+	 * @Description: TODO(业务审批后需做操作接口)   
+	 * @param: @param demandId
+	 * @param: @param type
+	 * @param: @param result
+	 * @param: @param remark
+	 * @param: @param recipient
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	public boolean doExamine(String demandId, BusinessExamineTypeEnum type, ExamineStatusEnum result, String remark,Long recipient);
+	/**
+	 * 
+		 * 新增客源
+		 * @Description: 新增客源
+		 * @param dataJson 客源数据
+		 * @param formName 客源动态表单名称
+		 * @return 
+		 * boolean
+	 */
+	public boolean addCustomer(String dataJson,String type);
+	public Long updateAgent(Map<String,Object> data);
+	/**客源查找房源表格**/
+	public Page<Map<String, Object>> queryHouseListByCustomer(String conditions, int page, int limit);
+
+	/**客源查找房源表格**/
+	public Page<Map<String, Object>> queryCustomerListByIds(String ids, int page, int limit);
+	/**
+	 * 
+		 * 
+		 * @Description:搜索客源需求列表
+		 * @param conditions 条件
+		 * @param page 
+		 * @param limit
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryCustomerTableDatas(String conditions, int page, int limit);
+	/**
+	 * 
+		 * 批量删除客源
+		 * @Description: 进入菜单主页面（详细描述） 
+		 * @param customerIds 逗号分隔
+		 * @return 
+		 * int
+	 */
+	public int deleteCustomer(String customerIds);
+	/**
+	 * 
+		 * 客源批量转移
+		 * @Description: 客源批量转移
+		 * @param customerIds 逗号分隔
+		 * @param userId 接收用户id
+		 * @return 
+		 * boolean
+	 */
+	boolean customerTransfer(String customerIds,long userId);
+	
+	/**客源匹配房源表格**/
+	public Page<Map<String, Object>> queryMatchingHousing(String conditions, int page, int limit);
+	/**
+	 * 
+		 * 添加客源浏览
+		 * @Description: 添加客源浏览，同一天多次浏览一个客源只算一次
+		 * @param demandId 客源id
+		 * @return 
+		 * int
+	 */
+	public int addBrowseRecord(String demandId);
+	/**
+	 * 
+		 * 判断客源电话是否重复
+		 * @Description: 判断客源电话是否重复
+		 * @param phone 电话
+		 * @param transactionTypeId 交易类型:4、求购,5、求租
+		 * @return true为重复,false为不重复
+		 * boolean
+	 */
+	public boolean queryCustomerRepeat(String phone,Integer transactionTypeId);
+	/**
+	 * 
+		 * 生成客源绑定码
+		 * @Description: 生成客源绑定码
+		 * @param demandId 客源id
+		 * @return 
+		 * boolean
+	 */
+	public boolean sendBindCode(String demandId);
+	/**
+	 * 
+		 * 合同签订选择客源列表
+		 * @Description: 合同签订选择客源列表
+		 * @param conditions 条件{phone:电话,discStatusId:公私客,mainterDeptId:维护人部门,maintainId:维护人,minSpace:最小面积,
+		 * maxSpace:最大面积,minPrice:最低价格,maxPrice:最高价格,code:客户编号,custName:客户姓名,taobaoStatusId:淘宝池,transactionTypeId:需求类型}
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryContractCustomer(String conditions, int page, int limit);
+}

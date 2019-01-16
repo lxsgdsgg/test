@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.DealMapper">
+	<select id="queryDeals" resultType="map">
+		select a.id,a.dealType,a.agreementId,a.demandId,a.houseId,a.shhid,a.companyId,a.companyName,
+		a.areaCode,a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.buildingsId,
+		a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,a.buildingHouseId,a.buildingHouseName,
+		a.elevatorCount,a.householdCount,a.floorCount,a.totalLayers,a.room,a.hall,a.toilet,a.kitchen,
+		a.balcony,a.buildSpace,a.orientationId,a.orientation,a.owner,a.custName,a.traderId,a.price,
+		a.dealTime,a.landCertifcate,a.propertyTypeId,a.propertyType,a.propCertificate,a.referenceId,
+		a.reference,a.commissionPrice,a.receivedPrice,a.actualCommission,a.commissionFinishTime,
+		a.supplementInfo,a.transferStatus,a.houseUsesId,a.houseUses,a.permissionArea,a.addTime,
+		a.updateTime,a.operatorId,b.realName operator,a.isValid,a.isDivide,a.isautoDivide,a.isLoan,a.isFinishCase,
+		a.isBreach,a.finishCaseTime,b.realName as traderName, b.deptId,c.name as deptName 
+		from deal_transactioninfo a
+		left join sys_user b on a.traderId = b.id 
+		left join sys_dept c on b.deptId = c.id 
+		left join sys_user d on a.referenceId = d.id
+		where a.isvalid=1 
+		<if test="dealType != null and dealType != '' "> and a.dealType = #{dealType} </if>
+		<if test="houseUsesId != null and houseUsesId != '' "> and a.houseUsesId = #{houseUsesId} </if>
+		<if test="houseUses != null and houseUses != '' "> and a.houseUses = #{houseUses} </if>
+		<if test="beginDealTime != null and beginDealTime != '' "> and a.dealTime &gt;= #{beginDealTime} </if>
+		<if test="endDealTime != null and endDealTime != '' "> and a.dealTime &lt;= #{endDealTime} </if>
+		<if test="beginCommissionFinishTime != null and beginCommissionFinishTime != '' "> and a.commissionFinishTime &gt;= #{beginCommissionFinishTime} </if>
+		<if test="endCommissionFinishTime != null and endCommissionFinishTime != '' "> and a.commissionFinishTime &lt;= #{endCommissionFinishTime} </if>
+		<if test="beginFinishCaseTime != null and beginFinishCaseTime != '' "> and a.finishCaseTime &gt;= #{beginFinishCaseTime} </if>
+		<if test="endFinishCaseTime != null and endFinishCaseTime != '' "> and a.finishCaseTime &lt;= #{endFinishCaseTime} </if>
+		<if test="traderId != null and traderId != '' "> and a.traderId = #{traderId} </if>
+		<if test="traderDeptId != null and traderDeptId != '' "> and c.id like concat(#{traderDeptId},'%') </if>
+		<if test="referenceId != null and referenceId != '' "> and a.referenceId = #{referenceId} </if>
+		<if test="referenceDeptId != null and referenceDeptId != '' "> and d.deptId like concat(#{referenceDeptId},'%') </if>
+		<if test="operatorId != null and operatorId != '' "> and a.operatorId = #{operatorId} </if>
+		<if test="operatorDeptId != null and operatorDeptId != '' "> and a.permissionArea like concat(#{operatorDeptId},'%') </if>
+		<if test="dealId != null and dealId != '' "> and a.id = #{dealId} </if>
+		<if test="agreementId != null and agreementId != '' "> and a.agreementId = #{agreementId} </if>
+		<if test="houseId != null and houseId != '' "> and a.houseId = #{houseId} </if>
+		<if test="demandId != null and demandId != '' "> and a.demandId = #{demandId} </if>
+		<if test="owner != null and owner != '' "> and a.owner like concat('%',#{owner},'%') </if>
+		<if test="custName != null and custName != '' "> and a.custName like concat('%',#{custName},'%') </if>
+		<if test="communityName != null and communityName != '' "> and a.communityName like concat('%',#{communityName},'%') </if>
+		<if test="buildingHouseName != null and buildingHouseName != '' "> and a.buildingHouseName like concat('%',#{buildingHouseName},'%') </if>
+		<if test="transferStatus !=null and transferStatus!=''"> and a.transferStatus= #{transferStatus}</if>
+		<if test="minBuildSpace !=null">and a.buildSpace &gt;= #{minBuildSpace}</if>
+		<if test="maxBuildSpace !=null">and a.buildSpace &lt;= #{maxBuildSpace}</if>
+		<if test="minprice !=null">and a.price &gt;= #{minprice}</if>
+		<if test="maxprice !=null">and a.price &lt;= #{maxprice}</if>
+		<if test="agreementStatus=='0'">
+			and (a.isFinishCase= 0 or a.isBreach=0)
+		</if>
+		<if test="agreementStatus=='1'">
+			and a.isFinishCase= 1
+		</if>
+		<if test="agreementStatus=='2'">
+			and a.isBreach= 1
+		</if>
+		order by a.addTime desc
+	</select>
+	
+	<select id="queryDealCommissionStatistics" resultType="map">
+		select sum(case when b.moneyType=0 then b.price end) as receivablePrice,
+		sum(case when b.moneyType=1 then b.price end) as financePrice,
+		sum(case when b.moneyType=0 then b.actualPrice end) as actualPrice,
+		sum(case when b.moneyType=1 then b.actualPrice end) as financeActualPrice,
+		ifnull(sum(case when b.moneyType=0 and b.payerType=0 then ifnull(b.price,0) end),0) as ownerPrice,
+		ifnull(sum(case when b.moneyType=0 and b.payerType=0 then ifnull(b.actualPrice,0) end),0) as ownerActualPrice,
+		ifnull(sum(case when b.moneyType=0 and b.payerType=1 then ifnull(b.price,0) end),0) as custPrice,
+		ifnull(sum(case when b.moneyType=0 and b.payerType=1 then ifnull(b.actualPrice,0) end),0) as custActualPrice,
+		ifnull(sum(case when b.moneyType=1 and b.payerType=0 then ifnull(b.price,0) end),0) as financeOwnerPrice,
+		ifnull(sum(case when b.moneyType=1 and b.payerType=0 then ifnull(b.actualPrice,0) end),0) as financeOwnerActualPrice,
+		ifnull(sum(case when b.moneyType=1 and b.payerType=1 then ifnull(b.price,0) end),0) as financeCustPrice,
+		ifnull(sum(case when b.moneyType=1 and b.payerType=1 then ifnull(b.actualPrice,0) end),0) as financeCustActualPrice
+		from deal_commissionrecord b where b.dealId = #{dealId} and b.isvalid=1;
+	</select>
+	
+	<select id="getDeals" resultType="map">
+		SELECT b.realName traderName,a.id,a.dealType,a.cityCode,a.agreementId,a.demandId,a.houseId,a.shhid,
+		a.companyId,a.companyName,a.areaCode,a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,
+		a.buildingsId,a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,a.buildingHouseId,a.buildingHouseName,
+		a.elevatorCount,a.householdCount,a.floorCount,a.totalLayers,a.room,a.hall,a.toilet,a.kitchen,a.balcony,
+		a.buildSpace,a.orientationId,a.orientation,a.`owner`,a.custName,a.traderId,a.price,a.dealTime,a.buildDates,
+		a.beginLeaseTime,a.endLeaseTime,a.landCertifcate,a.propertyTypeId,a.propertyType,a.propCertificate,
+		a.referenceId,a.reference,a.commissionPrice,a.receivedPrice,a.actualCommission,a.commissionFinishTime,
+		a.supplementInfo,a.transferStatus,a.houseUsesId,a.houseUses,a.permissionArea,a.addTime,a.updateTime,
+		a.operatorId,a.operator,a.isValid,a.isDivide,a.isautoDivide,a.isLoan,a.isFinishCase,a.isBreach,
+		a.finishCaseTime FROM	deal_transactioninfo a	LEFT JOIN sys_user b ON a.traderId = b.id
+		WHERE	a.isvalid = 1 and a.id = #{dealId}
+	</select>
+	
+	<select id="queryDividenInfos" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.dividerId,b.realName as dividerName,c.id as dividerDeptId,
+		c.name as dividerDeptName,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,a.permissionArea,
+		a.addTime,a.updateTime,a.operatorId,a.operator,a.isValid
+		from deal_dividenInfo a 
+		left join sys_user b on a.dividerId = b.id 
+		left join sys_dept c on b.deptId = c.id
+		where a.isvalid=1 and dealId = #{dealId}
+	</select>
+	
+	<select id="queryAgentDividenAndConfigInfos" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.dividerId,b.realName as dividerName,c.id as dividerDeptId,
+		c.name as dividerDeptName,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,
+		e.id comConfigId,i.universalRate,ifnull(f.commissionsRate,100)commissionsRate,g.calculateFormula,h.dealTime
+		from deal_dividenInfo a 
+		left join sys_user b on a.dividerId = b.id 
+		left join sys_dept c on b.deptId = c.id
+		left join sys_employee_wagesConfigurate d on a.dividerId = d.userId
+		left join finance_commissionsConfigurate e on d.agentComConfigId = e.id
+		left join deal_transactioninfo h on a.dealId = h.id 
+		left join finance_commissionsConfigurate_actualRate f on f.comConfigId = e.id and f.businessType=#{businessType}
+		and f.minactualRate &lt;= (h.actualCommission/h.commissionPrice*100) and f.maxActualRate &gt; (h.actualCommission/h.commissionPrice*100)
+		left join finance_businessType g on a.companyId = g.companyId and g.code=#{businessType}
+		left join finance_commissionsConfigurate_universalRate i on i.comConfigId = e.id and i.businessType=#{businessType}
+		where a.isvalid=1 and a.dealId = #{dealId}
+	</select>
+	
+	<select id="queryFinanceDividenAndConfigInfos" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.dividerId,b.realName as dividerName,c.id as dividerDeptId,
+		c.name as dividerDeptName,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,
+		e.id comConfigId,i.universalRate,ifnull(f.commissionsRate,100)commissionsRate,g.calculateFormula
+		,h.actualCommission,h.commissionPrice,h.dealTime
+		from deal_financeDividenInfo a 
+		left join sys_user b on a.dividerId = b.id 
+		left join sys_dept c on b.deptId = c.id
+		left join sys_employee_wagesConfigurate d on a.dividerId = d.userId
+		left join finance_commissionsConfigurate e on d.financeComConfigId = e.id
+		left join deal_transactioninfo h on a.dealId = h.id 
+		left join finance_commissionsConfigurate_actualRate f on f.comConfigId = e.id and f.businessType=#{businessType}
+		and f.minactualRate &lt;= (h.actualCommission/h.commissionPrice*100) and f.maxActualRate &gt; (h.actualCommission/h.commissionPrice*100)
+		left join finance_businessType g on a.companyId = g.companyId and g.code=#{businessType}
+		left join finance_commissionsConfigurate_universalRate i on i.comConfigId = e.id and i.businessType=#{businessType}
+		where a.isvalid=1 and a.dealId = #{dealId}
+	</select>
+	
+	<select id="queryTransferSchedules" resultType="map">
+		select a.id,a.dealId,a.scheduleId,a.scheduleName,a.status,left(a.estimateFinishTime,10) as estimateFinishTime
+		,left(a.actualFinishTime,10) as actualFinishTime,a.transferId,a.transfer,a.remark,a.permissionArea
+		,a.addTime,a.updateTime,a.operatorId,a.operator,a.isValid from deal_transferSchedule a 
+		where a.isvalid=1 and a.dealId=#{dealId} order by a.estimateFinishTime
+	</select>
+	
+	<update id="updateTransactionStatus">
+		update deal_transactioninfo a set a.transferStatus='02'
+		where id=#{dealId} and 
+		not exists(select 1 from deal_transferSchedule where dealId=a.id and status &lt;&gt; 1  and isvalid=1)
+	</update>
+	
+	<select id="getAgentCommissionStatistics" resultType="map">
+		select sum(price) price,sum(actualPrice) actualPrice from deal_commissionRecord 
+		where dealId = #{dealId} and moneyType=0 and isvalid=1
+	</select>
+	
+	<select id="queryCommissionById" resultType="map">
+		select * from deal_commissionrecord where id =#{id}
+	</select>
+	
+	<select id="queryAttachData" resultType="map">
+		select * from deal_attachment where  isvalid=1 
+		<if test="id !=null and id !='' "> and id = #{id}</if>
+		<if test="dealId !=null and dealId !='' "> and dealId = #{dealId}</if>
+		<if test="attachType !=null and attachType !=''"> and attachType=#{attachType}</if>
+	</select>
+	
+	<select id="queryFollowRecordByDealId" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.followTypeId,a.followType,a.followerId,b.realName as followerName,
+		c.name as followerDeptName,a.followTime,a.content,a.permissionArea,a.addTime,a.updateTime,a.operatorId,a.operator,a.isValid
+		from deal_followRecord a 
+		left join sys_user b on a.followerId = b.id 
+		left join sys_dept c on b.deptId = c.id 
+		where a.isvalid=1 and dealId=#{dealId}
+	</select>
+	
+	<select id="queryPayRecordsByDealId" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.billNo,a.transactionType,a.moneyTypeId,a.moneyTypeName
+		,a.price,a.payerType,a.tradeTime,a.settlementTypeId,a.settlementTypeName,a.remark,a.examineStatus,
+		a.auditorId,a.auditor,a.auditTime,a.reason,a.permissionArea,a.addTime,a.updateTime,a.operatorId,
+		a.operator,a.isValid,a.recorderId,a.recorderName,a.recordTime 
+		from deal_payRecord a where a.isvalid = 1 and dealId=#{dealId}
+	</select>
+	
+	<select id="queryFinanceDividenInfos" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.dividerId,b.realName as dividerName,c.id as dividerDeptId,
+		c.name as dividerDeptName,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,a.permissionArea,
+		a.addTime,a.updateTime,a.operatorId,a.operator,a.isValid
+		from deal_financeDividenInfo a 
+		left join sys_user b on a.dividerId = b.id 
+		left join sys_dept c on b.deptId = c.id
+		where a.isvalid=1 and dealId = #{dealId}
+	</select>
+	
+	<select id="getPayRecord" resultType="map">
+		select id,dealId,companyId,companyName,billNo,transactionType,moneyTypeId,moneyTypeName,price,payerType
+		,tradeTime,settlementTypeId,settlementTypeName,remark,examineStatus,auditorId,auditor,auditTime
+		,reason,permissionArea,addTime,updateTime,operatorId,operator,isValid,recorderId,recorderName,recordTime 
+		from deal_payRecord where isvalid=1 and id=#{id}
+	</select>
+	
+	<select id="statisticFinanceCommissions" resultType="map">
+		select sum(price) price, sum(actualPrice)actualPrice 
+		from deal_commissionRecord where dealId=#{dealId} and moneyType=1 and isvalid=1
+	</select>
+	
+	<select id="getSchedulesMsgInfo" resultType="map">
+		select b.partyA,b.mobileA,b.partyB,b.mobileB,c.scheduleName,a.houseId,a.demandId 
+		from deal_transferSchedule c
+		left join deal_transactioninfo a  on a.id = c.dealId
+		left join oa_agreement b on a.agreementId = b.code
+		where a.isvalid=1 and c.id=#{id}
+	</select>
+</mapper>

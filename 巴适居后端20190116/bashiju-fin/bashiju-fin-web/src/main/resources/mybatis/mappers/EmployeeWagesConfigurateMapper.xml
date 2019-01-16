@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.EmployeeWagesConfigurateMapper">
+
+	<select id="queryEmployeeWagesConfigurates" resultType="map">
+		select a.id,a.userId,a.userName,a.companyId,a.companyName,c.name as deptName,a.basePay,a.welfareId,a.welfareName,a.ssfConfigId
+		,a.ssfConfigName,a.agentComConfigId,a.agentComConfigName,a.financeComConfigId,a.financeComConfigName
+		,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid 
+		from sys_employee_wagesConfigurate a inner join sys_user b on a.userId = b.id inner join sys_dept c on b.deptId = c.id
+		where a.isvalid=1 
+		<if test="userId != null and userId !='' ">
+			and a.userId = #{userId}
+		</if>
+		<if test="deptId != null and deptId !='' ">
+			and b.deptId = #{deptId}
+		</if>
+		<if test="welfareId != null ">
+			and a.welfareId =#{welfareId}
+		</if>
+		<if test="ssfConfigId != null ">
+			and a.ssfConfigId =#{ssfConfigId}
+		</if>
+		<if test="agentComConfigId != null ">
+			and a.agentComConfigId =#{agentComConfigId}
+		</if>
+		<if test="financeComConfigId != null ">
+			and a.financeComConfigId =#{financeComConfigId}
+		</if>
+		order by a.id desc
+	</select>
+	
+</mapper>

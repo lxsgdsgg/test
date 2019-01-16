@@ -1,0 +1,91 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  BusinessExamineType.java   
+ * @Package com.bashiju.housing.pojo   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月6日 上午10:20:00   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.customer.pojo;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+/**   
+ * @ClassName:  BusinessExamineType   
+ * @Description:房源业务审核类型枚举类   
+ * @author: yangz
+ * @date:   2018年6月6日 上午10:20:00   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum BusinessExamineType {
+
+	/**
+	 * 修改状态
+	 */
+	UPDATESTATUS("01","修改状态"),
+	/**
+	 * 新增
+	 */
+	ADD("02","新增"),
+	/**
+	 * 房源举报
+	 */
+	ACCUSATION("03","房源举报"),
+	/**
+	 * 淘宝
+	 */
+	TAOBAO("04","淘宝"),
+	/**
+	 * 开盘
+	 */
+	OPENDISC("05","开盘"),
+	/**
+	 * 封盘
+	 */
+	CLOSEDISC("06","封盘"),
+	/**
+	 * 驳回房源修改
+	 */
+	REJECTUPDATE("07","驳回房源修改");
+	
+	private String value;
+    private String displayName;
+    
+    public String getValue() {
+        return this.value;
+    }
+    
+    public String getDisplayName() {
+        return this.displayName;
+    }
+    
+    
+    BusinessExamineType(String value, String displayName){
+        this.value = value ;
+        this.displayName = displayName ;
+    }
+    
+    public static Map<String, String> map = new TreeMap<String, String>();
+
+    static {
+        for (BusinessExamineType _enum : BusinessExamineType.values()) {
+        	map.put(_enum.value, _enum.displayName);
+        }
+    }
+    
+    /**
+     * 枚举转换
+     */
+    public static BusinessExamineType parseOf(String value){
+        for(BusinessExamineType item : values())
+            if(item.getValue().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+}

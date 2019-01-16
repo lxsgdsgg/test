@@ -1,0 +1,39 @@
+package com.bashiju.www.test;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.service.house.IHouseService;
+
+public class HouseServiceTest extends BaseServiceTest{
+	@Autowired
+	IHouseService service;
+	
+	@Test
+	public void queryHouseInfo() {
+		HouseInfoResult house= service.queryHouseInfo(1);
+		System.out.println(house.getAgent().getName().toString());
+		assertNotNull(house);
+	}
+	@Test
+	public void queryShowedAgents() {
+		List<AgentResult> list=service.queryShowedAgents(1);
+		System.out.println(list.toString());
+		assertNotNull(list);
+	}
+	@Test
+	public void queryShowedRecordByHouseId() {
+		List<ShowedRecordResult> list=service.queryShowedRecordByHouseId(1);
+		System.out.println(list.toString());
+		assertNotNull(list);
+	}
+	
+	
+}

@@ -1,0 +1,4 @@
+REPOSITORY_PATH=E:\\0808\\bashiju-upload
+IMAGE_BASE_URL=http://image.bashiju.com
+loginUrl="http://sso.bashiju.com"
+BSJ_WEB_URL=http://www.bashiju.com

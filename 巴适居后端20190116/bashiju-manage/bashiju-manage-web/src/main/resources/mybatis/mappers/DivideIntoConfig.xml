@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.DivideIntoConfigMapper">
+	<select id="countDivideIntoConfigByName" resultType="long">
+		select count(1) from config_divide_into_info where 1 = 1 and isValid = 1
+		<if test="null != configName">
+			and configName like '%${configName}%'
+		</if>
+	</select>
+	
+	<select id="countDivideIntoConfigById" resultType="long">
+		select count(1) from config_divide_into_info where 1 = 1 and isValid = 1
+		<if test="null != id">
+			and id = #{id}
+		</if>
+	</select>
+	
+	<select id="deleteDivideIntoConfInfoById" resultType="long">
+		delete from config_divide_into_info where 
+		<if test="null != id">
+			and id = #{id}
+		</if>
+	</select>
+	
+	<select id="queryDivideInfoConfList" resultType="java.util.LinkedHashMap">
+		SELECT a.id,a.configName,a.configStatus,a.cityId,a.isValid,a.rgCode,a.addTime,a.operator,
+		a.updateOperator,a.updateTime,a.operatorId,a.permissionArea,a.dealType,a.configType,
+		a.houseEntrustTrans,a.keyMgrTrans,a.signUkTrans,a.picUploadTrans,
+		c.name as companyName,c.id as companyId,a.actionRoleIptRate,
+		a.actRoleOpMgrRate,a.actRoleHouseMsgRate,a.actRoleCusIptRate,a.actRoleCusMgrRate,
+		a.actRoleContractMgrRate,a.actHouseEntrustMgrRate,a.actRoleKeyMgrRate,a.actRoleSignUkRate,
+		a.actRolePivUploadRate,b.`name` as cityName,IF ((`a`.`configStatus` = 1),'已设置','未设置') AS `status`,
+		(CASE	WHEN (`a`.`dealType` = 1) THEN '住宅'	WHEN (
+				`a`.`dealType` = 2) THEN '商业' ELSE ''	END) AS `dealTypeName`,
+		(CASE	WHEN (`a`.`configType` = '00') THEN	'买卖成交' WHEN (
+				`a`.`configType` = '01') THEN	'租赁成交' WHEN (
+		`a`.`configType` = '02') THEN	'一手成交' ELSE '' END) AS `configTypeName`
+		FROM config_divide_into_info a
+		LEFT JOIN sys_area b ON a.cityId = b.`code`
+		left join sys_company c on a.companyId = c.id
+		where a.isValid = 1
+		<if test="configName != null">
+			and a.configName like '%${configName}%'
+		</if>
+		<if test="areaCode != null">
+			and a.cityId = #{areaCode}
+		</if>
+		order by a.id desc 
+	</select>
+	<select id="queryDivideInfoConfByConn" resultType="long">
+		select count(1) from config_divide_into_info where isValid = 1 and 
+		<if test=" condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+	
+	<select id="queryDivideInfoConfById" resultType="java.util.LinkedHashMap">
+		select * from config_divide_into_info where 1 = 1 and isValid = 1 
+		<if test="null != configId">
+			and id = #{configId}
+		</if>
+	</select>
+	<select id="getCityInfoByCompanyId" resultType="map">
+		select * from sys_dept where deptTypeId in(
+		select id from sys_dept_type where name ='市') and companyId=#{companyId}
+	</select>
+	<select id="queryDivideInfoConfByCondition" resultType="map">
+		select houseEntrustTrans,keyMgrTrans,signUkTrans,picUploadTrans,actionRoleIptRate,actRoleOpMgrRate,
+			actRoleHouseMsgRate,actRoleCusIptRate,actRoleCusMgrRate,actRoleContractMgrRate,actHouseEntrustMgrRate,
+			actRoleKeyMgrRate,actRoleSignUkRate,actRolePivUploadRate
+ 		from config_divide_into_info where isValid = 1 and 
+		<if test=" condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+</mapper>

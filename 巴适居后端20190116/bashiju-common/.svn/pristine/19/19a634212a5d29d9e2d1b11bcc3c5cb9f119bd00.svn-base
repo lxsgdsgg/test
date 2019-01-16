@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.common.mapper.ErHousingMapper">
+	<select id="queryRelateagentInfo" resultType="map">
+		select a.*,b.mobile from hs_houserelateagent a INNER JOIN sys_user b on a.shhId = #{houseId} and a.agentId = b.id and a.isValid=1
+	</select>
+	  	<select id="queryCountPhoneBlack" resultType="int">
+  		SELECT Count(*) FROM sys_phoneblacklist WHERE isValid=1 AND mobile = #{phone}
+  	</select>
+</mapper>

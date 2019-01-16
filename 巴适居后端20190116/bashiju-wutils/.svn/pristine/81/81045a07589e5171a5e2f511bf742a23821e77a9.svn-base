@@ -1,0 +1,175 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityDetail.java   
+ * @Package com.bashiju.www.pojo.service.out.comm   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年7月26日 下午2:21:10   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.community;
+
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Data;
+
+/**   
+ * @ClassName:  CommunityDetail   
+ * @Description:小区详情信息实体   
+ * @author: wangpeng
+ * @date:   2018年7月26日 下午2:21:10   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CommunityDetail implements Serializable{
+	
+	/**   
+	 * @Fields serialVersionUID : TODO(用一句话描述这个变量表示什么)   
+	 */
+	private static final long serialVersionUID = 8286358184388515437L;
+	/**
+	 * 小区编号
+	 */
+	private String id;
+	/**
+	 * 小区名称
+	 */
+	private String name;
+	
+	/**
+	 * 小区件售价
+	 */
+	private String salePrice;
+	/**
+	 * 地址
+	 */
+	private String address;
+	
+	/**
+	 * 容积率
+	 */
+	private String capacityRatio;
+	/**
+	 * 小区户数(房屋总套数)
+	 */
+	private String houseCount;
+	/**
+	 * 绿化率
+	 */
+	private String greenRate;
+	
+	/**
+	 * (地上)车位数量
+	 */
+	private String groundParkingCount;
+	
+	/**
+	 * 建筑年代
+	 */
+	private String buildYear;
+	
+	/**
+	 * 物业费
+	 */
+	private String propertyFees;
+	
+	/**
+	 * 物业类型
+	 */
+	private String estateType;
+	
+	/**
+	 * 物业公司
+	 */
+	private String propertyName;
+	
+	/**
+	 * 开发商
+	 */
+	private String developers;
+	/**
+	 * 楼栋总数
+	 */
+	private String buildingCount;
+	
+	/**
+	 * 建筑结构
+	 */
+	private String structure;
+	
+	/**
+	 * 建筑面积
+	 */
+	private String buildingArea;
+	
+	/**
+	 * 地铁标签(多个标签之间使用英文逗号隔开)
+	 */
+	private String subwayLabel;
+	
+	/**
+	 * 学校标签(多个标签之间使用英文逗号隔开)
+	 */
+	private String schoolLabel;
+	
+	
+	/**
+	 * 小区描述
+	 */
+	private String communityDescribe;
+	
+	/**
+	 * 小区图片列表
+	 */
+	private List<String> pictures;
+
+	/**
+	 * 二手房源在售套数
+	 */
+	private String onSaleCnt;
+	
+	/**
+	 * 在租房源套数
+	 */
+	private String leaseCnt;
+	
+	/**
+	 * 在售一室房源套数
+	 */
+	private String saleRoom1;
+	/**
+	 * 在售二室房源套数
+	 */
+	private String saleRoom2;
+	/**
+	 * 在售三室房源套数
+	 */
+	private String saleRoom3;
+	/**
+	 * 在售四室房源套数
+	 */
+	private String saleRoom4;
+	
+	/**
+	 * 在租一室房源套数
+	 */
+	private String leaseRoom1;
+	/**
+	 * 在租二室房源套数
+	 */
+	private String leaseRoom2;
+	/**
+	 * 在租三室房源套数
+	 */
+	private String leaseRoom3;
+	/**
+	 * 在租四室房源套数
+	 */
+	private String leaseRoom4;
+
+}

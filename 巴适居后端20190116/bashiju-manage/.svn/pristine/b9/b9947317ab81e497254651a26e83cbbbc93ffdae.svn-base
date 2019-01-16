@@ -1,0 +1,105 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IPerformanceTypeService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:业绩类型管理接口类   
+ * @author: zuoyuntao     
+ * @date:   2018年5月10日 上午9:13:48   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * 业绩类型管理接口类
+ * @ClassName:IPerformanceTypeService   
+ * @Description:业绩类型管理接口类  
+ * @author: zuoyuntao
+ * @date:   2018年5月10日 上午9:13:48   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IPerformanceTypeService {
+	/**
+	 * 获得业绩类型所有数据信息，带分页
+	 * @Title: queryPfmTypeList   
+	 * @Description: 获得业绩类型所有数据信息，带分页   
+	 * @param: paraMap：参数对象
+	 * @param: curPage：开始条数
+	 * @param: limitPage：最大条数
+	 * @return: List<Map<Object,Object>>    
+	 * {count=8, msg=, code=0, data=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=8, pages=1, reasonable=false, pageSizeZero=false}[{pfmTypeName=一手成交, usePfmTypeName=一手成交, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:01:25.0, usePfmTypeValue=208, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-24 10:28:06.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=一手成交, id=97, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=买卖业务, usePfmTypeName=商业出售,住房出售, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:05:46.0, usePfmTypeValue=210,209, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:13:31.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=商业出售,住房出售, id=98, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=租赁业务, usePfmTypeName=商业出租,住房出租, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:06:04.0, usePfmTypeValue=212,211, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:13:37.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=商业出租,住房出租, id=99, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=金融业务, usePfmTypeName=金融服务, caculateMethod=216, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 18:39:15.0, usePfmTypeValue=213, isValid=1, caculateName=累进回溯计算, updateOperator=测试人员, updateTime=2018-05-23 15:32:07.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=金融服务, id=102, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=一手成交, usePfmTypeName=一手成交, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:26:30.0, usePfmTypeValue=208, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=一手成交, id=115, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=买卖业务, usePfmTypeName=住房出售,商业出售, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:29:26.0, usePfmTypeValue=209,210, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=住房出售,商业出售, id=116, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=租赁业务, usePfmTypeName=住房出租,商业出租, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:29:45.0, usePfmTypeValue=211,212, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=住房出租,商业出租, id=117, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=金融业务, usePfmTypeName=金融服务, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:30:05.0, usePfmTypeValue=213, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:30:36.0, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=金融服务, id=118, operatorId=1, pfmTypeDel=pfmTypeDel}]}  
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryPfmTypeList(Map<String,Object> paraMap
+			,int curPage,int limitPage);
+	/**
+	 * 通过业绩类型ID查询业绩类型数据
+	 * @Title: queryPfmTypeDataById   
+	 * @Description: 通过业绩类型ID查询业绩类型数据   
+	 * @param: pfmTypeId：业绩类型ID
+	 * @return: Map<String,String>  
+	 * {pfmTypeName=一手成交, usePfmTypeName=一手成交, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:01:25.0, usePfmTypeValue=208, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-24 10:28:06.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=一手成交, id=97, operatorId=1, pfmTypeDel=pfmTypeDel}    
+	 * @throws
+	 */
+	public Map<String,String> queryPfmTypeDataById(String pfmTypeId);
+	/**
+	 * 添加或更新业绩类型数据
+	 * @Title: saveOrUpdatePfmTypeData   
+	 * @Description: 添加或更新业绩类型数据   
+	 * @param: paraMap {"pfmTypeName":"测试过方法","usePfmTypeName":"一手成交,住房出售","caculateMethod":"216","companyId":"BSJ01","permissionArea":"BSJ0103","usePfmTypeValue":"208,209","updateOperator":"超级管理员","id":"130","cityId":"BSJ0101","operatorId":1}
+	 * @return: void      
+	 * @throws
+	 */
+	public void saveOrUpdatePfmTypeData(Map<Object,Object> paraMap);
+	/**
+	 * 根据ID删除业绩类型对象
+	 * @Title: delPfmTypeDataById   
+	 * @Description: 根据ID删除业绩类型对象   
+	 * @param: pfmTypeId      
+	 * @return: void      
+	 * @throws
+	 */
+	public void delPfmTypeDataById(String pfmTypeId);
+	/**
+	 * 根据公司ID信息获取配置明细数据
+	 * @Title: queryPfmTypeDetailByConfId   
+	 * @Description: 根据公司ID信息获取配置明细数据 
+	 * @param: companyId:公司Id
+	 * @return: List<Map<String,Object>>  
+	 * [{permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=住房出售, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=10, companyId=BSJ01, commisionType=1, fiexdBalance=0, id=126, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=商业出售, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=12, companyId=BSJ01, commisionType=2, fiexdBalance=0, id=127, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=住房出租, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=20, companyId=BSJ01, commisionType=3, fiexdBalance=0, id=128, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=商业出租, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=0, companyId=BSJ01, commisionType=4, fiexdBalance=20000, id=129, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=一手成交, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=0, companyId=BSJ01, commisionType=5, fiexdBalance=666, id=130, operatorId=1}]    
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryPfmTypeDetailByCompanyId(String companyId);
+	/**
+	 * 保存佣金配置明细
+	 * @Title: saveOrEditPfmTypeDetail   
+	 * @Description 保存佣金配置明细   
+	 * @param: paraList {"bussinessSale":"12","houseSaleFirst":"","businessceSaleUnit":"","bussinessRent":"","bussinessRentUnit":"20000","houseSaleFirstUnit":"666","residenceSale":"10","residenceRent":"20"}
+	 * @param: companyId 公司ID
+	 * @param: isModify 是否是修改            
+	 * @return: void      
+	 * @throws
+	 */
+	public void saveOrEditPfmTypeDetail(List<Map<String,Object>> paraList,String companyId);
+	/**
+	 * 根据给定条件查询佣金配置数据信息 
+	 * @Title: queryPfmTypeDetailByCondition
+	 * @author: zuoyuntao  
+	 * @Description:根据给定条件查询佣金配置数据信息
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 * [{permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=住房出售, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=10, companyId=BSJ01, commisionType=1, fiexdBalance=0, id=126, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=商业出售, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=12, companyId=BSJ01, commisionType=2, fiexdBalance=0, id=127, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=住房出租, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=20, companyId=BSJ01, commisionType=3, fiexdBalance=0, id=128, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=商业出租, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=0, companyId=BSJ01, commisionType=4, fiexdBalance=20000, id=129, operatorId=1}, {permissionArea=BSJ0103, addTime=2018-05-22 14:25:11.0, commisionName=一手成交, isValid=1, updateOperator=测试人员, updateTime=2018-05-22 14:25:10.0, operator=测试人员, commisionRate=0, companyId=BSJ01, commisionType=5, fiexdBalance=666, id=130, operatorId=1}]    
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryPfmTypeDetailByCondition(Map<String,Object> paraMap);
+}

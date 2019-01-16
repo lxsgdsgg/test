@@ -1,0 +1,32 @@
+package com.bashiju.base.BaseGlobal;
+
+public class BaseGlobal {
+	
+	//房源绑定码超时时间(小时)
+	public final static int HOUSEBINDCODEEXPTIME=48;
+	//客源绑定码超时时间(小时)
+	public final static int CUSTOMBINDCODEEXPTIME=48;
+	//(秒转小时)
+	public final static int SECONDSTOHOURS=60*60;
+	//短信验证码超时时间(分钟)
+	public final static int MSGAUTHCODEEXPTIME=5;	
+	//客源前缀
+	public final static String KY_PERFIX="KY-";
+	//买卖成交前缀
+	public final static String MMCJ_PERFIX="MM-";
+	//租赁成交前缀
+	public final static String ZLCJ_PERFIX="ZL-";
+	//房源前缀
+	public final static String FY_PERFIX="";
+	//发送频率(秒)
+	public final static int SENDSPEED=1*60;
+	
+    //产品名称:云通信短信API产品,开发者无需替换
+    public static final String product = "Dysmsapi";
+    //产品域名,开发者无需替换
+    public static final String domain = "dysmsapi.aliyuncs.com";
+
+    // 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
+    public static final String accessKeyId = "LTAId8xiP6CefQGk";
+    public static final String accessKeySecret = "T4Zer9hClI96FGt857iy3cYNdrhCG8";
+}

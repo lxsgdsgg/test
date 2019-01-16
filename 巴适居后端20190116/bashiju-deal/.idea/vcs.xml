@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-deal-mapper" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-deal-service/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-service" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-deal-web" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-deal-web/target/m2e-wtp/web-resources/META-INF/maven/com.bashiju.deal/bashiju-deal-web" vcs="svn" />
+  </component>
+</project>

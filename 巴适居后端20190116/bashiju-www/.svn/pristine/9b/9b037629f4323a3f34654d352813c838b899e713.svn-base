@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CommunityMapper">
+	
+	<resultMap type="com.bashiju.www.pojo.service.out.comm.Community" id="resultMap">
+		<id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="buildYear" column="buildYear"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="regionCode" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="address" column="address"/>
+        <result property="salePrice" column="salePrice"/>
+        <result property="onSaleCnt" column="onSaleCnt"/>
+        <result property="leaseCnt" column="leaseCnt"/>
+        <result property="dealCnt" column="dealCnt"/>
+        <result property="subwayLabel" column="subwayLabel"/>
+        <result property="schoolLabel" column="schoolLabel"/>
+
+     </resultMap>
+	
+	<select id="queryCommunitys" parameterType="com.bashiju.www.pojo.service.out.comm.CommunityQueryParams" resultMap="resultMap">
+		select count(0) from  cust_customer where mobile = #{mobile}
+	</select>
+</mapper>

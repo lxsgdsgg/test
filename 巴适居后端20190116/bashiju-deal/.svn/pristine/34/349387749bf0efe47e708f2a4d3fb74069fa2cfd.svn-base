@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.deal.mapper.DealTransitScheduleMapper">
+	<select id="queryDealScheduleDataPageList" resultType="map">
+		select u.realName as traderName,a.reference, a.id,a.dealTime,a.communityName,a.buildingHouseName,b.status
+		,b.estimateFinishTime,b.actualFinishTime,b.cycle
+		 from deal_transactioninfo a left join sys_user u on a.traderId = u.id left join (
+		select dealId,status,scheduleName,scheduleId,SUBSTRING(estimateFinishTime,1,10) estimateFinishTime
+		,SUBSTRING(actualFinishTime,1,10) actualFinishTime,if(actualFinishTime is null,'--' 
+		,abs(replace(SUBSTRING(actualFinishTime,1,10),'-','') - replace(SUBSTRING(estimateFinishTime,1,10),'-',''))) as cycle
+		from deal_transferschedule where isValid = 1) b on a.id = b.dealId 
+		where a.isValid = 1 
+		<if test="id != null and id != '' "> and a.id like concat('\'%',#{id},'\'%') </if> 
+		<if test="communityName != null and communityName != '' "> and a.communityName like concat('\'%',#{communityName},'\'%') </if> 
+		<if test="buildingHouseId != null and buildingHouseId != '' "> and a.buildingHouseId like concat('\'%',#{buildingHouseId},'\'%') </if> 
+		<if test="dealTime != null and dealTime != '' "> and a.dealTime like concat(#{dealTime},'\'%') </if> 
+		<if test="traderId != null and traderId != '' "> and a.traderId = #{traderId} </if> 
+		<if test="referenceId != null and referenceId != '' "> and a.referenceId = #{referenceId} </if> 
+		<if test="scheduleId != null and scheduleId != '' "> and b.scheduleId = #{scheduleId} </if> 
+		<if test="isLoan != null and isLoan != '' and isLoan != 0 "> and a.isLoan = #{isLoan} </if> 
+		<if test="beginDate != null and beginDate != '' and endDate != null and endDate != '' "> 
+			and a.dealTime &gt;= #{beginDate} and a.dealTime &lt;= #{endDate} 
+		</if> 
+		order by estimateFinishTime
+	</select>
+</mapper>

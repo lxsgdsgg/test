@@ -1,0 +1,113 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseBaseEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午2:37:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+import lombok.Data;
+
+/**
+ * 个人中心--房源基类
+ * @ClassName:CustomerHouseBaseEntity
+ * @Description:个人中心--房源基类
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午2:37:52
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerHouseBaseEntity implements Serializable  {
+	/**   
+	 * @Fields serialVersionUID : TODO(用一句话描述这个变量表示什么)   
+	 */ 
+	private static final long serialVersionUID = -7820191178770118402L;
+	/**房源ID**/
+	private int shhId;
+	/**房源交易类型ID**/
+	private String transactionTypeId;
+	/**房源交易类型**/
+	private String transactionType;
+	/**房源ID**/
+	private String houseId;
+	/**房源编号**/
+	private String houseSequence;
+	/**区域编码**/
+	private String areaCode;
+	/**区域名称**/
+	private String areaName;
+	/**片区编码**/
+	private String regionId;
+	/**片区名称**/
+	private String regionName;
+	/**小区ID**/
+	private String communityId;
+	/**小区名称**/
+	private String communityName;
+	/**朝向ID**/
+	private String orientationId;
+	/**朝向名称**/
+	private String orientation;
+	/**装修ID**/
+	private String decorationId;
+	/**装修名称**/
+	private String decoration;
+	/**出售价格**/
+	private BigDecimal sellingPrice;
+	/**出租价格**/
+	private BigDecimal rentPrice;
+	/**最低出售价格**/
+	private BigDecimal minSellingPrice;
+	/**最低出租价格**/
+	private BigDecimal minRentPrice;
+	/**房间数**/
+	private int room;
+	/**大厅数量（客厅/饭厅）**/
+	private int hall;
+	/**卫生间数**/
+	private int toilet;
+	/**厨房数量**/
+	private int kitchen;
+	/**阳台数量**/
+	private int balcony;
+	/**建筑面积**/
+	private double buildSpace;
+	/**使用面积**/
+	private double useSpace;
+	/**建筑年代**/
+	private String buildDates;
+	/**是否委托**/
+	private String isIntrust;
+	/**房源标签多个标签用逗号隔开**/
+	private String labeld;
+	/**所在楼层描述**/
+	private String floorDes;
+	/**总楼层**/
+	protected int totalLayers;
+	/**房源封面图片地址**/
+	protected String imageUrl;
+	/**是否有效**/
+	private String isValid;
+	/**座栋ID**/
+	private int buildingsId;
+	/**座栋名称**/
+	private String buildingsName;
+	/**房号ID**/
+	private String buildingHouseId;
+	/**房号名称**/
+	private String buildingHouseName;
+	/**单元ID**/
+	private int bulidingUnitId;
+	/**单元名称**/
+	private String buildingsUnitName;
+	/**配套**/
+	private String matching;
+}

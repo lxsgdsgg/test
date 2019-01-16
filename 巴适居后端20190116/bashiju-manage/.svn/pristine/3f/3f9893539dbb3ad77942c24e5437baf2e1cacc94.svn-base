@@ -1,0 +1,50 @@
+package com.bashiju.manage.mapper;
+
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  HousePropertyArticleClasses   
+ * @Description:TODO(房产文章分类映射接口)   
+ * @author: wangpeng
+ * @date:   2018年7月19日 下午5:51:30   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface HousePropertyArticleClassesMapper {
+	
+	/**
+	 * 
+	 * @Title: queryHousePropertyArticleClasses   
+	 * @Description: TODO(房产文章分类)   
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	Page<Map<String,Object>> queryHousePropertyArticleClasses(@Param("name")String name,@Param("level")String level,@Param("cityCode")String cityCode);
+
+	
+	
+	/**
+	 * 
+	 * @Title: queryHousePropertyArticleClassesLevel   
+	 * @Description: TODO(查询房产文章分类等级)   
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	 List<Map<String,Object>>  queryHousePropertyArticleClassesNameByLevel(@Param("level")String level,@Param("cityCode")String cityCode);
+	 /**
+	  * 
+	  * @Title: queryHousePropertyArticleClassesById   
+	  * @Description: TODO(这里用一句话描述这个方法的作用)   
+	  * @param houseAticleId
+	  * @return      
+	  * @return: Map<String,Object>
+	  */
+	 Map<String,Object> queryHousePropertyArticleClassesById(@Param("houseAticleId")String houseAticleId);
+}

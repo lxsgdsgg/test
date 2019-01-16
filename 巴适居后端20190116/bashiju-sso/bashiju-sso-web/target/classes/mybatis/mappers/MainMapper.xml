@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.sso.mapper.MainMapper">
+	<select id="queryUserMenuPermission" resultType="java.util.LinkedHashMap">
+		call queryUserMenuPermission(#{userId})
+	</select>
+	
+	<select id="queryFirstMenuByUser" resultType="java.util.LinkedHashMap">
+		call queryFirstMenuByUser(#{userId})
+	</select>
+	
+	<select id="queryChildMenus" resultType="java.util.LinkedHashMap">
+		call queryChildMenus(#{userId},#{menuId})
+	</select>
+	
+</mapper>

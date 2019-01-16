@@ -1,0 +1,440 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustmentServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:12:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.webservice.mapper.CustomerEntrustmentsMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerEntrustParamEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingHouseEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralCommunityEntity;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.comm.IFormService;
+import com.bashiju.www.service.user.ICustomerEntrustmentService;
+import com.bashiju.www.tools.WebCommonTools;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心--我的委托--管理服务
+ * @ClassName:CustomerEntrustmentServiceImpl
+ * @Description:个人中心--我的委托--管理服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:12:28
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerEntrustmentServiceImpl implements ICustomerEntrustmentService{
+	/**
+	 * Redis操作服务接口
+	 */
+	@Autowired
+	private ICacheService iCacheService;
+	/**
+	 * Redis获取各种码的服务接口
+	 */
+	@Autowired
+	private RedisGetIdServiceApi mRedisGetIdServiceApi;
+	/**
+	 * 客户委托持久层接口
+	 */
+	@Autowired
+	private CustomerEntrustmentsMapper mCustomerEntrustmentsMapper;
+	/**
+	 * 对象映射
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * 公共服务
+	 */
+	@Autowired
+	private ICommService mICommService;
+	/**
+	 * 动态表达配置数据读取服务接口
+	 */
+	private IFormService mIFormService;
+	/**
+	 * 万元单位
+	 */
+	private static int WAN = 1000000;
+	/**
+	 * 元单位
+	 */
+	private static int YUAN = 100;
+	/**
+	 * <p>Title: queryHouseEntrustmentDataList</p>   
+	 * <p>Description: 查询房源出租、出售委托信息</p>   
+	 * @param custId 客户ID
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @return
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#queryHouseEntrustmentDataList(java.lang.String, java.lang.String, int, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public WebPage<CustomerHouseEntrustmentEntity> queryHouseEntrustmentDataList(String custId,
+			int page, int limit) {
+		String key = Md5EncryptUtils.md5Encrypt(
+				"queryHouseEntrustmentDataList" + custId.trim() + page + limit);
+		WebPage<CustomerHouseEntrustmentEntity> pageList 
+					= (WebPage<CustomerHouseEntrustmentEntity>) readDataListFromRedisAsList(key,WebPage.class);
+		if(null == pageList) {
+			PageHelper.startPage(page,limit);
+			Page<CustomerHouseEntrustmentEntity> pageObj = 
+					mCustomerEntrustmentsMapper.queryHouseEntrustData(custId);
+			if(pageObj.size() > 0) {
+				pageList = new WebPage<>(pageObj);
+				//保存数据到Redis
+				iCacheService.saveCache(key,pageList,WebGlobal.OTHER_EXPTIME);
+			}
+		}
+		return pageList;
+	}
+	/**
+	 * <p>Title: queryDemandEntrustmentDataList</p>   
+	 * <p>Description:查询客户需求数据信息 </p>   
+	 * @param custId 客户ID
+	 * @param entrustType 委托类型（0求租 1求购）
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#queryDemandEntrustmentDataList(java.lang.String, java.lang.String, int, int)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public WebPage<CustomerDemandEntrustmentEntity> queryDemandEntrustmentDataList(String custId
+			, String entrustType,int page, int limit) {
+		String key = Md5EncryptUtils.md5Encrypt(
+			"queryDemandEntrustmentDataList" + custId.trim() 
+				+ entrustType.trim() + page + limit);
+		WebPage<CustomerDemandEntrustmentEntity> pageList 
+				= (WebPage<CustomerDemandEntrustmentEntity>) readDataListFromRedisAsList(key,WebPage.class);
+		if(null == pageList) {
+			PageHelper.startPage(page,limit);
+			Page<CustomerDemandEntrustmentEntity> pageObj = 
+					mCustomerEntrustmentsMapper.queryDemandEntrustData(custId,entrustType);
+			if(pageObj.size() > 0) {
+				pageList = new WebPage<>(pageObj);
+				//保存数据到Redis
+				iCacheService.saveCache(key,pageList, WebGlobal.OTHER_EXPTIME);
+			}
+		}
+		return pageList;
+	}
+	/**
+	 * <p>Title: saveHouseEntrustmentData</p>   
+	 * <p>Description: 保存客户房源出租出售委托信息</p>   
+	 * @param houseEntity 房屋委托信息实体对象  
+	 * @param verifyCode 手机验证码
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#saveHouseEntrustmentData(com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity)
+	 */
+	@Override
+	public void saveHouseEntrustmentData(CustomerHouseEntrustmentEntity houseEntity
+			,String verifyCode) {
+		if(StringUtil.isEmpty(houseEntity.getMobile())) {
+			throw new BusinessException("手机号码为空");
+		}
+		checkMobileVerifyCode(verifyCode,houseEntity.getMobile());
+		checkSaveData(houseEntity);
+		
+		if(houseEntity.getTransactionType() == 1) {
+			houseEntity.setSellingPrice(houseEntity.getSellingPrice() * WAN);
+		}
+		if(houseEntity.getTransactionType() == 2) {
+			houseEntity.setRentPrice(houseEntity.getRentPrice() * YUAN);
+		}
+		int communityId = houseEntity.getCommunityId();
+		houseEntity.setFloorDesc(0);
+		houseEntity.setJoinRentStyle(0);
+		houseEntity.setAddTime(WebCommonTools.formatDate(""));
+		List<Agent> agentInfo = mICommService.queryCommunityBestAgent(String.valueOf(communityId));
+		if(null == agentInfo) {
+			return ;
+		}
+		Map<String,Object> paraMap = WebCommonTools.castEntityToHashMap(houseEntity);
+		Map<String,Object> saveMap = new HashMap<String,Object>();
+		saveMap.put("saveMap", paraMap);
+		saveMap.put("id", "");
+		mCustomerEntrustmentsMapper.saveHouseEntrustmentData(saveMap);
+		Map<String,Object> agentParaMap = new HashMap<String,Object>();
+		long id = Long.parseLong(saveMap.get("id").toString());
+		buildAgentanceData(agentInfo.get(0), id, agentParaMap);
+		mCustomerEntrustmentsMapper.saveAgentAcceptDataList(agentParaMap);
+		//提交成功后删除Redis验证码数据
+		iCacheService.delCache(houseEntity.getMobile());
+	}
+	/**
+	 * 校验客户输入验证码是否正确
+	 * @Title: checkMobileVerifyCode
+	 * @author: zuoyuntao  
+	 * @Description:校验客户输入验证码是否正确
+	 * @param verifyCode 验证码
+	 * @param mobile 手机号
+	 * void 
+	 */
+	private void checkMobileVerifyCode(String verifyCode,String mobile) {
+		String code = iCacheService.getCache(mobile);
+		if(StringUtil.isEmpty(code)) {
+			throw new BusinessException("验证码失效!");
+		}
+		if(!code.equals(verifyCode)) {
+			throw new BusinessException("输入验证码错误，请重新输入");
+		}
+	}
+	/**
+	 * 组装经纪人受理数据信息
+	 * @Title: buildAgentanceData
+	 * @author: zuoyuntao  
+	 * @Description:组装经纪人受理数据信息
+	 * @param agent 根据小区ID挑选出来的优质经纪人
+	 * @param id 委托资源ID
+	 * @param agentParaMap 要保存的经纪人受理数据对象
+	 * void
+	 */
+	private void buildAgentanceData(Agent agent,long id,Map<String,Object> agentParaMap){
+		Date nowDate = new Date();
+		agentParaMap.put("addTime", nowDate);
+		//0--房源委托 1--需求委托
+		agentParaMap.put("entrustType", 0);
+		agentParaMap.put("handelResult", "");
+		agentParaMap.put("handelTime", new Date());
+		agentParaMap.put("isvalid", 1);
+		agentParaMap.put("resultId", 0);
+		agentParaMap.put("sourceId", id);
+		//0--未处理 1--已处理 2--已失效
+		agentParaMap.put("status", 0);
+		agentParaMap.put("updateTime",nowDate);
+		agentParaMap.put("operatorId", agent.getAgentId());
+		agentParaMap.put("permissionArea", agent.getDeptId());
+		agentParaMap.put("operator", agent.getAgentName());
+		agentParaMap.put("userId", agent.getUserId());
+	}
+	
+	private void checkSaveData(CustomerHouseEntrustmentEntity houseEntity) {
+		if(StringUtil.isEmpty(houseEntity.getAreaCode())) {
+			throw new BusinessException("区域编码【areaCode】为空");
+		}
+		if(StringUtil.isEmpty(houseEntity.getAreaCode())) {
+			throw new BusinessException("区域编码【areaName】为空");
+		}
+		if(StringUtil.isEmpty(String.valueOf(houseEntity.getRegionId()))) {
+			throw new BusinessException("片区ID【regionId】为空");
+		}
+		if(StringUtil.isEmpty(houseEntity.getRegionName())) {
+			throw new BusinessException("片区名称【regionName】为空");
+		}
+		if(StringUtil.isEmpty(String.valueOf(houseEntity.getCommunityId()))) {
+			throw new BusinessException("小区ID【communityId】为空");
+		}
+		if(StringUtil.isEmpty(houseEntity.getCommunityName())) {
+			throw new BusinessException("小区名称【communityName】为空");
+		}
+	}
+	/**
+	 * <p>Title: saveDemandEntrusData</p>   
+	 * <p>Description: 保存客户需求委托数据信息</p>   
+	 * @param demandEntity  客户需求委托对象
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#saveDemandEntrusData(com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public void saveDemandEntrusData(CustomerDemandEntrustmentEntity demandEntity) {
+		Object oriObj = WebCommonTools.castEntityToHashMap(demandEntity);
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(null != oriObj) {
+			paraMap = (Map<String, Object>) oriObj;
+		}
+		//保存客户需求信息
+		mCustomerEntrustmentsMapper.saveDemandEntrustmentData(paraMap);
+		//按照客户需求匹配房源
+		mCustomerEntrustmentsMapper.queryHouseSourceDataByMatchingCondition(demandEntity);
+	}
+	/**
+	 * 从Redis读取数据信息
+	 * @Title: readHouseDataListFromRedis
+	 * @author: zuoyuntao  
+	 * @Description:从Redis读取数据信息
+	 * @param key 
+	 * @param className 返回类型 
+	 * @return      
+	 * Object
+	 */
+	private Object readDataListFromRedisAsList(String key,Class<?> className){
+		String retObj = iCacheService.getCache(key);
+		if(null != retObj) {
+			try {
+				return MAPPER.readValue(retObj, className);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	/**
+	 * 根据手机号码获取验证码 
+	 * @Title: queryHouseVerifyCode
+	 * @author: zuoyuntao  
+	 * @Description:根据手机号码获取验证码  
+	 * @param mobile 手机号码
+	 * @return      
+	 * String
+	 */
+	@Override
+	public void queryHouseVerifyCode(String mobile) {
+		String verifyCode = mRedisGetIdServiceApi.getMsgAuthCode(mobile);
+		if(null == verifyCode) {
+			throw new BusinessException("请勿频繁操作");
+		}
+	}
+	/**
+	 * <p>Title: queryPayOffMethod</p>   
+	 * <p>Description: 读取付款方式下拉选项</p>   
+	 * @return Map<String,List<SelectItemResult>>  
+	 * @see com.bashiju.www.service.user.ICustomerEntrustmentService#queryPayOffMethod()
+	 */
+	@Override
+	public Map<String,List<SelectItemResult>> queryPayOffMethod() {
+		//TODO 配置好动态下拉之后要补上
+		return mIFormService.querySelectByCode("");
+	}
+	
+	/**
+	 * 房源撤销委托
+	 * @Title: concelEntrust
+	 * @author: zuoyuntao  
+	 * @Description:房源撤销委托
+	 * @param houseEntity 房源实体对象   
+	 * void
+	 */
+	@Override
+	public void concelEntrust(String entrustId) {
+		mCustomerEntrustmentsMapper.concelEntrust(entrustId);
+	}
+	
+	/**
+	 * 获取小区数据信息
+	 * @Title: queryCommunityList
+	 * @author: zuoyuntao  
+	 * @Description:获取小区数据信息
+	 * @param rgCode 城市编码（城市行政区划编码，如：昆明（530100）
+	 * @return      
+	 * List<CustomerUserCentralCommunityEntity> 数据中包含【行政区、片区、小区】数据
+	 */
+	@Override
+	public List<CustomerUserCentralCommunityEntity> queryCommunityList(String rgCode){
+		return mCustomerEntrustmentsMapper.queryCommunityList(rgCode);
+	}
+	
+	/**
+	 * 根据小区ID获取座栋信息
+	 * @Title: queryBuildingsData
+	 * @author: zuoyuntao  
+	 * @Description:根据小区ID获取座栋信息 
+	 * @param communityId 小区ID
+	 * @return      
+	 * List<CustomerUserCentralBuildingEntity> 
+	 */
+	@Override
+	public List<CustomerUserCentralBuildingEntity> queryBuildingsData(String communityId){
+		return mCustomerEntrustmentsMapper.queryBuildingsData(communityId);
+	}
+	
+	/**
+	 * 根据座栋ID查询单元、门牌号数据信息
+	 * @Title: queryBuildingUnityAndHouse
+	 * @author: zuoyuntao  
+	 * @Description:根据座栋ID查询单元、门牌号数据信息
+	 * @param buildingId 座栋ID
+	 * @return      
+	 * List<CustomerUserCentralBuildingHouseEntity>
+	 */
+	@Override
+	public List<CustomerUserCentralBuildingHouseEntity> queryBuildingUnityAndHouse(String buildingId){
+		return mCustomerEntrustmentsMapper.queryBuildingUnityAndHouse(buildingId);
+	}
+	
+	/**
+	 * 根据客户登陆key和委托ID查委托
+	 * @Title: queryEntrustDataByCustIdAndEntrustId
+	 * @author: zuoyuntao  
+	 * @Description:根据客户登陆key和委托ID查委托
+	 * @param custId 用户ID
+	 * @param entrustId 委托ID
+	 * @return      
+	 * CustomerHouseEntrustmentEntity
+	 */
+	@Override
+	public CustomerHouseEntrustmentEntity queryEntrustDataByCustIdAndEntrustId(String custId,String entrustId) {
+		return mCustomerEntrustmentsMapper.queryEntrustDataByCustIdAndEntrustId(custId,entrustId);
+	}
+	/**
+	 * 房源重新委托
+	 * @Title: updateCustomerEntrust
+	 * @author: zuoyuntao  
+	 * @Description:房源重新委托
+	 * @param entrustEntity 
+	 * @return      
+	 * Object
+	 */
+	@Override
+	public boolean updateCustomerEntrust(CustomerEntrustParamEntity entrustEntity) {
+		Map<String,Object> paramMap = new HashMap<String,Object>();
+		paramMap.put("id", entrustEntity.getId());
+		paramMap.put("custId", entrustEntity.getCustId());
+		paramMap.put("descs", entrustEntity.getDescs());
+		paramMap.put("mobile", entrustEntity.getMobile());
+		paramMap.put("rentPrice", entrustEntity.getRentPrice() * 100);
+		paramMap.put("sellingPrice", entrustEntity.getSellingPrice() * 1000000);
+		mCustomerEntrustmentsMapper.updateCustomerEntrust(paramMap);
+		return true;
+	}
+	
+	/**
+	 * 根据房源Id撤销房源
+	 * @Title: cancelOurHouse
+	 * @author: zuoyuntao  
+	 * @Description:根据房源Id撤销房源
+	 * @param houseId 房源ID
+	 * @param custId 客户ID
+	 * void
+	 */
+	@Override
+	public void cancelOurHouseById(String houseId,String custId) {
+		mCustomerEntrustmentsMapper.cancelOurHouseById(houseId, custId);
+	}
+}

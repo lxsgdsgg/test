@@ -1,0 +1,167 @@
+package com.bashiju.www.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.input.house.HouseAreaParam;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseDescriptionResult;
+import com.bashiju.www.pojo.service.out.house.HouseImageResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseSameLinkResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.github.pagehelper.Page;
+
+public interface HouseMapper {
+	/**
+	 * 
+		 * 查询房源详细基本信息
+		 * @Description: 查询房源详细基本信息 
+		 * @param houseId 房源id
+		 * @return 
+		 * HouseInfoResult
+	 */
+	public HouseInfoResult queryHouseInfo(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询经纪人简介信息
+		 * @Description: 查询经纪人简介信息
+		 * @param userId 经纪人id
+		 * @return 
+		 * AgentResult
+	 */
+	public AgentResult queryAgentById(@Param("userId")long userId);
+	/**
+	 * 
+		 * 查询房源的带看经纪人列表
+		 * @Description: 查询房源的带看经纪人列表
+		 * @param houseId 房源id
+		 * @return 
+		 * List<AgentResult>
+	 */
+	public List<AgentResult> queryAgentsByHouseId(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的带看记录列表
+		 * @Description: 查询房源的带看记录列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<ShowedRecordResult>
+	 */
+	public List<ShowedRecordResult> queryShowedRecords(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的小区简介
+		 * @Description: 查询房源的小区简介 
+		 * @param communityId 小区id
+		 * @return 
+		 * CommunityResult
+	 */
+	public CommunityResult queryCommunityInfo(@Param("communityId")long communityId);
+	/**
+	 * 
+		 * 查询房源图片
+		 * @Description: 查询房源图片 
+		 * @param houseId
+		 * @return 
+		 * HouseImageResult
+	 */
+	public List<HouseImageResult> queryHouseImages(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询小区地铁标签
+		 * @Description: 查询小区地铁标签 
+		 * @param communityId 小区id
+		 * @return 
+		 * String
+	 */
+	public String queryMetroLabel(@Param("communityId")long communityId);
+	/**
+	 * 
+		 * 查询房源列表
+		 * @Description: 查询房源列表
+		 * @param param
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	public Page<HouseListResult> queryHouseList(HouseAreaParam param);
+	/**
+	 * 
+		 * 查询房源描述列表
+		 * @Description: 查询房源描述列表
+		 * @param houseId 房源id
+		 * @return 
+		 * List<HouseDescriptionResult>
+	 */
+	public List<HouseDescriptionResult> queryHouseDescriptionList(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 增加房源浏览数
+		 * @Description: 增加房源浏览数
+		 * @param houseId 房源id
+		 * @return 
+		 * int
+	 */
+	public int updateHouseBrowsingCount(@Param("houseId")long houseId);
+	
+	/**
+	 * 
+	 * @Title: querySameHouseList   
+	 * @Description: TODO(查询相似房源)   
+	 * @param: @param param
+	 * @param: @return      
+	 * @return: List<HouseListResult>      
+	 * @throws
+	 */
+	public List<HouseListResult> querySameHouseList(HouseSameParam param);
+	/**
+	 * 
+		 * 查询其他公司的同套房源列表
+		 * @Description: 查询其他公司的同套房源列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<HouseSameLinkResult>
+	 */
+	public List<HouseSameLinkResult> queryHouseSameLinks(@Param("houseId")long houseId);
+
+	
+	/**
+	 * 
+	 * @Title: saveHouseTipOff   
+	 * @Description: TODO(房源举报)   
+	 * @param: @param param
+	 * @param: @return      
+	 * @return: int      
+	 * @throws
+	 */
+	public int saveHouseTipOff(HouseTipOffParam param);
+
+	/**
+	 * 
+		 * 查询房源比较列表
+		 * @Description: 查询房源比较列表 
+		 * @param ids 比较房源id
+		 * @return 
+		 * List<HouseCompareResult>
+	 */
+	public List<HouseCompareResult> queryHouseCompareList(@Param("ids")List<Long> ids);
+	
+	/**
+	 * 
+	 * @Title: queryHouseByCoummunity   
+	 * @Description: TODO(根据小区模糊查询房源)   
+	 * @param: @param communityName
+	 * @param: @param type
+	 * @param: @return      
+	 * @return: List<HouseListResult>      
+	 * @throws
+	 */
+	public Page<HouseListResult> queryHouseByCoummunity(@Param("communityName")String communityName,@Param("type")int type);
+
+}

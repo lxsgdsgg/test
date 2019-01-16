@@ -1,0 +1,15 @@
+com\bashiju\housing\mapper\FormMapper.class
+com\bashiju\housing\mapper\HouseActionLogQueryMapper.class
+com\bashiju\housing\mapper\NewHousingMapper.class
+com\bashiju\housing\mapper\PropertyDynamicMapper.class
+com\bashiju\housing\mapper\HousePictureExamineMapper.class
+com\bashiju\housing\mapper\HsKeyMapper.class
+com\bashiju\housing\mapper\BuildingMapper.class
+com\bashiju\housing\mapper\AgentHouseEntrustAcceptanceDealMapper.class
+com\bashiju\housing\mapper\CommMapper.class
+com\bashiju\housing\mapper\HouseSeekByMetroMapper.class
+com\bashiju\housing\mapper\HsFollowRecordMapper.class
+com\bashiju\housing\mapper\PrintTemplateMapper.class
+com\bashiju\housing\mapper\HouseSeekByMapMapper.class
+com\bashiju\housing\mapper\BusinessExamineMapper.class
+com\bashiju\housing\mapper\ErHousingMapper.class

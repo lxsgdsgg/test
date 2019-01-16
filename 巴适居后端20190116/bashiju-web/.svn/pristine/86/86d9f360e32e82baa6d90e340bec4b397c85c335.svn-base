@@ -1,0 +1,33 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="bashiju-web-consumer" >
+		<dubbo:parameter key="qos.enable" value="false"/>
+	</dubbo:application>
+	<!-- 从注册中心中查找服务 -->
+	<dubbo:reference id="IZiXunPageServiceApi"
+		interface="com.bashiju.wapi.IZiXunPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IBaiKePageServiceApi"
+		id="BaiKePageServiceImpl" />	
+	<dubbo:reference interface="com.bashiju.wapi.IHomePageServiceApi"
+		id="HomePageServiceImpl" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseRentInfoPageServiceApi"
+		id="HouseRentInfoPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseRentListPageServiceApi"
+		id="HouseRentListPageServiceApi" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseSellInfoPageServiceApi"
+		id="HouseSellInfoPageService" />
+	<dubbo:reference interface="com.bashiju.wapi.IHouseSellListPageServiceApi"
+		id="HouseSellListPageService" />	
+	<dubbo:reference interface="com.bashiju.wapi.IMapHouseRentPageServiceApi"
+		id="MapHouseRentPageServiceApi" />	
+	<dubbo:reference interface="com.bashiju.wapi.IMapHouseSellPageServiceApi"
+		id="MapHouseSellPageService" />
+</beans>

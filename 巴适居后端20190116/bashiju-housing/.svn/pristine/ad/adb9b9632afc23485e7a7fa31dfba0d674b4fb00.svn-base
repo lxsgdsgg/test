@@ -1,0 +1,215 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  HouseSeekByMapController.java   
+ * @Package com.bashiju.housing.controller   
+ * @Description:地铁找房控制器
+ * @author: zuoyuntao     
+ * @date:   2018年6月6日 下午3:08:55   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.housing.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.housing.service.IErHousingService;
+import com.bashiju.housing.service.IHouseSeekByMetroService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 地铁找房控制器
+ * @ClassName: HouseSeekByMetroController
+ * @Description:地铁找房控制器
+ * @author:zuoyuntao
+ * @date:2018年6月6日 下午3:08:55
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Controller
+@RequestMapping(value="houseseekbymetro")
+public class HouseSeekByMetroController extends BaseController{
+	/**
+	 * 地铁找房接口
+	 */
+	@Autowired
+	private IHouseSeekByMetroService mIHouseSeekByMetroService;
+	/**
+	 * 二手房源接口对象
+	 */
+	@Autowired
+	private IErHousingService erHousingService;
+	/**
+	 * 获取地图找房视图对象
+	 * @Title: getHouseSeekByMapModel
+	 * @author: zuoyuntao  
+	 * @Description:获取地图找房视图对象
+	 * @param request 页面请求对象
+	 * @param response 页面响应对象
+	 * @return ModelAndView
+	 * @throws
+	 */
+	@RequestMapping(value="getHouseSeekByMetroModel")
+	public ModelAndView getHouseSeekByMetroModel(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response
+				, "seekHouseByMetro/seek_house_by_metro");
+		//小区房源信息
+		List<Map<String,Object>> communityHsInfo = mIHouseSeekByMetroService
+				.queryStatisticsCommunityHouseInfo(new HashMap<String,Object>());
+		//地铁线路信息
+		List<Map<String, Object>> metroList = mIHouseSeekByMetroService
+				.queryMetroLineInfo(new HashMap<String,Object>());
+		List<Map<String, Object>> stationList = mIHouseSeekByMetroService
+				.queryStationInfo(new HashMap<String,Object>());
+		List<Map<String, Object>>  communitList = erHousingService.queryCommunity();
+		model.addObject("communityHsInfo",JSONObject.toJSON(communityHsInfo));
+		model.addObject("metroList",JSONObject.toJSON(metroList));
+		model.addObject("stationList",JSONObject.toJSON(stationList));
+		model.addObject("communitList", JSON.toJSONString(communitList));
+		model.addObject("communitInfo", JSON.toJSONString(communitList));
+		return model;
+	}
+	
+	/**
+	 * 二手房源明细
+	 * @Title: getHouseInfoDetailModel
+	 * @author: zuoyuntao  
+	 * @Description:二手房源明细
+	 * @param request
+	 * @param response
+	 * @return      
+	 * ModelAndView JSON 格式为：{}     
+	 * @throws
+	 */
+	@RequestMapping(value="getHouseInfoDetailModel")
+	public ModelAndView getHouseInfoDetailModel(HttpServletRequest request,HttpServletResponse response
+			,String jsonData,String communityId) {
+		//房源详细页面使用【地图找房】的详细页面
+		ModelAndView model = this.getModelAndView(request, response, "seekHouseByMetro/house_detail");
+		model.addObject("communityId",communityId);
+		Map<String,Object> temp = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			temp = JSONObject.parseObject(jsonData.replace("'", "\""));
+			model.addObject("dataParam",JSON.toJSONString(temp));
+		}
+		return model;
+	}
+	
+	/**
+	 * 获取地图找房数据信息
+	 * @Title: queryHouseSourceDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取地图找房数据信息   
+	 * @param jsonData 页面传入条件
+	 * @param communityId 小区ID
+	 * @return
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	@SuppressWarnings({ "unchecked" })
+	@RequestMapping(value="queryAllHouseSourceDataList")
+	@ResponseBody
+	public Object queryAllHouseSourceDataList(String jsonData,String communityId,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			paraMap = JSONObject.parseObject(jsonData);
+		}
+		paraMap.put("communityId", communityId);
+		String status = String.valueOf(paraMap.get("status"));
+		String effect = String.valueOf(paraMap.get("effect"));
+		JSONArray areas = (JSONArray) paraMap.get("areas");
+		paraMap.remove("status");
+		paraMap.remove("effect");
+		paraMap.remove("areas");
+		if(null!= areas && areas.size() > 0) {
+			List<String> areaCodeList = new ArrayList<String>();
+			for(int i = 0,n = areas.size();i < n;i++) {
+				JSONObject obj = areas.getJSONObject(i);
+				areaCodeList.add(obj.getString("value"));
+			}
+			paraMap.put("areaCode", areaCodeList);
+		}
+		if(StringUtil.isNotEmpty(status) && status != "null" && status.indexOf("{}") == -1) {
+			Map<String,Object> statusMap = JSON.parseObject(status,Map.class);
+			paraMap.put("statusId", statusMap.get("status"));
+		}
+		if(StringUtil.isNotEmpty(effect) && effect != "null" && effect.indexOf("{}") == -1) {
+			Map<String,Object> effectMap = JSON.parseObject(effect,Map.class);
+			paraMap.put("houseUsesId", effectMap.get("effect"));
+			
+		}
+		Page<Map<String, Object>> retList = mIHouseSeekByMetroService
+				.queryHouseSourceDataListForMetro(paraMap,page,limit);
+		return getPageResult(retList);
+	}
+	/**
+	 * 获取地图查询的页面统计信息
+	 * @Title: getHouseSourceStatisticsInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取地图查询的页面统计信息   
+	 * @param jsonData 参数集合
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	@RequestMapping(value="getHouseSourceStatisticsInfo")
+	@ResponseBody
+	public BashijuResult getHouseSourceStatisticsInfo(String jsonData) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			paraMap = JSON.parseObject(jsonData);
+		}
+		String status = String.valueOf(paraMap.get("status"));
+		String effect = String.valueOf(paraMap.get("effect"));
+		JSONArray areas = (JSONArray) paraMap.get("areas");
+		paraMap.remove("status");
+		paraMap.remove("effect");
+		paraMap.remove("areas");
+		if(null!= areas && areas.size() > 0) {
+			List<String> areaCodeList = new ArrayList<String>();
+			for(int i = 0,n = areas.size();i < n;i++) {
+				JSONObject obj = areas.getJSONObject(i);
+				areaCodeList.add(obj.getString("value"));
+			}
+			paraMap.put("areaCode", areaCodeList);
+		}
+		if(StringUtil.isNotEmpty(status) && status != "null" && status.indexOf("{}") == -1) {
+			Map<String,Object> statusMap = JSON.parseObject(status);
+			paraMap.put("statusId", statusMap.get("status"));
+		}
+		if(StringUtil.isNotEmpty(effect) && effect != "null" && effect.indexOf("{}") == -1) {
+			Map<String,Object> effectMap = JSON.parseObject(effect);
+			paraMap.put("houseUsesId", effectMap.get("effect"));
+			
+		}
+		
+		if(StringUtil.isEmpty((String) UserThreadLocal.get().get("areaCode"))) {
+			throw new BusinessException("用户登陆异常!");
+		}
+		List<Map<String, Object>> retList 
+				= mIHouseSeekByMetroService.queryStatisticsCommunityHouseInfo(paraMap);
+		return BashijuResult.ok(retList);
+	}
+	
+}

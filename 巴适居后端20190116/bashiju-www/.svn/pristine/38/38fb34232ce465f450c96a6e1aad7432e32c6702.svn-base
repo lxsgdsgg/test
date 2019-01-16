@@ -1,0 +1,75 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerStarCommentsTest.java   
+ * @Package com.bashiju.www.test.usercentraltest      
+ * @author: zuoyuntao     
+ * @date:   2018年8月3日 上午11:31:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test.usercentraltest;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity;
+import com.bashiju.www.service.user.ICustomerStarCommentsService;
+import com.bashiju.www.test.BaseServiceTest;
+import com.github.pagehelper.Page;
+
+/**
+ * 评价测试类
+ * @ClassName:CustomerStarCommentsTest
+ * @Description:评价测试类
+ * @author:zuoyuntao
+ * @date:2018年8月3日 上午11:31:52
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class CustomerStarCommentsTest extends BaseServiceTest {
+	@Autowired
+	private ICustomerStarCommentsService mICustomerStarCommentsService;
+
+	/**
+	 * 获取我的评价
+	 * @Title: queryMyComments
+	 * @author: zuoyuntao  
+	 * @Description:获取我的评价
+	 * void JSON 格式为：
+	 */
+	@Test
+	public void queryCustomerComments(){
+		Page<CustomerStarCommentsEntity> page =
+				mICustomerStarCommentsService.queryCustomerComments("1", 0, 10);
+		for(CustomerStarCommentsEntity obj : page) {
+			System.out.println(obj);
+		}
+	}
+	/**
+	 * 保存客户评价
+	 * @Title: saveCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:保存客户评价
+	 * void HttpServletRequest request,HttpServletResponse response
+	 */
+	@Test
+	public void saveCustomerComments() {
+		CustomerStarCommentsEntity entity = new CustomerStarCommentsEntity();
+		entity.setType("0");
+		entity.setContent("这个经纪人还可以");
+		entity.setCustId(1);
+		entity.setCustName("左云涛");
+		entity.setLabels("房东信赖,客户热评");
+		entity.setLabelIds("1,2,3");
+		entity.setStar(5);
+		entity.setUserId(1);
+//		mICustomerStarCommentsService.getImageVerifyCode(request, response);
+		mICustomerStarCommentsService.saveCustomerComments(entity,"VWDC",null,null);
+	}
+
+}

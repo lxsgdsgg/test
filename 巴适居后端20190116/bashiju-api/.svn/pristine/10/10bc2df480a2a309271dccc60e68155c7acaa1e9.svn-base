@@ -1,0 +1,19 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+	<!-- 这里使用的注册中心是zookeeper -->
+	<!-- <dubbo:registry address="zookeeper://116.55.242.12:2188?backup=116.55.242.11:2188,116.55.242.15:2188"
+		client="zkclient" /> -->
+	 <dubbo:registry address="zookeeper://zoo1.bashiju.com:2188?backup=zoo2.bashiju.com:2188,zoo3.bashiju.com:2188"
+		client="zkclient" /> 
+	<!-- 服务调用超时设置 -->
+	<dubbo:provider timeout="50000"/>
+	<dubbo:consumer timeout="50000"/>
+	
+	<!-- <dubbo:monitor protocol="registry" address="zoo.bashiju.com:7070"/> -->
+</beans>

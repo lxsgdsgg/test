@@ -1,0 +1,81 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bashiju</groupId>
+    <artifactId>bashiju-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <groupId>com.bashiju.base</groupId>
+  <artifactId>bashiju-base</artifactId>
+  <packaging>pom</packaging>
+  <modules>
+  	<module>bashiju-base-mapper</module>
+  	<module>bashiju-base-pojo</module>
+  	<module>bashiju-base-service</module>
+  	<module>bashiju-base-web</module>
+  </modules>
+<dependencies>
+
+    <dependency>
+		  <groupId>com.bashiju.utils</groupId> 
+		  <artifactId>bashiju-utils</artifactId> 
+		  <version>0.0.1-SNAPSHOT</version> 
+	</dependency>	
+
+    <!-- log4j2,连接日志数据库的数据库连接池 -->		
+		<dependency>
+			   <groupId>commons-dbcp</groupId>
+			   <artifactId>commons-dbcp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<dependency>
+			    <groupId>org.springframework</groupId>
+			    <artifactId>spring-tx</artifactId>
+			</dependency>
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-test -->
+		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-test</artifactId>
+		    <version>4.3.12.RELEASE</version>
+		    <scope>test</scope>
+		</dependency>
+
+	  <!-- 单元测试 -->
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+		</dependency>
+		<!-- redis客户端 -->
+	<dependency>
+		<groupId>redis.clients</groupId>
+		<artifactId>jedis</artifactId>
+	</dependency>
+	</dependencies>
+	 <build>
+  	<pluginManagement>
+  		<plugins>
+  			<!-- 配置Tomcat插件 -->
+  			<plugin>
+  				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<configuration>
+					<port>8880</port>
+					<path>/</path>
+					<update>true</update>
+					<url>http://119.23.15.201:8880/manager/text</url>
+                    <username>bashiju</username>
+                    <password>123456</password>
+				</configuration>
+  			</plugin>
+  		</plugins>
+  	</pluginManagement>
+  </build>
+</project>

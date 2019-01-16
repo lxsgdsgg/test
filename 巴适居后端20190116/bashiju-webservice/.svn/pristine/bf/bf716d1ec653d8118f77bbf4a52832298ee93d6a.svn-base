@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.NavigationBarMapper">
+	
+	<resultMap type="com.bashiju.www.pojo.service.out.comm.NavigationBar" id="resultMap">
+		<id property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="level" column="level"/>
+		<result property="url" column="url"/>
+		<result property="parentId" column="parentId"/>
+		<result property="parentName" column="parentName"/>
+	</resultMap>
+	
+	<select id="queryNavigationBarByType" parameterType="com.bashiju.www.pojo.service.out.comm.NavigationBar" resultMap="resultMap">
+		SELECT sng.id AS navigationBarId,sng.navigateCode,nb.name as parentName,scf.id,sng.`name`,sng.`level`,
+		sng.type,sng.parentId,sng.url,scoi.id AS cityOpenInfoId
+		FROM sys_navigationbar AS sng
+		INNER JOIN sys_cityopen_function AS scf ON sng.id = scf.navigationBarId
+		INNER JOIN sys_cityopeninfo AS scoi ON scf.cityOpenInfoId = scoi.id
+		left JOIN sys_navigationbar nb on nb.id = sng.parentId
+		where scoi.cityCode=#{cityCode} and sng.type=#{type}
+	</select>
+	
+	<select id="queryOpenCitys" resultType="com.bashiju.www.pojo.service.out.comm.OpenCity" >
+		select cityCode,cityName,provinceCode,provinceName,url from sys_cityopeninfo where isValid=1
+	</select>
+</mapper>

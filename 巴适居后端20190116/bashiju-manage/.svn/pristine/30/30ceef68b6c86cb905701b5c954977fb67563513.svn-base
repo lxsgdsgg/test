@@ -1,0 +1,362 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  MetroStationManageController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:地铁站点管理控制器 
+ * @author: zuoyuntao     
+ * @date:   2018年6月12日 上午9:09:30   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IMetroStationManageService;
+import com.bashiju.manage.service.ISchoolBlockService;
+import com.bashiju.manage.service.MetroService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 地铁站点管理控制器
+ * @ClassName:MetroStationManageController
+ * @Description:地铁站点管理控制器
+ * @author:zuoyuntao
+ * @date:2018年6月12日 上午9:09:30
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="metromanage")
+public class MetroStationManageController extends BaseController{
+	/**
+	 * 学区管理接口对象
+	 */
+	@Autowired
+	private ISchoolBlockService mISchoolBlockService;
+	/**
+	 * 地铁线路信息管理接口对象
+	 */
+	@Autowired
+	private IMetroStationManageService mIMetroStationManageService;
+	/**
+	 * 构造树接口
+	 */
+	@Autowired
+	private ICommunityService communityService;
+	/**
+	 * 地铁线路维护接口
+	 */
+	@Autowired
+	private MetroService mMetroService;
+	/**
+	 * 获取地铁站点管理主界面视图 
+	 * @Title: getMetroManageMainModel
+	 * @author: zuoyuntao  
+	 * @Description:获取地铁站点管理主界面视图
+	 * @param request 页面请求对象
+	 * @param response 页面响应对象
+	 * @return ModelAndView  
+	 * @throws
+	 */
+	@RequestMapping(value="getMetroManageMainModel")
+	public ModelAndView getMetroManageMainModel(HttpServletRequest request,
+			HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request
+				, response, "metroStationManage/metro_station_manage");
+		String curRgCode = (String) UserThreadLocal.get().get("areaCode");
+		List<Map<String, Object>> areaList = mISchoolBlockService.queryRegionList(curRgCode);
+		//获取城市信息
+		List<Map<String, Object>> cityList = communityService.queryAreaSelect();
+		model.addObject("areaList",JSON.toJSONString(areaList));
+		model.addObject("cityList",JSON.toJSONString(cityList));
+		model.addObject("rgList",queryMetroLineInfoForSelect(curRgCode));
+		
+		return model;
+	}
+	/**
+	 * 查询所有地铁站点信息
+	 * @Title: queryAllMetroStationInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询所有地铁站点信息   
+	 * @param metroName
+	 * @param stationName
+	 * @return      
+	 * Object JSON 格式为：{}     
+	 * @throws
+	 */
+	@RequestMapping(value="queryAllMetroStationInfo")
+	@ResponseBody
+	public Object queryAllMetroStationInfo(String metroName,String stationName
+			,int page,int limit,String rgCode) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("metroName", metroName);
+		paraMap.put("stationName", stationName);
+		//城市行政区划
+		paraMap.put("rgCode", rgCode);
+		Page<Map<String,Object>> pageObj = mIMetroStationManageService
+				.queryAllMetroStationInfo(paraMap, page, limit);
+		return this.getPageResult(pageObj);
+	}
+	/**
+	 * 保存地铁站点信息 
+	 * @Title: saveMetroStationInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存地铁站点信息
+	 * @param jsonData 页面传入数据
+	 * @param metroName 地铁线路名称
+	 * @param metroId 地铁线路Id
+	 * @return BashijuResult   
+	 * @throws
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping(value="saveMetroStationInfo")
+	@ResponseBody
+	public BashijuResult saveMetroStationInfo(String jsonData,String metroName,String metroId) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("页面传入数据为空!");
+		}
+		Map<String,Object> tempMap = (Map<String, Object>) JSONObject.parse(jsonData);
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap = (Map<String, Object>) tempMap.get("0");
+		JSONArray saveArr = null;
+		paraMap.remove("startTime");
+		paraMap.remove("endTime");
+		paraMap.remove("company");
+		paraMap.remove("Pi");
+		paraMap.remove("name");
+		
+		Iterator<String> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			Object obj = paraMap.get(key);
+			if(obj instanceof JSONArray) {
+				saveArr = (JSONArray) obj;
+				break;
+			}
+		}
+		List<Map> saveList = saveArr.toJavaList(Map.class);
+		List<Map<String,Object>> resultList = buildSaveList(saveList,metroName,metroId);
+		mIMetroStationManageService.saveMetroStationInfo(resultList);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 组装地铁线路信息 
+	 * @Title: buildSaveList
+	 * @author: zuoyuntao  
+	 * @Description:组装地铁线路信息   
+	 * @param saveList
+	 * @param metroName 线路名称
+	 * @param metroId 线路ID
+	 * @return      
+	 * List<Map<Object,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private List<Map<String,Object>> buildSaveList(List saveList,String metroName,String metroId){
+		List<Map<String,Object>> retList = new ArrayList<Map<String,Object>>();
+		Map user = UserThreadLocal.get();
+		String operatorId = String.valueOf(user.get("id"));
+		String permissionArea = String.valueOf(user.get("deptId"));
+		JSONObject areaObj = null;
+		String rgCode = "";
+		try {
+			areaObj = getAreaInfoPostRequest();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new BusinessException(e.getMessage());
+		}
+		if(null != areaObj && areaObj.containsKey("cid")){
+			rgCode = areaObj.getString("cid");
+		}
+		if(saveList.size() > 0) {
+			
+		}
+		Map oneMap = (Map) saveList.get(0);
+		Iterator<String> it = oneMap.keySet().iterator();
+		String stationIdKey = "";
+		while(it.hasNext()) {
+			String key = it.next();
+			if(key.equals("name") || key.equals("position")) {
+				continue;
+			}
+			stationIdKey = key;
+		}
+		
+		for(int i = 0,n = saveList.size();i < n;i++) {
+			final Map tempMap = (Map) saveList.get(i);
+			final Map<String,Object> saveMap = new HashMap<String,Object>();
+			JSONObject position = (JSONObject) tempMap.get("position");
+			saveMap.put("operatorId", operatorId);
+			saveMap.put("permissionArea", permissionArea);
+			saveMap.put("stationName", tempMap.get("name"));
+			saveMap.put("lontitude",position.get("lng"));
+			saveMap.put("latitude",position.get("lat"));
+			
+			saveMap.put("ukId",tempMap.get(stationIdKey));
+			saveMap.put("metroId",metroId);
+			saveMap.put("metroName",metroName);
+			saveMap.put("sortNo",i);
+			saveMap.put("rgCode",rgCode);
+			retList.add(saveMap);
+		}
+		return retList;
+	}
+	
+	
+	/**
+	 * 保存地铁站点与周边小区挂接关心信息  
+	 * @Title: saveStationCommunityInfo   
+	 * @Description: 保存地铁站点与周边小区挂接关心信息  
+	 * @param: jsonObj 页面传入操作数据对象
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveStationCommunityInfo")
+	@ResponseBody
+	public BashijuResult saveStationCommunityInfo(String jsonData) {
+		Map<Object,Object> paraMap = new HashMap<Object,Object>();
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("传入数据为空!");
+		}
+		paraMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		//小区ID
+		String communityId = String.valueOf(paraMap.get("communityId"));
+		String communityName = String.valueOf(paraMap.get("communityName"));
+		String stationId = String.valueOf(paraMap.get("stationId"));
+		if(StringUtil.isEmpty(communityName)) {
+			throw new BusinessException("小区信息为空！");
+		}
+		Map<String,Object> temp = new HashMap<String,Object>();
+		temp.put("communityId", communityId);
+		temp.put("stationId", stationId);
+		temp.put("isValid", "1");
+		if(mIMetroStationManageService.isDataExists(temp,ManageGlobal.T_STATION_BLOCK_COMMUNITY)) {
+			return BashijuResult.build(false, "小区信息已存在！");
+		}
+		paraMap.put("operatorId", UserThreadLocal.get().get("id"));
+		paraMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		mIMetroStationManageService.saveStationCommunityInfo(paraMap
+				, ManageGlobal.T_STATION_BLOCK_COMMUNITY);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 获取小区分页数据对象
+	 * @Title: getCommunityPageObj   
+	 * @Description:获取小区分页数据对象 
+	 * @param: communityName 小区名称
+	 * @param: schoolId 学校ID
+	 * @param: page 页面显示最小条数
+	 * @param: limit 页面显示最大条数
+	 * @return: Object  
+	 * {count=4, msg=, code=0, data=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=4, pages=1, reasonable=false, pageSizeZero=false}[{schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 10:57:34.0, schoolDel=schoolDel, isValid=1, communityRemark=测试试试, updateTime=2018-05-21 11:28:14.0, operator=测试人员, schoolId=1, communityName=投入和他如何, communityEdit=communityEdit, id=10, communityAdd=communityAdd, communityId=5, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-21 11:56:41.0, schoolDel=schoolDel, isValid=1, communityRemark=测试--12, operator=测试人员, schoolId=1, communityName=12, communityEdit=communityEdit, id=15, communityAdd=communityAdd, communityId=8, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-24 10:22:57.0, schoolDel=schoolDel, isValid=1, communityRemark=test123, updateTime=2018-05-24 10:23:33.0, operator=测试人员, schoolId=1, communityName=13, communityEdit=communityEdit, id=21, communityAdd=communityAdd, communityId=9, operatorId=1}, {schoolEdit=schoolEdit, permissionArea=BSJ0103, communitDel=communitDel, addTime=2018-05-30 11:22:30.0, schoolDel=schoolDel, isValid=1, communityRemark=测试---1111, operator=测试人员, schoolId=1, communityName=玛卡切片, communityEdit=communityEdit, id=22, communityAdd=communityAdd, communityId=3, operatorId=1}]}    
+	 * @throws
+	 */
+	@RequestMapping(value="getCommunityPageObj")
+	@ResponseBody
+	public Object getCommunityPageObj(String stationId,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("stationId", stationId);
+		Page<Map<String,Object>> pageObj = mIMetroStationManageService
+				.queryStationCommunityPageObj(paraMap, page, limit);
+		return this.getPageResult(pageObj);
+	}
+	/**
+	 * 删除地铁周边小区 
+	 * @Title: deleteStationCommunityData
+	 * @author: zuoyuntao  
+	 * @Description:删除地铁周边小区   
+	 * @param communityId 小区ID
+	 * void   
+	 * @throws
+	 */
+	@RequestMapping(value="deleteStationCommunityData")
+	@ResponseBody
+	public BashijuResult deleteStationCommunityData(String communityId) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("communityId",communityId);
+		mIMetroStationManageService.delMetroCommunityData(paraMap
+				,ManageGlobal.T_STATION_BLOCK_COMMUNITY);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 通过搜狐网的服务器获取当前城市的区划
+	 * @Title: getAreaInfoPostRequest
+	 * @author: zuoyuntao  
+	 * @Description:通过搜狐网的服务器获取当前城市的区划
+	 * @return
+	 * @throws IOException      
+	 * String CitySN = {"cip": "222.221.191.215", "cid": "530100", "cname": "云南省昆明市"};
+	 */
+    private JSONObject getAreaInfoPostRequest() throws IOException {
+        HttpPost post = new HttpPost("http://pv.sohu.com/cityjson?ie=utf-8&qq-pf-to=pcqq.c2c");
+        List<BasicNameValuePair> values = new ArrayList<>();
+        
+        HttpEntity entity = new UrlEncodedFormEntity(values, "utf-8");
+        post.setEntity(entity);
+        post.setHeader("Connection","close");
+        String retObj = "";
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+                CloseableHttpResponse response = httpClient.execute(post)) {
+            retObj = EntityUtils.toString(response.getEntity(),"utf-8");
+        } catch (Exception e) {
+            System.out.println("获取失败");
+            throw e;
+        }
+        String retStr = retObj.replaceAll("var returnCitySN =", "");
+        retStr = retStr.substring(0,retStr.length() - 1);
+		return JSON.parseObject(retStr);
+    }
+    /**
+     * 查询城市地铁线路做下拉选择
+     * @Title: queryMetroLineInfo
+     * @author: zuoyuntao  
+     * @Description:查询城市地铁线路做下拉选择
+     * @param cityCode 城市编码
+     * @return      
+     * Object JSON 格式为：{id=name},{id=name}
+     */
+    @RequestMapping(value="queryMetroLineInfoForSelect")
+    @ResponseBody
+    public Object queryMetroLineInfoForSelect(String cityCode) {
+    	return mMetroService.queryMetroes(cityCode);
+    }
+	
+}

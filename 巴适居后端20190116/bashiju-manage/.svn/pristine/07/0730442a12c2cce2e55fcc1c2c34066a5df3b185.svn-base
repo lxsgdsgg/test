@@ -1,0 +1,31 @@
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+public interface ICommService {
+	/**
+	 * 
+		 * 查询省、市所有数据
+		 * @Description: 查询省、市所有数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllCity();
+	/**
+	 * 
+		 * 查询省、市开通数据
+		 * @Description: 查询省、市开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCity();
+	/**
+	 * 
+		 * 查询省、市、县开通数据
+		 * @Description: 查询省、市、县开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCityCounty();
+}

@@ -1,0 +1,252 @@
+package com.bashiju.sso.controller;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+import com.bashiju.sso.global.SsoGlobal;
+import com.bashiju.sso.service.IUserManageService;
+import com.bashiju.sso.service.api.Constants;
+import com.bashiju.sso.service.api.RequestUtils;
+import com.bashiju.sso.service.api.VerifyCodeProvider;
+import com.bashiju.utils.cookie.CookieUtils;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.global.SYSGlobal;
+import com.bashiju.utils.properties.PropertyConfigurer;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.bashiju.utils.util.SQLFilter;
+
+@Controller
+public class UserController{
+
+	@Autowired
+	PropertyConfigurer propertyConfigurer;/*获取配置文件中值*/
+	@Autowired
+	private IUserManageService userManageService;
+	@Autowired
+	private VerifyCodeProvider verifyCodeProvider;	
+	/*private static final Logger logger = LoggerFactory.getLogger(UserController.class);*/
+	/**
+	 * 打开页面
+	 * @param pageName
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	@RequestMapping(value="{pageName}",method=RequestMethod.GET)
+	public ModelAndView toPage(@PathVariable("pageName") String pageName,HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+		
+		ModelAndView mv=new ModelAndView(pageName);
+		if ("login".equals(pageName)) {
+			//String isVerfiy=RequestUtils.getCookiteValue(request, userManageService.USER_LOGIN_ISVERFIY);
+			String isVerfiy=CookieUtils.getCookieValue(request, SsoGlobal.USER_LOGIN_ISVERFIY);
+			if (StringUtils.isNoneEmpty(isVerfiy)&&isVerfiy.equals(SsoGlobal.USEVERFIY)) {
+				mv.addObject("showVerify", "1");
+			}
+		}
+		return mv;
+	}
+	
+	@RequestMapping(value="doLogin", method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult doLogin(
+			@RequestParam String userPhone, @RequestParam String userPass,@RequestParam String userIp, @RequestParam String areaCode,
+			@RequestParam String areaName,@RequestParam(required=false) String code,
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
+			long adate=new Date().getTime();
+			
+			userPhone=SQLFilter.sqlInject(userPhone);
+			userPass=SQLFilter.sqlInject(userPass);
+			userIp=SQLFilter.sqlInject(userIp);
+			areaCode=SQLFilter.sqlInject(areaCode);
+			code=SQLFilter.sqlInject(code);
+			areaName=SQLFilter.sqlInject(areaName);
+
+		
+			if (StringUtils.isNoneEmpty(code)) {
+				String csessionid = RequestUtils.getCSESSIONID(request, response);
+		        String redisCodeKey = Constants.PN + "_" +Constants.VERIFYCODE+ ":" + csessionid;
+		        String verifyCode=verifyCodeProvider.getVerifyCode(redisCodeKey);
+		        if (!code.equalsIgnoreCase(verifyCode)) {
+					throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_VCODE);
+				}
+			}
+			
+			String token;			
+				token = this.userManageService.doLogin(userPhone,userPass,userIp,areaCode,areaName,request,response);
+				if(StringUtils.isNotEmpty(token)){//如果token不为空	
+					if (token.equals("unaudited")) {
+						throw new BusinessException("用户未审核，请联系管理员！");
+					}
+					//账号限制登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN);
+					}
+					//IP限制异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_IP);
+					}
+					//密码错误异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD);
+					}
+					//账号不存在异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE);
+					}
+					//已登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN);
+					}
+
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN, token);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN, userIp);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN, areaCode);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN, areaName,true);
+					CookieUtils.deleteCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY);
+					/*登陆成功后获取客户端计算机的相关信息  
+			        getComputerInfo.computerInfoResult(request, response);*/
+					long bdate=new Date().getTime();
+					long s=bdate-adate;
+					System.out.print("耗时："+s);
+			        return BashijuResult.ok();
+				}else{
+					throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+				}
+	}
+	
+	@RequestMapping(value="userLogin", method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult userLogin(
+			@RequestParam String userPhone, @RequestParam String userPass,@RequestParam String userIp, @RequestParam String areaCode,
+			@RequestParam String areaName,@RequestParam(required=false) String code,@RequestParam String hardware,
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
+			long adate=new Date().getTime();
+			
+			userPhone=SQLFilter.sqlInject(userPhone);
+			userPass=SQLFilter.sqlInject(userPass);
+			userIp=SQLFilter.sqlInject(userIp);
+			areaCode=SQLFilter.sqlInject(areaCode);
+			code=SQLFilter.sqlInject(code);
+			areaName=SQLFilter.sqlInject(areaName);
+			
+		
+			if (StringUtils.isNoneEmpty(code)) {
+				String csessionid = RequestUtils.getCSESSIONID(request, response);
+		        String redisCodeKey = Constants.PN + "_" +Constants.VERIFYCODE+ ":" + csessionid;
+		        String verifyCode=verifyCodeProvider.getVerifyCode(redisCodeKey);
+		        if (!code.equalsIgnoreCase(verifyCode)) {
+					throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_VCODE);
+				}
+			}
+			
+			String token;			
+				token = this.userManageService.login(userPhone,userPass,userIp,areaCode,areaName,hardware,request,response);
+				if(StringUtils.isNotEmpty(token)){//如果token不为空	
+					if (token.equals("unaudited")) {
+						throw new BusinessException("登录电脑未审核，请联系管理员！");
+					}
+					if (token.equals("usererror")) {
+						throw new BusinessException("该电脑不允许"+userPhone+"登录！");
+					}
+					if (token.equals("companyerror")) {
+						throw new BusinessException("账户"+userPhone+"不在该电脑绑定的公司！");
+					}
+					//账号限制登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN);
+					}
+					//IP限制异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_IP);
+					}
+					//密码错误异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD);
+					}
+					//账号不存在异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE);
+					}
+					//已登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN);
+					}
+
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN, token);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN, userIp);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN, areaCode);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN, areaName,true);
+					CookieUtils.deleteCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY);
+					/*登陆成功后获取客户端计算机的相关信息  
+			        getComputerInfo.computerInfoResult(request, response);*/
+					long bdate=new Date().getTime();
+					long s=bdate-adate;
+					System.out.print("耗时："+s);
+			        return BashijuResult.ok();
+				}else{
+					throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+				}
+	}
+	/**
+	 * 检查手机号码是否输入正确
+	 * @param userPhone
+	 * @return
+	 */
+	
+	@RequestMapping(value="checkPhone",method=RequestMethod.POST)
+	public ResponseEntity<Void> checkPhone(
+			@PathVariable("userPhone") String userPhone){
+		boolean tag=this.userManageService.checkUserPhone(userPhone);
+		if(tag==true)
+		{	
+			return ResponseEntity.status(HttpStatus.OK).body(null);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+	
+	}
+
+	/**
+	 * 用户注销
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	@RequestMapping(value="loginout")
+	public String doLoginout(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException{
+		String token=CookieUtils.getCookieValue(request, SYSGlobal.USER_LOGIN_TOKEN);
+		String areaName=CookieUtils.getCookieValue(request, SYSGlobal.USER_AREANAME_CLIENT_TOKEN,true);	
+
+		this.userManageService.delRedisData(token,CookieUtils.getCookieValue(request, SYSGlobal.USER_IP_CLIENT_TOKEN)
+				,CookieUtils.getCookieValue(request, SYSGlobal.USER_AREACODE_CLIENT_TOKEN)
+				,areaName);
+		UserThreadLocal.set(null);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN);
+		
+		return "login";
+	}
+	
+	
+}

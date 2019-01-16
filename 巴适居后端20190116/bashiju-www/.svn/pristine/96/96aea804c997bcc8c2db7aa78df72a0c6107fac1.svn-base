@@ -1,0 +1,82 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralMapper.java   
+ * @Package com.bashiju.www.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:41:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.mapper;
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerAgentStarCommentsEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseStarCommentsEntity;
+
+/**
+ * 客户个人中心映射接口
+ * @ClassName:CustomerPersonalCentralMapper
+ * @Description:客户个人中心映射接口
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:41:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerStarCommentsMapper {
+	/**
+	 * 获取用户对经纪人评价信息
+	 * @Title: queryCustomerCommentsDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取用户对经纪人评价信息
+	 * @param custId 客户ID
+	 * @return      
+	 * WebPage<CustomerAgentStarCommentsEntity>
+	 */
+	public WebPage<CustomerAgentStarCommentsEntity> queryCustomerCommentsDataList(String custId);
+	/**
+	 * 获取用户对房源评价信息
+	 * @Title: queryCustomerCommentsDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取用户对房源评价信息
+	 * @param custId 客户ID
+	 * @return      
+	 * WebPage<CustomerHouseStarCommentsEntity>
+	 */
+	public WebPage<CustomerHouseStarCommentsEntity> queryCustomerHouseCommentsDataList(String custId);
+	/**
+	 * 保存客户对经纪人的评价
+	 * @Title: saveCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:保存客户对经纪人的评价
+	 * @param commentEntity 必须包含{custId,shhId,addTime,isValid}
+	 * @return      @Param("commentEntity")
+	 */
+	public void saveCustomerComments(
+			CustomerAgentStarCommentsEntity commentEntity);
+	/**
+	 * 根据用户Id查询用户权限域信息 
+	 * @Title: queryUserInfoById
+	 * @author: zuoyuntao  
+	 * @Description:根据用户Id查询用户权限域信息
+	 * @param userId 经纪人ID
+	 * @return      
+	 * Map<String,Object>
+	 */
+	public Map<String,Object> queryUserInfoById(@Param("userId") int userId);
+	/**
+	 * 保存客户对房源的评价
+	 * @Title: saveCustomerComments
+	 * @author: zuoyuntao  
+	 * @Description:保存客户对房源的评价
+	 * @param commentEntity 必须包含{custId,shhId,addTime,isValid}
+	 * @return      @Param("commentEntity")
+	 */
+	public void saveCustomerHouseComments(
+			CustomerHouseStarCommentsEntity commentEntity);
+}

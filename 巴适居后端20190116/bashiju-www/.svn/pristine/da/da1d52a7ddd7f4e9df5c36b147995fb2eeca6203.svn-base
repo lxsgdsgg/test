@@ -1,0 +1,104 @@
+package com.bashiju.www.service.house;
+/**
+ * 
+ *   房源服务
+ * @ClassName:  IHouseService   
+ * @Description:  房源服务
+ * @author: wangkaifa
+ * @date:   2018年7月25日 下午12:01:33       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.input.house.HouseAreaParam;
+import com.bashiju.www.pojo.service.input.house.HouseMetroParam;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseSameLinkResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.github.pagehelper.Page;
+
+public interface IHouseService {
+	/**
+	 * 
+		 * 根据id查询房源基础信息
+		 * @Description: 根据id查询房源基础信息
+		 * @param id
+		 * @return 
+		 * HouseInfoResult
+	 */
+	HouseInfoResult queryHouseInfo(long id);
+	/**
+	 * 
+		 * 查询带看经纪人列表
+		 * @Description: 查询带看经纪人列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<AgentResult>
+	 */
+	List<AgentResult> queryShowedAgents(long houseId);
+	/**
+	 * 
+		 * 根据房源id查询带看记录
+		 * @Description: 进入菜单主页面（详细描述） 
+		 * @param houseId
+		 * @return 
+		 * List<ShowedRecordResult>
+	 */
+	List<ShowedRecordResult> queryShowedRecordByHouseId(long houseId);
+	/**
+	 * 
+		 * 查询相似房源,房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 查询相似房源
+		 * @param param
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<HouseListResult> querySameHouseList(HouseSameParam param);
+	/**
+	 * 
+		 * 按区域搜索房源列表，房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 按区域搜索房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	Page<HouseListResult> queryHouseList(HouseAreaParam param,int page,int limit);
+	/**
+	 * 
+		 * 按地铁搜索房源列表，房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 按地铁搜索房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<HouseListResult>
+	 */
+	Page<HouseListResult> queryHouseList(HouseMetroParam param,int page,int limit);
+	/**
+	 * 
+		 * 房源比较查询
+		 * @Description: 房源比较查询
+		 * @param ids 比较房源id
+		 * @return 
+		 * List<HouseCompareResult>
+	 */
+	List<HouseCompareResult> queryHouseCompareList(List<Long> ids);
+	/**
+	 * 
+		 * 查询其他公司的相同房源，房源默认条件isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 查询其他公司的相同房源
+		 * @param houseId 房源id
+		 * @return 
+		 * List<HouseSameLinkResult>
+	 */
+	List<HouseSameLinkResult> queryHouseSameLinks(long houseId);
+}

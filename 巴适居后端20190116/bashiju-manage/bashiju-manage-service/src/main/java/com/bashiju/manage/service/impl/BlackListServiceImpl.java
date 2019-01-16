@@ -1,0 +1,92 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.BlackListMapper;
+import com.bashiju.manage.service.BlackListService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+import net.sf.jsqlparser.expression.StringValue;
+/**
+ * 
+ * @ClassName:  BlackListServiceImpl   
+ * @Description:中介黑名单管理服务
+ * @author: wangpeng
+ * @date:   2018年6月11日 下午3:44:07   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="中介黑名单管理")
+public class BlackListServiceImpl extends CommonSqlServie implements BlackListService {
+	
+	@Autowired
+	private BlackListMapper blackListMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	@Override
+	@SystemServiceLog(operationType="查询中介黑名单")
+	public Page<Map<String, Object>> queryBlackList(int pageNum, int pageSize,String keyword) {
+		PageHelper.startPage(pageNum, pageSize);
+		dataAuthHelper.auth(MenuEnum.MENU_52.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>>page=blackListMapper.queryBlackListData(keyword);
+		return page;
+	}
+	/**
+	 * 
+	 * <p>Title: saveOrUpdateBlackList</p>   
+	 * <p>Description: 新增中介黑名单</p>   
+	 * @param map
+	 * @return   
+	 * @see com.bashiju.manage.service.BlackListService#saveOrUpdateBlackList(java.util.Map)
+	 */
+	@Override
+	@SystemServiceLog(operationType="新增或编辑中介黑名单")
+	public boolean saveOrUpdateBlackList(Map<String,Object> map) {
+		if(!map.containsKey("id") ||StringUtils.isEmpty(map.get("id").toString()) ||map.get("id")==null) {
+			//新增
+			Long result=this.commonOperationDatabase(map, "sys_blacklist", false);	
+			if(result>0) {
+				ExecutionResult.descFormat(result.toString(), "新增中介黑名单");
+				return true;
+			}
+			return false;
+		}else {
+			long result = this.commonOperationDatabase(map, "sys_blacklist", "id", false);
+			
+			if(result>0) {
+				ExecutionResult.descFormat(String.valueOf(result), "新增中介黑名单");
+				return true;
+			}
+			return false;
+		}
+	}
+	/**
+	 * 
+	 * <p>Title: delBlackList</p>   
+	 * <p>Description: 逻辑删除中介黑名单 </p>   
+	 * @param id
+	 * @see com.bashiju.manage.service.BlackListService#delBlackList(java.lang.String)
+	 */
+	@Override
+	public boolean delBlackList(String id) {
+		boolean result = this.delData("sys_blacklist", "id", id, false);
+		if(result)
+			return result;
+		return false;
+	}
+}

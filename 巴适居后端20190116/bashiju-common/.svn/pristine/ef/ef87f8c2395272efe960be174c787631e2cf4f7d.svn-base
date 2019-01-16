@@ -1,0 +1,197 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  PhoneSecurityManageServiceApiImpl.java   
+ * @Package com.bashiju.common.service.manageservice   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年10月13日 上午10:43:31   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.common.service.manageservice;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.aliyuncs.dyplsapi.model.v20170525.BindAxnExtensionResponse;
+import com.aliyuncs.dyplsapi.model.v20170525.BindAxnExtensionResponse.SecretBindDTO;
+import com.aliyuncs.utils.StringUtils;
+import com.bashiju.api.PhoneSecurityManageServiceApi;
+import com.bashiju.api.PrivacyProtectionBaseServiceApi;
+import com.bashiju.common.mapper.PhoneSecurityManageMapper;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**   
+ * @ClassName:  PhoneSecurityManageServiceApiImpl   
+ * @Description:电话号码隐私管理服务  
+ * @author: yangz
+ * @date:   2018年10月13日 上午10:43:31   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class PhoneSecurityManageServiceApiImpl extends CommonSqlServie implements PhoneSecurityManageServiceApi {
+
+	@Autowired
+	private PhoneSecurityManageMapper phoneSecurityManageMapper;
+	
+	@Autowired
+	private PrivacyProtectionBaseServiceApi privacyProtectionService;
+	
+	private final static Logger logger = LoggerFactory.getLogger(PhoneSecurityManageServiceApiImpl.class);
+	
+	/**
+	 * 获取虚拟电话号码
+	 * @Description: 获取虚拟电话号码   
+	 * @param realPhone 真实的电话号码
+	 * @return: String 虚拟电话号码包括分机号，主机号+分机号(40000000-1111),不存在虚拟号码时，则返回null
+	 * @see com.bashiju.api.PhoneSecurityManageServiceApi#getVirtualPhone(java.lang.String)   
+	 */
+	@Override
+	public String getVirtualPhone(String realPhone) {
+		if(StringUtils.isEmpty(realPhone))
+			throw new BusinessException("真实电话号码不允许为空");
+		return phoneSecurityManageMapper.getVirtualPhone(realPhone);
+	}
+
+	/**
+	 * 绑定虚拟电话号码
+	 * @Description: 绑定虚拟电话号码  
+	 * @param realPhone 真实的电话号码
+	 * @param companyId 经纪人所属公司编号
+	 * @param companyName 经纪人所属公司名称
+	 * @param deptId 经纪人所属部门编号
+	 * @param deptName 经纪人所属部门名称
+	 * @param agentId 经纪人编号
+	 * @param agentName 经纪人名称
+	 * @return: boolean 绑定成功放回true,否则返回false
+	 * @see com.bashiju.api.PhoneSecurityManageServiceApi#bindViertualPhone(java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public boolean bindViertualPhone(String realPhone, String companyId,String companyName,
+			String deptId,String deptName,String agentId,String agentName) {
+		if(StringUtils.isEmpty(realPhone))
+			throw new BusinessException("真实电话号码不允许为空");
+		Map<String,Object> security = this.phoneSecurityManageMapper.getPhoneSecurityInfo(realPhone);
+		if(security!=null && security.get("virtualNum")!=null && !"".equals(security.get("virtualNum")))
+			throw new BusinessException("该号码已经绑定，不允许再次绑定");
+		BindAxnExtensionResponse response = privacyProtectionService.bindAxnExtension(realPhone);
+		if(response==null) {
+			logger.error("阿里系统绑定虚拟电话失败:被绑定的电话号码为【"+realPhone+"】");
+			return false;
+		}
+		SecretBindDTO sb = response.getSecretBindDTO();
+		Map<Object,Object> map = new HashMap<Object,Object>(0);
+		map.put("alibabaCode", sb.getSubsId());
+		map.put("virtualNum", sb.getSecretNo());
+		map.put("virtualExtensionNum", sb.getExtension());
+		map.put("realNum", realPhone);
+		map.put("companyId", companyId);
+		map.put("companyName", companyName);
+		map.put("deptId", deptId);
+		map.put("deptName", deptName);
+		map.put("agentId", agentId);
+		map.put("agentName", agentName);
+		map.put("updateTime", new Date());
+		long result=0;
+		if(security!=null && security.get("id")!=null && !"".equals(security.get("id"))) {//编辑
+			map.put("id", security.get("id"));
+			result = this.commonOperationDatabase(map, "sys_phoneSecurityManage", "id", false);
+		}else {//新增
+			map.put("addTime", new Date());
+			result = this.commonOperationDatabase(map, "sys_phoneSecurityManage", false);
+		}
+		if(result>0)
+			return true;
+		logger.error("["+realPhone+"]绑定虚拟电话号码保存失败了……"+JSON.toJSONString(response));
+		return false;
+	}
+
+	/**
+	 * 绑定虚拟电话号码
+	 * @Description: 绑定虚拟电话号码  
+	 * @param realPhone 真实的电话号码
+	 * @param companyId 经纪人所属公司编号
+	 * @param companyName 经纪人所属公司名称
+	 * @param deptId 经纪人所属部门编号
+	 * @param deptName 经纪人所属部门名称
+	 * @param agentId 经纪人编号
+	 * @param agentName 经纪人名称
+	 * @return: String 返回虚拟号码+分机号码(17788975847-798)，绑定失败的话返回null 
+	 * @see com.bashiju.api.PhoneSecurityManageServiceApi#bindViertualPhoneReturn(java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public String bindViertualPhoneReturn(String realPhone, String companyId,String companyName,
+			String deptId,String deptName,String agentId,String agentName) {
+		if(StringUtils.isEmpty(realPhone))
+			throw new BusinessException("真实电话号码不允许为空");
+		Map<String,Object> security = this.phoneSecurityManageMapper.getPhoneSecurityInfo(realPhone);
+		if(security!=null && security.get("virtualNum")!=null && !"".equals(security.get("virtualNum"))) {
+			if(security.get("virtualExtensionNum")!=null && !"".equals(security.get("virtualExtensionNum")))
+				return security.get("virtualNum").toString()+"-"+security.get("virtualExtensionNum").toString();
+			return security.get("virtualNum").toString();
+		}
+		BindAxnExtensionResponse response = privacyProtectionService.bindAxnExtension(realPhone);
+		if(response==null) {
+			logger.error("阿里系统绑定虚拟电话失败:被绑定的电话号码为【"+realPhone+"】");
+			return null;
+		}
+		SecretBindDTO sb = response.getSecretBindDTO();
+		Map<Object,Object> map = new HashMap<Object,Object>(0);
+		map.put("alibabaCode", sb.getSubsId());
+		map.put("virtualNum", sb.getSecretNo());
+		map.put("virtualExtensionNum", sb.getExtension());
+		map.put("realNum", realPhone);
+		map.put("companyId", companyId);
+		map.put("companyName", companyName);
+		map.put("deptId", deptId);
+		map.put("deptName", deptName);
+		map.put("agentId", agentId);
+		map.put("agentName", agentName);
+		map.put("updateTime", new Date());
+		long result=0;
+		if(security!=null && security.get("id")!=null && !"".equals(security.get("id"))) {//编辑
+			map.put("id", security.get("id"));
+			result = this.commonOperationDatabase(map, "sys_phoneSecurityManage", "id", false);
+		}else {//新增
+			map.put("addTime", new Date());
+			result = this.commonOperationDatabase(map, "sys_phoneSecurityManage", false);
+		}
+		if(result>0) {
+			if(!StringUtils.isEmpty(sb.getExtension()))
+				return sb.getSecretNo()+"-"+sb.getExtension();
+			return sb.getSecretNo();
+		}
+		logger.error("["+realPhone+"]绑定虚拟电话号码保存失败了……"+JSON.toJSONString(response));
+		return null;
+	}
+
+	/**
+	 * 解绑电话号码(如果该号码不存在隐私号码，则不做任何处理，直接返回true)
+	 * @Description: 解绑电话号码(如果该号码不存在隐私号码，则不做任何处理，直接返回true)
+	 * @param realPhone 真实的电话号码
+	 * @return: boolean 解绑成功返回true,否则返回false
+	 * @see com.bashiju.api.PhoneSecurityManageServiceApi#unBindViertualPhone(java.lang.String)   
+	 */
+	@Override
+	public boolean unBindViertualPhone(String realPhone) {
+		if(StringUtils.isEmpty(realPhone))
+			throw new BusinessException("真实电话号码不允许为空");
+		Map<String,Object> map = this.phoneSecurityManageMapper.getPhoneSecurityInfo(realPhone);
+		if(map==null || map.size()<=0 || "".equals(map.get("virtualNum")))
+			return true;
+		boolean result = this.delData("sys_phoneSecurityManage", "id", map.get("id").toString(), false);
+		if(result)
+			result = this.privacyProtectionService.unbind(map.get("alibabaCode").toString(), map.get("virtualNum").toString());
+		return result;
+	}
+	
+}

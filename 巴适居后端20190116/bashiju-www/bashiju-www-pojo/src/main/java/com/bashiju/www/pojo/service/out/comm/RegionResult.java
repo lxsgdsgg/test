@@ -1,0 +1,28 @@
+package com.bashiju.www.pojo.service.out.comm;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   片区输出对象
+ * @ClassName:  RegionResult   
+ * @Description:  片区输出对象
+ * @author: wangkaifa
+ * @date:   2018年7月23日 下午6:04:58       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class RegionResult implements Serializable {
+	/**片区名称**/
+	private String name;
+	/**片区id**/
+	private Integer id;
+	/**区域代码**/
+	private String areaCode;
+	
+	
+	
+}

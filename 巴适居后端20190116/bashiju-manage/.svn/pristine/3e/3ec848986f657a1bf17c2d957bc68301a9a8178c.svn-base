@@ -1,0 +1,99 @@
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  CommunityMapper   
+ * @Description:TODO(小区管理)   
+ * @author: wangkaifa
+ * @date:   2018年4月20日 下午5:07:36   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CommunityMapper {
+	/**
+	 * 
+	 * @Title: queryCommunityList   
+	 * @Description: TODO(查询小区列表)   
+	 * @param: @param map
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>>  queryCommunityList(Map<String, Object> map);
+	/**
+	 * 
+	 * @Title: queryCommunityById   
+	 * @Description: TODO(根据id查询小区信息)   
+	 * @param: @param id
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String, Object>  queryCommunityById(@Param("id") Long id);
+	/**
+	 * 
+	 * @Title: countCommunityByName   
+	 * @Description: TODO(判断小区名称是否重名)   
+	 * @param: @param name
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public long countCommunityByName(@Param("name") String name,@Param("areaCode") String areaCode);
+	/**
+	 * 
+	 * @Title: queryAreaList   
+	 * @Description: TODO(区域下拉列表)   
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryAreaList();
+	/**
+	 * 
+	 * @Title: queryRegionsByArea   
+	 * @Description: TODO(片区下拉列表)   
+	 * @param: @param code
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryRegionsByArea(@Param("code") String code);
+	/**
+	 * 
+	 * @Title: queryImageBycode   
+	 * @Description: TODO(查询图片流)   
+	 * @param: @param code
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String, Object> queryImageBycode(@Param("code") String code);
+	/**
+	 * 
+	 * @Title: queryImagesByCommunity   
+	 * @Description: TODO(查询小区图片编码列表)   
+	 * @param: @param communityId
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryImagesByCommunity(@Param("communityId") Long communityId);
+	/**
+	 * 
+	 * @Title: deleteImage   
+	 * @Description: TODO(物理删除小区图片)   
+	 * @param: @param code      
+	 * @return: void      
+	 * @throws
+	 */
+	void deleteImage(@Param("code") String code);
+}

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.AgentMapper">
+	
+	<select id="queryAgents" resultType="com.bashiju.www.pojo.service.agent.Agent" parameterType="com.bashiju.www.pojo.service.agent.AgentQueryParams">
+		select a.userId,a.id agentId, b.realName agentName,b.deptId,b.profilePhoto profileUrl,c.name as postName, 
+		a.mainAreaCodes,a.mainArea mainAreaNames,a.mainRegionsIds mainRegionsCodes, a.mainRegions mainRegionsNames,a.showedRdCnt,a.histDealCnt,
+		a.StarRating,a.commentCnt,concat(f.virtualNum,'-',f.virtualExtensionNum) telPhone,d.labeld label 
+		from sys_agent_details a 
+		left join sys_user b on a.userId = b.id
+		left join sys_post c on b.postId = c.id
+		left join sys_phonesecuritymanage f on b.mobile = f.realNum
+		left join (select agentId,group_concat(distinct labeld) labeld 
+		from sys_cust_starRating_hotLabel
+		<if test="labels!=null and labels!=''">
+			,(select replace(substring(substring_index(#{labels},',',id),
+			char_length(substring_index(#{labels},',',id - 1)) + 1),',','') as id
+			from sys_seq  where id &lt;= length(#{labels}) - length(replace(#{labels}, ',', '') )+1)arr where labelId = arr.id 
+		</if>
+		group by agentId)d on d.agentId =a.id
+		left join sys_area e on b.areaCode = e.code
+		where a.isvalid=1 and f.isvalid=1 and b.areaCode like concat(substr(#{cityCode},1,4),'%')
+		<if test="labels!=null and labels!=''">
+		 and a.id = d.agentId
+		</if>
+		<if test="areaCode!=null and areaCode!=''">
+			and find_in_set(#{areaCode},a.mainAreaCodes)
+		</if>
+		<if test="regionCode != null and regionCode != ''">
+			and find_in_set(#{regionCode},a.mainRegionsIds)
+		</if>
+		<if test="sort==0">
+			order by a.id 
+		</if>
+		<if test="sort==1">
+			order by a.StarRating 
+		</if>
+		<if test="sort==2">
+			order by a.histDealCnt 
+		</if>
+		<if test="sort==3">
+			order by a.showedRdCnt 
+		</if>
+		<if test="!asc">
+			desc
+		</if>
+	</select>
+	
+	<select id="queryAgentDeailByAgentId" resultType="com.bashiju.www.pojo.service.agent.AgentDeail" parameterType="com.bashiju.www.pojo.service.agent.AgentDeail">
+		SELECT sd.id as deptId,su.id as userId,su.realName,su.profilePhoto profileUrl,sd.`name` AS deptName,sad.StarRating,sad.seniority,sad.histDealCnt,sad.lastComment,
+		sad.showedRdCnt,sad.mainCommunityIds as mainCommunityCode,sad.mainCommunity,sad.evaluateMyself,concat(e.virtualNum,if(length(e.virtualExtensionNum)>0,'-',''),e.virtualExtensionNum) telPhone,
+		sad.mainAreaCodes,sad.mainArea mainAreaNames,sad.mainRegionsIds as mainRegionsCode,sad.mainRegions,group_concat( distinct scs.labeld)labeld
+		FROM sys_agent_details AS sad
+		LEFT JOIN  sys_user AS su ON su.id = sad.userId
+		LEFT JOIN  sys_dept AS sd ON su.deptId = sd.id
+		LEFT JOIN  sys_cust_starRating_serviceComment scs on scs.agentId = sad.id
+		left join sys_phoneSecurityManage e on su.mobile = e.realNum and e.isvalid=1
+		where sad.isvalid=1 and sad.id =#{agentId}
+		group by sad.userId
+	</select>
+	
+	<select id="queryAgentAbilityByAgentId" resultType="com.bashiju.www.pojo.service.agent.AgentAbility" parameterType="com.bashiju.www.pojo.service.agent.AgentAbility">
+		SELECT  sacc.agentId,sacc.id,sacc.communityId,sacc.community,sacc.areaName,sacc.region,sacc.rentDealCnt,sacc.saleDealCnt,
+		sacc.sortNo FROM sys_agent_community_cnt AS sacc
+		where  sacc.agentId=#{agentId} ORDER BY sacc.sortNo desc
+	</select>
+	
+	
+	<select id="queryUserRatingByAgentId" resultType="com.bashiju.www.pojo.service.agent.CustStarRating" parameterType="string">
+ 			SELECT  count(*)as starNum,star FROM sys_cust_starrating 
+	 		where agentId =#{agentId} GROUP BY star
+	</select>
+	
+	<select id="queryAgentAbilityIdentificationByAgentId" parameterType="string" resultType="com.bashiju.www.pojo.service.agent.AgentAbilityIdentification">
+			select  saab.introduction,saab.name from sys_agent_abilityidentify 
+			as saab where saab.agentId=#{agentId} ORDER  BY saab.addTime desc limit 0,5
+	</select>
+	
+	<insert id="saveGuestMessage" parameterType="com.bashiju.www.pojo.service.agent.GuestMessage">
+		INSERT INTO sys_guestmessage(userId, agentId, messageTypeId, messageType, realName, mobile,content, isRead, permissionArea, operatorId, operator, addTime, updateTime, isvalid) 
+		VALUES (#{userId}, #{agentId}, #{messageTypeId}, #{messageType}, #{realName}, #{mobile}, #{content}, #{isRead}, #{permissionArea}, #{operatorId}, #{operator}, #{addTime}, #{updateTime}, #{isvalid});
+	</insert>
+	
+	
+	<select id="queryDealTransactionInfoByTraderId" parameterType="com.bashiju.www.pojo.service.agent.DealTransactionInfo" resultType="com.bashiju.www.pojo.service.agent.DealTransactionInfo">
+		select b.id shhId,d.floorDes, b.sellingPrice/b.buildSpace/100 AS averagePrice,b.room,b.buildDates,a.dealTime,
+		a.totalLayers,b.hall,a.communityName,b.toilet,b.orientation,b.useSpace,b.decoration,b.buildSpace,b.sellingPrice,
+		ifnull(c.path,(select min(path) path from hs_houseattachment where shhId = b.id))as imageUrl from deal_transactioninfo a 
+		left join hs_secondhandhouse b on a.shhid = b.id 
+		left join hs_houseattachment c on b.id = c.shhId and c.isCover=1
+		left join hs_housebaseinfo d on d.id = a.houseId
+		where a.isvalid=1 and a.traderId=#{traderId} ORDER BY a.dealTime 
+	</select>
+	
+	<select id="queryServiceTravel" resultType="com.bashiju.www.pojo.service.agent.ServiceTravel"  parameterType="com.bashiju.www.pojo.service.agent.ServiceTravel">
+		select '带看' type,d.date,c.communityName,b.id as shhId,
+		b.room,b.hall,b.buildSpace,
+		case when b.transactionTypeId='2' then concat(format(b.rentPrice/100,2),' 元/月') else concat(format(b.sellingPrice/1000000,2),' 万元') end price,
+		d.total from demand_showedRecord a 
+		inner join (
+		select max(id)id,date_format(leadTime,'%Y-%m-%d') date ,count(*) total from demand_showedRecord 
+		where leaderId=#{userId} group by date_format(leadTime,'%Y-%m-%d') order by id desc limit 0,12) d on a.id = d.id
+		left join hs_secondhandhouse b on b.id = substring_index(a.sourceId,',', 1)
+		left join hs_housebaseinfo c on c.id = substring_index(b.houseId,',', 1) 
+		where a.isvalid=1 
+		union all 
+		select '成交' type, date_format(a.dealTime,'%Y-%m-%d') as date,a.communityName,shhId,
+		a.room,a.hall,a.buildSpace,
+		case when a.dealType='01' then concat(format(a.price/100,2),' 元/月') else concat(format(a.price/1000000,2),' 万元') end price,
+		b.total from deal_transactioninfo a 
+		inner join (select max(id)id,date_format(dealTime,'%Y-%m-%d')date,count(*)total from deal_transactioninfo 
+		where traderId=#{userId} group by date_format(dealTime,'%Y-%m-%d') order by id desc limit 0,12)b using(id)
+		where a.isvalid=1 
+		order by date desc limit 0,6
+	</select>
+	
+	<select id="queryQueryConditions" resultType="map">
+		select code,name from sys_labeldManage where type=2 and isValid=1
+	</select>
+	<select id="queryCommunityBestAgent" resultType="com.bashiju.www.pojo.service.agent.CommunityBestAgent">
+		select a.userId,a.agentId,b.realName as agentName,b.profilePhoto profileUrl,concat(c.virtualNum,'-',c.virtualExtensionNum) telPhone from sys_communitybestagent a 
+		left join sys_user b on a.userId = b.id 
+		left join sys_phoneSecurityManage c on b.mobile = c.realNum
+		where a.communityId=#{communityId}
+		order by a.id
+	</select>
+	
+	<select id="queryCustEvaluateDetails" resultType="com.bashiju.www.pojo.service.agent.AgentCustEvaluate">
+		select a.star,a.custName,a.content,group_concat(b.labeld) label,a.addTime from sys_cust_starRating a 
+		left join sys_cust_starRating_serviceComment b on a.id = b.starRatingId 
+		where a.userId = #{userId}
+		group by a.id order by a.addTime desc
+	</select>
+	
+	<select id="queryDealPriceDistribution" resultType="com.bashiju.www.pojo.service.agent.PieChart">
+		select count(a.id) value,concat(c.name,'(',count(a.id),'套)') name 
+		from  deal_transactioninfo a 
+		left join sys_cityAvgPriceLabel c on if(c.maxPrice&gt;c.minPrice,a.price &gt; c.minPrice and  a.price &lt;= c.maxPrice,a.price &gt; c.minPrice) 
+		and a.cityCode=c.cityCode and c.isvalid=1 and c.type=0 
+		where a.traderId=#{userId} and a.isvalid=1 and a.dealType in('00','02') group by c.id order by c.id
+	</select>
+	
+	<select id="queryDealSpaceDistribution" resultType="com.bashiju.www.pojo.service.agent.PieChart">
+		select count(a.id) value,concat((case when a.buildSpace &lt;=30 then '30平以下'
+		when a.buildSpace &gt;30 and a.buildSpace &lt;=50 then '30-50平'
+		when a.buildSpace &gt; 50 and a.buildSpace &lt;=80 then '50-80平'
+		when a.buildSpace &gt; 80 and a.buildSpace &lt;=100 then '80-100平'
+		when a.buildSpace &gt; 100 and a.buildSpace &lt;=120 then '100-120平'
+		when a.buildSpace &gt; 120 and a.buildSpace &lt;=150 then '120-150平'
+		when a.buildSpace &gt; 150 and a.buildSpace &lt;=200 then '150-200平'
+		when a.buildSpace>200 then '200平以上' end),'(',count(a.id),'套)') name from hs_secondhandhouse b  
+		left join deal_transactioninfo a on a.shhid = b.id and b.transactionTypeId in(1,3)
+		where a.traderId=#{userId} and a.isvalid=1
+		group by (case when a.buildSpace  &lt;=30 then '30平以下'
+		when a.buildSpace &gt;30 and a.buildSpace &lt;=50 then '30-50平'
+		when a.buildSpace &gt; 50 and a.buildSpace &lt;=80 then '50-80平'
+		when a.buildSpace &gt; 80 and a.buildSpace &lt;=100 then '80-100平'
+		when a.buildSpace &gt; 100 and a.buildSpace &lt;=120 then '100-120平'
+		when a.buildSpace &gt; 120 and a.buildSpace &lt;=150 then '120-150平'
+		when a.buildSpace &gt; 150 and a.buildSpace &lt;=200 then '150-200平'
+		when a.buildSpace&gt;200 then '200平以上' end)  order by name
+	</select>
+	
+	<select id="queryDealRoomDistribution" resultType="com.bashiju.www.pojo.service.agent.PieChart">
+		select count(id) value,concat(room,'居') name from deal_transactioninfo 
+		where dealType='00' and traderId=#{userId} and isvalid=1 group by room order by room
+	</select>
+	
+	<select id="queryAgentBuyAndSellingRate" resultType="com.bashiju.www.pojo.service.agent.BuyAndSellingRate">
+		select saleCnt,buyCnt,(saleCnt+buyCnt) total from (
+		(select count(id) saleCnt from hs_secondHandHouse where transactionTypeId in(1,3) and maintainId=#{userId} and isvalid=1) saleCnt,
+		(select count(id) buyCnt  from demand_customerBusinessInfo where transactionTypeId=4 and maintainId=#{userId} and isvalid=1)buyCnt
+		)
+	</select>
+	
+	<select id="queryDealEfficiency" resultType="com.bashiju.www.pojo.service.agent.DealEfficiency">
+		select min(to_days(a.addTime)-to_days(b.openPlateDate))minDay,
+		max(to_days(a.addTime)-to_days(b.openPlateDate))maxDay,
+		format(avg(to_days(a.addTime)-to_days(b.openPlateDate)),0)avgDay
+		from deal_transactioninfo a 
+		left join hs_secondHandHouse b on a.shhId = b.id
+		where a.dealType='00' and a.isvalid=1 and b.maintainId=#{userId} and b.isvalid=1
+	</select>
+	
+	
+	<select id="queryAgentOperAndPer" resultType="map">
+			select operator,operatorId,permissionArea from  sys_agent_details where id= #{agentId}
+	</select>
+	
+	<select id="queryAgentsByFullText" resultType="com.bashiju.www.pojo.service.agent.Agent">
+		select a.userId,a.id agentId, b.realName agentName,b.deptId,b.profilePhoto profileUrl,c.name as postName, 
+		a.mainAreaCodes,a.mainArea mainAreaNames,a.mainRegionsIds mainRegionsCodes, a.mainRegions mainRegionsNames,a.showedRdCnt,a.histDealCnt,
+		a.StarRating,a.commentCnt,b.telPhone,d.labeld label 
+		from sys_agent_details a 
+		left join sys_user b on a.userId = b.id
+		left join sys_post c on b.postId = c.id
+		left join (select agentId,group_concat(distinct labeld) labeld 
+		from sys_cust_starRating_hotLabel
+		group by agentId)d on d.agentId =a.id
+		left join sys_area e on b.areaCode = e.code
+		where 1=1 and b.areaCode like concat(substr(#{cityCode},1,4),'%')
+		and b.realName like concat('%',#{params},'%')
+	</select>
+	
+</mapper>

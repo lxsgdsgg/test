@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.UserAchievementMapper">
+	
+	<select id="queryUserAchievement" resultType="map">
+		select su.companyId,su.deptId,su.id,su.realName,sd.`name` as deptName
+		,sum(case when dt.dealType = '00' then floor(dd.actualProfit/100) end) as sellAchievement
+		,sum(case when dt.dealType = '01' then floor(dd.actualProfit/100) end) as rentAchievement
+		,sum(case when dt.dealType = '02' then floor(dd.actualProfit/100) end) as newHouseAchievement
+		,sum(floor(df.actualProfit/100)) as financeAchievement
+		,(sum(case when dt.dealType = '00' then floor(dd.actualProfit/100) end)
+     	 +sum(case when dt.dealType = '01' then floor(dd.actualProfit/100) end)
+		 +sum(case when dt.dealType = '02' then floor(dd.actualProfit/100) end)
+     	 +sum(floor(df.actualProfit/100))) as achievementSum
+     
+		from sys_user su left join sys_dept sd on su.deptId = sd.id left join deal_dividenInfo dd on dd.dividerId=su.id and DATE_FORMAT(dd.updateTime,'%Y-%m')='2018-10' and dd.isValid=1 left join deal_transactionInfo dt on dd.dealId = dt.id left join deal_financeDividenInfo df on df.dividerId = su.id  
+     
+   		and DATE_FORMAT(df.updateTime,'%Y-%m')='2018-10' and df.isValid=1 where su.companyId=#{companyId}
+   		<if test="userId!=null and userId!='' ">
+   			and su.id = #{userId}
+   		</if>
+   		group by su.id order by achievementSum desc
+	</select>
+	<select id="queryPerMonthUserAchievement" resultType="map">
+		select companyId,deptId,userId,sellAchievement,rentAchievement,newHouseAchievement,financeAchievement,(sellAchievement+rentAchievement+newHouseAchievement+financeAchievement) as achievementSum from anal_incomestatistics where companyId=#{companyId} and months='2018-10' 
+		<if test="userId!=null and userId!='' ">
+   			and userId = #{userId}
+   		</if>
+		ORDER BY achievementSum desc
+	</select>
+</mapper>

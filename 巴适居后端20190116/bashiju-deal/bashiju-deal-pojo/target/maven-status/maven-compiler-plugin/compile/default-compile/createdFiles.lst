@@ -1,0 +1,7 @@
+com\bashiju\customer\pojo\deal\DealTransitScheduleQueryEntity.class
+com\bashiju\customer\pojo\DealAttachTypeEnum.class
+com\bashiju\customer\pojo\DealMoneyTypeEnum.class
+com\bashiju\customer\pojo\TransferScheduleStatusEnum.class
+com\bashiju\customer\pojo\SettlementTypeEnum.class
+com\bashiju\customer\pojo\ExamineStatusEnum.class
+com\bashiju\customer\pojo\DealFollowTypeEnum.class

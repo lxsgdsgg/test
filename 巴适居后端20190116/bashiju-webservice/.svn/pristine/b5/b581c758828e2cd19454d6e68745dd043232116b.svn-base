@@ -1,0 +1,311 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityServiceImpl.java   
+ * @Package com.bashiju.www.service.community.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月24日 下午4:43:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.service.community.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.webservice.mapper.CommunityMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.global.WebGlobal;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.community.CommunityDetail;
+import com.bashiju.www.pojo.service.community.CommunityPriceTrend;
+import com.bashiju.www.pojo.service.community.CommunityQueryParams;
+import com.bashiju.www.pojo.service.community.HotCommunity;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.service.comm.WebPageUtils;
+import com.bashiju.www.service.community.CommunityService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  CommunityServiceImpl   
+ * @Description:小区信息服务   
+ * @author: yangz
+ * @date:   2018年7月24日 下午4:43:49   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CommunityServiceImpl implements CommunityService {
+
+	@Autowired
+	private CommunityMapper communityMapper;
+	
+	@Autowired
+	ICacheService cacheService;
+	
+	
+	/**
+	 * @Description: 条件查询小区信息   
+	 * @param params 查询参数
+	 * @return: Page<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryCommunitys(com.bashiju.www.pojo.service.out.comm.CommunityQueryParams)   
+	 */
+	@Override
+	public Page<Community> queryCommunitys(CommunityQueryParams params) {
+		if(params==null)
+			throw new BusinessException("查询条件不允许为空");
+		if(StringUtils.isEmpty(params.getCityCode()))
+			throw new BusinessException("城市代码不允许为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryCommunitys"+JSONObject.toJSONString(params));
+		String jsonData = cacheService.getCache(key);
+		List<Community> list = new ArrayList<Community>(0);
+		Page<Community> pages =null;
+		if(!StringUtils.isEmpty(jsonData)) {
+			WebPage<Community> wp = WebPageUtils.parseWebPage(jsonData, Community.class);
+			pages = WebPageUtils.webPageToPage(wp);
+		}else {
+			//当每页显示的条数超过60条，则默认只显示30条
+			PageHelper.startPage(params.getPageNum(), params.getPageSize());
+			list = this.communityMapper.queryCommunitys(params);
+			pages = (Page<Community>) list;
+			if(list!=null && list.size()>0) {
+				WebPage<Community> wp = new WebPage<>(pages);
+				cacheService.saveCache(key, wp, WebGlobal.LIST_EXPTIME);
+			}
+		}
+		return pages;
+	}
+
+
+	/**
+	 * @Description: 查询城市下的热门小区  
+	 * @param cityCode 城市代码
+	 * @param size 查询的条数
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#queryHotCommunitys(java.lang.String)   
+	 */
+	@Override
+	public List<HotCommunity> queryHotCommunitys(String cityCode,int size) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市代码不允许为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryHotCommunitys"+cityCode+size);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			List<HotCommunity> list = JSONArray.parseArray(jsonData, HotCommunity.class);
+			return list;
+		}else {
+			List<HotCommunity> list = communityMapper.queryHotCommunitys(cityCode,size);
+			if(list!=null && list.size()>0)
+				cacheService.saveCache(key, list, WebGlobal.LIST_EXPTIME);
+			return list;
+		}
+	}
+
+
+	
+	/**
+	 * @Description: 条件查询小区详情
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#getCommunityDetail(java.lang.String)   
+	 */
+	
+	@Override
+	public CommunityDetail getCommunityDetail(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		String key = Md5EncryptUtils.md5Encrypt("getCommunityDetail"+communityId);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			CommunityDetail obj = JSONObject.parseObject(jsonData, CommunityDetail.class);
+			return obj;
+		}else {
+			//1.先查询小区的详细信息
+			CommunityDetail communityDetail = communityMapper.getCommunityDetail(communityId);
+			System.out.println("============条件查询小区详情==============="+communityDetail+"; 小区编号为："+communityId);
+			if(communityDetail!=null) {
+				//2.查询小区图片列表，将图片列表封装到小区详情中
+				List<String> communityImges = communityMapper.queryCommunityImages(communityId);
+				communityDetail.setPictures(communityImges);
+				cacheService.saveCache(key, communityDetail, WebGlobal.LIST_EXPTIME);
+			}
+			
+			return communityDetail;
+		}
+	}
+
+
+	
+	/**
+	 * @Description: 条件查询出售房源
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#querySealHousingByCommunityId(java.lang.String)   
+	 */
+	@Override
+	public List<HouseListResult> querySealHousingByCommunityId(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		String key = Md5EncryptUtils.md5Encrypt("querySealHousingByCommunityId"+communityId);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			List<HouseListResult> list = JSONArray.parseArray(jsonData, HouseListResult.class);
+			return list;
+		}else {
+			List<HouseListResult> selllHousing = communityMapper.querySealHousingByCommunityId(communityId);
+			if(selllHousing!=null && selllHousing.size()>0)
+				cacheService.saveCache(key, selllHousing, WebGlobal.LIST_EXPTIME);
+			return selllHousing;
+		}
+	}
+
+
+	/**
+	 * @Description: 条件查询出租房源
+	 * @param communityId 小区id
+	 * @return: List<HotCommunity>
+	 * @see com.bashiju.www.service.community.CommunityService#queryLeaseHousingByCommunityId(java.lang.String)
+	 */
+	@Override
+	public List<HouseListResult> queryLeaseHousingByCommunityId(String communityId) {
+		 if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		 	String key = Md5EncryptUtils.md5Encrypt("queryLeaseHousingByCommunityId"+communityId);
+			String jsonData = cacheService.getCache(key);
+			if(!StringUtils.isEmpty(jsonData)) {
+				List<HouseListResult> list = JSONArray.parseArray(jsonData, HouseListResult.class);
+				return list;
+			}else {
+				List<HouseListResult> leaseHousing = communityMapper.queryLeaseHousingByCommunityId(communityId);
+				if(leaseHousing!=null && leaseHousing.size()>0)
+					cacheService.saveCache(key, leaseHousing, WebGlobal.LIST_EXPTIME);
+				return leaseHousing;
+			}
+	}
+
+
+	/**
+	 * @Description: 条件查询附近小区
+	 * @param communityId 小区id
+	 * @return: List<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryNearbyCommunity(java.lang.String) 
+	 */
+	@Override 
+	public List<Community> queryNearbyCommunity(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryNearbyCommunity"+communityId);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			List<Community> list = JSONArray.parseArray(jsonData, Community.class);
+			return list;
+		}else {
+			List<Community> earbyCommunity 	=	communityMapper.queryNearbyCommunity(communityId);
+			if(earbyCommunity!=null && earbyCommunity.size()>0)
+				cacheService.saveCache(key, earbyCommunity, WebGlobal.LIST_EXPTIME);
+			return earbyCommunity;
+		}
+	}
+
+
+	/**
+	 * @Description: 查询小区的价格趋势信息  
+	 * @param communityId 小区编号
+	 * @return: List<CommunityPriceTrend>
+	 * @see com.bashiju.www.service.community.CommunityService#queryCommunityPriceTrend(java.lang.String)   
+	 */
+	@Override
+	public List<CommunityPriceTrend> queryCommunityPriceTrend(String communityId) {
+		if(StringUtils.isEmpty(communityId))
+			throw new BusinessException("小区编号不能为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryCommunityPriceTrend"+communityId);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			List<CommunityPriceTrend> list = JSONArray.parseArray(jsonData, CommunityPriceTrend.class);
+			return list;
+		}else {
+			List<CommunityPriceTrend> list = communityMapper.queryCommunityPriceTrend(communityId);
+			if(list!=null && list.size()>0)
+				cacheService.saveCache(key, list, WebGlobal.LIST_EXPTIME);
+			return list;
+		}
+	}
+
+
+	/**
+	 * 首页查询城市下的热门小区   (返回最热门的3条房产资讯)
+	 * @Description: 查询城市下的热门小区   (返回最热门的3条房产资讯)
+	 * @param cityCode 城市代码
+	 * @param size 显示条数
+	 * @return: List<Community> 
+	 * @see com.bashiju.www.service.community.CommunityService#queryFirstPageHotCommunitys(java.lang.String, int)   
+	 */
+	@Override
+	public List<Community> queryFirstPageHotCommunitys(String cityCode, int size) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市代码不允许为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryFirstPageHotCommunitys"+cityCode+size);
+		String jsonData = cacheService.getCache(key);
+		if(!StringUtils.isEmpty(jsonData)) {
+			List<Community> list = JSONArray.parseArray(jsonData, Community.class);
+			return list;
+		}else {
+			List<Community> list = communityMapper.queryFirstPageHotCommunitys(cityCode,size);
+			if(list!=null && list.size()>0)
+				cacheService.saveCache(key, list, WebGlobal.LIST_EXPTIME);
+			return list;
+		}
+	}
+
+
+	/**
+	 * 全文搜索查询小区(搜索条件：小区名称，片区，区域)
+	 * @Description: 全文搜索查询小区(搜索条件：小区名称，片区，区域)  
+	 * @param cityCode 城市编号
+	 * @param params 搜索条件：小区名称，片区，区域(条件长度不小于两个字符不大于84个字符)
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Community>
+	 * @see com.bashiju.www.service.community.CommunityService#queryCommunityByFullText(java.lang.String)   
+	 */
+	@Override
+	public Page<Community> queryCommunityByFullText(String cityCode,String params,int pageNum,int pageSize) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市编号不允许为空");
+		if(StringUtils.isEmpty(params))
+			throw new BusinessException("查询条件不允许为空");
+		if(params.length()<2)
+			throw new BusinessException("查询条件太短了");
+		if(params.length()>84)
+			throw new BusinessException("查询条件太长了");
+		String key = Md5EncryptUtils.md5Encrypt("queryCommunitys"+JSONObject.toJSONString(params));
+		String jsonData = cacheService.getCache(key);
+		List<Community> list = new ArrayList<Community>(0);
+		Page<Community> pages =null;
+		if(!StringUtils.isEmpty(jsonData)) {
+			WebPage<Community> wp = WebPageUtils.parseWebPage(jsonData, Community.class);
+			pages = WebPageUtils.webPageToPage(wp);
+		}else {
+			//当每页显示的条数超过60条，则默认只显示30条
+			PageHelper.startPage(pageNum, pageSize);
+			list = communityMapper.queryCommunityByFullText(cityCode,params);
+			pages = (Page<Community>) list;
+			if(list!=null && list.size()>0) {
+				WebPage<Community> wp = new WebPage<>(pages);
+				cacheService.saveCache(key, wp, WebGlobal.LIST_EXPTIME);
+			}
+		}
+		return pages;
+	}
+
+}

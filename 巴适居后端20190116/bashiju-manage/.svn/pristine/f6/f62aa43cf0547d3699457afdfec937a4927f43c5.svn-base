@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.CurriculumVitaeMapper">
+  
+  	<select id="queryCurriculumVitae" resultType="map">
+  		select scv.id,scv.name,sr.`name` as recruitName,scv.recruitInfoId, scv.sex,scv.birthdate,scv.email,scv.mobile,
+		scv.docType,scv.docCode,scv.nationalities,scv.politicalOrientation,scv.householdRegister,
+		scv.graduatDate,scv.workDate,scv.address,scv.isMarry,scv.attachment,scv.operator,scv.operatorId,
+		scv.addTime  from sys_curriculumVitae scv 
+		left join sys_recruitInfo sr on sr.id=scv.recruitInfoId where scv.isValid=1
+  	</select>
+  	
+	<select id="queryCurriculumVitaeDetailById" resultType="map">
+  		select scv.id,scv.name,sr.name as recruitName,scv.recruitInfoId, scv.sex,scv.birthdate,scv.email,scv.mobile,
+		scv.docType,scv.docCode,scv.nationalities,scv.politicalOrientation,scv.householdRegister,
+		scv.graduatDate,scv.workDate,scv.address,scv.isMarry,scv.attachment,scv.operator,scv.operatorId,
+		scv.addTime from sys_curriculumVitae scv 
+		left join sys_recruitInfo sr on sr.id=scv.recruitInfoId where scv.id=#{id}
+  	</select>
+  
+  </mapper>

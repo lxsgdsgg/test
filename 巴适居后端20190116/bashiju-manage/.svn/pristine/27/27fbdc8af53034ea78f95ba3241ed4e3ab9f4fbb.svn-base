@@ -1,0 +1,45 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DecisionConfigurateMapper.java   
+ * @Package com.bashiju.manage.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月6日 上午9:57:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+/**   
+ * @ClassName:  DecisionConfigurateMapper   
+ * @Description:决策配置持久类   
+ * @author: yangz
+ * @date:   2018年7月6日 上午9:57:08   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface DecisionConfigurateMapper {
+
+	/**     
+	 * @Description: 条件查询决策配置信息  
+	 * @param cityCode 城市编码
+	 * @param type 决策类型
+	 * @param name 决策名称
+	 * @return: List<Map<String,Object>>      
+	 */ 
+	List<Map<String, Object>> queryDecisisionConfigurate(@Param("cityCode")String cityCode,@Param("type")String type, @Param("name")String name);
+
+	/**
+	 * @Description: 根据决策编码删除该决策所在城市的配置信息   
+	 * @param decisionId 决策编码
+	 * @param cityCode 城市编码
+	 * @return: int
+	 */
+	int deleteDecistionConfigurate(@Param("decisionId")String decisionId,@Param("cityCode")String cityCode);
+}

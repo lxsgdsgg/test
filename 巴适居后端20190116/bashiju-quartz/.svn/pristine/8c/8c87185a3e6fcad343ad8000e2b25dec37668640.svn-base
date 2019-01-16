@@ -1,0 +1,239 @@
+package com.bashiju.quartz.service.mq;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.enums.DeptTypeEnum;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.ResHouseLevelConditionEnum;
+import com.bashiju.quartz.mapper.HouseAndCustomerLevelTaskMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+
+/**   房源定时任务
+ * @ClassName  StatusChange   
+ * @DescriptionTODO(这里用一句话描述这个类的作用)   
+ * @author zhaobin
+ * @date   2018年5月30日 下午2:43:37   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class HouseLevelChangeMq extends CommonSqlServie {
+@Autowired
+HouseAndCustomerLevelTaskMapper houseTaskMapper;
+	
+		static final String yxCode=HouseStatusEnum.EFFECTIVE.getCode();
+		StringBuilder sbs=new StringBuilder();
+		boolean flag;
+		
+		public void houseAutolevelChange(String companyId) {
+			long starttime=System.currentTimeMillis();
+			//查询公司的城市列表
+			String queryCityCondition="companyId='"+companyId+"' and deptTypeId='"+DeptTypeEnum.DEPT_CITY.getCode()+"'";
+			Page<Map<String, Object>> cityCodeList=this.querySingleTable("areaCode","sys_dept", queryCityCondition, 1, 100);
+			if(cityCodeList.isEmpty()) {
+				System.out.println(new Date()+"公司代码为["+companyId+"]下面没有找到城市");
+				return;
+			}
+			for(Map<String, Object> map:cityCodeList) {				
+				flag=true;
+				sbs.delete(0, sbs.length());//清空sbs;
+				String cityCode=map.get("areaCode").toString();
+				queryHouseLevlConfig(companyId, cityCode);
+			}
+			long endtime=System.currentTimeMillis();
+			System.out.println(new Date()+"------------------------------->房源等级定时改变执行耗时="+(endtime-starttime)+"毫秒");
+			
+		}
+		
+		/**
+		 * 获取房源等级配置并更新相关数据
+		 */
+		private void queryHouseLevlConfig(String companyId,String cityCode) {
+			List<Map<String,Object>> list=houseTaskMapper.queryHouseLevlConfig(companyId, cityCode);
+			if(list.isEmpty()) {
+				System.out.println(new Date()+"公司代码为["+companyId+"]城市编码为["+cityCode+"]的房源等级无需更新");	
+				return;
+			} 
+				for(int i=0;i<list.size();i++) {
+					String conditions=String.valueOf(list.get(i).get("conditions"));
+					boolean taobaoStatus=false,isPicture=false,isKeys=false,isUnique=false,
+							closeDiscFlg=false,isUrgent=false,isSatisfyTwoYear=false,isOnly=false;
+					if(conditions.contains(ResHouseLevelConditionEnum.TAOBAOPOOL.getCode())) {
+						taobaoStatus=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.PHOTO.getCode())) {
+						isPicture=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.KEY.getCode())) {
+						isKeys=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.SOLE.getCode())) {
+						isUnique=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.SEALING.getCode())) {
+						closeDiscFlg=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.EAGER.getCode())) {
+						isUrgent=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.FORTWOYEARS.getCode())) {
+						isSatisfyTwoYear=true;
+					}
+					if(conditions.contains(ResHouseLevelConditionEnum.ONLYHOUSING.getCode())) {
+						isOnly=true;
+					}
+					
+					String transactionTypeId=String.valueOf(list.get(i).get("transactionType"));
+					String propertyType=String.valueOf(list.get(i).get("propertyType"));
+					String decoratingType=String.valueOf(list.get(i).get("decoratingType"));
+					String houseUses=String.valueOf(list.get(i).get("houseUses"));
+					String matchingId=String.valueOf(list.get(i).get("matchingId"));
+					String sellingMinPrice=String.valueOf(list.get(i).get("minPrice"));
+					String sellingMaxPrice=String.valueOf(list.get(i).get("maxPrice"));
+					String buildMinSpace=String.valueOf(list.get(i).get("minSpace"));
+					String buildMaxSpace=String.valueOf(list.get(i).get("maxSpace"));
+					String levelType=String.valueOf(list.get(i).get("levelType"));
+					String payTypeId=String.valueOf(list.get(i).get("payTypeId"));
+					String areaCode=String.valueOf(list.get(i).get("areaCode"));
+					
+					/*拼接需求区域的查询条件*/
+					StringBuilder sbdemand=new StringBuilder(); 
+					if("null".equals(areaCode)) {
+						sbdemand=null;
+					}else {
+						sbdemand.append("1!=1 ");
+						String[] demand=String.valueOf(list.get(i).get("areaCode")).split(",");
+						for(String res:demand) {
+							if(res.contains("area-")) {
+								sbdemand.append(" or ")
+										.append("b.areaCode")
+										.append("=")
+										.append(res.replace("area-", "'"))
+										.append("'");
+							}
+							if(res.contains("reg-")) {
+								sbdemand.append(" or ")
+								.append("b.regionId")
+								.append("=")
+								.append(res.replace("reg-", "'"))
+								.append("'");
+							}
+							if(res.contains("com-")) {
+								sbdemand.append(" or ")
+								.append("b.communityId")
+								.append("=")
+								.append(res.replace("com-", "'"))
+								.append("'");
+							}
+						}
+					}
+					/*拼接配套的查询条件*/
+					StringBuilder sbsmatching=new StringBuilder(); 
+					if(!"null".equals(matchingId)) {
+						sbsmatching.append("1==1 ");
+						String[] matching=matchingId.split(",");
+						for(String res:matching) {
+							sbsmatching.append(" and ")
+										.append("a.matchingIds")
+										.append("='")
+										.append(res)
+										.append("'");
+						}						
+					}
+					
+					List<String> houseABLevelIdlist=houseTaskMapper.queryHouseABLevelId(transactionTypeId, yxCode, companyId, cityCode, String.valueOf(sbdemand), taobaoStatus, isPicture, isKeys, isUnique, closeDiscFlg, isUrgent, isSatisfyTwoYear, isOnly, propertyType, decoratingType, houseUses, payTypeId, sellingMinPrice, sellingMaxPrice, buildMinSpace, buildMaxSpace, String.valueOf(sbsmatching));
+				System.out.println("-----------houseABLevelIdlist="+houseABLevelIdlist);
+						/*更新房源AB等级*/
+					if(houseABLevelIdlist.size()>0)
+					{
+						/*List 转String*/
+						String houseIdString ="'"+ StringUtils.join(houseABLevelIdlist, "\',\'")+"'";
+						updateHouseLevel(houseIdString,companyId,cityCode,levelType);
+						saveLog(houseABLevelIdlist,companyId,levelType);
+						if(flag) {
+							flag=false;
+						}else {
+							sbs.append(",");
+						}
+						sbs.append(houseIdString);
+					}
+				}
+				System.out.println("ABsbs======"+sbs.toString());
+				
+				/*非AB的更新房源C等级*/
+				List<String> houseCLevelList=gethouseLevelC(companyId,cityCode,sbs.toString());
+				if(houseCLevelList.size()>0)
+				{
+					/*List 转String*/
+					String houseCLevelIdString ="'"+ StringUtils.join(houseCLevelList, "\',\'")+"'";
+					updateHouseLevel(houseCLevelIdString,companyId,cityCode,"C");
+					saveLog(houseCLevelList,companyId,"C");
+				}
+				System.out.println("Csbs======"+sbs.toString());
+				
+				/*更新非有效房源为D等级*/
+				List<String> houseDLevelList=gethouseLevelD(companyId,cityCode);
+				if(houseDLevelList.size()>0)
+				{
+					/*List 转String*/
+					String houseDLevelIdString ="'"+ StringUtils.join(houseDLevelList, "\',\'")+"'";
+					updateHouseLevel(houseDLevelIdString,companyId,cityCode,"D");
+					saveLog(houseDLevelList,companyId,"D");
+				}
+		}
+
+	
+	private List<String> gethouseLevelC(String companyId,String cityCode,String idString) {
+		return this.houseTaskMapper.queryHouseCLevelId(companyId,cityCode,idString,yxCode);
+	}
+	
+	private List<String> gethouseLevelD(String companyId,String cityCode) {
+		return this.houseTaskMapper.queryHouseDLevelId(companyId,cityCode,yxCode);
+	}
+	
+	/**
+	 * 更新房源等级
+	 * @param houseIdString 房源id 字符串
+	 * @param companyId 公司id
+	 * @param cityCode 城市编码
+	 * @param levelType 房源等级
+	 */
+	private void updateHouseLevel(String houseIdString,String companyId,String cityCode,String levelType) {
+		
+	
+			Map<String,Object> map=new HashMap<>();
+				map.put("levelType",levelType);
+				System.out.println("公司ID为【"+companyId+ "】城市编号为【"+cityCode+"】需要变更为【"+levelType+"】等级的房源需求ID="+houseIdString);
+			this.batchcommonUpdate(map, "hs_secondhandhouse", "houseId", houseIdString,"companyId='"+companyId+"'");
+	}
+	
+	
+	/**
+	 * 保存到日志
+	 * @param list 房源id列表
+	 * @param companyId 公司id
+	 * @param levelType 房源等级
+	 */
+	private void saveLog(List<String> list,String companyId,String levelType) {
+		String fieldString="companyId,sourceType,sourceId,excuteContext";
+		List<String> listString=new ArrayList<>();
+		for(int i=0;i<list.size();i++) {				
+			StringBuilder sb=new StringBuilder();
+				sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','房源等级为调整"+levelType+"类房源'");	
+			listString.add(sb.toString());
+		}
+		 batchAdd( fieldString, "user_log",listString, true);
+	}
+		
+}

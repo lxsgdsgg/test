@@ -1,0 +1,40 @@
+html,body{margin:0 0;font-family:"Microsoft YaHei";font-size:14px; height: 95%; padding: 0; margin: 0;}
+.top{background-color:#2e2e2e;height: 45px;overflow:hidden;}
+.menudiv{overflow:auto;float: left;}
+.menu{float:left;margin-left:7px;font-size:14px;letter-spacing:1px;}
+.mt{width:100px;background-color:#2e2e2e;color:#ffffff;text-align: center;line-height:40px;cursor:pointer;border-bottom:3px #2e2e2e solid;}
+.mt:hover,.mthover{color:red;background-color:black;border-bottom:3px red solid;}
+.hengChild .menuItem{float:left;margin-left:7px;z-index:9999} 
+.childrenPanel{position:absolute;width:600px;z-index:9999;background-color:#303030;padding:10px;color:#ffffff;}
+.childrenPanelNode{clear:both;padding-top:10px;border-bottom:1px solid #5d5959;overflow:auto;padding-bottom:7px;}
+.nodeTitle{display:block;float:left;width:100px;line-height:30px;color:#FFC107;}
+.nodePanel{display:block;float:left;width:500px;}
+.nodePanel span{margin-left:10px;display:inline-block;line-height:30px;cursor:pointer;letter-spacing:1px;padding:2px 5px}
+.nodePanel span:hover{color:red;}
+.expandDiv .childrenPanel{margin-left:100px;margin-top:-43px;}
+.expandDivChildrenPanel{position:absolute;margin-left:-7px;z-index:9999}
+.expandDivChildrenPanel .childrenPanelNode{margin-top:0px;}
+.userinfo{float:right;background-color:#2e2e2e;color:#ffffff;line-height:40px;cursor:pointer;margin-right: 20px}
+.tabDiv{background-color: #444444;height:30px;color:white;width:100%;position:fixed;}
+.tabDiv .tabMenu{float: left;width:100px;text-align: center;line-height: 30px}
+.tabMenu span{padding: 0 10px}
+.selected{background-color: red;height: 30px}
+.indexContextClass{background-color:#0080ff;width: 100px !important;}
+.context{padding:35px 0;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

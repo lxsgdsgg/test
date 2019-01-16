@@ -1,0 +1,7 @@
+com\bashiju\customer\controller\CustomerController.class
+com\bashiju\customer\controller\DemandShowedRecordController.class
+com\bashiju\customer\controller\BusinessExamineController.class
+com\bashiju\customer\controller\CustomerActionLogQueryController.class
+com\bashiju\customer\controller\DemandFollowRecordController.class
+com\bashiju\customer\controller\DepositManageController.class
+com\bashiju\customer\controller\AgentLeaveingMsgAndCommensController.class

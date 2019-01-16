@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerSeeHouseRecordMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseRecordEntity" 
+			id="seeHouseEntity">
+		<id property="id" column="id"/>
+        <result property="houseId" column="houseId"/>
+        <result property="demandId" column="demandId"/>
+        <result property="agentId" column="leaderId"/>
+        <result property="agentName" column="leader"/>
+        <result property="seeHouseTime" column="leadTime"/>
+        <result property="transactionTypeId" column="transactionTypeId"/>
+        <result property="transactionType" column="transactionType"/>
+        <result property="custName" column="custName"/>
+        <result property="custCallType" column="custCallType"/>
+        <result property="isValid" column="isValid"/>
+        <result property="companyId" column="companyId"/>
+        <result property="companyName" column="companyName"/>
+        <result property="houseSequence" column="houseSequence"/>
+        <result property="content" column="content"/>
+        <result property="custId" column="custId"/>
+        <result property="titles" column="titles"/>
+        <result property="matching" column="matching"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="cityCode" column="cityCode"/>
+        <result property="regionId" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="communityId" column="communityId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="buildingsId" column="buildingsId"/>
+        <result property="buildingsName" column="buildingsName"/>
+        <result property="bulidingUnitId" column="bulidingUnitId"/>
+        <result property="buildingsUnitName" column="buildingsUnitName"/>
+        <result property="buildingHouseName" column="buildingHouseName"/>
+        <result property="buildingHouseId" column="buildingHouseId"/>
+        <result property="agentMobile" column="agentMobile"/>
+        <result property="label" column="label"/>
+        <result property="room" column="room"/>
+        <result property="hall" column="hall"/>
+        <result property="toilet" column="toilet"/>
+        <result property="kitchen" column="kitchen"/>
+        <result property="buildSpace" column="buildSpace"/>
+        <result property="profilePhoto" column="profilePhoto"/>
+        <result property="shhId" column="shhId"/>
+        <result property="houseImgUrl" column="houseImgUrl"/>
+     </resultMap>
+	<select id="queryAllCustomerSeeHouseRecord" resultMap="seeHouseEntity">
+		SELECT a.id,b.sourcesId,a.leaderId,a.leader,a.leadTime,a.transactionTypeId,a.transactionType,c.id as shhid,
+		a.custName,a.custCallType,a.isValid,a.companyId,a.content,b.custId,c.id as houseId,c.titles,
+		c.houseId as houseSequence,c.matching,c.companyName,d.areaCode,d.cityCode,d.areaName,d.regionId,d.regionName,
+		d.communityId,d.communityName,d.buildingsId,d.buildingsName,d.bulidingUnitId,
+		d.buildingsUnitName,d.buildingHouseName,d.buildingHouseId ,
+		u.mobile as agentMobile,'资深经纪人' as label,c.room,c.hall,c.toilet,c.kitchen,
+		c.buildSpace,u.profilePhoto,e.path as houseImgUrl
+		FROM demand_showedrecord a INNER JOIN sys_custbindinfo b ON a.sourceId = b.sourcesId 
+		INNER JOIN hs_secondhandhouse c ON a.sourceId = c.id INNER JOIN hs_housebaseinfo
+		d ON c.houseId = d.id inner join sys_user u on a.leaderId = u.id 
+		left JOIN (select max(path) as path,shhId from hs_houseattachment group by shhId) e on c.id = e.shhId
+		WHERE a.isValid = 1 and b.type = 0 and b.custId = #{custId}
+	</select>
+	
+</mapper>

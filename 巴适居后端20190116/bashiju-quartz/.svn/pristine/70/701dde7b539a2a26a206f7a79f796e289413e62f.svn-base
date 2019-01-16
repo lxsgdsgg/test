@@ -1,0 +1,176 @@
+package com.bashiju.quartz.service.mq;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.enums.CustomerStatusEnum;
+import com.bashiju.enums.DeptTypeEnum;
+import com.bashiju.enums.ResCustLevelConditionEnum;
+import com.bashiju.quartz.mapper.HouseAndCustomerLevelTaskMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+
+/**   客源定时任务
+ * @ClassName  StatusChange   
+ * @Description (这里用一句话描述这个类的作用)   
+ * @author zhaobin
+ * @date   2018年5月30日 下午2:43:37   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class CustomerLevelChangeMq extends CommonSqlServie {
+@Autowired
+HouseAndCustomerLevelTaskMapper customerTaskMapper;
+
+	static final String yxCode=CustomerStatusEnum.EFFECTIVE.getCode();
+	StringBuilder sbs=new StringBuilder();
+	boolean flag;
+	public void customerAutoLevelChange(String companyId) {
+		
+		long starttime=System.currentTimeMillis();
+		//查询公司的城市列表
+		String queryCityCondition="companyId='"+companyId+"' and deptTypeId='"+DeptTypeEnum.DEPT_CITY.getCode()+"'";
+		Page<Map<String, Object>> cityCodeList=this.querySingleTable("areaCode","sys_dept", queryCityCondition, 1, 100);
+		if(cityCodeList.isEmpty()) {
+			System.out.println(new Date()+"公司代码为["+companyId+"]下面没有找到城市");
+			return;
+		}
+		for(Map<String, Object> map:cityCodeList) {				
+			flag=true;
+			sbs.delete(0, sbs.length());//清空sbs;
+			String cityCode=map.get("areaCode").toString();
+			queryCustomerLevlConfig(companyId, cityCode);
+		}
+		long endtime=System.currentTimeMillis();
+		System.out.println(new Date()+"------------------------------->客源等级定时改变执行耗时="+(endtime-starttime)+"毫秒");
+	}
+	
+	/**
+	 * 获取客源等级配置并更新相关数据
+	 */
+	private void queryCustomerLevlConfig(String companyId,String cityCode) {
+		List<Map<String,Object>> list=customerTaskMapper.queryCustomerLevlConfig(companyId, cityCode);
+		if(list.isEmpty()) {
+			System.out.println(new Date()+"公司代码为["+companyId+"]城市编码为["+cityCode+"]的客源等级无需更新");	
+			return;
+		} 
+			for(int i=0;i<list.size();i++) {
+				String conditions=String.valueOf(list.get(i).get("conditions"));
+				boolean isRepeat=false,isBond=false,isUrgent=false,isCloseDisc=false,taobaoStatus=false;
+				if(conditions.contains(ResCustLevelConditionEnum.LOOKBACK.getCode())) {
+					isRepeat=true;
+				}
+				if(conditions.contains(ResCustLevelConditionEnum.DETERMINE.getCode())) {
+					isBond=true;
+				}
+				if(conditions.contains(ResCustLevelConditionEnum.EAGER.getCode())) {
+					isUrgent=true;
+				}
+				if(conditions.contains(ResCustLevelConditionEnum.SEALING.getCode())) {
+					isCloseDisc=true;
+				}
+				if(conditions.contains(ResCustLevelConditionEnum.TAOBAOPOOL.getCode())) {
+					taobaoStatus=true;
+				}
+				
+				String transactionType=String.valueOf(list.get(i).get("transactionType"));
+				String viewingCount=String.valueOf(list.get(i).get("lookCount"));
+				String minPrice=String.valueOf(list.get(i).get("minPrice"));
+				String maxPrice=String.valueOf(list.get(i).get("maxPrice"));
+				String minSpace=String.valueOf(list.get(i).get("minSpace"));
+				String maxSpace=String.valueOf(list.get(i).get("maxSpace"));
+				String levelType=String.valueOf(list.get(i).get("levelType"));
+				List<String> customerABLevelIdlist=customerTaskMapper.queryCustomerABLevelId(transactionType, yxCode, companyId,cityCode,
+						isRepeat, isBond, isUrgent, isCloseDisc, taobaoStatus, viewingCount, minPrice, maxPrice, minSpace, maxSpace);
+				
+				/*更新客源AB等级*/
+				if(customerABLevelIdlist.size()>0)
+				{
+					/*List 转String*/
+					String customerIdString ="'"+ StringUtils.join(customerABLevelIdlist, "\',\'")+"'";
+					updateCustomerLevel(customerIdString,companyId,cityCode,levelType);
+					saveLog(customerABLevelIdlist,companyId,levelType);
+					if(flag) {
+						flag=false;
+					}else {
+						sbs.append(",");
+					}
+					sbs.append(customerIdString);
+				}
+			}
+			System.out.println("ABsbs======"+sbs.toString());
+			
+			/*非AB的更新客源C等级*/
+			List<String> customerCLevelList=queryCustomerLevelC(companyId,cityCode,sbs.toString());
+			if(customerCLevelList.size()>0)
+			{
+				/*List 转String*/
+				String customerCLevelIdString ="'"+ StringUtils.join(customerCLevelList, "\',\'")+"'";
+				updateCustomerLevel(customerCLevelIdString,companyId,cityCode,"C");
+				saveLog(customerCLevelList,companyId,"C");
+			}
+			System.out.println("Csbs======"+sbs.toString());
+			
+			/*更新非有效客源为D等级*/
+			List<String> customerDLevelList=queryCustomerLevelD(companyId,cityCode);
+			if(customerDLevelList.size()>0)
+			{
+				/*List 转String*/
+				String customerDLevelIdString ="'"+ StringUtils.join(customerDLevelList, "\',\'")+"'";
+				updateCustomerLevel(customerDLevelIdString,companyId,cityCode,"D");
+				saveLog(customerCLevelList,companyId,"D");
+			}
+	}
+	
+	private List<String> queryCustomerLevelC(String companyId,String cityCode,String idString) {
+		return this.customerTaskMapper.queryCustomerCLevelId(companyId,cityCode,idString,yxCode);
+	}
+	
+	private List<String> queryCustomerLevelD(String companyId,String cityCode) {
+		return this.customerTaskMapper.queryCustomerDLevelId(companyId,cityCode,yxCode);
+	}
+	
+	/**
+	 * 更新客源等级
+	 * @param customerIdString 客源id 字符串
+	 * @param companyId 公司id
+	 * @param cityCode 城市编码
+	 * @param levelType 客源等级
+	 */
+	private void updateCustomerLevel(String customerIdString,String companyId,String cityCode,String levelType) {
+		
+
+			Map<String,Object> map=new HashMap<>();
+				map.put("levelType",levelType);
+				System.out.println("公司ID为【"+companyId+ "】城市编号为【"+cityCode+"】需要变更为【"+levelType+"】等级的客源需求ID="+customerIdString);
+			this.batchcommonUpdate(map, "demand_customerbusinessinfo", "id", customerIdString,"companyId='"+companyId+"' and operatorCityCode='"+cityCode+"'");
+	}
+	
+	
+	/**
+	 * 保存到日志
+	 * @param list 客源id列表
+	 * @param companyId 公司id
+	 * @param levelType 客源等级
+	 */
+	private void saveLog(List<String> list,String companyId,String levelType) {
+		String fieldString="companyId,sourceType,sourceId,excuteContext";
+		List<String> listString=new ArrayList<>();
+		for(int i=0;i<list.size();i++) {				
+			StringBuilder sb=new StringBuilder();
+				sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','客源等级为调整"+levelType+"类客源'");	
+			listString.add(sb.toString());
+		}
+		 batchAdd( fieldString, "user_log",listString, true);
+	}
+}

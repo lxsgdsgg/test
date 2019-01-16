@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.HousePropertyArticleClassesMapper">
+	<select id="queryHousePropertyArticleClasses" resultType="map">
+		SELECT sac.id,sac.type,sac.`name`,sac.`level`,sac.parentId,sac.cityCode,sac.permissionArea,
+		sac.operatorId,sac.operator,sac.addTime,sac.updateTime,sac.isValid FROM sys_article_classes AS sac
+		where sac.isValid=1
+		<if test="name!=null and name!='' ">and sac.name like concat('%', #{name},'%')</if>
+		<if test="level!=null and level!='' ">and sac.level = #{level}</if>
+		<if test="cityCode!=null and cityCode!='' ">and sac.cityCode = #{cityCode}</if>
+	</select>
+	<select id="queryHousePropertyArticleClassesNameByLevel" resultType="map">
+		SELECT id,name FROM sys_article_classes where level=#{level} and cityCode=#{cityCode}
+	</select>
+	
+	
+	<select id="queryHousePropertyArticleClassesById" resultType="map">
+		SELECT sac.id,sa.`name` as cityName,sac.type,sac.`name`,sac2.name as parentName,sac.`level`,sac.parentId,sac.cityCode,sac.permissionArea,
+		sac.operatorId,sac.operator,sac.addTime,sac.updateTime,sac.isValid FROM sys_article_classes AS sac
+		left join sys_area sa on sac.cityCode = sa.`code`
+		LEFT JOIN sys_article_classes sac2 on sac.parentId = sac2.id
+		where sac.isValid=1 and sac.id=#{houseAticleId}
+	</select>
+	
+	
+	<select id="queryHousePropertyArticleClassesByTypeAndCityCode" resultType="map">
+		SELECT sac.id,sac.type,sac.`name`,sac.`level`,sac.parentId,sac.cityCode,sac.permissionArea,
+		sac.operatorId,sac.operator,sac.addTime,sac.updateTime,sac.isValid FROM sys_article_classes AS sac
+		WHERE sac.cityCode = #{cityCode} AND sac.type =#{type}
+	</select>
+</mapper>

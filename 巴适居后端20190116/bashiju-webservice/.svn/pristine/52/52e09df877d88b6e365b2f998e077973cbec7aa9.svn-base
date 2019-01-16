@@ -1,0 +1,27 @@
+package com.bashiju.www.test.usercentraltest;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseCommentsEntity;
+import com.bashiju.www.service.user.ICustomerSeeHouseRecordService;
+import com.bashiju.www.test.BaseServiceTest;
+
+public class CustomerSeeHouseRecordTest extends BaseServiceTest {
+	@Autowired
+	private ICustomerSeeHouseRecordService mICustomerSeeHouseRecordService;
+	
+	@Test
+	public void queryAllCustomerSeeHouseRecord() {
+		//查询看房记录（贷款记录）
+		System.out.println(mICustomerSeeHouseRecordService.queryAllCustomerSeeHouseRecord("1", 0, 20));
+		
+		//保存看房记录评价
+//		CustomerSeeHouseCommentsEntity seeHouseEntity = new CustomerSeeHouseCommentsEntity();
+//		seeHouseEntity.setVisterEvaluate("房子不错，回去准备买彩票，下次就全款付了");
+//		seeHouseEntity.setId(1);
+//		mICustomerSeeHouseRecordService.saveSeeHouseRecordComments(seeHouseEntity,
+//				null, null, "WWWDF");
+	}
+
+}

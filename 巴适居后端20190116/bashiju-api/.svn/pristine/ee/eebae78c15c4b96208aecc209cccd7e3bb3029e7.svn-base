@@ -1,0 +1,65 @@
+package com.bashiju.api;
+
+import java.util.List;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.servlet.ModelAndView;
+/**
+ * 
+ * @ClassName:  PermissionServiceApi   
+ * @Description:权限信息服务接口  
+ * @author: yangz
+ * @date:   2018年4月18日 下午1:40:17   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface PermissionServiceApi {
+	/**
+	 * 
+	 * @Description: 根据用户id查询该用户的菜单权限(不包括功能中的按钮权限)
+	 * @param mobile 用户手机号
+	 * @param userId 用户id
+	 * @return
+	 * @throws Exception      
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> callQueryUserMenuPermission(String mobile,String userId);
+	/**
+	 * 
+	 * @Description: 根据用户id查询一级菜单     
+	 * @param mobile 用户手机号
+	 * @param userId 用户id
+	 * @return
+	 * @throws Exception      
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> callQueryFirstMenuByUser(String mobile,String userId);
+
+	
+	/**
+	 * 
+	 * @Description: 根据菜单id查询用户权限内子一级菜单信息     
+	 * @param mobile 用户手机号
+	 * @param userId 用户id
+	 * @param menuId 菜单id
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> callQueryChildMenus(String mobile,String userId,String menuId);
+	
+	/**
+	 * 
+	 * @Description: 根据菜单id查询用户权限内子一级菜单信息     
+	 * @param mobile 用户手机号
+	 * @param userId 用户id
+	 * @param menuId 菜单id
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryFunctionMenuPermission(String mobile,String userId,String menuId);
+}

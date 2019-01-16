@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.IFormMapper">
+	
+	<resultMap type="com.bashiju.www.pojo.service.out.comm.RangeResult" id="rangeResultMap">
+        <result property="min" column="fieldValue"/>
+        <result property="max" column="maxRegionValue"/>
+        <result property="widgetCode" column="widgetCode"/>
+     </resultMap>
+	
+	<resultMap type="com.bashiju.www.pojo.service.out.comm.SelectItemResult" id="selectResultMap">
+        <id property="value" column="id"/>
+        <result property="name" column="fieldValue"/>
+        <result property="widgetCode" column="widgetCode"/>
+     </resultMap>
+     
+	<select id="queryRanges" resultMap="rangeResultMap">
+		select a.fieldValue,a.maxRegionValue,a.widgetCode from dynamicform_field_value a INNER JOIN dynamicform_widget b where a.widgetCode = b.widgetCode and b.cityCode=#{cityCode} and a.isValid=1
+	</select>
+	
+	<select id="querySelects" resultMap="selectResultMap">
+		select id,fieldValue,widgetCode from dynamicform_field_value where isValid=1
+	</select>
+	
+</mapper>

@@ -1,0 +1,25 @@
+package com.bashiju.customer.mapper;
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+import org.apache.log4j.varia.StringMatchFilter;
+
+import com.alibaba.dubbo.config.support.Parameter;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  CustFollowRecordMapper   
+ * @Description:客源跟进记录映射接口
+ * @author: wangpeng
+ * @date:   2018年6月12日 下午4:00:02   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustFollowRecordMapper {
+	Page<Map<String,Object>>queryCustFollowRecordData(@Param("transactionType")String transactionType,@Param("followTypeName")String followTypeName,@Param("followType")String followType,@Param("followerId")String followerId,@Param("custIdAndFollowfollower")String custIdAndFollowfollower,@Param("operatorId")String operatorId,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
+	
+	
+	Page<Map<String,Object>>queryCustFollowRecordByDemandId(@Param("demandId")String demandId);
+}

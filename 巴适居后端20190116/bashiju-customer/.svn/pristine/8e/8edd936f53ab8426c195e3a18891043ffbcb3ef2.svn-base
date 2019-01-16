@@ -1,0 +1,730 @@
+package com.bashiju.customer.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.customer.mapper.FormMapper;
+import com.bashiju.customer.service.FormService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 
+ * @ClassName:  FormServiceImpl   
+ * @Description:动态表单实现类
+ * @author: liwen
+ * @date:   2018年4月9日 上午9:54:20   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+
+@SystemServiceLog(sourceType="动态表单") 
+@Service
+ public class FormServiceImpl implements FormService{
+	
+	@Resource
+	private FormMapper formmapper;
+	@Resource
+	private CommonSqlServie commonSqlServie;
+	
+	//****  必填项设置相关  ****//
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public LinkedList<Map> queryRequiredType(){
+		LinkedList<Map> types = formmapper.queryRequiredType();
+		ExecutionResult.descFormat(types.size()+"", "查询必填项类型");
+		return types;
+	}
+	
+	
+	
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public Map queryFieldRequired() {
+		LinkedList<Map> fields = formmapper.queryFieldRequired("530100");
+		Map<String,Object> result = new HashMap<>();
+		
+		
+		for(Map m : fields) {
+			String type = m.get("useType").toString();
+			if(result.containsKey(type)){
+				List fieldList =(List)result.get(type);
+				fieldList.add(m);
+				
+			}else{
+				List l = new ArrayList<>();
+				l.add(m);
+				result.put(m.get("useType").toString(), l);
+			}
+		}
+		ExecutionResult.descFormat(fields.size()+"", "查询必填项字段");
+		return result;
+	}
+	
+	
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public boolean saveFieldRequired(String commonfield) {
+		boolean res = false;
+		
+		//公共字段
+		res = saveRequired("11",commonfield,"dynamicform_common_field");
+		return res;
+	}
+	
+	private boolean saveRequired(String cityCode, String commonfield,String tablename){
+		boolean res =false;
+	   //清空fieldRequired字段
+		Map<String,Object> m = new HashMap<>();
+		m.put("fieldRequired", "");
+		res = commonSqlServie.batchcommonUpdate(m,tablename, "cityCode", cityCode,null);
+		//更新fieldRequired字段
+		m = new HashMap<>();
+		m.put("fieldRequired", "required");
+		res = commonSqlServie.batchcommonUpdate(m,tablename, "id", commonfield,null);
+		ExecutionResult.descFormat("", "设置必填项字段");
+		return res;
+	}
+	
+	
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public boolean validateWidgetCode(String widgetCode,String widgetType,String cityCode) {
+		boolean res = true;
+		int n = 0;
+		if("region".equals(widgetType)) {
+			n= formmapper.queryWidgetByCodeAndCity(widgetCode,cityCode);
+		}else {
+			n =  formmapper.queryWidgetByCode(widgetCode);
+		}
+		
+		if(n>0)
+			res = false;
+		return res;
+	}
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public boolean saveWidget(Map<String,Object> data) {
+		String widgetInfo = "";
+		List value = new ArrayList<>();
+		Map map = new HashMap<>();
+		List widgetValue = new ArrayList<>(); 
+		String widgetCode = "";
+		if(data.containsKey("widgetCode")) {
+			widgetCode = data.get("widgetCode").toString();
+		}
+		if(data.containsKey("widgetInfo")) {
+			widgetInfo = data.get("widgetInfo").toString();
+		}
+		if(data.containsKey("widgetValue")) {
+			value = (List)data.get("widgetValue");
+		}
+		
+		String[] params = widgetInfo.split("&");   
+	    for (int i = 0; i < params.length; i++) {  
+	        String[] p = params[i].split("=");  
+	        if (p.length == 2) {  
+	            if(!p[0].equals("widgetSql")) {
+	            	 map.put(p[0], p[1]);
+	            }
+	            if(p[0].equals("type")) {
+	            	if("1".equals(p[1]))
+	            		map.put("typeName", "一般下拉"); 
+	            	if("2".equals(p[1]))
+	            		map.put("typeName", "sql下拉"); 
+	            	if("3".equals(p[1]))
+	            		map.put("typeName", "区间"); 
+	            }
+	            
+	            if(p[0].equals("widgetSql") && !"".equals(p[1]) ) {//保存sql下拉
+	            	Map m = new HashMap<>();
+	            	m.put("widgetCode", widgetCode);
+	            	m.put("fieldValue", p[1]);
+	            	value.add(m);
+	            }
+	        }  
+	    } 
+	    
+	    
+	    commonSqlServie.commonOperationDatabase(map, "dynamicform_widget", true);
+	    commonSqlServie.batchCommonOperationDatabase(value, "dynamicform_field_value", true);
+		return true;
+	}
+	
+	//****  下拉项设置相关  ****//
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public Page<Map<String, Object>> querySelectType(int page,int limit){
+		
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo = formmapper.querySelectType();
+		
+		ExecutionResult.descFormat("", "查询下拉控件");
+		return pageInfo;
+	}
+	
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public List querySelectItem(String widgetCode,String type) {
+		LinkedList<Map> selectItem = new LinkedList<>();
+		selectItem = formmapper.queryWidgetValue("dynamicform_field_value",widgetCode);
+		
+		if("2".equals(type)) {//sql下拉
+			String sql = selectItem.get(0).get("fieldValue").toString();
+			selectItem = formmapper.querySqlValue(sql);
+		}
+		ExecutionResult.descFormat("", "查询下拉控件的值");
+		
+		return selectItem;
+	}
+	
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public boolean saveSelectItem(Map<String,Object> data){
+		boolean res = false;
+		String widgetCode = "";
+		List selectValue = new ArrayList<>();
+		if(data.containsKey("widgetCode")) {
+			widgetCode = data.get("widgetCode").toString();
+		}
+		if(data.containsKey("selectValue")) {
+			selectValue = (List)data.get("selectValue");
+		}
+		for(int i=0;i<selectValue.size();i++) {
+			Map m = (Map)selectValue.get(i);
+			m.remove("id");
+			m.remove("LAY_TABLE_INDEX");
+			m.put("widgetCode", widgetCode);
+			if(!m.containsKey("fieldName")) {
+				Map m1 = (Map)selectValue.get(i-1);
+				String fieldName = m1.get("fieldName").toString();
+				m.put("fieldName", fieldName);
+			}
+		}
+		formmapper.delWidgetValue(widgetCode);
+		res = commonSqlServie.batchCommonOperationDatabase(selectValue, "dynamicform_field_value", false);
+		ExecutionResult.descFormat("", "保存一般下拉控件的值");
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public Long saveSelectSql(String widgetCode,String sql) {
+		Map<Object,Object> m = new HashMap<>();
+		m.put("widgetCode", widgetCode);
+		m.put("fieldValue", sql);
+		Long res = commonSqlServie.commonOperationDatabase(m, "dynamicform_field_value","widgetCode", false);
+		ExecutionResult.descFormat(widgetCode, "保存sql型下拉的sql语句");
+		return res;
+	}
+	
+	//****  区间设置相关  ****//
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public LinkedList<Map> queryRegionType(){
+		LinkedList<Map> types = formmapper.queryRegionType("11","3");
+		ExecutionResult.descFormat(types.size()+"", "查询区间项");
+		return types;
+	}
+	
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public List queryRegion(String widgetCode) {
+		LinkedList<Map> region = formmapper.queryWidgetValue("dynamicform_field_value",widgetCode);
+		ExecutionResult.descFormat("", "查询区间项的值");
+		return region;
+	}
+	
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public boolean saveRegion(Map<String,Object> data){
+		boolean res = false;
+		String firstmin = "";
+		String widgetCode = "";
+		List maxregion = new ArrayList<>();
+		List region = new ArrayList<>();
+		if(data.containsKey("firstmin")) {
+			firstmin = data.get("firstmin").toString();
+		}
+		if(data.containsKey("type")) {
+			widgetCode =  data.get("type").toString();
+		}
+		if(data.containsKey("maxregion")) {
+			maxregion =  (List)data.get("maxregion");
+		}
+		if(maxregion.size()>0) {
+			for(int i=0;i<=maxregion.size();i++) {
+				Map m = new HashMap<>();
+				if(i==0) {
+					m.put("fieldValue", firstmin);
+					m.put("maxRegionValue", maxregion.get(i));
+				}else if(i==maxregion.size()) {
+					m.put("fieldValue", maxregion.get(i-1));
+					m.put("maxRegionValue", "");
+				}else {
+					m.put("fieldValue", maxregion.get(i-1));
+					m.put("maxRegionValue", maxregion.get(i));
+				}
+				m.put("widgetCode", widgetCode);
+				region.add(m);
+			}
+		}
+		
+		formmapper.delWidgetValue(widgetCode);
+		res = commonSqlServie.batchCommonOperationDatabase(region, "dynamicform_field_value", false);
+		ExecutionResult.descFormat("", "设置区间值");
+		return res;
+	}
+	
+	
+
+	@SystemServiceLog(operationType="查询动态表单列表")
+	@Override
+	public Page<Map<String, Object>> queryDynamicFormList(String cityCode, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo=formmapper.queryDynamicFormList(cityCode);
+		ExecutionResult.descFormat(cityCode, "查询动态表单列表");
+		return pageInfo;
+	}
+
+
+	@SystemServiceLog(operationType="查询表单字段列表")
+	@Override
+	public Page<Map<String, Object>> queryDynamicFormFieldList(Long formId,String cityCode, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo=formmapper.queryDynamicFormFieldList(formId,cityCode);
+		ExecutionResult.descFormat(formId+"", "查询表单字段列表");
+		return pageInfo;
+	}
+
+	@SystemServiceLog(operationType="添加表单字段")
+	@Override
+	public long addDynamicFormField(Map<Object, Object> data) {
+		String column=data.get("field").toString();
+		String tableName=data.get("tableName").toString();
+		Long formId=Long.parseLong(data.get("formId").toString());
+		if (StringUtils.isEmpty(column)) {
+			int customCount=formmapper.queryCustomFieldCount(formId);
+			customCount++;
+			column="customField_"+customCount;			
+			formmapper.addcolumn(tableName, column);
+			Map<Object, Object> map=new HashMap<>();
+			map.put("tableDbName", tableName);
+			map.put("customFieldCount", customCount);
+			commonSqlServie.commonOperationDatabase(map, "dynamicform_table_record","tableDbName", false);
+		}
+		data.put("field", column);
+		data.put("isDynamic", 3);
+		data.put("fieldDbType", "varchar");
+		if("2".equals(data.get("fieldType").toString())) {
+			data.put("fileldVerify", "number");
+		}		
+		long result=commonSqlServie.commonOperationDatabase(data, "dynamicform_common_city_field", false);
+		
+		ExecutionResult.descFormat(tableName, "添加表单字段");
+		return result;
+	}
+
+
+	@SystemServiceLog(operationType="修改表单字段")
+	@Override
+	public long updateDynamicFormField(Map<Object, Object> data) {
+		long result=commonSqlServie.commonOperationDatabase(data, "dynamicform_common_city_field","id", false);
+		ExecutionResult.descFormat(data.get("id").toString(), "修改表单字段");
+		return result;
+	}
+
+
+	@SystemServiceLog(operationType="删除表单字段")
+	@Override
+	public boolean delDynamicFormField(String id) {
+		Map<Object, Object> map=new HashMap<>();
+		map.put("id", id);
+		map.put("cityCode", "");
+		Long result=commonSqlServie.commonOperationDatabase(map,"dynamicform_common_city_field", "id", false);
+		ExecutionResult.descFormat(id, "删除表单字段");
+		return result>0;
+	}
+
+
+	@SystemServiceLog(operationType="查询公司配置表单列表")
+	@Override
+	public Page<Map<String, Object>> queryCompanyDynamicFormList(int page, int limit) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		String cityCode=user.get("areaCode").toString();
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo=formmapper.queryCompanyDynamicFormList(cityCode);
+		ExecutionResult.descFormat(cityCode, "查询公司配置表单列表");
+		return pageInfo;
+	}
+
+
+	@SystemServiceLog(operationType="查询公司配置字段列表")
+	@Override
+	public Page<Map<String, Object>> queryCompanyDynamicFormFieldList(Long formId, int page, int limit) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo=formmapper.queryCompanyDynamicFormFieldList(formId,companyId);
+		ExecutionResult.descFormat(companyId, "查询公司配置字段列表");
+		return pageInfo;
+	}
+
+
+	@SystemServiceLog(operationType="查询公司未使用字段列表")
+	@Override
+	public List<Map<String, Object>> queryCompanyDynamicFormFieldSelect(Long formId) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		List<Map<String, Object>> list=formmapper.queryCompanyDynamicFormFieldSelect(formId, companyId);
+		ExecutionResult.descFormat(companyId, "查询公司未使用字段列表");
+		return list;
+	}
+
+
+	@SystemServiceLog(operationType="删除公司自定义字段")
+	@Override
+	public void delCompanyField(long id) {
+		Map<Object, Object> map=new HashMap<>();
+		map.put("id", id);
+		map.put("companyId", "");
+		commonSqlServie.commonOperationDatabase(map, "dynamicform_custom_field", "id", false);	
+		ExecutionResult.descFormat(id+"", "删除公司自定义字段");
+	}
+
+
+	@SystemServiceLog(operationType="添加表单公司自定义字段")
+	@Override
+	public long addCompanyDynamicFormField(Map<Object, Object> data) {
+		String column=data.get("field").toString();
+		String tableName=data.get("tableName").toString();
+		Long formId=Long.parseLong(data.get("formId").toString());
+		if (StringUtils.isEmpty(column)) {
+			
+			String customTableName=data.get("customTableName").toString();
+			int customCount=formmapper.queryCustomFieldCount(formId);
+			customCount++;
+			column="customField_"+customCount;
+			formmapper.addcolumn(customTableName, column);
+			Map<Object, Object> map=new HashMap<>();
+			map.put("tableDbName", tableName);
+			map.put("customFieldCount", customCount);
+			commonSqlServie.commonOperationDatabase(map, "dynamicform_table_record","tableDbName", false);
+		}
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		data.put("field", column);
+		data.put("isDynamic", 3);
+		data.put("fieldDbType", "varchar");
+		data.put("companyId", companyId);
+		if("2".equals(data.get("fieldType").toString())) {
+			data.put("fileldVerify", "number");
+		}		
+		long result=commonSqlServie.commonOperationDatabase(data, "dynamicform_custom_field", false);	
+		ExecutionResult.descFormat(tableName, "添加表单公司自定义字段");
+		return result;
+	}
+
+
+	@SystemServiceLog(operationType="修改表单公司自定义字段")
+	@Override
+	public long updateCompanyDynamicFormField(Map<Object, Object> data) {
+		long result=commonSqlServie.commonOperationDatabase(data, "dynamicform_custom_field","id", false);
+		ExecutionResult.descFormat(data.get("id").toString(), "修改表单公司自定义字段");
+		return result;
+	}
+			
+	//********返回接口********//
+	
+	//返回自定义字段
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public List queryCustomField(String formName){
+		Map<Object, Object> user=UserThreadLocal.get();
+		String cityCode = user.get("areaCode").toString(); 
+		cityCode=cityCode.substring(0, 4)+"00";
+		String companyId = user.get("companyId").toString();
+		LinkedList<Map> fields = new LinkedList<>();
+		Map tableinfo = formmapper.queryTableInfo(formName);
+		Long formId = 0l;
+		int tableType = 0;
+		if(tableinfo!=null && tableinfo.size()>0) {
+			formId = Long.parseLong(tableinfo.get("id").toString());
+			if(tableinfo.get("tableType")!=null && !"".equals(tableinfo.get("tableType"))){
+				tableType = Integer.parseInt(tableinfo.get("tableType").toString());
+			}
+			if(tableType==2) {//用户表，到公司
+				fields = formmapper.queryCustomField(formId, cityCode, companyId);
+			}else {//其他表，到城市
+				fields = formmapper.queryCityCustomField(formId,cityCode);
+			}
+		}
+		
+		
+		
+		return fields;
+	}
+	
+	//返回表单数据值
+	public Map queryFormValue(String formName,String sourceId){
+		Map tableinfo = formmapper.queryTableInfo(formName);
+		String tableName = "";
+		Map values = new HashMap<>();
+		if(tableinfo!=null && tableinfo.size()>0) {
+			tableName = tableinfo.get("tableDbName").toString();
+			//获取具体数据值
+			values = formmapper.queryFormValue(tableName,sourceId);
+		}
+		
+		return values;
+		
+	}
+	
+	//返回下拉值
+	public List querySelectValue(String type,String param){
+		LinkedList<Map> values = new LinkedList<Map>();
+		if("one".equals(type)) {
+			values = formmapper.queryWidgetValue("dynamicform_field_value",param);
+		}else if("many".equals(type)) {
+			List fieldtype = new ArrayList<>();
+			fieldtype.add("4");//sql下拉
+			fieldtype.add("5");//一般下拉
+			fieldtype.add("6");//复选下拉
+			Map m = new HashMap<>();
+			m.put("fieldtypes", fieldtype);
+			m.put("formName", param);
+			LinkedList<Map> widgetCodes =  formmapper.queryWidgetCode(m);
+			
+			for(int i=0;i<widgetCodes.size();i++) {
+				
+				LinkedList<Map> selectValues = formmapper.querySelectValue(widgetCodes.get(i).get("value").toString());
+				Map<String,Object> value = new HashMap<>();
+				
+				for(Map v : selectValues) {
+					
+					String widgettype = v.get("type").toString();
+					String fieldname = widgetCodes.get(i).get("field").toString();
+					if("1".equals(widgettype)) {//一般下拉（包括普通和复选）
+						if(value.containsKey(fieldname)){
+							List fieldList =(List)value.get(fieldname);
+							fieldList.add(v);
+							
+						}else{
+							List l = new ArrayList<>();
+							l.add(v);
+							value.put(fieldname, l);
+						}
+					}else if("2".equals(widgettype)) {//sql下拉
+						String sql = v.get("fieldValue").toString();
+						List l = formmapper.querySqlValue(sql);
+						value.put(fieldname, l);
+					}
+					
+				}
+				values.add(value);
+			}
+		}
+		return values;
+		
+	}
+	
+	@SystemServiceLog(operationType="查询")
+	@Override
+	public List queryRegionValue(String type,String tag,String param) {
+		List result = new ArrayList<>();
+		
+		if("one".equals(type)) {//根据控件code查
+			LinkedList<Map> region = formmapper.queryRegionValue(param);
+			if(region.size()>0) {
+				if("1".equals(tag)) {//区间是一个input情况
+					Map m = new HashMap<>();
+					m.put("region", region);
+					result.add(m);
+				}else if("2".equals(tag)){//区间是两个input情况
+					Map m1 = new HashMap<>();
+					Map m2 = new HashMap<>();
+					List list1 = new ArrayList<>();
+					List list2 = new ArrayList<>();
+					for(int i=0;i<region.size();i++) {
+						list1.add(region.get(i).get("min"));
+						list2.add(region.get(i).get("max"));
+					}
+					m1.put("min", list1);
+					m2.put("max", list2);
+					result.add(m1);
+					result.add(m2);
+					
+				}
+			}
+			
+			
+		}else if("many".equals(type)) {//根据表单查
+			List fieldtype = new ArrayList<>();
+			fieldtype.add("8");//区间
+			Map m = new HashMap<>();
+			m.put("fieldtypes", fieldtype);
+			m.put("formName", param);
+			LinkedList<Map> widgetCodes =  formmapper.queryWidgetCode(m);
+			
+			for(int i=0;i<widgetCodes.size();i++) {
+				
+				LinkedList<Map> regionValues = formmapper.queryRegionValue(widgetCodes.get(i).get("value").toString());
+				Map<String,Object> value = new HashMap<>();
+				String fieldname = widgetCodes.get(i).get("field").toString(); 
+				if("1".equals(tag)) {//区间是一个input情况
+					Map mm = new HashMap<>();
+					mm.put(fieldname, regionValues);
+					result.add(mm);
+					
+				}else if("2".equals(tag)){//区间是两个input情况
+					Map m1 = new HashMap<>();
+					Map m2 = new HashMap<>();
+					List list1 = new ArrayList<>();
+					List list2 = new ArrayList<>();
+					List l = new ArrayList<>();
+					for(int j=0;j<regionValues.size();j++) {
+						list1.add(regionValues.get(j).get("min"));
+						list2.add(regionValues.get(j).get("max"));
+					}
+					m1.put("min", list1);
+					m2.put("max", list2);
+					l.add(m1);
+					l.add(m2);
+					Map mm = new HashMap<>();
+					mm.put(fieldname, l);
+					result.add(mm);
+				}
+					
+					
+			}
+			
+		}
+			
+		return result;
+	}
+	
+	
+	
+	@SystemServiceLog(operationType="查询动态表单表格数据")
+	@Override
+	public Page<Map<String, Object>> queryTableDatas(String formName, List<Map<String, Object>> conditions, int page,
+			int limit) {
+		List<String> list=formmapper.queryTableFieldInfo(formName,null);
+		Map map=formmapper.queryTableInfo(formName);
+		String tableName=map.get("tableDbName").toString();
+		String columns=StringUtils.join(list.toArray(), ",");
+		PageHelper.startPage(page, limit);
+		//DataAuthHelper.auth();
+		Page<Map<String, Object>> result=formmapper.queryTableDatas(columns, tableName, conditions);
+		ExecutionResult.descFormat(formName, "查询动态表单表格数据");
+		return result;
+	}
+
+
+	@SystemServiceLog(operationType="查询表格隐藏列")
+	@Override
+	public Map<String, Object> queryTableHiddenField(String formName) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		 long userId=Long.parseLong(user.get("id").toString());
+		Map<String, Object> map=formmapper.queryTableHiddenFields(userId, formName);
+		if (map==null) {
+			/*map=new HashMap<>();
+			map.put("id", 0);
+			 List<String> list=formmapper.queryTableFieldInfo(formName, "1");
+			 map.put("columns", list);*/
+		}else {
+			String column= map.get("columns").toString();
+			String[] array=column.split(",");
+			map.put("columns", array);
+		}
+		ExecutionResult.descFormat(formName, "查询表格隐藏列");
+		return map;
+	}
+
+	@SystemServiceLog(operationType="查询表单其他城市自定义字段")
+	@Override
+	public List<Map<String, Object>> queryCityDynamicFormFieldSelect(long formId) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		String cityCode=user.get("areaCode").toString();
+		List<Map<String, Object>> list=formmapper.queryCityDynamicFormFieldSelect(formId, cityCode);
+		ExecutionResult.descFormat(formId+"", "查询表单其他城市自定义字段");
+		return list;
+	}
+
+
+	@SystemServiceLog(operationType="查询表单其他城市自定义字段")
+	@Override
+	public boolean saveTableHiddenInfo(String formName, String values) {
+		Map<Object, Object> user=UserThreadLocal.get();
+		 long userId=Long.parseLong(user.get("id").toString());
+		 Map<String, Object> data=formmapper.queryTableHiddenFields(userId, formName);
+		 if (data==null) {
+			 Map<Object, Object> map=new HashMap<>();
+			map.put("userId", userId);
+			map.put("formName", formName);
+			map.put("columns", values);
+			commonSqlServie.commonOperationDatabase(map, "dynamicform_table_hidden_field", false);
+		}else {
+			Map<Object, Object> map=new HashMap<>();
+			map.put("id", data.get("id"));
+			map.put("columns", values);
+			commonSqlServie.commonOperationDatabase(map, "dynamicform_table_hidden_field","id", false);
+		}
+		 
+		return true;
+	}
+
+
+	@SystemServiceLog(operationType="查询表单下拉框数据源")
+	@Override
+	public Map<String, List> queryFormSelectValue(String type, String param) {
+		if ("many".equals(type)) {
+			List list=querySelectValue(type, param);
+			Map<String, List> map=new HashMap<>();
+			for (Object o : list) {
+				Map<String, List> item=(Map<String, List>) o;
+				for (String key : item.keySet()) {
+					map.put(key, item.get(key));
+					break;
+				}			
+			}
+			return map;
+		}
+		return null;
+	}
+	
+	@SystemServiceLog(operationType="查询片区、小区")
+	@Override
+	public List<Map<String, Object>> searchCommunity() {
+		Map<Object, Object> user=UserThreadLocal.get();
+		String cityCode=user.get("areaCode").toString();
+		cityCode=cityCode.substring(0,4);
+		ExecutionResult.descFormat(cityCode, "查询片区、小区");
+		return formmapper.searchCommunity(cityCode);
+	}
+	
+	@SystemServiceLog(operationType="查询部门")
+	@Override
+	public LinkedList<Map> queryDept(){
+		Map<Object, Object> user=UserThreadLocal.get();
+		String cityCode=user.get("areaCode").toString();
+		cityCode="'"+cityCode.substring(0,4)+"00'";
+		LinkedList<Map> depts = formmapper.queryDept(null,null);
+		ExecutionResult.descFormat(cityCode+","+user.get("companyId"), "查询部门用户");
+		return depts;
+	}
+}

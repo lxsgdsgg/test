@@ -1,0 +1,257 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CompanyServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月19日 上午10:15:45   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.BusinessTypeEnum;
+import com.bashiju.enums.CommissionCalculateFormulateEnum;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.CompanyMapper;
+import com.bashiju.manage.service.CompanyService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  CompanyServiceImpl   
+ * @Description:公司信息管理服务   
+ * @author: yangz
+ * @date:   2018年4月19日 上午10:15:45   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="公司管理")
+@Service
+public class CompanyServiceImpl extends CommonSqlServie implements CompanyService {
+
+	@Autowired
+	private CompanyMapper companyMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+
+
+	/**
+	 * 
+	 * @Description: 条件查询公司信息    
+	 * @param name 公司名称(模糊查询)
+	 * @param doccode 法人证件号码
+	 * @param legrepname 法人代表名称(模糊查询)
+	 * @param legdocmobile 法人代表手机号
+	 * @param status 公司状态
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.manage.service.CompanyService#queryCompanys(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@SystemServiceLog(operationType="查询公司")
+	@Override
+	public List<Map<String, Object>> queryCompanys(String name, String doccode, String legrepname, String legdocmobile,
+			String status) {
+		dataAuthHelper.auth(MenuEnum.MENU_51.getCode(),UserThreadLocal.get().get("id").toString());
+		List<Map<String,Object>> list = this.companyMapper.queryCompanys(name, doccode, legrepname, legdocmobile, status);
+		return list;
+	}
+	
+	/**
+	 * 
+	 * @Description: 条件查询公司信息 (分页)    
+	 * @param name 公司名称(模糊查询)
+	 * @param doccode 法人证件号码
+	 * @param legrepname 法人代表名称(模糊查询)
+	 * @param legdocmobile 法人代表手机号
+	 * @param status 公司状态
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 * @see com.bashiju.manage.service.CompanyService#queryCompanys(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, int)   
+	 */
+	@SystemServiceLog(operationType="分页查询公司")
+	@Override
+	public Page<Map<String, Object>> queryCompanys(String name, String doccode, String legrepname, String legdocmobile,
+			String status, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) this.queryCompanys(name, doccode, legrepname, legdocmobile, status);
+		return page;
+	}
+	
+	/**
+	 * 
+	 * @Description: 根据id查询公司信息   
+	 * @param companyId 公司id
+	 * @return      
+	 * @return: Map<String,Object>
+	 * @see com.bashiju.manage.service.CompanyService#getCompany(java.lang.String)   
+	 */
+	@SystemServiceLog(operationType="id查询公司")
+	@Override
+	public Map<String, Object> getCompany(String companyId) {
+		if(StringUtils.isEmpty(companyId))
+			return null;
+		else 
+			return this.companyMapper.getCompany(companyId);
+	}
+
+	/**     
+	 * @Description: 保存公司信息   
+	 * @param map 需要保存的公司信息
+	 * @return      
+	 * @return: boolean 
+	 * @see com.bashiju.manage.service.CompanyService#saveOrUpdateCompany(java.util.Map)   
+	 */
+	@SystemServiceLog(operationType="保存公司")
+	@Override
+	public boolean saveOrUpdateCompany(Map<Object, Object> map) {
+		if(!map.containsKey("id") || StringUtils.isEmpty(map.get("id").toString())) {
+			throw new BusinessException("公司编号不允许为空");
+		}
+		Map<String,Object> companys = this.getCompany(map.get("id").toString().trim());
+		if(companys!=null && companys.get("id")!=null) {//修改
+			long ids = this.commonOperationDatabase(map, "sys_company", "id", false);
+			if(ids>0) {
+				ExecutionResult.descFormat(companys.get("id").toString(), "编辑公司");
+			}else
+				return false;
+		}else {//新增
+			String ids = (String) this.idCustomOperationDatabase(map, "sys_company", false);
+			if(!StringUtils.isEmpty(ids)) {
+				//新增公司成功以后应该及时生成该公司的业务类型信息；
+				boolean result = addBusinessTypes(ids,map.get("name").toString());
+				if(result)
+					ExecutionResult.descFormat(ids, "新增公司");
+				else
+					throw new BusinessException("生成业务类型信息失败");
+			}else
+				return false;
+		}
+		return true;
+	}
+
+	/**     
+	 * @Description: 生成公司的业务类型信息   
+	 * @param companyId 公司编号
+	 * @param companyName 公司名称
+	 * @return: boolean      
+	 */ 
+	private boolean addBusinessTypes(String companyId, String companyName) {
+		List<Map<String,String>> list = BusinessTypeEnum.enumList;
+		List<Map<String,Object>> types = new ArrayList<Map<String,Object>>(0);
+		Map<?,?> user = UserThreadLocal.get();
+		for(Map<String,String> map : list) {
+			Map<String,Object> type = new HashMap<String,Object>(0);
+			type.put("code", map.get("value"));
+			type.put("name", map.get("name"));
+			type.put("companyId", companyId);
+			type.put("companyName", companyName);
+			type.put("calculateFormula", CommissionCalculateFormulateEnum.FORMULATE0.getCode());
+			type.put("permissionArea", user.get("deptId"));
+			type.put("operatorId", user.get("id"));
+			types.add(type);
+		}
+		boolean result = false;
+		if(types.size()>0)
+			result = this.batchCommonOperationDatabase(types, "finance_businessType", false);
+		return result;
+	}
+
+	/**     
+	 * @Description: 删除公司信息   
+	 * @param companyId 公司id
+	 * @return      
+	 * @return: boolean     
+	 * @see com.bashiju.manage.service.CompanyService#delCompany(java.lang.String)   
+	 */
+	@SystemServiceLog(operationType="删除公司")
+	@Override
+	public boolean delCompany(String companyId) {
+		if(StringUtils.isEmpty(companyId))
+			throw new BusinessException("请选择要删除的公司信息");
+		if(this.isRelation(companyId))
+			throw new BusinessException("存在关联数据，不允许删除");
+		boolean tt=this.delData("sys_company", "id",  "'"+companyId+"'", false);
+		if(tt) {
+			ExecutionResult.descFormat(companyId, "删除菜单");
+			return true;
+		}else
+			return false;
+	}
+
+	/**     
+	 * @Description: 根据公司id查询该公司下关联的数据   
+	 * @param companyId 公司id
+	 * @return      
+	 * @return: boolean      
+	 * @see com.bashiju.manage.service.CompanyService#isRelation(java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询关联数据")
+	public boolean isRelation(String companyId) {
+		if(StringUtils.isEmpty(companyId))
+			return false;
+		if(companyMapper.isRelation(companyId)>0)
+			return true;
+		else
+			return false;
+	}
+	/**
+	 * 
+	 * <p>Title: queryCityByAreacode</p>   
+	 * <p>Description: 根据区域代码查询对应的城市名称</p>   
+	 * @param regaddrcity 区域代码
+	 * @return   
+	 * @see com.bashiju.manage.service.CompanyService#queryCityByAreacode(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="根据区域代码查询城市名称")
+	public Map<String, Object> queryCityByAreacode(String regaddrcity) {
+		Map<String,Object>cityName=companyMapper.queryCityByAreacode(regaddrcity);
+		if(cityName!=null&&cityName.size()>0)
+			return cityName;
+		else
+			return null;
+		
+	}
+
+	/**   
+	 * <p>Title: queryCompanyNameAndId</p>   
+	 * <p>Description: 查询公司名称和公司编号</p>   
+	 * @see com.bashiju.manage.service.CompanyService#queryCompanyNameAndId()   
+	 */
+	@Override
+	public List<Map<String, Object>> queryCompanyNameAndId() {
+		return companyMapper.queryCompanyNameAndId();
+	}
+
+	/**
+	 * 
+	 * @Description: 根据id查询公司是否存在
+	 * @param companyId 公司id
+	 * @return: boolean
+	 * 
+	 */
+	
+	@Override
+	public boolean queryCompanyIsExist(String companyId) {
+		return	companyMapper.queryCompanyIsExist(companyId);
+	}
+}

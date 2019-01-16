@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CombinationMapper">
+	<select id="queryCombinations" resultType="map">
+		select b.*,a.fieldName,a.val from sys_permission_combination_detail a 
+		left join sys_permission_combination b on a.combinationId = b.id where 1=1 
+		<if test="combinationId != null and combinationId != '' "> and b.id = #{combinationId} </if> 
+		<if test="name != null and name != '' "> and b.name = #{name} </if>
+		<if test="menuId != null and menuId != '' "> and b.menuId = #{menuId} </if>
+	</select>
+	
+	<select id="queryCombinationMains" resultType="map">
+		select * from sys_permission_combination where 1=1 
+		<if test="name != null and name != '' "> and name = #{name} </if>
+		<if test="menuId != null and menuId != '' "> and menuId = #{menuId} </if>
+	</select>
+	
+	<delete id="delCombination" parameterType = "String">
+		delete from sys_permission_combination_detail where combinationId=#{combinationId};
+		delete from sys_permission_combination where id=#{combinationId};
+	</delete>
+	
+	<delete id="delCombinationDetails" parameterType = "String">
+		delete from sys_permission_combination_detail where combinationId=#{combinationId};
+	</delete>
+	
+</mapper>

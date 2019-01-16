@@ -1,0 +1,240 @@
+	package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.enums.HouseTransactionEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.enums.ResHouseLevelConditionEnum;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.ISchoolBlockService;
+import com.bashiju.manage.service.ResHouseLevelConditionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  ResHouseLevelConditionController   
+ * @Description:房源等级条件管理层
+ * @author: wangpeng
+ * @date:   2018年5月14日 下午2:54:34   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="resHouseLevelCondition")
+public class ResHouseLevelConditionController extends BaseController{
+	@Autowired
+	private ResHouseLevelConditionService resHouseLevelConditionService;
+	@Autowired
+	private FormService formService;
+	
+	@Autowired
+	private ISchoolBlockService iSchoolBlockService;
+	
+	@Autowired	
+	private ICommunityService communityService; 
+	/**
+	 * 
+	 * @Title: enterRes_house_level_conditionPage   
+	 * @Description: 进入房源等级条件页面   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResHouseLevelConditionPage")
+	public ModelAndView enterResHouseLevelConditionPage(HttpServletRequest request,HttpServletResponse response){
+		ModelAndView mv = getModelAndView(request, response, "resHouseLevelCondition/resHouseLevelCondition");
+			//区域数据
+			List<Map<String, Object>> list = communityService.queryAreaSelect();
+			if(list!=null&&list.size()>0) {
+				mv.addObject("areaListJson", JSON.toJSONString(list));
+			}
+			//条件查询的下拉
+			mv.addObject("transactionTypes",HouseTransactionEnum.enumList);
+			//查询后的数据转换
+			mv.addObject("levelType",JSON.toJSONString(HouseLevelEnum.enumMap));
+			mv.addObject("transactionType",JSON.toJSONString(HouseTransactionEnum.enumMap));
+		return mv;
+		
+	}
+	/**
+	 * 
+	 * @Title: enterResHouseSellLevelCondition   
+	 * @Description: 进入房源出售等级设置页面
+	 * @param request
+	 * @param response
+	 * @param id 房源id
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResHouseSellLevelConditionPage")
+	public ModelAndView enterResHouseSellLevelCondition(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "resHouseLevelCondition/resHouseSellLevelCondition");
+		Map<String,Object> res_houses=resHouseLevelConditionService.queryResHouseLevelConditionById(id);
+		if(res_houses!=null && res_houses.size()>0) {
+			mv.addObject("res_houses", JSON.toJSON(res_houses));
+		}
+		mv.addObject("levelType", HouseLevelEnum.enumList);
+		mv.addObject("transactionType",HouseTransactionEnum.enumList);
+		//条件
+		mv.addObject("houseLevelCondition",JSON.toJSONString(ResHouseLevelConditionEnum.enumList));
+		//获取区域
+		String curRgcode=(String) UserThreadLocal.get().get("areaCode");
+		List<Map<String,Object>> list = iSchoolBlockService.queryRegionList(curRgcode);	
+		if(list!=null&&list.size()>0) {
+			mv.addObject("areaListJson", JSON.toJSONString(list));
+		}
+		//城市数据
+		List<Map<String, Object>> city = communityService.queryAreaSelect();
+		if(list!=null&&list.size()>0) {
+			mv.addObject("cityListJson", JSON.toJSONString(city));
+		}
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: enterResHouseLeaseLevelConditionPage   
+	 * @Description: 房源出租等级设置页面   
+	 * @param request
+	 * @param response
+	 * @param id
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterResHouseLeaseLevelConditionPage")
+	public ModelAndView enterResHouseLeaseLevelConditionPage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "resHouseLevelCondition/resHouseLeaseLevelCondition");
+		Map<String,Object> res_houses=resHouseLevelConditionService.queryResHouseLevelConditionById(id);
+		if(res_houses!=null && res_houses.size()>0) {
+			mv.addObject("res_houses", JSON.toJSON(res_houses));
+		}
+		mv.addObject("levelType", HouseLevelEnum.enumList);
+		mv.addObject("transactionType",HouseTransactionEnum.enumList);
+		//条件
+		mv.addObject("houseLevelCondition",JSON.toJSONString(ResHouseLevelConditionEnum.enumList));
+		//获取区域
+		String curRgcode=(String) UserThreadLocal.get().get("areaCode");
+		List<Map<String,Object>>list=iSchoolBlockService.queryRegionList(curRgcode);	
+		if(list!=null&&list.size()>0) {
+			mv.addObject("areaListJson", JSON.toJSONString(list));
+		}
+		//城市数据
+		List<Map<String, Object>> city = communityService.queryAreaSelect();
+		if(list!=null&&list.size()>0) {
+			mv.addObject("cityListJson", JSON.toJSONString(city));
+		}
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Title: getResHouseLevelConditionData   
+	 * @Description: 查询房源等级条件（分页）  
+	 * @param request
+	 * @param response
+	 * @param transactionType 交易类型
+	 * @return      
+	 * @return: Object
+	 */
+	@RequestMapping(value="getResHouseLevelConditionData")
+	@ResponseBody
+	public Object getResHouseLevelConditionData(HttpServletRequest request,HttpServletResponse response,String areaCode,String transactionType,String levelType,String cityCode,int page,int limit) {
+		Map<String,Object> paramMap =new HashMap<String,Object>();
+			paramMap.put("transactionType", transactionType);
+			paramMap.put("levelType", levelType);
+			paramMap.put("cityCode", cityCode);
+			paramMap.put("areaCode", areaCode);
+		Page<Map<String,Object>> pages = resHouseLevelConditionService.queryResHouseLevelCondition(paramMap, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return JSONArray.toJSON(map);
+	}
+	/**
+	 * 
+	 * @Title: delResHouseLevelCondition   
+	 * @Description:逻辑删除等级条件   
+	 * @param request
+	 * @param response
+	 * @param id 房源等级条件Id
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delResHouseLevelCondition")
+	@ResponseBody
+	public BashijuResult delResHouseLevelCondition(HttpServletRequest request,HttpServletResponse response,String id) {
+		boolean result = resHouseLevelConditionService.delResHouseLevelCondition(id);
+		if(result)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 
+	 * @Title: saveOrUpdateResHouseLevelCondition   
+	 * @Description: 编辑或保存房源登记条件 
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateResHouseLevelCondition")
+	@ResponseBody
+	public BashijuResult  saveOrUpdateResHouseLevelCondition(HttpServletRequest request,HttpServletResponse response) {
+		String jsonData=request.getParameter("jsonData");
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要保存的信息");
+		Map<Object, Object> map=(Map<Object, Object>) JSONObject.parse(jsonData);
+		map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		map.put("operatorId", UserThreadLocal.get().get("id"));
+		map.put("companyId", UserThreadLocal.get().get("companyId"));
+		map.put("houseUses", (StringUtils.isEmpty(map.get("houseUses").toString())?null:map.get("houseUses")));
+		map.put("decoratingType",(StringUtils.isEmpty(map.get("decoratingType").toString())?null:map.get("decoratingType")));
+		map.put("propertyType", (StringUtils.isEmpty(map.get("propertyType").toString())?null:map.get("propertyType")));
+		map.put("payTypeId", (StringUtils.isEmpty(map.get("payTypeId").toString())?null:map.get("payTypeId")));
+		map.put("minPrice", (map.get("minPrice")==null?"":map.get("minPrice")));
+		map.put("maxPrice", (map.get("maxPrice")==null?"":map.get("maxPrice")));
+		map.put("minSpace", (map.get("minSpace")==null?"":map.get("minSpace")));
+		map.put("maxSpace", (map.get("maxSpace")==null?"":map.get("maxSpace")));
+		boolean result=this.resHouseLevelConditionService.saveOrUpdateResHouseLevelCondition(map);
+		if(result)
+			return BashijuResult.ok();
+		else	
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 房屋用途数据源 
+	 * @Title: dropDownData   
+	 * @Description: 房屋用途数据源    
+	 * @return: Object
+	 * 最开始不是用的动态下拉嘛
+	 */
+	@RequestMapping(value="dropDownData")
+	@ResponseBody
+	public Object dropDownData() {
+		Map<String,Object> map = new HashMap<>();
+		map.put("houseUses",HouseUsesEnum.enumList);
+		return map;
+	}
+}

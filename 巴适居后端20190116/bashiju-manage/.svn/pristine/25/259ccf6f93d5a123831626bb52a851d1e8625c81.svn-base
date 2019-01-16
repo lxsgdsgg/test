@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="bashiju-manage-web:war">
+    <output-path>$PROJECT_DIR$/bashiju-manage-web/target</output-path>
+    <root id="archive" name="bashiju-manage-web.war">
+      <element id="artifact" artifact-name="bashiju-manage-web:war exploded" />
+    </root>
+  </artifact>
+</component>

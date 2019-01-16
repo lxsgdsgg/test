@@ -1,0 +1,12 @@
+package com.bashiju.sso.mapper;
+
+import java.util.Map;
+
+public interface UserManageMapper{
+	/*按照条件查询登录用户列表*/
+	public Map<String, Object> queryUserInfo(Map<String, Object> conditionMap);
+	/*按照条件查询数量*/
+	public Integer queryUserCount(Map<Object,Object> map);
+	/*按照条件查询数量*/
+	public Integer queryLoginRules(Map<String,Object> map);
+}

@@ -1,0 +1,155 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TaskManageController.java   
+ * @Package com.bashiju.oa.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年12月3日 下午5:06:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.oa.controller;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.oa.service.TaskManageService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * 任务管理控制器
+ * @ClassName:  TaskManageController   
+ * @Description:任务管理控制器
+ * @author: wangpeng
+ * @date:   2018年12月3日 下午5:06:28   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="task")
+public class TaskManageController extends BaseController {
+	@Autowired
+	private TaskManageService taskManageService;
+	
+	/**
+	 * 条件查询任务管理信息   
+	 * @Title: queryTask   
+	 * @Description: 条件查询任务管理信息   
+	 * @param taskName 任务名称
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryTask")
+	@ResponseBody
+	public Map<String,Object> queryTask(String taskName,int page,int limit){
+		Page<Map<String,Object>> pages = taskManageService.queryTask(taskName, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 逻辑删除任务
+	 * @Title: delTask   
+	 * @Description:  逻辑删除任务
+	 * @param taskId 任务编号
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delTask")
+	@ResponseBody
+	public BashijuResult delTask(String taskId) {
+		if(StringUtils.isEmpty(taskId))
+			throw new BusinessException("任务编号不能为空");
+		boolean  result = taskManageService.delTask(taskId);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 新增或修改任务
+	 * @Title: addOrUpdTask   
+	 * @Description: 新增或修改任务
+	 * @param jsonData 编辑参数
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="addOrUpdTask")
+	@ResponseBody
+	public BashijuResult addOrUpdTask(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+		   throw new BusinessException("保存数据不能为空");
+		Map<Object,Object> map = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = taskManageService.addOrUpdTask(map);
+		if(result) {
+			return BashijuResult.ok();
+		}
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * 分配任务
+	 * @Title: taskDistributed   
+	 * @Description: 分配任务   
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="taskDistributed")
+	@ResponseBody
+	public BashijuResult taskDistributed(String jsonData) {
+			if(StringUtils.isEmpty(jsonData))
+				throw new BusinessException("保存数据不能为空");
+			Map<String,Object> map = JSONObject.parseObject(jsonData);
+			boolean result = taskManageService.taskDistributed(map);
+			if(result)
+				return BashijuResult.ok();
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * 
+	 * @Title: queryTaskDetail   
+	 * @Description: 查询任务详情
+	 * @param taskId 任务编号
+	 * @param page 当前页数
+	 * @param limit 每页总跳数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryTaskDetail")
+	@ResponseBody
+	public Map<String,Object> queryTaskDetail(String taskId,int page,int limit){
+		if(StringUtils.isEmpty(taskId))
+			throw new BusinessException("任务编号不能为空");
+		Page<Map<String, Object>>  pages = taskManageService.queryTaskDetail(taskId, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	
+	/**
+	 * 条件查询经纪人任务详情 
+	 * @Title: queryAgentDistributedTaskDetail   
+	 * @Description: 条件查询经纪人任务详情
+	 * @param agentId 经纪人编号
+	 * @param taskId 任务详情
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryAgentDistributedTaskDetail")
+	@ResponseBody
+	public Map<String,Object> queryAgentDistributedTaskDetail(String agentId,String taskId){
+		if(StringUtils.isEmpty(agentId))
+			throw new BusinessException("经纪人编号不能为空");
+		if(StringUtils.isEmpty(taskId))
+			throw new BusinessException("任务编号不能为空");
+		Map<String,Object> map = taskManageService.queryAgentDistributedTaskDetail(agentId, taskId);
+		return map;
+	}
+}

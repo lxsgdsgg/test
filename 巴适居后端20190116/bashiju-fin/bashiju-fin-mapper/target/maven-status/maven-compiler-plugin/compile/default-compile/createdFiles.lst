@@ -1,0 +1,10 @@
+com\bashiju\fin\mapper\UserDesertsInfoMapper.class
+com\bashiju\fin\mapper\WelfareConfigurateMapper.class
+com\bashiju\fin\mapper\CommissionsConfigMapper.class
+com\bashiju\fin\mapper\CompanyComConfigMapper.class
+com\bashiju\fin\mapper\SsfConfigurateMapper.class
+com\bashiju\fin\mapper\EmployeeWagesConfigurateMapper.class
+com\bashiju\fin\mapper\EmployeeCommissionsInfoMapper.class
+com\bashiju\fin\mapper\EmployeeWagesInfoMapper.class
+com\bashiju\fin\mapper\BusinessTypeMapper.class
+com\bashiju\fin\mapper\FinMapper.class

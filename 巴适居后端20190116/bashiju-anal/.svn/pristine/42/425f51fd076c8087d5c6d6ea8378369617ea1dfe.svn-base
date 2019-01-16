@@ -1,0 +1,334 @@
+package com.bashiju.anal.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.anal.mapper.AnalCommonMapper;
+import com.bashiju.anal.mapper.FollowRecordMapper;
+import com.bashiju.anal.pojo.Cell;
+import com.bashiju.anal.pojo.HouseStatisticsLongitudinalParamsEnum;
+import com.bashiju.anal.pojo.HouseStatisticsTransverseParamsEnum;
+import com.bashiju.anal.pojo.Row;
+import com.bashiju.anal.pojo.Thead;
+import com.bashiju.anal.service.impl.OperationAnalysisService;
+import com.bashiju.enums.CustomerStatusEnum;
+import com.bashiju.enums.DeptTypeEnum;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.enums.pc.BuildAreaEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+/**
+ * 
+ *   运营分析报表接口
+ * @ClassName:  OperationAnalysisController   
+ * @Description:   运营分析报表接口
+ * @author: wangkaifa
+ * @date:   2018年11月26日 下午3:14:10       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="operationAnalysis")
+public class OperationAnalysisController {
+	@Autowired
+	private OperationAnalysisService service;
+	@Autowired
+	private FollowRecordMapper followRecordMapper;
+	@Autowired
+	private AnalCommonMapper analCommonMapper;
+	@Autowired
+	private AnalCommonMapper commonMapper;
+	
+	//运营综合报表
+	@RequestMapping(value="comprehensive")
+	public ModelAndView queryComprehensiveReport(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("comprehensive");
+		
+		//封装表头
+		Thead thead = new Thead();//定义表头对象
+		List<Row> rows = new ArrayList<Row>(0);//定义表头行数
+			
+		//第一行
+		List<Cell> cells1 = new ArrayList<Cell>(0);//定义表头列数
+		List<List<Cell>> cells = new ArrayList<List<Cell>>(0);
+		cells1.add(new Cell.Builder().setField("areaName").setTitle("区").setTotalRowText("合计").setRowspan(2).build());
+		cells1.add(new Cell.Builder().setField("deptName").setTitle("门店").setRowspan(2).build());
+		cells1.add(new Cell.Builder().setTitle("成交单数").setColspan(3).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("出售房源").setColspan(14).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("出租房源").setColspan(14).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("求购客源").setColspan(7).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("求租客源").setColspan(7).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("跟进").setColspan(4).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("带看").setColspan(3).setAlign("center").build());
+		cells1.add(new Cell.Builder().setTitle("看电话").setColspan(3).setAlign("center").build());
+		cells.add(cells1);
+		
+		//第二行
+		List<Cell> cells2 = new ArrayList<Cell>(0);//定义表头列数
+		cells2.add(new Cell.Builder().setField("selldeal").setTitle("买卖成交").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentdeal").setTitle("租赁成交").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("newdeal").setTitle("一手成交").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("sellhouseadd").setTitle("新增量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseopen").setTitle("开盘量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousekey").setTitle("钥匙").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseexclusive").setTitle("独家").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseprice").setTitle("改价格").setTotalRow(true).build());		
+		cells2.add(new Cell.Builder().setField("sellhousespace").setTitle("改面积").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousecancelorder").setTitle("改撤单").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseothersell").setTitle("改他售").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseotherrent").setTitle("改他租").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousedelay").setTitle("改暂缓").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousetaobao").setTitle("淘宝").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousepicture").setTitle("上传图片").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhousevideo").setTitle("上传视频").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellhouseentrust").setTitle("委托").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("renthouseadd").setTitle("新增量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseopen").setTitle("开盘量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousekey").setTitle("钥匙").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseexclusive").setTitle("独家").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseprice").setTitle("改价格").setTotalRow(true).build());		
+		cells2.add(new Cell.Builder().setField("renthousespace").setTitle("改面积").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousecancelorder").setTitle("改撤单").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseothersell").setTitle("改他售").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseotherrent").setTitle("改他租").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousedelay").setTitle("改暂缓").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousetaobao").setTitle("淘宝").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousepicture").setTitle("上传图片").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthousevideo").setTitle("上传视频").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("renthouseentrust").setTitle("委托").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("sellcustomeradd").setTitle("新增量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerinvalid").setTitle("改无效").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerdeposit").setTitle("下定").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerothersell").setTitle("改他购").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerotherrent").setTitle("改他租").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerdelay").setTitle("改暂缓").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomertaobao").setTitle("淘宝").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("rentcustomeradd").setTitle("新增量").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerinvalid").setTitle("改无效").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerdeposit").setTitle("下定").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerothersell").setTitle("改他购").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerotherrent").setTitle("改他租").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerdelay").setTitle("改暂缓").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomertaobao").setTitle("淘宝").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("housefollowup").setTitle("房源跟进").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("houserealexploration").setTitle("房源实勘").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerfollowup").setTitle("求购跟进").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerfollowup").setTitle("求租跟进").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("sellcustomershowed").setTitle("买卖带看").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomershowed").setTitle("租赁带看").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("newhouseshowed").setTitle("一手带看").setTotalRow(true).build());
+		
+		cells2.add(new Cell.Builder().setField("houselookphone").setTitle("房源电话").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("sellcustomerlookphone").setTitle("求购电话").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("rentcustomerlookphone").setTitle("求租电话").setTotalRow(true).build());
+		
+		cells.add(cells2);
+		rows.add(new Row.Builder().cells(cells).build());
+		thead.setRows(rows);
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = followRecordMapper.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString());
+		mv.addObject("deptInfo", JSONObject.toJSONString(deptList));
+		mv.addObject("thead", JSONObject.toJSON(thead));
+		return mv;		
+	}
+	//运营综合报表详细
+	@RequestMapping(value="getData")
+	@ResponseBody
+	public Object getData(HttpServletRequest request,HttpServletResponse response) {
+		String begin = request.getParameter("beginDate");
+		String end = request.getParameter("endDate");
+		String deptId = request.getParameter("deptId");
+		if(StringUtils.isEmpty(begin))
+			begin = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		if(StringUtils.isEmpty("end"))
+			end = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		String deptTypeId = DeptTypeEnum.DEPT_AREA.getCode();//默认为区
+		if(!StringUtils.isEmpty(deptId)) {
+			Integer dyd = analCommonMapper.getDeptTypeById(deptId);
+			if(dyd!=null)
+				deptTypeId = dyd.toString();
+		}
+		List<Map<String,Object>> list = service.queryComprehensiveReport(begin,end,deptId,deptTypeId);
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("code", 0);
+		map.put("msg", "");
+		map.put("count", list.size());
+		map.put("data", list);
+		return JSONArray.toJSON(map);
+	}
+	
+	//进入房源跟进报表页面
+	@RequestMapping(value="houseFollowUp")
+	public ModelAndView houseFollowUp(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("houseFollowUp/houseFollowUp");
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = commonMapper.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString());
+		mv.addObject("deptInfo", JSONObject.toJSONString(deptList));
+		Map<String , String> transverseMap=new HashMap<>();
+		transverseMap.put("2", "大区");
+		transverseMap.put("3", "区");
+		transverseMap.put("4", "店");
+		transverseMap.put("5", "组");
+		transverseMap.put("6", "员工");
+		mv.addObject("transverse", transverseMap);
+		Map<String , String> longitudinalMap=new HashMap<>();
+		longitudinalMap.put("1", "状态");
+		longitudinalMap.put("2", "跟进方式");
+		mv.addObject("longitudinal", longitudinalMap);	
+		mv.addObject("cityInfo", commonMapper.queryCompanyCityInfo(UserThreadLocal.get().get("companyId").toString()));
+		return mv;
+	}
+	//房源跟进报表详细
+	@RequestMapping(value="getReportDetailInfo")
+	public ModelAndView getReportDetailInfo(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("houseFollowUp/reportDetailInfo");
+		String transverse = request.getParameter("transverse");//横向维度
+		String longitudinal = request.getParameter("longitudinal");//纵向维度
+		//String cityCode = request.getParameter("cityCode");//城市编码
+		String deptId = request.getParameter("deptId");
+		String beginRecordTime = request.getParameter("beginRecordTime");
+		String endRecordTime = request.getParameter("endRecordTime");
+		/*if(StringUtils.isEmpty(cityCode)) 
+			throw new BusinessException("城市编号不允许为空");*/
+		if(StringUtils.isEmpty(transverse)) 
+			throw new BusinessException("横向维度不允许为空");
+		if(StringUtils.isEmpty(longitudinal))
+			throw new BusinessException("纵向维度不允许为空");
+		//封装表头
+		Thead thead = new Thead();//定义表头对象
+		List<Row> rows = new ArrayList<Row>(0);//定义表头行数
+		List<List<Cell>> cells = new ArrayList<List<Cell>>(0);
+		//第一行
+		List<Cell> cells1 = new ArrayList<Cell>(0);//定义表头列数
+		cells1.add(new Cell.Builder().setField("areaName").setTitle("一维").build());
+		cells1.add(new Cell.Builder().setField("deptName").setTitle("二维").build());
+		
+		List<Map<String, String>> transverse_list = new ArrayList<Map<String,String>>(0);
+
+		List<String> followType=new ArrayList<>();
+		
+		if("1".equals(longitudinal)) {//状态
+			transverse_list = HouseStatusEnum.enumList;
+		}else if("2".equals(longitudinal)) {//跟进方式
+			transverse_list = service.queryWidgetList("followMethod");
+		}
+		for(Map<String,String> map : transverse_list) {
+			followType.add((String)map.get("value"));
+			cells1.add(new Cell.Builder().setField("cell_"+map.get("value")).setTitle(map.get("name")).setTotalRow(true).build());
+		}
+		cells1.add(new Cell.Builder().setField("total").setTitle("合计").setTotalRow(true).build());
+		cells.add(cells1);
+		rows.add(new Row.Builder().cells(cells).build());
+		thead.setRows(rows);
+		mv.addObject("thead", JSONObject.toJSON(thead));
+		List<Map<String,Object>> dataList = new ArrayList<Map<String,Object>>(0);
+		if("1".equals(longitudinal)) {//状态
+			dataList = service.queryHouseStatusFollowUpReport(beginRecordTime, endRecordTime, deptId, transverse);
+		}else if("2".equals(longitudinal)) {//跟进方式
+			dataList = service.queryHouseFollowUpTypeReport(beginRecordTime, endRecordTime, deptId, transverse, followType);
+		}
+		System.out.println(JSONArray.toJSON(dataList));
+		mv.addObject("data", JSONArray.toJSON(dataList));
+		mv.addObject("titles", "房源跟进统计");
+		return mv;
+	}
+	//进入客源跟进页面
+	@RequestMapping(value="customerFollowUp")
+	public ModelAndView customerFollowUp(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("customerFollowUp/customerFollowUp");
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = commonMapper.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString());
+		mv.addObject("deptInfo", JSONObject.toJSONString(deptList));
+		Map<String , String> transverseMap=new HashMap<>();
+		transverseMap.put("2", "大区");
+		transverseMap.put("3", "区");
+		transverseMap.put("4", "店");
+		transverseMap.put("5", "组");
+		transverseMap.put("6", "员工");
+		mv.addObject("transverse", transverseMap);
+		Map<String , String> longitudinalMap=new HashMap<>();
+		longitudinalMap.put("1", "状态");
+		longitudinalMap.put("2", "跟进方式");
+		mv.addObject("longitudinal", longitudinalMap);	
+		//mv.addObject("cityInfo", commonMapper.queryCompanyCityInfo(UserThreadLocal.get().get("companyId").toString()));
+		return mv;
+	}
+	//客源跟进报表详细
+	@RequestMapping(value="getcustomerReportDetailInfo")
+	public ModelAndView getcustomerReportDetailInfo(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("customerFollowUp/reportDetailInfo");
+		String transverse = request.getParameter("transverse");//横向维度
+		String longitudinal = request.getParameter("longitudinal");//纵向维度
+		//String cityCode = request.getParameter("cityCode");//城市编码
+		String deptId = request.getParameter("deptId");
+		String beginRecordTime = request.getParameter("beginRecordTime");
+		String endRecordTime = request.getParameter("endRecordTime");
+		/*if(StringUtils.isEmpty(cityCode)) 
+			throw new BusinessException("城市编号不允许为空");*/
+		if(StringUtils.isEmpty(transverse)) 
+			throw new BusinessException("横向维度不允许为空");
+		if(StringUtils.isEmpty(longitudinal))
+			throw new BusinessException("纵向维度不允许为空");
+		//封装表头
+		Thead thead = new Thead();//定义表头对象
+		List<Row> rows = new ArrayList<Row>(0);//定义表头行数
+		List<List<Cell>> cells = new ArrayList<List<Cell>>(0);
+		//第一行
+		List<Cell> cells1 = new ArrayList<Cell>(0);//定义表头列数
+		cells1.add(new Cell.Builder().setField("areaName").setTitle("一维").build());
+		cells1.add(new Cell.Builder().setField("deptName").setTitle("二维").build());
+		
+		List<Map<String, String>> transverse_list = new ArrayList<Map<String,String>>(0);
+
+		List<String> followType=new ArrayList<>();
+		
+		if("1".equals(longitudinal)) {//状态
+			transverse_list = CustomerStatusEnum.enumList;
+		}else if("2".equals(longitudinal)) {//跟进方式
+			transverse_list = service.queryWidgetList("followMethod");
+		}
+		for(Map<String,String> map : transverse_list) {
+			followType.add((String)map.get("value"));
+			cells1.add(new Cell.Builder().setField("cell_"+map.get("value")).setTitle(map.get("name")).setTotalRow(true).build());
+		}
+		cells1.add(new Cell.Builder().setField("total").setTitle("合计").setTotalRow(true).build());
+		cells.add(cells1);
+		rows.add(new Row.Builder().cells(cells).build());
+		thead.setRows(rows);
+		mv.addObject("thead", JSONObject.toJSON(thead));
+		List<Map<String,Object>> dataList = new ArrayList<Map<String,Object>>(0);
+		if("1".equals(longitudinal)) {//状态
+			dataList = service.queryCustomerStatusFollowUpReport(beginRecordTime, endRecordTime, deptId, transverse);
+		}else if("2".equals(longitudinal)) {//跟进方式
+			dataList = service.queryCustomerFollowUpTypeReport(beginRecordTime, endRecordTime, deptId, transverse, followType);
+		}
+		System.out.println(JSONArray.toJSON(dataList));
+		mv.addObject("data", JSONArray.toJSON(dataList));
+		mv.addObject("titles", "客源跟进统计");
+		return mv;
+	}
+}

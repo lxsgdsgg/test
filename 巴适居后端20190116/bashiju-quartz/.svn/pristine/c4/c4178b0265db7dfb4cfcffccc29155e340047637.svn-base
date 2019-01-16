@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HouseAndCustomerCloseDiscStatusMapper">
+	<select id="queryCloseDiscHouseId" resultType="String">
+		select houseId from hs_secondhandhouse
+		where isValid=1 
+		and closeDiscFlg!=0 
+		and closePlanteEndDate &lt; now()
+		and companyId=#{companyId}
+	</select>
+	
+		<select id="queryCloseDiscCustomerId" resultType="String">
+		select id from demand_customerbusinessinfo
+		where isValid=1
+		and isCloseDisc!=0 
+		and closePlanteEndDate &lt; now()
+		and companyId=#{companyId}
+	</select>
+</mapper>
+	

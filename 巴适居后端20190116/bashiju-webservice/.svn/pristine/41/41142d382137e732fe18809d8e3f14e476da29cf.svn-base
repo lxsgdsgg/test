@@ -1,0 +1,55 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  NewHoseTest.java   
+ * @Package com.bashiju.www.test   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月20日 上午11:07:28   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.out.house.OpenDateResult;
+import com.bashiju.www.pojo.service.out.house.RoomTimeResult;
+import com.bashiju.www.service.newhouse.INewHouseService;
+
+/**   
+ * @ClassName:  NewHoseTest   
+ * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @author: wangpeng
+ * @date:   2018年8月20日 上午11:07:28   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class NewHoseTest extends BaseServiceTest {
+	@Autowired
+	INewHouseService newHouseService;
+	
+//	@Test
+//	public void test() {
+//		List<NewHouseDynamicResult>  map = newHouseService.queryNewHouseDynamicByProjectId("1");
+//		System.out.println(map);
+//	}
+	
+//	@Test
+//	public void PresaleTest(){
+//		newHouseService.queryPresalePermitByProjectId("1");
+//	}
+//	@Test
+//	public void RootTimeTest() {
+//		List<RoomTimeResult> roomTime =	newHouseService.queryRoomTimeByPorjectId("1");
+//	}
+	@Test
+	public void OpenTimeTest() {
+		List<OpenDateResult> openDate =	newHouseService.queryOpenDateByProjectId("1");
+	}
+}

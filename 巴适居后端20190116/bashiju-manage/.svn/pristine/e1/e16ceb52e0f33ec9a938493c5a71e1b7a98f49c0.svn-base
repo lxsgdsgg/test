@@ -1,0 +1,282 @@
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+/**
+ * 
+ *   公用接口
+ * @ClassName:  CommMapper   
+ * @Description:   （详细描述）
+ * @author: wangkaifa
+ * @date:   2018年9月13日 上午11:55:03       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CommMapper {
+	/**
+	 * 
+		 * 查询省、市所有数据
+		 * @Description: 查询省、市所有数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllCity();
+	/**
+	 * 
+		 * 查询省、市开通数据
+		 * @Description: 查询省、市开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCity();
+	/**
+	 * 
+		 * 查询省、市、县开通数据
+		 * @Description: 查询省、市、县开通数据
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryOpenCityCounty();
+	/**
+	 * 
+		 * 平台管理员查看开通省、市
+		 * @Description: 平台管理员查看开通省、市
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenProvinceCity();
+	/**
+	 * 
+		 * 城市管理员查看开通省、市
+		 * @Description: 城市管理员查看开通省、市 
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenProvinceCity(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 平台管理员查看开通城市
+		 * @Description: 平台管理员查看开通城市
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCity();
+	/**
+	 * 
+		 * 城市管理员查看开通城市
+		 * @Description: 城市管理员查看开通城市 
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCity(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 公司用户查看开通城市
+		 * @Description: 公司用户查看开通城市 
+		 * @param userId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCompanyOpenCity(@Param("companyId")String userId);
+	
+	/**
+	 * 
+		 * 平台管理员查看开通城市区县
+		 * @Description: 平台管理员查看开通城市区县
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCityCounty();
+	/**
+	 * 
+		 * 城市管理员查看开通城市区县
+		 * @Description: 城市管理员查看开通城市 区县
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCityCounty(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 公司用户查看开通城市区县
+		 * @Description: 公司用户查看开通城市 区县
+		 * @param userId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCompanyOpenCityCounty(@Param("companyId")String userId);
+	
+	/**
+	 * 
+		 * 平台管理员查看开通城市区县片区
+		 * @Description: 平台管理员查看开通城市区县片区
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCityRegion();
+	/**
+	 * 
+		 * 城市管理员查看开通城市区县片区
+		 * @Description: 城市管理员查看开通城市 区县片区
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCityRegion(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 公司用户查看开通城市区县片区
+		 * @Description: 公司用户查看开通城市 区县片区
+		 * @param userId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCompanyOpenCityRegion(@Param("companyId")String userId);
+	/**
+	 * 
+		 * 根据片区id查询小区(不包括楼盘)
+		 * @Description: 根据片区id查询小区(不包括楼盘)
+		 * @param regionIds
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCommunityByRegionIds(@Param("regionIds")List<Integer> regionIds);
+	/**
+	 * 
+		 * 根据片区id查询小区(包括楼盘)
+		 * @Description: 根据片区id查询小区(包括楼盘)
+		 * @param regionIds
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllCommunityByRegionIds(@Param("regionIds")List<Integer> regionIds);
+	/**
+	 * 
+		 * 平台管理员查看城市、部门下拉数据
+		 * @Description: 平台管理员查看城市、部门下拉数据 
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCityCompanyDepart();
+	/**
+	 * 
+		 * 平台管理员查看城市、部门、用户下拉数据
+		 * @Description: 平台管理员查看城市、部门、用户下拉数据 
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCityCompanyDepartUser();
+	/**
+	 * 
+		 * 查询城市管理员市、公司、部门下拉数据
+		 * @Description: 查询城市管理员市、公司、部门下拉数据 
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCityCompanyDepart(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 查询城市管理员市、公司、部门、用户下拉数据
+		 * @Description: 查询城市管理员市、公司、部门、用户下拉数据 
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCityCompanyDepartUser(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 
+		 * 经济公司查看部门下拉数据
+		 * @Description: 经济公司查看部门下拉数据
+		 * @param companyId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCompanyDepartment(@Param("companyId")String companyId);
+	/**
+	 * 
+		 * 经济公司查看部门、用户下拉数据
+		 * @Description: 经济公司查看部门、用户下拉数据 
+		 * @param companyId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryCompanyDepartmentUser(@Param("companyId")String companyId);
+	/**
+	 * 
+		 * 平台管理员查看城市、公司
+		 * @Description: 平台管理员查看城市、公司
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryAllOpenCityCompany();
+	/**
+	 * 
+		 * 城市管理员查看城市、公司
+		 * @Description: 城市管理员查看城市、公司
+		 * @param userId
+		 * @param roleId
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryManagerOpenCityCompany(@Param("userId")int userId,@Param("roleId")int roleId);
+	/**
+	 * 根据城市区划编码查询 行政区、片区
+	 * @Title: queryAreaAndRegion
+	 * @author: zuoyuntao  
+	 * @Description:根据城市区划编码查询 行政区、片区 
+	 * @param cityCode
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	public List<Map<String,Object>> queryAreaAndRegion(@Param("cityCode")String cityCode);
+	/**
+	 * 根据城市区划编码查询 行政区、片区
+	 * @Title: queryAreaAndRegion
+	 * @author: zuoyuntao  
+	 * @Description:根据城市区划编码查询 行政区、片区 
+	 * @param cityCode 城市编码
+	 * @param deptId 部门ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	public List<Map<String,Object>> queryAreaAndRegionByDeptIdAndArea(@Param("cityCode")String cityCode,@Param("deptId")String deptId);
+	/**
+	 * 根据片区ID查询小区信息
+	 * @Title: queryCommunityByRegionCode
+	 * @author: zuoyuntao  
+	 * @Description:根据片区ID查询小区信息   
+	 * @param regionId
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	public List<Map<String,Object>> queryCommunityByRegionId(@Param("regionId")String regionId);
+	/**
+	 * 
+		 * 查询所有部门列表
+		 * @Description: 查询所有部门列表
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryDepartmentList();
+	/**
+	 * 
+		 * 查询部门下的用户列表
+		 * @Description: 查询部门下的用户列表
+		 * @param deptIds
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String,Object>> queryDepartmentUserList(@Param("deptIds")List<String> deptIds);
+}

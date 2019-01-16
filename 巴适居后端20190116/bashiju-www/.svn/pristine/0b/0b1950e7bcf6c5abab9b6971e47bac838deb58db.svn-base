@@ -1,0 +1,82 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  MyEntrustmentEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.house      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午6:11:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+/**
+ * 我的房源委托实体类
+ * @ClassName:MyEntrustmentEntity
+ * @Description:我的房源委托实体类
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午6:11:08
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class MyEntrustmentEntity {
+	/**房源ID**/
+	private String shhid;
+	/**房源编号**/
+	private String houseSourceSequence;
+	/**房源委托时间**/
+	private String entrustmentTime;
+	
+	/**  
+	 * @Title:  getShhid <BR>  
+	 * @Description: 获取房源ID <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getShhid() {
+		return shhid;
+	}
+	/**  
+	 * @Title:  setShhid <BR>  
+	 * @Description: 设置房源ID<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setShhid(String shhid) {
+		this.shhid = shhid;
+	}
+	/**  
+	 * @Title:  getHouseSourceSequence <BR>  
+	 * @Description: 获取房源编号 <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getHouseSourceSequence() {
+		return houseSourceSequence;
+	}
+	/**  
+	 * @Title:  setHouseSourceSequence <BR>  
+	 * @Description: 设置房源编号<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setHouseSourceSequence(String houseSourceSequence) {
+		this.houseSourceSequence = houseSourceSequence;
+	}
+	/**  
+	 * @Title:  getEntrustmentTime <BR>  
+	 * @Description: 获取委托时间 <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getEntrustmentTime() {
+		return entrustmentTime;
+	}
+	/**  
+	 * @Title:  setEntrustmentTime <BR>  
+	 * @Description: 设置委托时间<BR>  
+	 * @return: String <BR>  
+	 */
+	public void setEntrustmentTime(String entrustmentTime) {
+		this.entrustmentTime = entrustmentTime;
+	}
+	
+	
+	
+}

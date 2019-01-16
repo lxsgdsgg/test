@@ -1,0 +1,174 @@
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.MenuFunctionTypeEnum;
+import com.bashiju.enums.MenuLevelEnum;
+import com.bashiju.enums.RoleGroupEnum;
+import com.bashiju.manage.service.MenuService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * 菜单管理控制器   
+ * @ClassName:  MenuController   
+ * @Description:菜单管理控制器   
+ * @author: yangz
+ * @date:   2018年4月24日 下午7:04:56   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="menu")
+public class MenuController extends BaseController {
+
+	@Autowired
+	private MenuService menuService;
+	
+	/**
+	 * 进入菜单主页面 
+	 * @Description: 进入菜单主页面 
+	 * @param request 
+	 * @param response  
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="menuPage")
+	public ModelAndView menuPage(HttpServletRequest request,HttpServletResponse response){
+		ModelAndView mv = getModelAndView(request, response, "menu/menu");
+		mv.addObject("MenuFunctionTypeEnum", MenuFunctionTypeEnum.enumMap);
+		mv.addObject("MenuFunctionTypeEnumJson", JSONObject.toJSONString(MenuFunctionTypeEnum.enumMap));
+		mv.addObject("MenuLevelEnum", MenuLevelEnum.enumMap);
+		mv.addObject("MenuLevelEnumJson", JSONObject.toJSONString(MenuLevelEnum.enumMap));
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description:查询菜单主页基础数据信息   
+	 * @return: Object
+	 */
+	@RequestMapping(value="menuPageBaseInfo")
+	@ResponseBody
+	public Object menuPageBaseInfo() {
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("menuFunctionTypeEnum", MenuFunctionTypeEnum.enumMap);
+		map.put("menuLevelEnum", MenuLevelEnum.enumMap);
+		map.put("enumMap", RoleGroupEnum.enumMap);
+		return JSONObject.toJSON(map);
+	}
+	
+	/**
+	 * 
+	 * @Description: 条件加载菜单信息  
+	 * @param request
+	 * @param response   
+	 * @return: Object
+	 */
+	@RequestMapping(value="getMemuData")
+	@ResponseBody
+	public Object getMemuData(HttpServletRequest request,HttpServletResponse response){
+		String menuName = request.getParameter("menuName");
+		String parentName = request.getParameter("parentName");
+		String functionType = request.getParameter("functionType");
+		String level = request.getParameter("level");
+		int pageNum = 1;
+		int pageSize = 20;
+		String num = request.getParameter("page");
+		String size = request.getParameter("limit");
+		if(!StringUtils.isEmpty(num))
+			pageNum = Integer.parseInt(num);
+		if(!StringUtils.isEmpty(size))
+			pageSize = Integer.parseInt(size);
+		Page<Map<String,Object>> page =menuService.queryMenus(menuName,null,parentName, functionType,level,null, pageNum, pageSize);
+		Map<String,Object> map = getPageResult(page);
+		return JSONObject.toJSON(map);
+	}
+	
+	/**
+	 * 
+	 * @Description: 进入菜单编辑页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="menuDetailPage")
+	public ModelAndView menuDetailPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "menu/menuDetail");
+		String menuId = request.getParameter("menuId");
+		if(!StringUtils.isEmpty(menuId)) {
+			Map<String,Object> menu = this.menuService.getMenu(menuId);
+			if(menu!=null)
+				mv.addObject("menu", menu);
+		}
+		List<Map<String,Object>> parents = this.menuService.queryMenus(null,null,null, MenuFunctionTypeEnum.MENU.getCode(), null, null);
+		if(parents!=null) {
+			mv.addObject("parents", JSONArray.toJSON(parents));
+		}
+		mv.addObject("MenuFunctionTypeEnum", MenuFunctionTypeEnum.enumMap);
+		mv.addObject("MenuLevelEnum", MenuLevelEnum.enumMap);
+		mv.addObject("enumMap", RoleGroupEnum.enumMap);
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 保存菜单信息  
+	 * @param request
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateMenu")
+	@ResponseBody
+	public BashijuResult saveOrUpdateMenu(HttpServletRequest request) {
+		String jsonData = request.getParameter("jsonData");
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要保存的数据");
+		Map<Object,Object> map = (Map<Object, Object>) JSONObject.parse(jsonData);
+		map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		map.put("operatorId", UserThreadLocal.get().get("id"));
+		long tt = this.menuService.saveOrUpdateMenu(map);
+		if(tt>0)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * 
+	 * @Description: 删除菜单信息   
+	 * @param request
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delMenu")
+	@ResponseBody
+	public BashijuResult delMenu(HttpServletRequest request) {
+		String menuId = request.getParameter("menuId");
+		boolean flg = this.menuService.delMenu(menuId);
+		if(flg)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+}

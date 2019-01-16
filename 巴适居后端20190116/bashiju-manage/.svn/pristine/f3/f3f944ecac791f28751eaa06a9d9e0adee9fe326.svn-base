@@ -1,0 +1,129 @@
+package com.bashiju.manage.controller;
+
+import java.util.Date;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.aspectj.util.LangUtil.ProcessController.Thrown;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.service.PhoneBlacklistService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+import net.sf.jsqlparser.statement.truncate.Truncate;
+/**
+ * 
+ * @ClassName:  PhoneBlacklistController   
+ * @Description:TODO(电话黑名单)   
+ * @author: wangpeng
+ * @date:   2018年6月29日 下午6:42:42   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="phoneBlacklist")
+public class PhoneBlacklistController extends BaseController{
+	@Autowired
+	private PhoneBlacklistService phoneBlacklistService;
+	/**
+	 * 
+	 * @Title: enterPhoneBlacklist   
+	 * @Description: TODO(进入电话黑名单)   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterPhoneBlacklistPage")
+	public ModelAndView enterPhoneBlacklist(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "phoneBlacklist/phoneBlacklist");
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: enterphoneBlacklistAdd   
+	 * @Description: 进入电话黑名单新增页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterphoneBlacklistAdd")
+	public ModelAndView enterphoneBlacklistAdd(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "phoneBlacklist/phoneBlacklistAdd");
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: queryMobileIsExist   
+	 * @Description: TODO(查询数据库中是否已存在电电话)   
+	 * @param mobile 电话
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="queryMobileIsExist")
+	@ResponseBody
+	public BashijuResult queryMobileIsExist(String mobile) {
+		boolean result = phoneBlacklistService.queryMobileIsExist(mobile);
+		if(result)
+			return BashijuResult.build(false, "电话已存在");
+		return BashijuResult.build(true,"电话可用");
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: queryPhoneBlacklistData   
+	 * @Description:查询电话黑名单
+	 * @param keyWord 关键字
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPhoneBlacklistData")
+	@ResponseBody
+	public Map<String,Object> queryPhoneBlacklistData(String keyWord,int page,int limit){
+		Page<Map<String, Object>> pages = phoneBlacklistService.queryPhoneBlacklist(keyWord, page, limit);
+		Map<String, Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: savePhoneBlackList   
+	 * @Description: TODO(新增电话黑名单)   
+	 * @param jsonData 参数
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="savePhoneBlackList")
+	@ResponseBody
+	public BashijuResult savePhoneBlackList(String jsonData) {
+		if(StringUtil.isEmpty(jsonData))
+			 throw new BusinessException("没有要保存的参数");
+		Map<Object,Object> paramMap =(Map<Object, Object>) JSONObject.parse(jsonData);
+		paramMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		paramMap.put("addTime", new Date());
+		paramMap.put("operatorId",UserThreadLocal.get().get("id"));
+		paramMap.put("operator",UserThreadLocal.get().get("realName"));
+		boolean result = phoneBlacklistService.savePhoneBlacklist(paramMap);	
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+}

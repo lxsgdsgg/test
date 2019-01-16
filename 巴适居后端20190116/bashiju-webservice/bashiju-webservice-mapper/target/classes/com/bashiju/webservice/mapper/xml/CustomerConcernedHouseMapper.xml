@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerConcernedHouseMapper">
+	<select id="queryAllConcernedCommunityList" resultType="map">
+		SELECT a.id,a.`name`,a.address,a.salePrice,a.isHot,a.houseCount,a.buildYear,a.propertyLimit,
+		b.`name` AS areaName,c.`name` AS regionName,a.areaCode,d.id,d.type as houseType
+		,d.custId,d.addTime FROM sys_community AS a
+		LEFT JOIN sys_area AS b ON a.areaCode = b.`code`
+		LEFT JOIN sys_region AS c ON a.regionId = c.id
+		INNER JOIN cust_attention d ON a.id = d.sourceId
+		where a.isValid = 1 and d.custId = #{custId} 
+	</select>
+     
+	<select id="queryAllConcernedHouseList" resultType="map">
+		select a.transactionTypeId,a.transactionType,a.titles,c.type as houseType,
+		a.id as houseId,a.houseId as houseSequence,b.areaCode,b.areaName,
+		b.regionId,b.regionName,b.communityId,b.communityName,a.orientationId
+		,a.orientation,a.decorationId,a.decoration,FLOOR(a.sellingPrice/1000000) as sellingPrice,
+		FLOOR(a.rentPrice/100) as rentPrice,FLOOR(a.minSellingPrice/1000000) as minSellingPrice
+		,FLOOR(a.minRentPrice/100) as minRentPrice,a.room,a.hall,
+		a.toilet,a.kitchen,a.balcony,a.buildSpace,a.useSpace,
+		a.buildDates,a.labeld,b.floorDes,b.totalLayers,e.metroDistance,
+		(select max(path) from hs_houseAttachment aa where a.id = aa.shhId) as imageUrl
+		,c.custId,c.addTime from cust_attention c
+		inner join hs_secondhandhouse a on a.id = c.sourceId
+		inner join hs_housebaseinfo b on a.houseId = b.id 
+		left join (select GROUP_CONCAT(CONCAT('距离地铁',b.metroName,b.stationName,metroDistance,'米')) as metroDistance,a.communityId
+		from sys_station_block_community a inner join sys_metro_station b on a.stationId = b.id and a.isValid=1 group by a.communityId) e 
+		on b.communityId = e.communityId
+		where type != 1 and c.custId = #{custId} 
+		<if test="type != null and type != ''"> <!-- 查询我的关注是不加状态 -->
+			and c.type = #{type}  
+		</if>
+	</select>
+     
+	<select id="queryAllConcernedNewHouseList" resultType="map">
+		select a.id ,b.id as houseId,'1' as houseType,b.name,b.imageUrl,b.huxingDesc , b.openDate ,b.deliverDate 
+			,b.avgPrice ,b.address,b.labeld ,b.metroLabel as metroDistance
+			 from cust_attention a inner join sys_client_communityProjectQueryInfos b ON
+			b.id = a.sourceId where a.custId = #{custId} 
+	</select>
+	
+	<select id="countMyConcerned" resultType="long">
+		select count(1) as count from cust_attention where custId=#{custId}
+	</select>
+	
+</mapper>

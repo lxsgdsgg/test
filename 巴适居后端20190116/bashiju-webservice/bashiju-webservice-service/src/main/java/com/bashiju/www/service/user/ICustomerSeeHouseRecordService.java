@@ -1,0 +1,50 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerSeeHouseRecordService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:10:41   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseRecordEntity;
+
+/**
+ * 用户看房记录服务接口
+ * @ClassName:ICustomerSeeHouseRecordService
+ * @Description:用户看房记录服务接口
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:10:41
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerSeeHouseRecordService {
+	/**
+	 * 查询看房记录数据信息
+	 * @Title: queryAllCustomerSeeHouseRecord
+	 * @author: zuoyuntao  
+	 * @Description:查询看房记录数据信息
+	 * @param custId 用户ID
+	 * @param page  每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return      
+	 * List<CustomerSeeHouseRecordEntity> 
+	 */
+	public WebPage<CustomerSeeHouseRecordEntity> queryAllCustomerSeeHouseRecord(
+			String custId,int page,int limit);
+	/**
+	 * 保存房源评价信息
+	 * @Title: saveSeeHouseRecordComments
+	 * @author: zuoyuntao  
+	 * @Description:保存房源评价信息
+	 * @param visterEvaluate 评价内容
+	 * @param id 看房记录ID
+	 * void 
+	 */
+	public void saveSeeHouseRecordComments(String visterEvaluate,String id);
+}

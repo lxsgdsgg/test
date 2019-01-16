@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.DealCommissionRecordMapper">
+	<select id="queryDealCommissionRecordData" resultType="map">
+		SELECT dc.id,dt.dealType,u.realName as traderName,dc.companyId,dc.companyName,dt.regionName,dt.buildingHouseName,dc.billNo,dc.moneyType,dc.moneyProjName,dc.moneyProjId,
+		dc.price/100,dc.payerType,dc.estimatePayTime,dc.actualPayTime,dc.payeeId,dc.`status`,dc.sureTime,
+		dc.settlementTypeId,dc.settlementTypeName,dc.bankCardNo,dc.remark,dc.permissionArea,dc.addTime,dc.updateTime,dc.operatorId,
+		dc.operator,dc.isValid,dt.id AS dealId,dt.areaCode,dt.areaName,dt.communityName,dt.communityId,
+		dt.buildingsId,dt.buildingsName FROM
+		deal_commissionrecord AS dc INNER JOIN deal_transactioninfo AS dt ON dt.id = dc.dealId
+		inner join sys_user u on dt.traderId = u.id
+		 where dc.isValid =1 
+		<if test="status!=null and status!='' "> and dc.status=#{status}</if>
+		<if test="communityId!=null and communityId!='' "> and dt.communityId=#{communityId}</if>
+		<if test="dealType!=null and dealType!='' "> and dt.dealType=#{dealType} </if>
+		<if test="beginTime!=null and beginTime !='' "> and dc.estimatePayTime &gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime !='' "> and dc.estimatePayTime &lt;=#{endTime}</if>
+		<if test="traderId!=null and traderId!='' ">and dt.traderId=#{traderId}</if>
+		<if test="communityId!=null and communityId!='' ">and dt.communityId=#{communityId}</if>
+		<if test="Keyword!=null and Keyword!='' ">and  dt.areaName like concat('%',${Keyword},'%')</if>
+		order by dc.id desc
+	</select>
+	
+	<select id="queryCommissionByDealId" resultType="map">
+		select a.id,a.dealId,a.companyId,a.companyName,a.billNo,a.moneyType,a.moneyProjName,a.moneyProjId,a.price,a.payerType,
+		a.estimatePayTime,a.actualPayTime,a.payeeId,a.payerName,a.status,a.sureTime,a.settlementTypeId,a.settlementTypeName,a.bankCardNo,
+		a.remark,a.permissionArea,a.addTime,a.updateTime,a.operatorId,a.operator,a.isValid,a.actualPrice
+		from deal_commissionRecord a 
+		left join sys_user b on a.payeeId = b.id
+		where a.isValid=1 and a.dealId=#{dealId}
+	</select>
+</mapper>

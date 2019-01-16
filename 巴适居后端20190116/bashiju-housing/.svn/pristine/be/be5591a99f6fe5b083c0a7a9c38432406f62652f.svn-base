@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.BusinessExamineMapper">
+	<select id="queryBusinessExamine" resultType="map">
+		select a.id,b.companyId,b.companyName,b.houseUsesId,f.cityCode,a.applyerId,g.uuid as applyerUUID,a.applyer,h.id as applyDeptId,h.name as applyDeptName,a.applyTime,b.transactionTypeId,b.houseUses,a.examineTypeId,a.status,a.operatorId,a.operator,a.addTime,
+		a.content,a.shhId,a.auditor, a.auditTime,a.handleType,a.rejectReason,a.permissionArea,
+		a.updateTime,a.remark,b.houseId,d.name as deptName,d.id as deptId,e.realName as auditorName
+		from hs_businessExamine a 
+		left join hs_secondhandhouse b on a.shhId = b.id 
+		left join hs_houseBaseInfo f on b.houseId = f.id
+		left join sys_user c on a.operatorId = c.id
+		left join sys_dept d on c.deptId = d.id 
+		left join sys_user e on a.auditor = e.id 
+		left join sys_user g on a.applyerId = g.id 
+		left join sys_dept h on g.deptId = h.id 
+		where a.isvalid=1
+		<if test="transactionTypeId != null and transactionTypeId != '' "> and b.transactionTypeId = #{transactionTypeId} </if>
+		<if test="examineTypeId != null and examineTypeId != '' "> and a.examineTypeId = #{examineTypeId} </if>
+		<if test="status != null and status != '' "> and a.status = #{status} </if>
+		<if test="operatorId != null and operatorId != '' "> and a.operatorId = #{operatorId} </if>
+		<if test="beginAddTime != null and beginAddTime != '' "> and a.addTime &gt;= #{beginAddTime} </if>
+		<if test="endAddTime != null and endAddTime != '' "> and a.addTime &lt;= #{endAddTime} </if>
+		<if test="auditor != null and auditor != '' "> and a.auditor = #{auditor} </if>
+		<if test="beginAuditTime != null and beginAuditTime != '' "> and a.auditTime &gt;= #{beginAuditTime} </if>
+		<if test="endAuditTime != null and endAuditTime != '' "> and a.auditTime &lt;= #{endAuditTime} </if>
+		<if test="houseId != null and houseId != '' "> and b.houseId = #{houseId} </if>
+		<if test="content != null and content != '' "> and a.content like '%${content}%' </if> 
+		<if test="applyerId != null and applyerId != '' "> and a.applyerId  = #{applyerId} </if> 
+	</select>
+	
+	<select id="getBusinessExamine" resultType="map">
+		select * from hs_businessExamine where isvalid=1 and id = #{id}
+	</select>
+	
+	<select id="queryOperatorInfo" resultType="map">
+		select id,realName from sys_user where isvalid = 1
+	</select>
+</mapper>

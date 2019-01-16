@@ -1,0 +1,151 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  JBrowserDialog.java   
+ * @Package com.bashiju.sso.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年7月12日 下午12:01:04   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.sso.controller;
+
+import java.awt.BorderLayout;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import org.apache.http.client.CookieStore;
+import org.apache.http.cookie.Cookie;
+
+import chrriis.dj.nativeswing.swtimpl.NativeInterface;
+import chrriis.dj.nativeswing.swtimpl.components.JWebBrowser;
+
+/**
+ * 应用系统嵌入Java窗体程序对话框
+ * @ClassName:JBrowserDialog
+ * @Description:应用系统嵌入Java窗体程序对话框
+ * @author:zuoyuntao
+ * @date:2018年7月12日 下午12:01:04
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public class JBrowserFrame extends JFrame{
+	/**   
+	 * @Fields serialVersionUID : TODO(用一句话描述这个变量表示什么)   
+	 */ 
+	private static final long serialVersionUID = -6075590141461295085L;
+	/**
+	 * cookie的URL
+	 */
+	private static String COOKIEKEY = "http://sso.bashiju.com";
+	/**
+	 * cookie对象
+	 */
+	private CookieStore cookieStore = null;
+
+	public JBrowserFrame(CookieStore cookieStore) {
+		super();
+		this.cookieStore = cookieStore;
+		addListeners();
+	}
+ 
+	/**
+     * 将应用系统嵌入Java窗体程序
+     * @Title: doLoginSystem
+     * @author: zuoyuntao  
+     * @Description:将应用系统嵌入Java窗体程序
+     * @param url      
+     * void 
+     */
+	public void doLoginSystem(String url) {
+		new Thread(){
+			@Override
+			public void run() {
+//				UIUtils.setPreferredLookAndFeel();
+				NativeInterface.open();
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						setTitle("巴适居网络服务有限公司");
+						ImageIcon icon = new ImageIcon("src/main/webapp/WEB-INF/image/user.jpg");
+						setIconImage(icon.getImage());  
+						setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+						//序列号Panel对象并设置为边界布局
+						JPanel webBrowserPanel = new JPanel(new BorderLayout());
+						//初始化Java Swing对象
+						final JWebBrowser webBrowser = new JWebBrowser();
+						//将组件添加到当前的Panel中
+						webBrowserPanel.add(webBrowser, BorderLayout.CENTER);
+						//将当panel添加到当前Frame中
+						add(webBrowserPanel, BorderLayout.CENTER);
+						//隐藏所有自带组件（如File和View）
+						webBrowser.setBarsVisible(false);
+						//屏蔽Java脚本
+						webBrowser.setJavascriptEnabled(true);
+						//屏蔽右键菜单
+						webBrowser.setDefaultPopupMenuRegistered(false);
+						//禁用浏览器后退功能
+						webBrowser.isBackNavigationEnabled();
+						//禁用状态栏
+						webBrowser.setStatusBarVisible(false);
+						
+						List<Cookie> cookies = cookieStore.getCookies();
+				        for (Cookie cookieObj : cookies) {
+				        	JWebBrowser.setCookie(COOKIEKEY
+				        			, cookieObj.getName() + "=" + cookieObj.getValue());
+				        }
+				        //设置应用地址
+						webBrowser.navigate(url);
+						add(webBrowserPanel,BorderLayout.CENTER);
+						setSize(1024, 768);
+						setLocationByPlatform(true);
+						setVisible(true);
+					}
+				});
+//				NativeInterface.runEventPump();
+            }
+		}.start();
+	}
+	
+	
+	/**
+	 * 添加窗体监听
+	 * @Title: addListeners
+	 * @author: zuoyuntao  
+	 * @Description:添加窗体监听         
+	 * void JSON 格式为：
+	 */
+	private void addListeners() {
+		addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) {}
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if(NativeInterface.isOpen()) {
+					NativeInterface.close();
+				}
+				cookieStore = null;
+				dispose();
+//				showRun.stop();
+				new LoginDialog().initView();
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+			@Override
+			public void windowIconified(WindowEvent e) {}
+			@Override
+			public void windowDeiconified(WindowEvent e) {}
+			@Override
+			public void windowActivated(WindowEvent e) {}
+			@Override
+			public void windowDeactivated(WindowEvent e) {}
+		});
+	}
+}

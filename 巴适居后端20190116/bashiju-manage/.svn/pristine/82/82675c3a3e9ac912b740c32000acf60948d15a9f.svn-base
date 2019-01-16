@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.UserLogMapper">
+	
+	<select id="queryUserLog" resultType="map">
+		select id,loginUser,deptId,depName as deptName,
+		companyId,comName as companyName,loginIp,loginArea,sourceType,
+		operationType,actionTime,sourceId,excuteContext,addTime,
+		updateTime,operator,isValid from user_log  where 1=1
+		<if test="sourceType!=null and sourceType!='' ">and sourceType like '%${sourceType}%'</if>
+		<if test="operationType!=null and operationType!='' ">and operationType like '%${operationType}%'</if>
+		<if test="comName!=null and comName!='' "> and comName like '%${comName}%'</if>
+		<if test="loginIp!=null and loginIp!='' "> and loginIp like '%${loginIp}%'</if>
+		<if test="beginAddTime!=null and beginAddTime!=null ">and addTime &gt;=#{beginAddTime}</if>
+		<if test="endAddTime!=null and endAddTime!=null">and addTime &lt;=#{endAddTime}</if>
+ 	</select>
+	
+</mapper>

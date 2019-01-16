@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DealConversionRateAnalysisMapper">
+	
+	<select id="queryPageDataList" resultType="map">
+		select a.areaCode,a.name as areaName
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			,b.name deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;= 5 ">
+			,b.realName deptName
+		</if>
+		,count(distinct case when c.status = 1 and c.isValid = 1 and c.recordTime &gt;= #{beginDate}
+				and c.recordTime &lt;= #{endDate} then c.id end) as addSourceCnt,
+		count(distinct case when d.isValid=1 then d.id end) as custShowedCnt,
+		0.00 as custShowedRate,
+		count(distinct e.id) as dealCnt,
+		0.00 as showedDealRate,
+		count(distinct case when c.status=1 and c.isValid=1 then c.id end) as validSourceCnt,
+		count(distinct case when c.status=1 and d.isValid=1 then d.id end) as leaseCustShowedCnt,
+		0.00 as leaseCustShowedRate
+		 from sys_dept a 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			right join sys_dept b on a.id = b.parentId and b.isvalid=1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			right join sys_user b on a.id = b.deptId and b.isvalid=1
+		</if>
+		left join demand_customerbusinessinfo c on
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			c.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			c.operatorId=b.id
+		</if>
+		left join demand_showedrecord d on c.id = d.demandId and
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			d.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			d.operatorId=b.id
+		</if>
+		left join (select a.*,b.deptId from deal_transactioninfo a ,sys_user b where a.traderId = b.id and 
+			a.isValid = 1 and b.isValid = 1 ) e on
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			e.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			e.operatorId=b.id
+		</if>
+		<if test="requestType !=null and requestType &gt;= 4 ">
+			and e.dealType = '00'
+		</if>
+		<if test="requestType !=null and requestType &gt;= 5 ">
+			and e.dealType = '01'
+		</if>
+		and e.dealTime &gt;=#{beginDate} and e.dealTime &lt;= #{endDate}
+		where a.isvalid=1
+		and a.companyId = #{companyId} 
+		and a.deptTypeId= #{deptTypeId}
+		<if test="requestType !=null and requestType !='' ">
+			and c.transactionTypeId=${requestType}
+		</if>
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		group by b.id order by b.id
+	</select>
+	
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.HsFollowRecordMapper">
+	<select id="queryHsFollowRecord" resultType="map">
+		select hf.addTime,hss.id as shhId,hss.houseUsesId,hf.followTime as followTime,hf.followerId as followerId,hf.follower as follower, hf.followType, hf.followTypeName,hss.transactionType,hb.id as houseId,hb.communityName,
+		hb.communityId,hss.status,hf.operator,hf.operatorId,hf.deptId,s.name as deptName,hf.content,hf.permissionArea from hs_followrecord hf 
+		right join (select max(id) id from hs_followrecord  group by shhId)a on hf.id = a.id 
+		inner join hs_secondhandhouse hss on hss.id=hf.shhId 
+		inner join hs_housebaseinfo hb on hb.id =hss.houseId
+		inner join sys_dept s on s.id = hf.deptId where hf.isValid = 1
+		<if test="transactionType!=null and transactionType!='' "> and hss.transactionTypeId=#{transactionType}</if>
+		<if test="status!=null and status!='' "> and hss.statusId=#{status}</if>
+		<if test="followType!=null and followType!='' "> and hf.followType=#{followType}</if>
+		<if test="communityId!=null and communityId!='' ">and hb.communityId=#{communityId} </if>
+		<if test="houseIdOrFollowerId!=null and houseIdOrFollowerId!='' ">and hb.id=#{houseIdOrFollowerId} </if>
+		<if test="beginTime!=null and beginTime!='' ">and hf.addTime &gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' ">and hf.addTime &lt;=#{endTime}</if>
+		<if test="houseId!=null and houseId!='' ">and hb.id =#{houseId}</if>
+		<if test="followerId!=null and followerId!='' ">and hf.followerId=#{followerId}</if>
+		<if test="operatorId!=null and operatorId!='' ">and hf.operatorId=#{operatorId}</if>
+	</select>
+	
+	
+	<select id="queryAllHsFollowRecordByHouseId" resultType="map">
+		select hf.addTime,hf.followTime,hss.id as shhId,hss.houseUsesId,hf.followType, hf.followTypeName,hss.transactionType,hss.transactionTypeId,hb.id as houseId,hb.communityName,
+		hb.communityId,hss.status,hf.operator,hf.deptId,hf.content,hf.permissionArea  from hs_followrecord hf 
+		inner join hs_secondhandhouse hss on hss.id=hf.shhId 
+		inner join hs_housebaseinfo hb on hb.id =hss.houseId 
+		where hss.houseId='530102000007' and hf.isValid = 1 order by hf.followTime desc
+	</select>
+</mapper>

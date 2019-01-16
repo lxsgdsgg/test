@@ -1,0 +1,414 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TestDataMapper.java   
+ * @Package com.bashiju.manage.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月11日 上午10:28:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.housing.mapper;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  NewHousingMapper   
+ * @Description:新房楼盘持久层接口
+ * @author: liwen
+ * @date:   2018年8月17日 上午10:28:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface NewHousingMapper {
+
+	public LinkedList<Map<String,Object>> queryDept();
+	public Map<String,Object> queryMainter(Long houseId);
+	public int queryHouseByMainter(Long maintainId);
+	public Map<String,Object> querySomeInfoByhouseId(Long houseId);
+	public Integer queryAchievementRate(@Param("cityCode") String cityCode,@Param("companyId") String companyId,@Param("achievementType") int achievementType);
+	public Page<Map<String, Object>> queryPricedetail(Long houseId);
+	public Page<Map<String, Object>> queryCustomerHouse(Long houseId);
+	public Page<Map<String, Object>> queryLookHouse(@Param("newHouseId") int newHouseId,@Param("houseType") int houseType);
+	public Page<Map<String, Object>> queryFollowRecord(Long houseId);
+	public Map<String,Object> queryStore(@Param("houseId") Long houseId,@Param("userId") Long userId);
+	public Map<String,Object> queryDeptName(Long id);
+	public Map<String,Object> queryNewHouseInfo(@Param("id") int id);
+	public List<Map<String,Object>> queryNewHouseSomeType(@Param("newHouseId") int newHouseId,@Param("type") int type);
+	public List<Map<String,Object>> queryNewHouseDecoration(@Param("newHouseId") int newHouseId);
+	public Page<Map<String, Object>> queryCustomerDemand(@Param("houseId") Long houseId,@Param("transactionTypeId") String transactionTypeId);
+	public LinkedList<Map<String,Object>> queryFollowInfo(Long houseId);
+	public LinkedList<Map<String,Object>> queryOwnerInfo(Long houseId);
+	public LinkedList<Map<String,Object>> queryRelateagentInfo(@Param("houseId") Long houseId,@Param("hasPhone") boolean hasPhone);
+	public Map<String,Object> queryCustomValue(@Param("customField") Map<String, Object> customField,@Param("formName") String formName,@Param("keyId") String keyId);
+	public Map<String,Object> queryAgreement(Long houseId);
+	public String queryHousetypeImgById(int id);
+	public List<Map<String,Object>> queryHousetypeImg(@Param("newHouseId") int newHouseId);
+	public List<Map<String,Object>> queryFileByIds(@Param("fileids") List<String> fileids);
+	public Page<Map<String, Object>> queryHouseDescription(Long houseId);
+	public Map<String,Object> queryTaobaoTime(Long id);
+	public Page<Map<String, Object>> queryAgentFeedback(Map<String,Object> conditions);
+	public int queryLookHouseByAgent(@Param("houseId") Long houseId,@Param("agentId") Long agentId);
+	public List<Map<String,Object>> queryLabel(String type);
+	public List<Map<String,Object>> querySellHouseInfo(Long bulidingUnitId);
+	/**
+	 * 
+	 * @Title: queryBuildingsByCommunity   
+	 * @Description: TODO(根据小区出现楼栋列表)   
+	 * @param: @param cid 小区id
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>>  queryBuildingsByCommunity(@Param("cid") Long cid);
+	/**
+	 * 
+	 * @Title: queryBuildingUnitsByBuild   
+	 * @Description: TODO(根据楼栋号查询单元列表)   
+	 * @param: @param bid 楼栋id
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>>  queryBuildingUnitsByBuild(@Param("bid") Long bid);
+	/**
+	 * 
+	 * @Title: queryHouseByUnit   
+	 * @Description: TODO(根据单元查询房号列表)   
+	 * @param: @param buid 单元id
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>>  queryHouseByUnit(@Param("buid") Long buid);
+	/**
+	 * 
+	 * @Title: getErHousingCode   
+	 * @Description: TODO(根据房号id查询房源编号)   
+	 * @param: @param houseId
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String,Object> getErHousingCode(@Param("buildingHouseId") long houseId);
+	/**
+	 * 
+	 * @Title: getmaxHouseCount   
+	 * @Description: TODO(获取区域内的最大房源数量)   
+	 * @param: @param code 区域码
+	 * @param: @return      
+	 * @return: Integer      
+	 * @throws
+	 */
+	public Integer getmaxHouseCount(@Param("code") String code);
+	/**
+	 * 
+	 * @Title: getBuildingInfo   
+	 * @Description: TODO(根据房号查询楼层信息)   
+	 * @param: @param hid 房号id
+	 * @param: @return      
+	 * @return: Map<String,Object> 房号所在楼层，总楼层，几梯几户     
+	 * @throws
+	 */
+	public Map<String,Object> getBuildingInfo(@Param("hid") long hid);
+	/**
+	 * 
+	 * @Title: getRowInfo   
+	 * @Description: TODO(查询单表的一条数据)   
+	 * @param: @param columns 查询的列名，逗号分隔
+	 * @param: @param tableName 表名
+	 * @param: @param key 主键列名
+	 * @param: @param value 主键值
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String,Object> getRowInfo(@Param("columns") String columns,@Param("tableName") String tableName,@Param("key") String key,@Param("value") Object value);
+	
+	/**
+	 * 
+	 * @Title: getAreaInfo   
+	 * @Description: TODO(根据小区id查询：小区名称，片区名称，所属区域名称)   
+	 * @param: @param cid
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String,Object> getAreaInfo(@Param("cid") long cid);
+	/**
+	 * 
+	 * @Title: searchHouseList   
+	 * @Description: TODO(搜索房源列表)   
+	 * @param: @param condition
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> searchHouseList(@Param("sql")String sql);
+	/**
+	 * 
+	 * @Title: searchCommunity   
+	 * @Description: TODO(查询登录用户所在城市的片区、小区)   
+	 * @param: @param cityCode
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	List<Map<String, Object>> searchCommunity(@Param("cityCode")String cityCode);
+	/**
+	 * 
+		 * 根据座栋单元id查询房源销控列表
+		 * @Description: 根据座栋单元id查询房源销控列表
+		 * @param @param buildIngUnitId 座栋单元id
+		 * @param @return 
+		 * @return: List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseListByUnitId(@Param("buildIngUnitId")Long buildIngUnitId);
+	/**
+	 * 
+		 * 查询房源业主手机号
+		 * @Description: 查询房源业主手机号
+		 * @param @param houseId 房源id
+		 * @param @return phone,remark
+		 * @return: List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryHousePhone(@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 查询房源房号
+		 * @Description: 查询房源房号 
+		 * @param @param houseId 房源id
+		 * @param @return buildingsId,buildingsName,bulidingUnitId,buildingsUnitName,buildingHouseId,buildingHouseName
+		 * @return: Map<String,Object>
+	 */
+	Map<String, Object> queryHouseName(@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 查看房源价格
+		 * @Description: 查看房源价格 
+		 * @param @param houseId 房源id
+		 * @param @return sellingPrice,rentPrice
+		 * @return: Map<String,Object>
+	 */
+	Map<String, Object> queryHousePrice(@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 显示学校表格数据
+		 * @Description: 显示学校表格数据 
+		 * @param cityCode 学校所在城市代码
+		 * @param name 学校名称
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> querySchoolTable(@Param("cityCode")String cityCode,@Param("name")String name);
+	/**
+	 * 
+		 * 匹配客源
+		 * @Description: 匹配客源 
+		 * @param param 匹配条件 {areas:[{type:1,value:区域编号},{type:2,value:片区id},{type:3,value:小区id}],minSpace:最小面积,maxSpace:最大面积,minSellingPrice:最小售价,maxSellingPrice:最大售价,
+		 *   minRentPrice:最小租价,maxRentPrice:最大租价,minRoom:最小房间数,maxRoom:最大房间数,minFloor:最小楼层,maxFloor:最大楼层,transactionTypeId:房源交易类型}
+		 * @return `status`,id, areas ,minSpace,maxSpace,minPrice,maxPrice,minRoom,maxRoom,minFloorCount,maxFloorCount,maintainer
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> matchingCustomer(Map<String, Object> param);
+	/**
+	 * 
+		 *根据房源编号查询房源成交相关信息
+		 * @Description: 根据房源编号查询房源成交相关信息 
+		 * @param houseId 房源id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<Object, Object> queryHouseDealInfoByHouseId(@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 查询房源采集列表
+		 * @Description: 查询房源采集列表
+		 * @param param {transactionTypeId:交易类型,communityName:小区名称,minPrice:最低价格,maxPrice:最大价格,
+		 * minSpace:最小面积,maxSpace:最大面积,lookStatus:查看状态,inputStatus:录入状态,checkStatus:检查无效状态}
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryCrawlerList(Map<String, Object> param);
+	
+	/**
+	 * 
+		 * 根据业主电话小区id查询房源
+		 * @Description: 根据业主电话小区id查询房源
+		 * @param phone 电话
+		 * @param communityId 小区id
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseByphone(@Param("phone")String phone,@Param("communityId")Long communityId);
+	/**
+	 * 
+		 * 查询经纪人房源私盘数量
+		 * @Description: 查询经纪人房源私盘数量
+		 * @param userId 经纪人id
+		 * @return 房源私盘数量
+		 * Integer
+	 */
+	public Integer queryCountPrivateDisc (@Param("userId")Long userId);
+	/**
+	 * 
+		 * 查询公司下面是否有房号为houseId的房源
+		 * @Description: 查询公司下面是否有房号为houseId的房源 
+		 * @param companyId 公司id
+		 * @param houseId 房号id
+		 * @return 房源数量
+		 * Integer
+	 */
+	public Integer queryCountHouseByHouseId (@Param("companyId")String companyId,@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 查看某单元下的房源销控
+		 * @Description: 查看某单元下的房源销控
+		 * @param companyId  公司id
+		 * @param buildingUnitId 单元id
+		 * @return [{houseNO:房号id,houseNumber:房号,floor:房号所在楼层,code:户数编号,hid:房源id,houseId:房源编号,transactionType:交易类型(出租、出售),status:房源状态(有效、暂缓、我售等),sellingPrice:出售价格(分),buildSpace:面积,room:几室,hall:几厅,kitchen:几厨,toilet:几卫,balcony:几阳}]
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryHouseSalesStatus(@Param("companyId")String companyId,@Param("buildingUnitId")Long buildingUnitId);
+	/**
+	 * 
+		 * 查询座栋单元的房间起止信息
+		 * @Description: 查询座栋单元的房间起止信息
+		 * @param buildingUnitId 单元id
+		 * @return {floorTotal:单元总楼层,houseStartNumber:房号开始数,floorStartNumber:楼层开始数,unitHouseCount:每层户数}
+		 * Map<String,Object>
+	 */
+	public Map<String, Object> queryBulidingunitInfo(@Param("buildingUnitId")Long buildingUnitId);
+	/**
+	 * 
+		 * 查询是否地铁房
+		 * @Description: 查询是否地铁房
+		 * @param communityId 小区id
+		 * @return 
+		 * Integer
+	 */
+	public Integer queryIsMetroRoom(@Param("communityId")Long communityId);
+	/**
+	 * 
+		 * 查询房源业主电话
+		 * @Description: 查询房源业主电话 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<String>
+	 */
+	public List<String> queryHouseOwerPhone(@Param("houseId")Long houseId);
+
+	/**
+	 * @Description: 将房源数据分交易类型同步到客户端查询表中   
+	 * @param houseIds 待同步的房源编号(多个用英文逗号隔开)
+	 * @return: void   
+	 */ 
+	public void houseSynchron(@Param("houseIds")String houseIds);
+	/**
+	 * 
+		 * 根据房源编号查询所有能在外网显示的房源列表
+		 * @Description: 根据房源编号查询所有能在外网显示的房源列表 
+		 * @param houseId 房源编号
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryShowHouseListByHouseCode(@Param("houseId")String houseId);
+	/**
+	 * 
+		 * 查询房源编号
+		 * @Description: 查询房源编号 
+		 * @param houseId 房源id
+		 * @return 
+		 * String
+	 */
+	public String queryHouseCodeById(@Param("houseId")Long houseId);
+	/**
+	 * 
+		 * 根据名称查询小区基本信息
+		 * @Description: 根据名称查询小区基本信息
+		 * @param areaCode 区域代码
+		 * @param name 小区名称
+		 * @return 
+		 * Map<String,Object>
+	 */
+	public Map<String, Object> queryCoummunityInfoByName(@Param("areaCode")String areaCode,@Param("name")String name);
+	/**
+	 * 
+		 * 查询新房列表
+		 * @Description: 查询新房列表 
+		 * @param param 条件{areaCodes:[区域代码],regionIds:[片区id],communityIds:[小区id],houseUseTypes:[房屋用途],minPrice:最低价格,maxPrice:最大价格,name:小区名称,synchron:同步状态(0,1)}
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String, Object>> queryNewHouseList(Map<String, Object> param);
+	/**
+	 * 
+		 * 根据公司查询用户
+		 * @Description: 根据公司查询用户
+		 * @param companyId 公司id
+		 * @return  [{id:1,realName:张三}]
+		 * List<Map<String, Object>>
+	 */
+	public List<Map<String, Object>> queryUserByCompanyId(@Param("companyId")String companyId);
+	/**
+	 * 
+		 * 将楼盘数据同步到客户端查询表中   
+		 * @Description: 将楼盘数据同步到客户端查询表中 ） 
+		 * @param houseIds 待同步的楼盘id(多个用英文逗号隔开)
+		 * void
+	 */
+	public void newHouseSynchron(@Param("houseIds")String houseIds);
+	/**
+	 * 
+		 * 根据公司、房源编号查询房源数量
+		 * @Description: 根据公司、房源编号查询房源数量
+		 * @param houseId 房源编号
+		 * @param companyId 公司
+		 * @return 
+		 * int
+	 */
+	public int queryhouseCountByCompany(@Param("houseId")String houseId,@Param("companyId")String companyId);
+	/**
+	 * 
+		 * 查询小区对口学校数量
+		 * @Description: 查询小区对口学校数量
+		 * @param communityId 小区id
+		 * @return 
+		 * int
+	 */
+	public int querySchoolCountByCommunity(@Param("communityId")Long communityId);
+	/**
+	 * 
+		 * 根据房号id查询房间信息
+		 * @Description:  根据房号id查询房间信息
+		 * @param buildingHouseId 房间id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	public Map<String, Object> queryBuildHouseInfo(@Param("buildingHouseId")Long buildingHouseId);
+	/**
+	 * 
+		 * 查询客源联系信息
+		 * @Description: 查询客源联系信息
+		 * @param demandId 客源id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	public Map<String, Object> queryCustomerInfo(@Param("demandId")String demandId);
+	/**
+	 * 
+		 * 查询用户姓名、手机号
+		 * @Description: 查询用户姓名、手机号
+		 * @param userId 用户id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	public Map<Object, Object> queryUserPhone(@Param("userId")Long userId);
+}

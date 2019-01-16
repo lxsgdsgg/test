@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.UserRegisterManageMapper">
+	<select id="queryAllUserCheckInfo"  parameterType="Map" resultType="java.util.Map">	
+		SELECT user_register_check_info.id,user_register_check_info.computerPosistion,
+		user_register_check_info.checkStatus,user_register_check_info.checkTime,
+		user_register_check_info.computerInfo,user_register_check_info.manageId,
+		user_register_check_info.addTime,user_register_check_info.updateTime,
+		user_register_check_info.permissionArea,user_register_check_info.operator,
+		user_register_check_info.operatorId,user_register_check_info.isValid,
+		sys_user.realName as userName,sys_dept.`name` as deptName,sys_user.userType,
+		sys_user.deptId,sys_user.lastLoginSuccessTime,sys_user.realName as manageName,
+		IF ((`user_register_check_info`.`checkStatus` = '1'),'已审核','未审核') AS `checkName`,
+		(CASE WHEN (`sys_user`.`userType` = 1) THEN	'独立主机' WHEN (`sys_user`.`userType` = 2) 
+		THEN	'主机' WHEN (`sys_user`.`userType` = 3) THEN	'分机' ELSE	'其他' END) AS `userTypeName`
+		FROM user_register_check_info
+		LEFT JOIN sys_user ON user_register_check_info.manageId = sys_user.id
+		LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		where user_register_check_info.isValid=1 
+		<if test="null != deptId and deptId != ''">
+			and sys_user.deptId = #{deptId}
+		</if>
+		<if test="null != checkStatus and checkStatus != ''">
+			and user_register_check_info.checkStatus = #{checkStatus}
+		</if>
+		<if test="null != userType and userType != ''">
+			and sys_user.userType = #{userType}
+		</if>
+		<if test="null != computerInfo and computerInfo != ''">
+			and user_register_check_info.computerInfo like '%${computerInfo}%'
+		</if>
+		<if test="null != manageName and manageName != ''">
+			and sys_user.realName like '%${manageName}%'
+		</if>
+	</select>
+	
+	<select id="queryUserRegisterInfoByUserId" resultType="map">
+		SELECT user_register_check_info.id,user_register_check_info.computerPosistion,
+		user_register_check_info.checkStatus,user_register_check_info.checkTime,
+		user_register_check_info.computerInfo,user_register_check_info.manageId,
+		user_register_check_info.addTime,user_register_check_info.updateTime,
+		user_register_check_info.permissionArea,user_register_check_info.operator,
+		user_register_check_info.operatorId,user_register_check_info.isValid,
+		sys_user.realName as userName,sys_dept.`name` as deptName,sys_user.userType,
+		sys_user.deptId,sys_user.lastLoginSuccessTime,sys_user.realName as manageName,
+		IF ((`user_register_check_info`.`checkStatus` = '1'),'已审核','未审核') AS `checkName`,
+		(CASE WHEN (`sys_user`.`userType` = 1) THEN	'独立主机' WHEN (`sys_user`.`userType` = 2) 
+		THEN	'主机' WHEN (`sys_user`.`userType` = 3) THEN	'分机' ELSE	'其他' END) AS `userTypeName`
+		FROM user_register_check_info
+		LEFT JOIN sys_user ON user_register_check_info.manageId = sys_user.id
+		LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		where user_register_check_info.isValid=1 and user_register_check_info.operatorId = #{userId}
+	</select>
+	
+	<select id="queryUserRegisterInfoByConn" resultType="map">
+		SELECT user_register_check_info.id,user_register_check_info.computerPosistion,
+		user_register_check_info.checkStatus,user_register_check_info.checkTime,
+		user_register_check_info.computerInfo,user_register_check_info.manageId,
+		user_register_check_info.addTime,user_register_check_info.updateTime,
+		user_register_check_info.permissionArea,user_register_check_info.operator,
+		user_register_check_info.operatorId,user_register_check_info.isValid,
+		sys_user.realName as userName,sys_dept.`name` as deptName,sys_user.userType,
+		sys_user.deptId,sys_user.lastLoginSuccessTime,sys_user.realName as manageName,
+		IF ((`user_register_check_info`.`checkStatus` = '1'),'已审核','未审核') AS `checkName`,
+		(CASE WHEN (`sys_user`.`userType` = 1) THEN	'独立主机' WHEN (`sys_user`.`userType` = 2) 
+		THEN	'主机' WHEN (`sys_user`.`userType` = 3) THEN	'分机' ELSE	'其他' END) AS `userTypeName`,
+		user_register_check_info.areaCode,user_register_check_info.areaName,user_register_check_info.companyId,
+		user_register_check_info.hardSeries,user_register_check_info.ipAddress
+		FROM user_register_check_info
+		LEFT JOIN sys_user ON user_register_check_info.manageId = sys_user.id
+		LEFT JOIN sys_dept ON sys_user.deptId = sys_dept.id
+		where user_register_check_info.isValid = 1 ${condition}
+	</select>
+</mapper>

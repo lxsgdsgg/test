@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.wwwMapper">
+
+	<select id="queryCommissionList" resultType="map">
+		select a.id,a.dealId,a.billNo,a.moneyProjName,a.price,a.actualPrice,replace(replace(a.payerType,0,'业主'),1,'客户') as payerType,a.status,a.settlementTypeName,a.bankCardNo,a.reason,a.actualPayTime,a.sureTime,replace(replace(a.isDivide,0,'未分成'),1,'已分成') as isDivide,b.agreementId,b.areaName,b.regionName,b.communityName,b.buildingsName,b.buildingHouseName,b.dealTime,c.realName as traderId from deal_commissionrecord a
+		INNER JOIN deal_transactionInfo b on a.moneyType=#{moneyType} and a.status!='00' and a.dealId = b.id and a.isValid=1 and b.isValid = 1
+		<!-- 按佣金状态查（待确认，已确认，驳回） -->
+		<if test="status!=null and status!='' ">
+			and a.status=#{status}
+		</if>
+		<!-- 按成交类型查（买卖，租赁，一手） -->
+		<if test="dealType!=null and dealType!='' ">
+			and b.dealType=#{dealType}
+		</if>
+		<!-- 按成交时间查 -->
+		<if test="timeType=='dealTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and b.dealTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and b.dealTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按收取时间查 -->
+		<if test="timeType=='actualPayTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and a.actualPayTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and a.actualPayTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按确认时间查 -->
+		<if test="timeType=='sureTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and a.sureTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and a.sureTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按成交人查 （或是部门id,或是人员id）-->
+		<if test="deptId!=null and deptId!='' ">
+			and b.permissionArea=#{deptId}
+		</if>
+		<if test="peopleId!=null and peopleId!='' ">
+			and b.traderId=#{peopleId}
+		</if>
+		<!-- 按小区id查 -->
+		<if test="communityId!=null and communityId!='' ">
+			and b.communityId=#{communityId}
+		</if>
+		<!-- 下面是模糊查询条件 -->
+		<!-- 按成交编号查 -->
+		<if test="dealId!=null and dealId!='' ">
+			and b.id like '%${dealId}%'
+		</if>
+		<!-- 按小区名查 -->
+		<if test="communityName!=null and communityName!='' ">
+			and b.communityName like '%${communityName}%'
+		</if>
+		<!-- 按门牌号查 -->
+		<if test="buildingHouseName!=null and buildingHouseName!='' ">
+			and b.buildingHouseName like '%${buildingHouseName}%'
+		</if>
+		<!-- 按门牌号查 -->
+		<if test="billNo!=null and billNo!='' ">
+			and a.billNo like '%${billNo}%'
+		</if>
+		<!-- 查成交人名字 -->
+		INNER JOIN sys_user c on b.traderId = c.id 
+	</select>
+	<select id="queryPayRecord" resultType="map">
+		SELECT pr.id,pr.dealId,pr.companyId,pr.companyName,pr.billNo,pr.transactionType,pr.moneyTypeName,pr.price,pr.payerType,pr.tradeTime,pr.settlementTypeName,
+		pr.remark,pr.examineStatus,pr.auditor,pr.auditTime,pr.reason,pr.recorderName,pr.recordTime,pr.permissionArea,pr.operatorId
+		FROM deal_payrecord AS pr
+		WHERE pr.isValid=1 and transactionType=#{transactionType} 
+		<if test="status!=null and status!='' "> AND pr.examineStatus=#{status}</if>
+		<if test="timeType!=null and timeType!='' ">
+			<choose>
+				<when test="timeType ==1">
+					<if test="beginTime!=null and beginTime!='' "> AND pr.recordTime &gt;= #{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.recordTime &lt;= #{endTime}</if>
+				</when>
+				<when test="timeType ==2">
+					<if test="beginTime!=null and beginTime!='' "> AND pr.auditTime &gt;= #{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.auditTime &lt;= #{endTime}</if>
+				</when>
+				<otherwise>
+					<if test="beginTime!=null and beginTime!='' "> AND pr.tradeTime &gt;=#{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.tradeTime &lt;= #{endTime}</if>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="moneyTypeId!=null and moneyTypeId!='' "> AND pr.moneyTypeId = #{moneyTypeId}</if>
+		<if test="settlementTypeId!=null and settlementTypeId!='' "> AND pr.settlementTypeId = #{settlementTypeId}</if>
+		<if test="payerType!=null"> AND pr.payerType = #{payerType}</if>
+		<if test=" keywordType!=null and keywordType!='' and keyword!=null and keyword!='' ">
+			<choose>
+				<when test="keywordType =='billNo' ">
+					AND pr.billNo LIKE '%${keyword}%'
+				</when>
+				<when test="keywordType =='dealId' ">
+					AND pr.dealId LIKE '%${keyword}%'
+				</when>
+				<otherwise>
+					AND pr.remark LIKE '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>	     
+	</select>
+	<select id="querywwwanceDivide" resultType="map">
+		select a.dividerId,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,b.realName,c.`name` as deptName from deal_wwwancedivideninfo a INNER JOIN sys_user b on a.commissionId=#{commissionId} and a.dividerId=b.id and a.isValid = 1 INNER JOIN sys_dept c on b.deptId = c.id
+	</select>
+</mapper>

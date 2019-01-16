@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.sso.mapper.UserManageMapper">
+	<select id="queryUserInfo" statementType="CALLABLE" parameterType="Map" resultType="java.util.LinkedHashMap">
+		select u.id,u.realName,u.mobile,u.telPhone,u.companyId,u.deptId,u.roleId,u.sex,u.employee_num,u.birthDate,u.entryDate,u.idCode,u.email,u.postId,u.refereeId,u.sortNo,u.birthWindowFlag,u.userType,u.isMobileLogin,
+		u.areaCode,u.signature,u.profilePhoto,u.isAgent,u.uuid,u.userType,u.`status`,u.`password`,d.`name` AS depName,c.`name`AS comName,r.groups as roleGroup,CONCAT(LEFT(u.areaCode,4),'00') AS cityCode from sys_user AS u
+		INNER JOIN sys_dept AS d ON u.deptId=d.id
+		INNER JOIN sys_company AS c ON u.companyId=c.id
+		INNER JOIN sys_role AS r ON r.id=u.roleId
+		 where ${getCondition}	
+			<!-- {call queryUserInfo(#{getCondition,jdbcType=VARCHAR,mode=IN},#{page,jdbcType=INTEGER,mode=IN},#{pageSize,jdbcType=INTEGER,mode=IN})}	 -->
+	</select>
+	
+	<select id="queryUserCount" statementType="CALLABLE" parameterType="Map" resultType="Integer">	
+			{call queryUserCount(#{getCondition,jdbcType=VARCHAR,mode=IN},#{outCount,jdbcType=INTEGER,mode=OUT})}	
+	</select>
+	
+	<select id="queryLoginRules" statementType="CALLABLE" parameterType="Map" resultType="Integer">
+		SELECT COUNT(*)FROM sso_login_rule AS slr 
+		WHERE slr.`status`='1'
+		AND NOW() BETWEEN slr.beginDateTime AND slr.endDateTime
+		AND 
+		(
+		slr.ruleType='all'
+		OR (slr.ruleType='city' AND #{areaCode,jdbcType=VARCHAR} LIKE CONCAT(slr.ruleValue,'%'))
+		OR (slr.ruleType='company' AND slr.ruleValue = #{comid})
+		OR (slr.ruleType='department' AND #{depid} LIKE CONCAT(slr.ruleValue,'%'))
+		OR(slr.ruleType='people' AND slr.ruleValue LIKE CONCAT('%',#{userPhone},'%'))
+		)
+	</select>
+	<select id="queryHardware" resultType="map">
+		SELECT userType,companyId,userId  FROM uesr_register_check_hardware_bind WHERE isValid=1 AND hardDiskSeries=#{hardcode}
+	</select>
+	<select id="queryHardCheck" resultType="Integer">
+		SELECT count(*) from user_register_check_info where isValid=1 and checkStatus=0 AND hardSeries=#{hardcode}
+	</select>
+	<select id="queryCompanyOpenCity" resultType="Integer">
+		SELECT COUNT(*) FROM sys_companycityopeninfo WHERE  isOpen=1 AND isValid=1 AND companyId=#{companyId} AND cityCode = #{cityCode}
+	</select>
+</mapper>

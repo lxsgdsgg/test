@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.common.mapper.CustomerMapper">
+	<select id="queryRelateagentInfo" resultType="map">
+		select a.*,b.mobile from demand_custRelateAgent a INNER JOIN sys_user b on a.demandId = #{demandId} and a.agentId = b.id and a.isValid=1
+	</select>
+	
+</mapper>

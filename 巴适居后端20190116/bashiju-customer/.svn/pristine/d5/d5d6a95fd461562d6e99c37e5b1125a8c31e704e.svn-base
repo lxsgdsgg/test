@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.customer.mapper.IDepositMangeMapper">
+  	<!-- ****查询开始 *******-->
+  	<select id="queryAllDepositDataList" resultType="map">
+  		SELECT
+				a.id,
+				a.billNo,
+				a.demandId,
+				a.houseId,
+				a.shhid AS shhId,
+				a.companyId,
+				a.companyName,
+				a.price,
+				a.maybeDealPrice,
+				a.maybeDealDate,
+				a.expenditureNo,
+				a.expenditureRemark,
+				a.dealId,
+				a.`status`,
+				a.trusteesId,
+				a.trustees,
+				a.entrustTime,
+				a.permissionArea,
+				a.operatorId,
+				a.operator,
+				a.addTime,
+				a.updateTime,
+				a.isValid,
+				a.remark,
+				b.custName,
+				b.formName,
+				house.buildingsId,
+				house.buildingsName,
+				house.bulidingUnitId,
+				g.`name` AS deptName,
+				house.buildingsUnitName,
+				house.buildingHouseId,
+				house.houseUsesId,
+				house.buildingHouseName,
+				f.realName,
+				f.areaCode,
+				(
+					CASE
+					WHEN a.`status` = 0 THEN
+						'未确认'
+					WHEN a.`status` = 1 THEN
+						'已确认'
+					WHEN a.`status` = 2 THEN
+						'已退订'
+					WHEN a.`status` = 3 THEN
+						'已支出'
+					WHEN a.`status` = 4 THEN
+						'已驳回'
+					ELSE
+						'其他'
+					END
+				) AS statusName,
+				b.transactionType,
+				b.transactionTypeId
+			FROM
+				demand_bond a
+			LEFT JOIN demand_customerbusinessinfo b ON a.demandId = b.id
+			LEFT JOIN (
+				SELECT
+					c.houseId,
+					c.companyId,
+					c.transactionTypeId,
+					c.transactionType,
+					c.statusId,
+					c.`status`,
+					c.houseUsesId,
+					c.houseUses,
+					c.buildSpace,
+					c.resourceTypeId,
+					c.resourceType,
+					c.sellingPrice,
+					c.rentPrice,
+					c.rentPriceTypeId,
+					c.rentPriceTypeName,
+					c.taoBaoStatusId,
+					c.taoBaoStatus,
+					c.useSpace,
+					c.minSellingPrice,
+					c.minRentPrice,
+					d.areaName,
+					d.areaCode,
+					d.cityCode,
+					d.buildingsId,
+					d.buildingsName,
+					d.bulidingUnitId,
+					d.buildingsUnitName,
+					d.buildingHouseId,
+					d.buildingHouseName
+				FROM
+					hs_secondhandhouse c
+				INNER JOIN hs_housebaseinfo d ON d.id = c.houseId
+				WHERE
+					d.isValid = 1
+				GROUP BY
+					c.houseId
+			) house ON house.houseId = a.houseId
+			LEFT JOIN deal_transactioninfo e ON a.dealId = e.id
+			LEFT JOIN sys_user f ON f.id = a.trusteesId
+			LEFT JOIN sys_dept g ON f.deptId = g.id
+			WHERE
+				a.isValid = 1
+		<if test="custType != null and custType != ''">
+			and demand_customerbusinessinfo.transactionTypeId = #{custType}
+		</if>
+		<if test="status != null and status != ''">
+			and demand_bond.status = #{status}
+		</if>
+		<if test="trusteesId != null and trusteesId != ''">
+			and demand_bond.trusteesId = #{trusteesId}
+		</if>
+		<if test="startTime != null and startTime != ''">
+			and demand_bond.entrustTime &gt;= #{startTime}
+		</if>
+		<if test="endTime != null and endTime != ''">
+			and demand_bond.entrustTime &lt;= #{endTime}
+		</if>
+		group by a.demandId order by a.id desc
+  	</select>
+  </mapper>
+  
+   

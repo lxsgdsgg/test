@@ -1,0 +1,438 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  PerformanceTypeConctroller.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:业绩类型管理控制器   
+ * @author: zuoyuntao     
+ * @date:   2018年5月9日 下午2:02:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IDivideIntoConfigService;
+import com.bashiju.manage.service.IPerformanceTypeService;
+import com.bashiju.manage.service.ITransferProcessService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 业绩类型管理控制器  
+ * @ClassName:PerformanceTypeConctroller   
+ * @Description:业绩类型管理控制器  
+ * @author: zuoyuntao
+ * @date:   2018年5月9日 下午2:02:39   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Controller
+@RequestMapping(value="performance")
+public class PerformanceTypeConctroller extends BaseController{
+	/**
+	 * 业绩类型接口
+	 */
+	@Autowired
+	private IPerformanceTypeService mIPerformanceTypeService;
+	/**
+	 * 动态表单接口
+	 */
+	@Autowired
+	private FormService mFormService;
+	/**
+	 * 分成配置业务层处理接口
+	 */
+	@Autowired
+	private IDivideIntoConfigService mIDivideIntoConfigService;
+	/**
+	 * 过户流程接口
+	 */
+	@Autowired
+	private ITransferProcessService mITransferProcessService;
+	/**
+	 * 构造树接口
+	 */
+	@Autowired
+	private ICommunityService communityService;
+	/**
+	 * 获取主页面模型对象
+	 * @Title: getPfmTypePageModel   
+	 * @Description: 获取主页面模型对象  
+	 * @param: request：页面请求对象
+	 * @param: response：页面响应对象
+	 * @return: ModelAndView 视图中包含如下对象
+	 * AreaListJson [{"code":"110000","parentCode":"0","level":"1","name":"北京市"},{"code":"110100","parentCode":"110000","level":"2","name":"市辖区"},{"code":"110200","parentCode":"110000","level":"2","name":"市辖县"},{"code":"120000","parentCode":"0","level":"1","name":"天津市"},{"code":"120100","parentCode":"120000","level":"2","name":"市辖区"},{"code":"120200","parentCode":"120000","level":"2","name":"市辖县"},{"code":"130000","parentCode":"0","level":"1","name":"河北省"},{"code":"130100","parentCode":"130000","level":"2","name":"石家庄市"},{"code":"130200","parentCode":"130000","level":"2","name":"唐山市"},{"code":"130300","parentCode":"130000","level":"2","name":"秦皇岛市"},{"code":"130400","parentCode":"130000","level":"2","name":"邯郸市"},{"code":"130500","parentCode":"130000","level":"2","name":"邢台市"},{"code":"130600","parentCode":"130000","level":"2","name":"保定市"},{"code":"130700","parentCode":"130000","level":"2","name":"张家口市"},{"code":"130800","parentCode":"130000","level":"2","name":"承德市"},{"code":"130900","parentCode":"130000","level":"2","name":"沧州市"},{"code":"131000","parentCode":"130000","level":"2","name":"廊坊市"},{"code":"131100","parentCode":"130000","level":"2","name":"衡水市"},{"code":"140000","parentCode":"0","level":"1","name":"山西省"},{"code":"140100","parentCode":"140000","level":"2","name":"太原市"},{"code":"140200","parentCode":"140000","level":"2","name":"大同市"},{"code":"140300","parentCode":"140000","level":"2","name":"阳泉市"},{"code":"140400","parentCode":"140000","level":"2","name":"长治市"},{"code":"140500","parentCode":"140000","level":"2","name":"晋城市"},{"code":"140600","parentCode":"140000","level":"2","name":"朔州市"},{"code":"140700","parentCode":"140000","level":"2","name":"晋中市"},{"code":"140800","parentCode":"140000","level":"2","name":"运城市"},{"code":"140900","parentCode":"140000","level":"2","name":"忻州市"},{"code":"141000","parentCode":"140000","level":"2","name":"临汾市"},{"code":"141100","parentCode":"140000","level":"2","name":"吕梁市"},{"code":"150000","parentCode":"0","level":"1","name":"内蒙古自治区"},{"code":"150100","parentCode":"150000","level":"2","name":"呼和浩特市"},{"code":"150200","parentCode":"150000","level":"2","name":"包头市"},{"code":"150300","parentCode":"150000","level":"2","name":"乌海市"},{"code":"150400","parentCode":"150000","level":"2","name":"赤峰市"},{"code":"150500","parentCode":"150000","level":"2","name":"通辽市"},{"code":"150600","parentCode":"150000","level":"2","name":"鄂尔多斯市"},{"code":"150700","parentCode":"150000","level":"2","name":"呼伦贝尔市"},{"code":"150800","parentCode":"150000","level":"2","name":"巴彦淖尔市"},{"code":"150900","parentCode":"150000","level":"2","name":"乌兰察布市"},{"code":"152200","parentCode":"150000","level":"2","name":"兴安盟"},{"code":"152500","parentCode":"150000","level":"2","name":"锡林郭勒盟"},{"code":"152900","parentCode":"150000","level":"2","name":"阿拉善盟"},{"code":"210000","parentCode":"0","level":"1","name":"辽宁省"},{"code":"210100","parentCode":"210000","level":"2","name":"沈阳市"},{"code":"210200","parentCode":"210000","level":"2","name":"大连市"},{"code":"210300","parentCode":"210000","level":"2","name":"鞍山市"},{"code":"210400","parentCode":"210000","level":"2","name":"抚顺市"},{"code":"210500","parentCode":"210000","level":"2","name":"本溪市"},{"code":"210600","parentCode":"210000","level":"2","name":"丹东市"},{"code":"210700","parentCode":"210000","level":"2","name":"锦州市"},{"code":"210800","parentCode":"210000","level":"2","name":"营口市"},{"code":"210900","parentCode":"210000","level":"2","name":"阜新市"},{"code":"211000","parentCode":"210000","level":"2","name":"辽阳市"},{"code":"211100","parentCode":"210000","level":"2","name":"盘锦市"},{"code":"211200","parentCode":"210000","level":"2","name":"铁岭市"},{"code":"211300","parentCode":"210000","level":"2","name":"朝阳市"},{"code":"211400","parentCode":"210000","level":"2","name":"葫芦岛市"},{"code":"220000","parentCode":"0","level":"1","name":"吉林省"},{"code":"220100","parentCode":"220000","level":"2","name":"长春市"},{"code":"220200","parentCode":"220000","level":"2","name":"吉林市"},{"code":"220300","parentCode":"220000","level":"2","name":"四平市"},{"code":"220400","parentCode":"220000","level":"2","name":"辽源市"},{"code":"220500","parentCode":"220000","level":"2","name":"通化市"},{"code":"220600","parentCode":"220000","level":"2","name":"白山市"},{"code":"220700","parentCode":"220000","level":"2","name":"松原市"},{"code":"220800","parentCode":"220000","level":"2","name":"白城市"},{"code":"222400","parentCode":"220000","level":"2","name":"延边朝鲜族自治州"},{"code":"230000","parentCode":"0","level":"1","name":"黑龙江省"},{"code":"230100","parentCode":"230000","level":"2","name":"哈尔滨市"},{"code":"230200","parentCode":"230000","level":"2","name":"齐齐哈尔市"},{"code":"230300","parentCode":"230000","level":"2","name":"鸡西市"},{"code":"230400","parentCode":"230000","level":"2","name":"鹤岗市"},{"code":"230500","parentCode":"230000","level":"2","name":"双鸭山市"},{"code":"230600","parentCode":"230000","level":"2","name":"大庆市"},{"code":"230700","parentCode":"230000","level":"2","name":"伊春市"},{"code":"230800","parentCode":"230000","level":"2","name":"佳木斯市"},{"code":"230900","parentCode":"230000","level":"2","name":"七台河市"},{"code":"231000","parentCode":"230000","level":"2","name":"牡丹江市"},{"code":"231100","parentCode":"230000","level":"2","name":"黑河市"},{"code":"231200","parentCode":"230000","level":"2","name":"绥化市"},{"code":"232700","parentCode":"230000","level":"2","name":"大兴安岭地区"},{"code":"310000","parentCode":"0","level":"1","name":"上海市"},{"code":"310100","parentCode":"310000","level":"2","name":"市辖区"},{"code":"310200","parentCode":"310000","level":"2","name":"市辖县"},{"code":"320000","parentCode":"0","level":"1","name":"江苏省"},{"code":"320100","parentCode":"320000","level":"2","name":"南京市"},{"code":"320200","parentCode":"320000","level":"2","name":"无锡市"},{"code":"320300","parentCode":"320000","level":"2","name":"徐州市"},{"code":"320400","parentCode":"320000","level":"2","name":"常州市"},{"code":"320500","parentCode":"320000","level":"2","name":"苏州市"},{"code":"320600","parentCode":"320000","level":"2","name":"南通市"},{"code":"320700","parentCode":"320000","level":"2","name":"连云港市"},{"code":"320800","parentCode":"320000","level":"2","name":"淮安市"},{"code":"320900","parentCode":"320000","level":"2","name":"盐城市"},{"code":"321000","parentCode":"320000","level":"2","name":"扬州市"},{"code":"321100","parentCode":"320000","level":"2","name":"镇江市"},{"code":"321200","parentCode":"320000","level":"2","name":"泰州市"},{"code":"321300","parentCode":"320000","level":"2","name":"宿迁市"},{"code":"330000","parentCode":"0","level":"1","name":"浙江省"},{"code":"330100","parentCode":"330000","level":"2","name":"杭州市"},{"code":"330200","parentCode":"330000","level":"2","name":"宁波市"},{"code":"330300","parentCode":"330000","level":"2","name":"温州市"},{"code":"330400","parentCode":"330000","level":"2","name":"嘉兴市"},{"code":"330500","parentCode":"330000","level":"2","name":"湖州市"},{"code":"330600","parentCode":"330000","level":"2","name":"绍兴市"},{"code":"330700","parentCode":"330000","level":"2","name":"金华市"},{"code":"330800","parentCode":"330000","level":"2","name":"衢州市"},{"code":"330900","parentCode":"330000","level":"2","name":"舟山市"},{"code":"331000","parentCode":"330000","level":"2","name":"台州市"},{"code":"331100","parentCode":"330000","level":"2","name":"丽水市"},{"code":"340000","parentCode":"0","level":"1","name":"安徽省"},{"code":"340100","parentCode":"340000","level":"2","name":"合肥市"},{"code":"340200","parentCode":"340000","level":"2","name":"芜湖市"},{"code":"340300","parentCode":"340000","level":"2","name":"蚌埠市"},{"code":"340400","parentCode":"340000","level":"2","name":"淮南市"},{"code":"340500","parentCode":"340000","level":"2","name":"马鞍山市"},{"code":"340600","parentCode":"340000","level":"2","name":"淮北市"},{"code":"340700","parentCode":"340000","level":"2","name":"铜陵市"},{"code":"340800","parentCode":"340000","level":"2","name":"安庆市"},{"code":"341000","parentCode":"340000","level":"2","name":"黄山市"},{"code":"341100","parentCode":"340000","level":"2","name":"滁州市"},{"code":"341200","parentCode":"340000","level":"2","name":"阜阳市"},{"code":"341300","parentCode":"340000","level":"2","name":"宿州市"},{"code":"341500","parentCode":"340000","level":"2","name":"六安市"},{"code":"341600","parentCode":"340000","level":"2","name":"亳州市"},{"code":"341700","parentCode":"340000","level":"2","name":"池州市"},{"code":"341800","parentCode":"340000","level":"2","name":"宣城市"},{"code":"350000","parentCode":"0","level":"1","name":"福建省"},{"code":"350100","parentCode":"350000","level":"2","name":"福州市"},{"code":"350200","parentCode":"350000","level":"2","name":"厦门市"},{"code":"350300","parentCode":"350000","level":"2","name":"莆田市"},{"code":"350400","parentCode":"350000","level":"2","name":"三明市"},{"code":"350500","parentCode":"350000","level":"2","name":"泉州市"},{"code":"350600","parentCode":"350000","level":"2","name":"漳州市"},{"code":"350700","parentCode":"350000","level":"2","name":"南平市"},{"code":"350800","parentCode":"350000","level":"2","name":"龙岩市"},{"code":"350900","parentCode":"350000","level":"2","name":"宁德市"},{"code":"360000","parentCode":"0","level":"1","name":"江西省"},{"code":"360100","parentCode":"360000","level":"2","name":"南昌市"},{"code":"360200","parentCode":"360000","level":"2","name":"景德镇市"},{"code":"360300","parentCode":"360000","level":"2","name":"萍乡市"},{"code":"360400","parentCode":"360000","level":"2","name":"九江市"},{"code":"360500","parentCode":"360000","level":"2","name":"新余市"},{"code":"360600","parentCode":"360000","level":"2","name":"鹰潭市"},{"code":"360700","parentCode":"360000","level":"2","name":"赣州市"},{"code":"360800","parentCode":"360000","level":"2","name":"吉安市"},{"code":"360900","parentCode":"360000","level":"2","name":"宜春市"},{"code":"361000","parentCode":"360000","level":"2","name":"抚州市"},{"code":"361100","parentCode":"360000","level":"2","name":"上饶市"},{"code":"370000","parentCode":"0","level":"1","name":"山东省"},{"code":"370100","parentCode":"370000","level":"2","name":"济南市"},{"code":"370200","parentCode":"370000","level":"2","name":"青岛市"},{"code":"370300","parentCode":"370000","level":"2","name":"淄博市"},{"code":"370400","parentC...
+	 * cityInfo {BSJ0102=大理市, BSJ0101=昆明市,.....}
+	 * cityMap [{"deptTypeId":1,"leader":"1","permissionArea":"BSJ0103","addTime":1523256860000,"isvalid":1,"updateTime":1527582797000,"parentId":"","operator":"测试人员","sortNo":1,"companyId":"BSJ01","areaCode":"530100","name":"昆明市","id":"BSJ0101","operatorId":1},{"sortNo":2,"deptTypeId":1,"companyId":"BSJ01","areaCode":"532900","permissionArea":"BSJ0103","addTime":1523256966000,"name":"大理市","isvalid":1,"id":"BSJ0102","operatorId":1,"operator":"1"}]
+	 * usePfmTypeValue [{"type":"1","fieldValue":"一手成交","id":208},{"type":"1","fieldValue":"住房出售","id":209},{"type":"1","fieldValue":"商业出售","id":210},{"type":"1","fieldValue":"住房出租","id":211},{"type":"1","fieldValue":"商业出租","id":212},{"type":"1","fieldValue":"金融服务","id":213}]
+	 * caculateMethod [{"type":"1","fieldValue":"合同直计算提","id":215},{"type":"1","fieldValue":"累进回溯计算","id":216},{"type":"1","fieldValue":"简单回溯计算","id":217},{"type":"1","fieldValue":"累进不回溯计算","id":218},{"type":"1","fieldValue":"简单不回溯计算","id":219}]
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="performancePage")
+	public ModelAndView getPfmTypePageModel(HttpServletRequest request
+			,HttpServletResponse response) {
+		ModelAndView model = this.getModelAndView(request, response,"performancetype/performanceType");
+		LinkedList<Map<String,Object>> values 
+			= (LinkedList<Map<String,Object>>) mFormService.querySelectValue("many", "pfmType");
+		Map<String, Object> map=new HashMap<>();
+		for (Object o : values) {
+			Map<String, Object> item=(Map<String, Object>) o;
+			for (String key : item.keySet()) {
+				map.put(key, item.get(key));
+				break;
+			}			
+		}
+		//获取城市信息
+		List<Map<String,Object>> cityInfo = mIDivideIntoConfigService.queryCityInfoByCompanyId(
+				String.valueOf(UserThreadLocal.get().get("companyId")));
+		Map<String,Object> cityMap = new HashMap<String,Object>();
+		for(Map<String,Object> tempObj : cityInfo) {
+			cityMap.put(String.valueOf(tempObj.get("areaCode")), tempObj.get("name"));
+		}
+		//获取城市信息
+		List<Map<String, Object>> cityList = communityService.queryAreaSelect();
+		
+		model.addObject("cityInfo",cityMap);
+		model.addObject("cityMap",JSON.toJSONString(cityInfo));
+		model.addObject("cityList",JSON.toJSONString(cityList));
+		
+		model.addObject("usePfmTypeValue",JSONObject.toJSON(map.get("usePfmTypeValue")));
+		model.addObject("caculateMethod",JSONObject.toJSON(map.get("caculateMethod")));
+		return model;
+	}
+	/**
+	 * 读取计算方式下拉数据
+	 * @Title: queryCaculateMethodData
+	 * @author: zuoyuntao  
+	 * @Description:读取计算方式下拉数据 
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryCaculateMethodData")
+	@ResponseBody
+	@SuppressWarnings("unchecked")
+	public Object queryCaculateMethodData() {
+		LinkedList<Map<String,Object>> values 
+			= (LinkedList<Map<String,Object>>) mFormService.querySelectValue("many", "pfmType");
+		if(values.size() == 0) {
+			return null;
+		}
+		Map<String, Object> map=new HashMap<>();
+		for (Object o : values) {
+			Map<String, Object> item=(Map<String, Object>) o;
+			for (String key : item.keySet()) {
+				map.put(key, item.get(key));
+				break;
+			}			
+		}
+		return map.get("usePfmTypeValue");
+	}
+	
+	/**
+	 * 读取【使用业务类型】下拉数据
+	 * @Title: queryPerfermanceTypeData
+	 * @author: zuoyuntao  
+	 * @Description:读取【使用业务类型】下拉数据
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryPerfermanceTypeData")
+	@ResponseBody
+	@SuppressWarnings("unchecked")
+	public Object queryPerfermanceTypeData() {
+		LinkedList<Map<String,Object>> values 
+			= (LinkedList<Map<String,Object>>) mFormService.querySelectValue("many", "pfmType");
+		if(values.size() == 0) {
+			return null;
+		}
+		Map<String, Object> map=new HashMap<>();
+		for (Object o : values) {
+			Map<String, Object> item=(Map<String, Object>) o;
+			for (String key : item.keySet()) {
+				map.put(key, item.get(key));
+				break;
+			}			
+		}
+		return map.get("caculateMethod");
+	}
+	
+	/**
+	 * 根据主配置Id获取佣金明细
+	 * @Title: getPfmTypeDetail   
+	 * @Description: 根据主配置Id获取佣金明细  
+	 * @param: rgCode 当前城市编码
+	 * @return: 
+	 * {bussinessSale=12, houseSaleFirst=0, companyId=BSJ01, businessceSaleUnit=0, bussinessRent=0, bussinessRentUnit=20000, houseSaleFirstUnit=666, residenceSaleUnit=0, residenceRentUnit=0, residenceSale=10, residenceRent=20}      
+	 * @throws
+	 */
+	@RequestMapping(value="getPfmTypeDetail")
+	@ResponseBody
+	public Map<String,Object> getPfmTypeDetail(String rgCode) {
+		Map<String,Object> retMap = new HashMap<String,Object>();
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		String companyId = (String) UserThreadLocal.get().get("companyId");
+		if(StringUtil.isEmpty(companyId)) {
+			throw new BusinessException("根据人员信息未获取到公司信息!");
+		}
+		paraMap.put("rgCode", rgCode);
+		paraMap.put("companyId", companyId);
+		List<Map<String,Object>> detailList = mIPerformanceTypeService.queryPfmTypeDetailByCondition(paraMap);
+		retMap.put("companyId", companyId);
+		if(detailList.size() > 0) {
+			for(Map<String,Object> tempMap : detailList) {
+				int counter = Integer.parseInt(String.valueOf(tempMap.get("commisionType")));
+				switch(counter) {
+				case 1://住宅出售
+					retMap.put("residenceSale", tempMap.get("commisionRate"));
+					retMap.put("residenceSaleUnit", tempMap.get("fiexdBalance"));
+					break;
+				case 2://商业出售
+					retMap.put("bussinessSale", tempMap.get("commisionRate"));
+					retMap.put("businessceSaleUnit", tempMap.get("fiexdBalance"));
+					break;
+				case 3://住宅出租
+					retMap.put("residenceRent", tempMap.get("commisionRate"));
+					retMap.put("residenceRentUnit", tempMap.get("fiexdBalance"));
+					break;
+				case 4://商业出租
+					retMap.put("bussinessRent", tempMap.get("commisionRate"));
+					retMap.put("bussinessRentUnit", tempMap.get("fiexdBalance"));
+					break;
+				case 5://一手成交
+					retMap.put("houseSaleFirst", tempMap.get("commisionRate"));
+					retMap.put("houseSaleFirstUnit", tempMap.get("fiexdBalance"));
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return retMap;
+	}
+	
+	/**
+	 * 获取所有的业绩类型数据
+	 * @Title: getPerformanceTypePageObj   
+	 * @Description: 获取所有的业绩类型数据 
+	 * @param: pfmTypeName：业绩类型名称
+	 * @param: curCount：最小条数
+	 * @param: limitCount：最大条数
+	 * @return: Object    
+	 * {count=8, msg=, code=0, data=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=8, pages=1, reasonable=false, pageSizeZero=false}[{pfmTypeName=一手成交, usePfmTypeName=一手成交, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:01:25.0, usePfmTypeValue=208, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-24 10:28:06.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=一手成交, id=97, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=买卖业务, usePfmTypeName=商业出售,住房出售, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:05:46.0, usePfmTypeValue=210,209, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:13:31.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=商业出售,住房出售, id=98, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=租赁业务, usePfmTypeName=商业出租,住房出租, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 12:06:04.0, usePfmTypeValue=212,211, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:13:37.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=商业出租,住房出租, id=99, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=金融业务, usePfmTypeName=金融服务, caculateMethod=216, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-16 18:39:15.0, usePfmTypeValue=213, isValid=1, caculateName=累进回溯计算, updateOperator=测试人员, updateTime=2018-05-23 15:32:07.0, cityId=BSJ0101, operator=测试人员, companyId=BSJ01, cityName=昆明市, usePfm=金融服务, id=102, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=一手成交, usePfmTypeName=一手成交, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:26:30.0, usePfmTypeValue=208, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=一手成交, id=115, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=买卖业务, usePfmTypeName=住房出售,商业出售, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:29:26.0, usePfmTypeValue=209,210, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=住房出售,商业出售, id=116, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=租赁业务, usePfmTypeName=住房出租,商业出租, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:29:45.0, usePfmTypeValue=211,212, isValid=1, caculateName=合同直计算提, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=住房出租,商业出租, id=117, operatorId=1, pfmTypeDel=pfmTypeDel}, {pfmTypeName=金融业务, usePfmTypeName=金融服务, caculateMethod=215, permissionArea=BSJ0103, pfmTypeEdit=pfmTypeEdit, addTime=2018-05-23 16:30:05.0, usePfmTypeValue=213, isValid=1, caculateName=合同直计算提, updateOperator=测试人员, updateTime=2018-05-23 16:30:36.0, cityId=BSJ0102, operator=测试人员, companyId=BSJ01, cityName=大理市, usePfm=金融服务, id=118, operatorId=1, pfmTypeDel=pfmTypeDel}]}  
+	 * @throws
+	 */
+	@RequestMapping(value="getPerformanceTypePageObj")
+	@ResponseBody
+	public Object getPerformanceTypePageObj(String pfmTypeName,String areaCode
+			,int page,int limit) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("pfmTypeName", pfmTypeName);
+		paraMap.put("areaCode", areaCode);
+		Page<Map<String, Object>> pageObj = mIPerformanceTypeService
+				.queryPfmTypeList(paraMap,page, limit);
+		Map<String, Object> retMap = this.getPageResult(pageObj); 
+		return retMap;
+	}
+	
+	/**
+	 * 保存或更新业绩类型数据信息
+	 * @Title: saveOrModifyPfmTypeData   
+	 * @Description: 保存或更新业绩类型数据信息   
+	 * @param: jsonData：页面传入的操作数据对象
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrModifyPfmTypeData")
+	@ResponseBody
+	public BashijuResult saveOrModifyPfmTypeData(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("页面传入数据为空！");
+		}
+		Map<Object,Object> paraMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		//判断数据是否存在（每个公司在每个城市每种业绩类型只能有一种配置
+		Map<String,Object>oneMap = new HashMap<String,Object>();
+		oneMap.put("companyId", UserThreadLocal.get().get("companyId"));
+		oneMap.put("cityId", String.valueOf(paraMap.get("rgCode")));
+		oneMap.put("pfmTypeName", String.valueOf(paraMap.get("pfmTypeName")));
+		if(mITransferProcessService.jargeDataIsExists(
+				oneMap, ManageGlobal.T_PERFORMANCE_TYPE_CONFIG) 
+				&& StringUtil.isEmpty(String.valueOf(paraMap.get("id")))) {
+			throw new BusinessException("数据已存在！");
+		}
+		
+		if(paraMap.containsKey("id") && StringUtil.isNotEmpty(String.valueOf(paraMap.get("id")))) {
+			paraMap.put("updateOperator", UserThreadLocal.get().get("realName"));
+		}else {
+			paraMap.remove("id");
+		}
+		paraMap.put("cityId", String.valueOf(paraMap.get("rgCode1")));
+		paraMap.put("cityName", String.valueOf(paraMap.get("rgName1")));
+		paraMap.put("companyId", UserThreadLocal.get().get("companyId"));
+		paraMap.put("operatorId", UserThreadLocal.get().get("id"));
+		paraMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		paraMap.remove("rgCode1");
+		paraMap.remove("rgName1");
+		mIPerformanceTypeService.saveOrUpdatePfmTypeData(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 删除选中的数据信息
+	 * @Title: delPfmTypeData   
+	 * @Description: 删除选中的数据信息   
+	 * @param: pfmTypeId：业绩类型ID
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="delPfmTypeData")
+	@ResponseBody
+	public BashijuResult delPfmTypeData(String pfmTypeId) {
+		if(StringUtil.isEmpty(pfmTypeId)) {
+			throw new BusinessException("传入参数为空!");
+		}
+		mIPerformanceTypeService.delPfmTypeDataById(pfmTypeId);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 添加或修改佣金配置信息
+	 * @Title: saveOrEditPfmTypeDetail
+	 * @author: zuoyuntao  
+	 * @Description: 添加或修改佣金配置信息
+	 * @param jsonData:页面传入数据对象（{"companyId":"BSJ01","residenceSale":"10","bussinessSale":"12","businessceSaleUnit":"","residenceRent":"20","bussinessRent":"","bussinessRentUnit":"20000","houseSaleFirst":"","houseSaleFirstUnit":"666"}）
+	 * @return      
+	 * BashijuResult JSON 格式为：{}     
+	 * @throws
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrEditPfmTypeDetail")
+	@ResponseBody
+	public BashijuResult saveOrEditPfmTypeDetail(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("页面传入数据为空！");
+		}
+		Map<String,Object> paraMap = (Map<String, Object>) JSONObject.parse(jsonData);
+		String companyId = (String) paraMap.get("companyId");
+		if(StringUtil.isEmpty(companyId)) {
+			companyId = String.valueOf(UserThreadLocal.get().get("companyId"));
+		}
+		paraMap.remove("companyId");
+		mIPerformanceTypeService.saveOrEditPfmTypeDetail(setCommissionType(paraMap,companyId),companyId);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 组装一下佣金配置的数据
+	 * @Title: setCommissionType   
+	 * @Description: 组装一下佣金配置的数据   
+	 * @param companyId 公司ID
+	 * @param: paraMap {"bussinessSale":"12","houseSaleFirst":"","businessceSaleUnit":"","bussinessRent":"","bussinessRentUnit":"20000","houseSaleFirstUnit":"666","residenceSale":"10","residenceRent":"20"}
+	 * @return
+	 * [{companyId=BSJ01, commisionType=1, permissionArea=BSJ0103, commisionName=住房出售, updateOperator=超级管理员, updateTime=Thu May 31 15:29:51 CST 2018, operatorId=1, commisionRate=10}, {companyId=BSJ01, commisionType=2, permissionArea=BSJ0103, commisionName=商业出售, fiexdBalance=0, updateOperator=超级管理员, updateTime=Thu May 31 15:29:51 CST 2018, operatorId=1, commisionRate=12}, {companyId=BSJ01, commisionType=3, permissionArea=BSJ0103, commisionName=住房出租, updateOperator=超级管理员, updateTime=Thu May 31 15:29:51 CST 2018, operatorId=1, commisionRate=20}, {companyId=BSJ01, commisionType=4, permissionArea=BSJ0103, commisionName=商业出租, fiexdBalance=20000, updateOperator=超级管理员, updateTime=Thu May 31 15:29:51 CST 2018, operatorId=1, commisionRate=0}, {companyId=BSJ01, commisionType=5, permissionArea=BSJ0103, commisionName=一手成交, fiexdBalance=666, updateOperator=超级管理员, updateTime=Thu May 31 15:29:51 CST 2018, operatorId=1, commisionRate=0}]
+	 * @throws
+	 */
+	private List<Map<String,Object>> setCommissionType(Map<String,Object> paraMap,String companyId) {
+		List<Map<String,Object>> saveList = new ArrayList<Map<String,Object>>();
+		Map<String,Object> tempMap = null;
+		//住宅出售
+		Map<String,Object> oneMap = new HashMap<String,Object>();
+		oneMap.put("updateOperator", UserThreadLocal.get().get("realName"));
+		oneMap.put("operatorId", UserThreadLocal.get().get("id"));
+		oneMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		oneMap.put("companyId", companyId);
+		oneMap.put("rgCode", paraMap.get("rgCode"));
+		if(StringUtil.isNotEmpty(String.valueOf(paraMap.get("residenceSale")))) {
+			tempMap = new HashMap<String,Object>();
+			tempMap.putAll(oneMap);
+			tempMap.put("commisionType", "1");
+			tempMap.put("commisionRate", StringUtil.isEmpty(String.valueOf(
+					paraMap.get("residenceSale"))) ? "0"
+					: paraMap.get("residenceSale"));
+			tempMap.put("commisionName", "住房出售");
+			saveList.add(tempMap);
+		}
+		//商业出售
+		if (StringUtil
+				.isNotEmpty(String.valueOf(StringUtil.isEmpty(String.valueOf(
+						paraMap.get("residenceRent"))) ? "0"
+						: paraMap.get("bussinessSale")))
+				|| StringUtil.isNotEmpty(String.valueOf(paraMap.get("businessceSaleUnit")))) {
+			tempMap = new HashMap<String,Object>();
+			tempMap.putAll(oneMap);
+			tempMap.put("commisionType", "2");
+			tempMap.put("commisionRate",StringUtil.isEmpty(String.valueOf(
+					paraMap.get("bussinessSale"))) ? "0"
+					: paraMap.get("bussinessSale"));
+			tempMap.put("fiexdBalance",StringUtil.isEmpty(String.valueOf(
+					paraMap.get("businessceSaleUnit"))) ? "0"
+					: paraMap.get("businessceSaleUnit"));
+			tempMap.put("commisionName", "商业出售");
+			saveList.add(tempMap);
+		}
+		//住宅出租
+		if(StringUtil.isNotEmpty(String.valueOf(paraMap.get("residenceRent")))) {
+			tempMap = new HashMap<String,Object>();
+			tempMap.putAll(oneMap);
+			tempMap.put("commisionType", "3");
+			tempMap.put("commisionRate", StringUtil.isEmpty(String.valueOf(paraMap.get("residenceRent"))) ? "0"
+					: paraMap.get("residenceRent"));
+			tempMap.put("commisionName", "住房出租");
+			saveList.add(tempMap);
+		}
+		//商业出租
+		if(StringUtil.isNotEmpty(String.valueOf(paraMap.get("bussinessRent")))
+				|| StringUtil.isNotEmpty(String.valueOf(paraMap.get("bussinessRentUnit")))) {
+			tempMap = new HashMap<String,Object>();
+			tempMap.putAll(oneMap);
+			tempMap.put("commisionType", "4");
+			tempMap.put("commisionRate",StringUtil.isEmpty(String.valueOf(paraMap.get("bussinessRent"))) ? "0"
+					: paraMap.get("bussinessRent"));
+			tempMap.put("fiexdBalance",StringUtil.isEmpty(String.valueOf(paraMap.get("bussinessRentUnit"))) ? "0"
+					: paraMap.get("bussinessRentUnit"));
+			tempMap.put("commisionName", "商业出租");
+			saveList.add(tempMap);
+		}
+		//一手成交
+		if(StringUtil.isNotEmpty(String.valueOf(paraMap.get("houseSaleFirst")))
+				|| StringUtil.isNotEmpty(String.valueOf(paraMap.get("houseSaleFirstUnit")))) {
+			tempMap = new HashMap<String,Object>();
+			tempMap.putAll(oneMap);
+			tempMap.put("commisionType", "5");
+			tempMap.put("commisionRate",StringUtil.isEmpty(String.valueOf(paraMap.get("houseSaleFirst"))) ? "0"
+					: paraMap.get("houseSaleFirst"));
+			tempMap.put("fiexdBalance",StringUtil.isEmpty(String.valueOf(paraMap.get("houseSaleFirstUnit"))) ? "0"
+					: paraMap.get("houseSaleFirstUnit"));
+			tempMap.put("commisionName","一手成交");
+			saveList.add(tempMap);
+		}
+		return saveList;
+	}
+}

@@ -1,0 +1,67 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CurriculumVitaeController.java   
+ * @Package com.bashiju.oa.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年10月22日 下午2:15:02   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.oa.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.enums.NationEnum;
+import com.bashiju.enums.PoliticalOutlookEnum;
+import com.bashiju.oa.service.CurriculumVitaeService;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+
+/**  
+ * 简历管理控制器 
+ * @ClassName:  CurriculumVitaeController   
+ * @Description:简历管理控制器
+ * @author: wangpeng
+ * @date:   2018年10月22日 下午2:15:02   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="curriculumVitae")
+public class CurriculumVitaeController extends BaseController {
+	
+	@Autowired
+	private CurriculumVitaeService curriculumVitaeService;
+	
+	@RequestMapping(value="queryCurriculumVitaeData")
+	@ResponseBody
+	public Map<String,Object> queryCurriculumVitaeData(String name,int page,int limit){
+		Page<Map<String,Object>> pages = curriculumVitaeService.queryCurriculumVitaeData(name,page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	
+	/**
+	 * 民族和政治面貌
+	 * @Title: dropDown   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @return: Object
+	 */
+	@RequestMapping(value="dropDown")
+	@ResponseBody
+	public Object dropDown() {
+		Map<String,Object> map = new HashMap<String, Object>();
+		map.put("nation", NationEnum.enumList);
+		map.put("politicalOrientation", PoliticalOutlookEnum.enumList);
+		return map;
+	}
+
+}

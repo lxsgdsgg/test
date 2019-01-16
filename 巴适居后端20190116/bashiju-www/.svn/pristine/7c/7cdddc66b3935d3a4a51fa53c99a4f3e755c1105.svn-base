@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.www.mapper.CustomerStarCommentsMapper">
+	 <resultMap id="commentsMap" type="com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="agentId" property="userId" />
+	    <result column="star" property="star" />
+	    <result column="content" property="content" />
+	    <result column="labelIds" property="labelIds" />
+	    <result column="labels" property="labels" />
+	    <result column="secondLabelIds" property="secondLabelIds" />
+	    <result column="secondLabels" property="secondLabels" />
+	    <result column="examineStatus" property="examineStatus" />
+	    <result column="auditorId" property="auditorId" />
+	    <result column="auditor" property="auditor" />
+	    <result column="addTime" property="addTime" />
+	    <result column="auditTime" property="auditTime" />
+	    <result column="reason" property="reason" />
+	    <result column="isValid" property="isvalid" />
+	  </resultMap>
+	  
+	<select id="queryCustomerCommentsDataList" resultMap="customerMap">
+		SELECT id,userId,agentId,star,content,custId,custName,labelIds,labels,secondLabelIds,
+		secondLabels,examineStatus,auditorId,auditor,auditTime,reason,addTime,isValid
+		from sys_cust_starrating where isValid = 1 and custId = #{custId}
+
+	</select>
+	<insert id="saveCustomerComments" parameterType="com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity">
+		insert into sys_cust_starrating (
+			userId,agentId,star,content,custId,custName,labelIds
+			,labels,secondLabelIds,secondLabels,examineStatus,auditorId,auditor,auditTime,reason
+			,permissionArea,operatorId,operator,addTime,updateTime,isValidd
+		)
+		values(
+			#{userId},#{agentId},#{star},#{content},#{custId},#{custName},#{labelIds},#{labels},#{secondLabelIds},
+			#{secondLabels},#{examineStatus},#{auditorId},#{auditor},#{auditTime},#{reason},#{permissionArea},
+			#{operatorId},#{operator},#{addTime},#{updateTime},#{isValid}
+		)
+	</insert>
+	
+	<select id="queryUserInfoById">
+		select operator,operatorId,permissionArea,companyId from sys_user where isValid = 1 and id = #{userId}
+	</select>
+</mapper>

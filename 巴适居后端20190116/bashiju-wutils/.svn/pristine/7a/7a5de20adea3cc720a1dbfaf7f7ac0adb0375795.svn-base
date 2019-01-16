@@ -1,0 +1,104 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FootPrintEntity.java   
+ * @Package com.bashiju.www.pojo.service.FootPrint   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月11日 下午4:02:19   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.FootPrint;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**   
+ * @ClassName:  FootPrintEntity   
+ * @Description:查询我的足迹实体
+ * @author: wangpeng
+ * @date:   2018年8月11日 下午4:02:19   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class FootPrintToQueryEntity implements Serializable {
+	private static final long serialVersionUID = -2092363663133064112L;
+	
+	/**足迹编号**/
+	private String id;
+	/**用户id**/
+	private String custId;
+	/**房源标题**/
+	private String titles;
+	/**卧室**/
+	private String room;
+	/**客厅**/
+	private String hall;
+	/**卫生间**/
+	private String toilet;
+	/**朝向**/
+	private String orientation;
+	/**建筑面积**/
+	private String buildSpace;
+	/**使用面积**/
+	private String useSpace;
+	/**装修**/
+	private String decoration;
+	/**楼层描述(中、高、低层)**/
+	private String floorDes;
+	/**区域**/
+	private String areaName;
+	/**片区**/
+	private String regionName;
+	/**售价**/
+	private String sellingPrice;
+	/**单价**/
+	private String univalence;
+	/**总层数**/
+	private String totalLayers;
+	/**建筑年代**/
+	private String buildDates;
+	/**小区名称**/
+	private String communityName;
+	/**我的足迹条数**/
+	private  String fooPrintCount;
+	/**地铁标签**/
+	private String metroLabel;
+	/**学校标签**/
+	private String schoollabel;
+	/***图片路径***/
+	private String url;
+	/**免税标签**/
+	private String dutyFreeCode;
+	/**满两年**/
+	private String 	twoYearCode;
+	/**满五年**/
+	private String 	fiveYearCode;
+	/**房本在手标签码**/
+	private String houseCardCode;
+	/**随时看房标签**/
+	private String allTimeCode;
+	/**电梯：0不显示，1显示**/
+	private String elevatorCount;
+	/**学区房	：0不显示，1显示**/
+	private String isSchoolRoom;
+	/**地铁房	：0不显示，1显示**/
+	private String isSubwayRoom;
+	/**新房楼盘名称**/
+	private String name;
+	/**新房地址**/
+	private String address;
+	/**新房户型图描述**/
+	private String huxingDesc;
+	/**新房开盘时间**/
+	private String openDate;
+	/**新房交房时间**/
+	private String deliverDate;
+	/**新房均价**/
+	private String avgPrice;
+	/**新房标签**/
+	private String label;
+}

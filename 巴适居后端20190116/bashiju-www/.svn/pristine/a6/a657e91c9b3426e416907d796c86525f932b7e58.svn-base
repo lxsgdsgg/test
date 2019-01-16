@@ -1,0 +1,12 @@
+package com.bashiju.www.service.user;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.CustCustomer;
+
+public interface CustCustomerService  {
+	
+	public List<CustCustomer> queryAllCustomer();
+	public Long doReg(CustCustomer custCustomer);
+
+}

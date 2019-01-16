@@ -1,0 +1,15 @@
+package com.bashiju.api;
+
+public interface IMSystemMessageApi {
+	/**
+	 * 内部消息接口
+	 * @Title: sysMsg   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param: @param msgContent 消息内容
+	 * @param: @param reSessionId 接收者的UUID
+	 * @param: @return      
+	 * @return: boolean  成功-true;失败-false
+	 * @throws
+	 */
+	public boolean sysMsg(String msgContent,String reSessionId);
+}

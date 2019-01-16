@@ -1,0 +1,57 @@
+package com.bashiju.wutils.exception;
+/**
+ * 错误代码
+ * @ClassName  Error   
+ * @author zhaobin
+ * @date   2018年4月23日 下午2:18:36   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum  ErrorCodeEnum {
+	 NULL_OBJ("SEL001","抱歉,没有查询到您要的信息！"),
+	 USER_LOGIN_ERROR_PHONE("LOGIN001","手机号码输入错误"),
+	 USER_LOGIN_ERROR_PASSWORD("LOGIN002","密码验证错误"),
+	 USER_LOGIN_ERROR_PHONEVCODE("LOGIN003","短信验证码输入错误"),
+	 USER_LOGIN_ERROR_VCODE("LOGIN004","验证码输入错误"),
+	 USER_LOGIN_ERROR_IP("LOGIN005","您的登陆地点不在可用范围"),
+	 USER_LOGIN_ERROR_BANNLOGIN("LOGIN006","管理员已禁止您登陆"),
+	 USER_LOGIN_ERROR_REPEATLOGIN("LOGIN007","您已在其他地方登陆"),
+	 SYSTEM_ADD_ERROR("SYSTEM900","信息添加失败"),
+	 SYSTEM_UPFDATE_ERROR("SYSTEM901","信息更新失败"),
+	 SYSTEM_DEL_ERROR("SYSTEM902","信息删除失败"),
+	 SYSTEM_NO_ACCESS("SYSTEM903","您没有访问该功能的权限"),
+	 SYSTEM_LOGIN_ERROR_ENTER("SYSTEM904","非法闯入，赶快束手就擒！"),
+	 SYSTEM_NOT_ALLOWCHARACTERS("SYSTEM905","输入了不允许的字符"),
+	 UNKNOWN_ERROR("SYSTEM999","系统繁忙，请稍后再试...."),
+
+	 UPDATEFILE_ERROR("UPDATE001","上传失败");
+    private String code;
+    private String desc;
+
+    private ErrorCodeEnum(String code, String desc) {
+        this.setCode(code);
+        this.setDesc(desc);
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.code + "]" + this.desc;
+    }
+}

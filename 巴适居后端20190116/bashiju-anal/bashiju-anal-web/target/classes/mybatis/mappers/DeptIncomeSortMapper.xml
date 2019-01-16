@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DeptIncomeSortMapper">
+	
+		
+	<!-- 查实收 -->
+	<select id="queryIncome" resultType="map">	
+	select id,deptName,sellIncome,rentIncome,newHouseIncome,financeIncome,(ifnull(sellIncome,0)+ifnull(rentIncome,0)+ifnull(newHouseIncome,0)+ifnull(financeIncome,0)) as incomeSum from (select a.id,a.name deptName 
+		 ,(select sum(floor(dd.amount/100))
+	   from sys_user b left join finance_employeeCommissions dd on dd.userId=b.id and dd.months='2018-11' and dd.isValid=1   
+     where b.deptId=a.id and dd.businessType =2) as sellIncome
+		 ,(select sum(floor(dd.amount/100))
+	   from sys_user b left join finance_employeeCommissions dd on dd.userId=b.id and dd.months='2018-11' and dd.isValid=1   
+     where b.deptId=a.id and dd.businessType =3) as rentIncome
+		 ,(select sum(floor(dd.amount/100))
+	   from sys_user b left join finance_employeeCommissions dd on dd.userId=b.id and dd.months='2018-11' and dd.isValid=1 
+     where b.deptId=a.id and dd.businessType =1) as newHouseIncome
+		,(select sum(floor(dd.amount/100)) 
+		 from sys_user b left join finance_employeeCommissions dd on dd.userId = b.id and dd.months='2018-11' and dd.isValid=1 
+   	 where b.deptId=a.id and dd.businessType =4) as financeIncome
+		 from sys_dept a where a.isvalid=1 and a.deptTypeId in(4,5)
+     group by a.id order by a.id) aa order by incomeSum desc
+	</select>	
+		
+	
+	
+</mapper>

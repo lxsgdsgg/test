@@ -1,0 +1,67 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  NewHouseMapper.java   
+ * @Package com.bashiju.webservice.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月18日 下午5:20:45   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.house.NewHouseDynamicResult;
+import com.bashiju.www.pojo.service.out.house.OpenDateResult;
+import com.bashiju.www.pojo.service.out.house.PresalePermitResult;
+import com.bashiju.www.pojo.service.out.house.RoomTimeResult;
+
+/**   
+ * @ClassName:  NewHouseMapper   
+ * @Description:新房持久层
+ * @author: wangpeng
+ * @date:   2018年8月18日 下午5:20:45   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface NewHouseMapper {
+	/**
+	 *  条件查询新房动态
+	 * @Title: queryNewHouseDynamicByProjectId   
+	 * @Description: 条件查询新房动态
+	 * @param projectId 楼盘编号
+	 * @return: List<NewHouseDynamicResult>
+	 */
+	public List<NewHouseDynamicResult> queryNewHouseDynamicByProjectId(@Param("projectId")String projectId);
+	
+	/**
+	 * 条件查询楼盘预售证信息
+	 * @Title: queryPresalePermitByProjectId   
+	 * @Description: 条件查询楼盘预售证信息
+	 * @param projectId 楼盘编号
+	 * @return: List<PresalePermitResult>
+	 */
+	public List<PresalePermitResult> queryPresalePermitByProjectId(@Param("projectId")String projectId);
+	
+	/**
+	 * 条件查询交房时间  
+	 * @Title: queryRoomTimeByPorjectId   
+	 * @Description: 条件查询交房时间  
+	 * @param projectId 楼盘编号
+	 * @return: List<RoomTimeResult>
+	 */
+	public List<RoomTimeResult> queryRoomTimeByProjectId(@Param("projectId")String projectId);
+	
+	/**条件查询开盘时间 
+	 * 	
+	 * @Title: queryOpenDateByProjectId   
+	 * @Description: 条件查询开盘时间  
+	 * @param projectId 楼盘编号
+	 * @return: List<OpenDateResult>
+	 */
+	public List<OpenDateResult> queryOpenDateByProjectId(@Param("projectId")String projectId);
+}

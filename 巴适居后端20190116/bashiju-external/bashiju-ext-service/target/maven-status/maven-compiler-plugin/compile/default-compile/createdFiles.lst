@@ -1,0 +1,11 @@
+com\bashiju\ext\service\mq\LogHouseConsumerMq.class
+com\bashiju\ext\service\mq\LogManageConsumerMq.class
+com\bashiju\ext\service\mq\LogCustomerConsumerMq.class
+com\bashiju\ext\service\impl\ExtCloudServiceImpl.class
+com\bashiju\ext\service\mq\RabbitExcute.class
+com\bashiju\ext\service\mq\LogSystemConsumerMq.class
+com\bashiju\ext\global\ExtGlobal.class
+com\bashiju\ext\interceptors\SsoHandlerInterceptor.class
+com\bashiju\ext\service\ExtCloudServiceApi.class
+com\bashiju\ext\service\mq\LogDealConsumerMq.class
+com\bashiju\ext\service\mq\LogNewHouseConsumerMq.class

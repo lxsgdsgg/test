@@ -1,0 +1,47 @@
+package com.bashiju.customer.service;
+
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DemandFollowRecordService   
+ * @Description:客源跟进记录接口
+ * @author: wangpeng
+ * @date:   2018年6月12日 下午4:01:05   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface DemandFollowRecordService {
+	/**
+	 * 
+	 * @Title: queryDemandFollowRecordData   
+	 * @Description:（条件）查询客源跟进记录
+	 * @param transactionType 交易类型
+	 * @param followTypeName 跟进方式
+	 * @param followType 跟进类型
+	 * @param followerId 跟进人Id
+	 * @param custIdAndFollowfollower
+	 * @param operatorId 维护人
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param pageNum 当前页数
+	 * @param pageSize 每页总条数
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	Page<Map<String,Object>>  queryDemandFollowRecordData(Map<String, Object> paramMap,int page,int limit);
+	/**
+	 * 
+	 * @Title: queryDemandFollowRecordByDemandId   
+	 * @Description: 条件查询客源跟进记录
+	 * @param custId 客源id
+	 * @param pageNum  当前页数
+	 * @param pageSize  每页总条数
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	Page<Map<String,Object>>  queryDemandFollowRecordByDemandId(String demandId,int pageNum,int pageSize);
+}

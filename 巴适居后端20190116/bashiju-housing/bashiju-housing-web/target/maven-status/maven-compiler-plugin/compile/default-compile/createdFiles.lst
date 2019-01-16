@@ -1,0 +1,16 @@
+com\bashiju\housing\controller\AgentHouseEntrustAcceptanceDealController.class
+com\bashiju\housing\controller\NewHousingController.class
+com\bashiju\housing\controller\HousePictureExamineController.class
+com\bashiju\housing\controller\HsKeyController.class
+com\bashiju\housing\controller\PropertyDynamicController.class
+com\bashiju\housing\controller\HouseRelationPictureExamineController.class
+com\bashiju\housing\controller\HouseSeekByMapController.class
+com\bashiju\housing\controller\HsFollowRecordController.class
+com\bashiju\housing\controller\BusinessExamineController.class
+com\bashiju\housing\controller\HouseVideoExamineController.class
+com\bashiju\housing\controller\CommController.class
+com\bashiju\housing\controller\BuildingController.class
+com\bashiju\housing\controller\HouseSeekByMetroController.class
+com\bashiju\housing\controller\HouseActionLogQueryController.class
+com\bashiju\housing\controller\ErHousingController.class
+com\bashiju\housing\controller\PrintTemplateController.class

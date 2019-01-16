@@ -1,0 +1,68 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  UserRegisterManageMapper.java   
+ * @Package com.bashiju.manage.mapper   
+ * @Description:用户注册管理映射接口   
+ * @author: zuoyuntao     
+ * @date:   2018年6月4日 下午5:12:12   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 用户注册管理映射接口
+ * @ClassName:UserRegisterManageMapper
+ * @Description:用户注册管理映射接口
+ * @author:zuoyuntao
+ * @date:2018年6月4日 下午5:12:12
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface UserRegisterManageMapper {
+	/**
+	 * 获取用户注册审核页面分页数据信息
+	 * @Title: queryAllUserCheckInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取用户注册审核页面分页数据信息   
+	 * @param paraMap 参数对象
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：
+	 * [{deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}]     
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryAllUserCheckInfo(Map<String,Object> paraMap);
+	/**
+	 * 根据用户ID查询用户注册信息 
+	 * @Title: queryUserRegisterInfoByUserId
+	 * @author: zuoyuntao  
+	 * @Description:根据用户ID查询用户注册信息   
+	 * @param userId
+	 * @return      
+	 * Map<String,Object> JSON 格式为：
+	 * {deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}     
+	 * @throws
+	 */
+	public Map<String,Object> queryUserRegisterInfoByUserId(String userId);
+	/**
+	 * 根据给定条件查询用户注册信息
+	 * @Title: queryUserRegisterInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据给定条件查询用户注册信息   
+	 * @param condition
+	 * @return      
+	 * List<Map<Object,Object>> JSON 格式为：
+	 * [{deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}]     
+	 * @throws
+	 */
+	public List<Map<Object,Object>> queryUserRegisterInfoByConn(@Param("condition")String condition);
+}

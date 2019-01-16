@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustCustomerMapper">
+ <resultMap id="customerMap" type="com.bashiju.www.pojo.CustCustomer">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="username" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="solt" jdbcType="VARCHAR" property="solt" />
+    <result column="sex" jdbcType="VARCHAR" property="sex" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="addTime" jdbcType="TIMESTAMP" property="addtime" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updatetime" />
+    <result column="isValid" jdbcType="TINYINT" property="isvalid" />
+  </resultMap>
+  
+	<select id="queryAllCustomer" resultMap="customerMap">
+		select name, mobile,password,solt from cust_customer
+	</select>
+	<select id="saveCustomer" parameterType="com.bashiju.www.pojo.CustCustomer">
+		insert into cust_customer (name,mobile,password,solt) values(#{username},#{mobile},#{password},#{solt})
+	</select>
+</mapper>

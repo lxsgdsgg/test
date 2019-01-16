@@ -1,0 +1,14 @@
+com\bashiju\common\service\customerservice\CustomerServiceApiImpl.class
+com\bashiju\common\service\manageservice\CompanyServiceApiImpl.class
+com\bashiju\common\service\manageservice\PhoneSecurityManageServiceApiImpl.class
+com\bashiju\common\service\manageservice\DivideintoServiceApiImpl.class
+com\bashiju\common\service\dealservice\DealServiceApiImpl.class
+com\bashiju\common\service\manageservice\DecisionConfigurateServiceApiImpl.class
+com\bashiju\common\service\dealservice\DealCodeTool$1.class
+com\bashiju\common\service\manageservice\TransferProcessServiceApiImpl.class
+com\bashiju\common\service\housingservice\ErHousingServiceApiImpl.class
+com\bashiju\common\service\formservice\FormServiceImpl.class
+com\bashiju\common\service\manageservice\DeptServiceApiImpl.class
+com\bashiju\common\global\BaseGlobal.class
+com\bashiju\common\service\manageservice\TreesInfoServiceApiImpl.class
+com\bashiju\common\service\dealservice\DealCodeTool.class

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.CommMapper">
+	<select id="queryLoanCeiling" resultType="map">
+		SELECT publicLoanCeiling,LoanRatioCeiling FROM sys_cityopeninfo WHERE cityCode=#{cityCode}
+	</select>
+	<select id="queryHousePropertyList" resultType="com.bashiju.housing.pojo.HousePropertyResult">
+		SELECT h.id,h.`name`,h.isHouse as type,h.addedValueTax/100 AS addedValueTax,h.incomeTax/100 AS incomeTax,h.landTtransferTax/100 AS landTtransferTax,c.agencyFeeRatio/100 AS agencyFeeRatio FROM cust_calculator_houseProperty AS h 
+ 		INNER JOIN sys_cityopeninfo AS c ON c.cityCode=h.cityCode AND h.isvalid=1 AND c.isValid=1 AND h.cityCode=#{cityCode}
+	</select>
+	<select id="queryDeedTaxResult" resultType="com.bashiju.housing.pojo.DeedTaxResult">
+		SELECT isTwoYear,isFirst,isTwo,isThree,isLimitAreaAbove,taxRate/100 AS taxRate FROM cust_calculator_houseproperty_deedtax WHERE isvalid=1 AND housePropertyId=#{housePropertyId}
+	</select>
+	<select id="queryBusinessRateResult" resultType="map">
+		SELECT `code`,`value`,remark FROM sys_global WHERE isvalid=1 AND `code` IN ('deedTax','addedValueTax','incomeTax')
+	</select>
+</mapper>

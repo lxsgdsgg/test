@@ -1,0 +1,74 @@
+package com.bashiju.www.service.api.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.HouseArticleTypeEnum;
+import com.bashiju.wapi.IBaiKePageServiceApi;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.article.ArticleInfoResult;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+import com.bashiju.www.service.article.IArticleService;
+/**
+ * 
+ *   百科页面接口实现
+ * @ClassName:  BaiKePageServiceImpl   
+ * @Description:  百科页面接口实现
+ * @author: wangkaifa
+ * @date:   2018年7月31日 上午11:39:32       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class BaiKePageServiceImpl implements IBaiKePageServiceApi {
+	@Autowired
+	private IArticleService articleService;
+	@Autowired
+	ICacheService cacheService;
+	
+	@Override
+	public List<ArticleTypeResult> queryBaikeType(String cityCode) {
+		List<ArticleTypeResult> results=articleService.queryArticleType(cityCode, HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode());
+		return results;
+	}
+
+	@Override
+	public List<ArticleListResult> queryNewBaiKeList(String cityCode, int limit) {
+		String key=WebGlobal.ARTICLE_BAIKE_FLASH_REDIS_PREFIX+cityCode;
+		String json=cacheService.getCache(key);
+		List<ArticleListResult> results=null;
+		if (StringUtils.isEmpty(json)) {
+			results=articleService.queryArticleList(cityCode, HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode(), limit);
+			if (results!=null&&results.size()>0) {
+				cacheService.saveCache(key, JSON.toJSONString(results), WebGlobal.LIST_EXPTIME);
+			}
+		}else {
+			results=JSON.parseArray(json, ArticleListResult.class);
+		}
+		return results;
+	}
+
+	@Override
+	public WebPage<ArticleListResult> queryBaikeListByType(String cityCode, int typeId, int page, int limit) {
+		WebPage<ArticleListResult> result=articleService.queryBaikeListByType(cityCode, typeId, page, limit);
+		return result;
+	}
+
+	@Override
+	public ArticleInfoResult queryBaiKeArticleInfo(int id) {
+		ArticleInfoResult result=articleService.queryArticleInfo(id);
+		return result;
+	}
+
+	@Override
+	public List<ArticleListResult> querySameBaiKeList(String cityCode, Integer id, int limit) {
+		List<ArticleListResult> results=articleService.queryHotBaiKeList(cityCode, limit);
+		return results;
+	}
+
+}

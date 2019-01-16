@@ -1,0 +1,30 @@
+package com.bashiju.manage.service;
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  Error_logService   
+ * @Description:错误日志接口  
+ * @author: wangpeng
+ * @date:   2018年5月14日 下午12:03:30   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ErrorLogService {
+	
+	/**
+	 * 
+	 * @Title: queryError_log   
+	 * @Description: 分页查询
+	 * @param methodName
+	 * @param pageNum 当前页
+	 * @param pageSize 页面数量
+	 * @return      
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>>  queryErrorLog (Map<String,Object> paramMap,int pageNum,int pageSize);
+
+}

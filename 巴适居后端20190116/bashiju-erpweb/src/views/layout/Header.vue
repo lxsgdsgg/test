@@ -1,0 +1,286 @@
+<template>
+  <section class="wrapper">
+    <nav style="height: 60px" class="clearfix">
+      <div class="left pull-left">
+        <icon
+          id="foldIcon"
+          :class="{isActive: foldActive}"
+          class="fold-icon" width="20" height="20" scale="20" name="fold"></icon>
+        <router-link :to="{path: '/'}" class="logo"></router-link>
+      </div>
+
+      <div class="center">
+        <div class="bsj-top-bar" id="bsjTopBar">
+          <template v-for="(item, index) in menuData">
+            <div class="item" :key="item.id"  @mouseover="menuMouseOver(index, $event)">
+              {{item.title}}
+            </div>
+          </template>
+
+          <div id="menuPanel" class="sub-nav-wrap" ref="sub-nav-wrap">
+            <template v-for="(item, index) in menuData">
+              <transition :key="item.id" name="el-zoom-in-top">
+                <div class="sub-nav-item" v-show="index === menuActiveIndex && menuShow">
+                  <div class="sub-item-con">
+                    <dl v-for="(subItem, subIndex) in item.children" :key="subIndex" class="clearfix">
+                      <dt>{{subItem.title}}</dt>
+                      <div class="content">
+                        <dd :key="ddIndex" v-for="(ddItem, ddIndex) in subItem.children">
+                          <router-link v-if="ddItem.url" :to="{path: ddItem.url}">{{ddItem.title}}</router-link>
+                          <template v-else>{{ddItem.title}}</template>
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </transition>
+            </template>
+          </div>
+
+          <i class="triangle" id="triangle"></i>
+        </div>
+      </div>
+
+      <div class="right pull-right">
+        <el-dropdown>
+          <div class="avatar">
+            <img :src="defaultAvatar">
+            <i class="el-icon-caret-bottom"></i>
+          </div>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item v-if="userName" v-text="userName"></el-dropdown-item>
+            <el-dropdown-item>修改密码</el-dropdown-item>
+            <el-dropdown-item>主题设置</el-dropdown-item>
+            <el-dropdown-item>绑定微信</el-dropdown-item>
+            <el-dropdown-item divided>退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </div>
+    </nav>
+    <tags-view></tags-view>
+  </section>
+</template>
+
+<script type="text/ecmascript-6">
+import TagsView from './components/TagsView'
+export default {
+  name: 'v-header',
+  components: {TagsView},
+  props: {
+    menuPanelShow: Boolean,
+    menuData: Array,
+    userName: String
+  },
+  data () {
+    return {
+      defaultAvatar: require('../../common/images/avatar_default.jpg'),
+      menuActiveIndex: null,
+      foldActive: false
+    }
+  },
+  methods: {
+    menuMouseOver (index, event) {
+      this.menuActiveIndex = index
+      let el = event.currentTarget
+      let elPosX = el.getBoundingClientRect().x
+      let wrapElPosX = document.querySelectorAll('.bsj-top-bar')[0].getBoundingClientRect().x
+
+      let triangle = document.querySelectorAll('#triangle')[0]
+      triangle.style.display = 'block'
+      triangle.style.left = `${elPosX - wrapElPosX + (el.offsetWidth / 2 - 10)}px`
+    }
+  },
+  computed: {
+    menuShow () {
+      return this.menuPanelShow
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+  $black: #222222;
+  $red: #e41e2b;
+
+  .wrapper {
+    height: 105px;
+    text-align: center;
+    background-color: $black;
+
+    .logo {
+      vertical-align: top;
+      margin-top: 8px;
+      display: inline-block;
+      width: 135px;
+      height: 45px;
+      background-image: url('../../common/images/logo.png');
+      background-repeat: no-repeat;
+    }
+
+    .fold-icon {
+      padding: 20px;
+      box-sizing: content-box;
+      cursor: pointer;
+      color: #fff;
+m
+      &:hover {
+        color: #909399;
+        transition: color 0.3s;
+      }
+
+      &.isActive {
+        color: #909399;
+      }
+    }
+
+    .left {
+      height: 60px;
+      font-size: 0;
+    }
+
+    .center {
+      display: inline-block;
+      line-height: 60px;
+      min-width: 600px;
+
+      .bsj-top-bar {
+        position: relative;
+        margin: 0 auto;
+
+        .item {
+          padding: 0 25px;
+          float: left;
+          color: #fff;
+          position: relative;
+          transition: all 0.2s;
+
+          &::before {
+            position: absolute;
+            content: '';
+            top: 58px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: $red;
+            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+          }
+
+          &:hover {
+            color: $red;
+
+            &::before {
+              width: 100%;
+            }
+          }
+        }
+
+        .sub-nav-wrap {
+          width: 100%;
+          .sub-nav-item {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            border-radius: 5px;
+            color: #fff;
+            z-index: 3000;
+            .sub-item-con {
+              padding: 20px;
+              margin-top: 10px;
+              background-color: #2d2d2d;
+            }
+
+            dl {
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+
+            .content {
+              float: left;
+              display: block;
+              width: 82%;
+            }
+
+            dt {
+              width: 18%;
+              padding: 0 20px;
+              color: rgba(255,255,255,.5);
+            }
+
+            dt, dd {
+              float: left;
+              font-size: 14px;
+              line-height: 2.5;
+            }
+
+            dd {
+              padding: 0 10px;
+            }
+          }
+        }
+
+        #triangle {
+          position: absolute;
+          width: 0;
+          height: 0;
+          border: 8px solid transparent;
+          border-bottom-color: #2d2d2d;
+          left: 40px;
+          top: 54px;
+          bottom: -10px;
+          transition: left .3s cubic-bezier(.4,0,.2,1);
+          display: none;
+          z-index: 1000;
+        }
+      }
+    }
+
+    .right {
+      text-align: center;
+      height: 60px;
+      font-size: 0;
+      .avatar {
+        width: 80px;
+        height: 60px;
+        img {
+          margin-top: 5px;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+        }
+      }
+    }
+  }
+
+  .top-bar-dropdown-wrap {
+    .dropdown-item {
+      position: absolute;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #2d2d2d;
+      color: #fff;
+      dl {
+        margin-bottom: 25px;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      dt, dd {
+        float: left;
+        font-size: 14px;
+      }
+
+      dt {
+        padding: 0 20px;
+        color: rgba(255,255,255,.5);
+      }
+
+      dd {
+        padding: 0 10px;
+      }
+    }
+  }
+</style>

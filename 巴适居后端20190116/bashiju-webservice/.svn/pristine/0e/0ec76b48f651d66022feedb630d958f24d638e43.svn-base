@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerTransitScheduleMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity" 
+			id="transScheduleEntity">
+		<id property="id" column="id"/>
+        <result property="startTime" column="startTime"/>
+        <result property="dealSequence" column="dealId"/>
+        <result property="houseSequence" column="houseId"/>
+        <result property="custId" column="custId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="transferStatus" column="transferStatus"/>
+        <result property="transferStatusName" column="transferStatusName"/>
+        <result property="shhid" column="shhid"/>
+     </resultMap>
+     
+	<select id="queryHouseTransitScheculeDataList" resultMap="transScheduleEntity">
+		select b.id,b.id as dealId,b.addTime as startTime,b.houseId,c.custId ,b.communityName,b.transferStatus,
+		(case when b.transferStatus = '00' then '未启动' when b.transferStatus = '01' then '过户中' when
+		b.transferStatus = '02' then '已完成' end) as transferStatusName,b.shhid
+		from deal_transactioninfo b inner join sys_custbindinfo c on b.shhid = c.sourcesId
+		where b.isValid = 1 and c.custId = #{custId}
+	</select>
+	
+	<select id="queryTransitScheculeDataList" resultType="map">
+		SELECT a.id,a.dealId,a.scheduleName,a.`status`,a.estimateFinishTime,a.actualFinishTime,a.transferId
+		,a.transfer,a.remark FROM deal_transferschedule AS a 
+		where a.isValid=1 and dealId= #{dealId}
+	</select>
+	
+	<select id="queryTransitHouseByHouseId" resultType="map">
+		SELECT a.room,a.hall,a.toilet,a.kitchen,a.houseUses,a.houseUsesId,a.useSpace,a.buildSpace,
+		a.orientationId,a.orientation,a.decorationId,a.decoration,a.matchingIds,a.matching,
+		a.buildDates,a.labeld,a.structure,a.structureId,a.houseTypeId,a.houseType,
+		a.propRightsLenId,a.propRightsLen,a.floorHeight ,b.elevatorCount,b.householdCount
+		from hs_secondhandhouse a inner join hs_housebaseinfo b on a.houseId = b.id
+		where a.isValid = 1 and b.id = ${houseId}
+	</select>
+</mapper>

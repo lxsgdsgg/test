@@ -1,0 +1,298 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealServiceApiImpl.java   
+ * @Package com.bashiju.deal.api   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月15日 下午5:04:02   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.common.service.dealservice;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.bashiju.api.CustomerServiceApi;
+import com.bashiju.api.DealServiceApi;
+import com.bashiju.api.DivideintoServiceApi;
+import com.bashiju.api.ErHousingServiceApi;
+import com.bashiju.enums.AgentTypeEnum;
+import com.bashiju.enums.DealTransferStatusEnum;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.enums.DividiintoDealTypeEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.CommonSqlServie;
+
+/**   
+ * @ClassName:  DealServiceApiImpl   
+ * @Description:成交管理对外服务   
+ * @author: yangz
+ * @date:   2018年6月15日 下午5:04:02   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class DealServiceApiImpl extends CommonSqlServie implements DealServiceApi{
+
+	@Autowired
+	private CustomerServiceApi customerServiceApi;
+	@Autowired
+	private ErHousingServiceApi erHousingServiceApi;
+	@Autowired
+	private DivideintoServiceApi divideintoServiceApi;
+	
+	/**
+	 * @Description: 保存成交信息   
+	 * @param deal 要成交的信息
+	 * @param commissions 佣金记录信息
+	 * @return   
+	 * @see com.bashiju.api.DealServiceApi#saveDealInfo(java.util.Map)   
+	 */
+	@Override
+	public boolean saveDealInfo(Map<Object, Object> deal,List<Map<String,Object>> commissions) {
+		deal = validateDeal(deal);
+		String dealId = DealCodeTool.createDealCode(deal.get("dealType").toString());
+		deal.put("id", dealId);
+		deal.put("transferStatus", DealTransferStatusEnum.NOTSTARTING.getCode());//默认未启动过户
+		deal.put("isDivide", "0");//默认未完成分成
+		deal.put("isFinishCase", "0");//默认未结案
+		deal.put("isBreach", "0");//默认未违约
+		this.idCustomOperationDatabase(deal, "deal_transactionInfo", false);
+		if(commissions!=null && commissions.size()>0) {
+			commissions = validateCommission(dealId,commissions);
+			this.batchCommonOperationDatabase(commissions, "deal_commissionRecord", false);
+		}
+		//根据自动分成标志来判断是否要生成分成信息,1表示自动生成分成信息，
+		if(deal.get("isautoDivide")!=null && "1".equals(deal.get("isautoDivide").toString()))
+			this.batchCommonOperationDatabase(getDivides(deal), "deal_dividenInfo", false);
+		return true;
+	}
+	
+	
+	/**     
+	 * @Description: 验证该佣金记录信息是否正确   
+	 * @param dealId 成交编号
+	 * @param commissions 佣金记录信息
+	 * @return: List<Map<Object,Object>>      
+	 */ 
+	private List<Map<String, Object>> validateCommission(String dealId,List<Map<String, Object>> commissions) {
+		if(commissions==null || commissions.size()<=0 )
+			return commissions;
+		for(Map<String,Object> map : commissions) {
+			if(map==null)
+				throw new BusinessException("佣金信息不允许为空");
+			map.put("dealId", dealId);//将成交编号赋值
+			//费用类型：0--中介类费用,1--金融类费用
+			if(!map.containsKey("moneyType") || StringUtils.isEmpty(map.get("moneyType")))
+				throw new BusinessException("费用类型不允许为空");
+			else if(!"0".equals(map.get("moneyType")) && !"1".equals(map.get("moneyType")))
+				throw new BusinessException("费用类型不正确");
+			if(!map.containsKey("moneyProjName") || StringUtils.isEmpty(map.get("moneyProjName")))
+				throw new BusinessException("费用项目不允许为空");
+			if(!map.containsKey("payerType") || StringUtils.isEmpty(map.get("payerType")))
+				throw new BusinessException("缴费人类型不允许为空");
+			else if(!"0".equals(map.get("payerType")) && !"1".equals(map.get("payerType")))
+				throw new BusinessException("缴费人类型不正确");
+			if(!map.containsKey("price") || StringUtils.isEmpty(map.get("price")))
+				throw new BusinessException("缴费金额不允许为空");
+			else {
+				try {
+					int price = (int) map.get("price");
+					if(price<=0)
+						throw new BusinessException("缴费金额必须为正整数");
+				} catch (Exception e) {
+					throw new BusinessException("缴费金额必须为正整数");
+				}
+			}
+			if(!map.containsKey("permissionArea") || StringUtils.isEmpty(map.get("permissionArea")))
+				throw new BusinessException("权限域不允许为空");
+			if(!map.containsKey("operatorId") || StringUtils.isEmpty(map.get("operatorId")))
+				throw new BusinessException("操作人id不允许为空");
+//			if(!map.containsKey("isValid") || StringUtils.isEmpty(map.get("isValid")))
+//				map.put("isValid", "0");
+		}
+		return commissions;
+	}
+
+
+
+	/**
+	 * @Description: 验证该成交信息是否正确   
+	 * @param deal 待验证的成交信息
+	 * @return: Map<String,Object> 验证后的成交信息
+	 */
+	private Map<Object,Object> validateDeal(Map<Object,Object> deal) {
+		if(deal==null)
+			throw new BusinessException("成交信息不允许为空");
+		if(!deal.containsKey("dealType") || StringUtils.isEmpty(deal.get("dealType")) || 
+				!DealTypeEnum.enumMap.containsKey(deal.get("dealType")))
+			throw new BusinessException("成交类型为空或者格式不正确");
+		if(!deal.containsKey("agreementId") || StringUtils.isEmpty(deal.get("agreementId")))
+			throw new BusinessException("合同编号不允许为空");
+		if(!deal.containsKey("demandId") || StringUtils.isEmpty(deal.get("demandId")))
+			throw new BusinessException("需求编号不允许为空");
+		if(!deal.containsKey("houseId") || StringUtils.isEmpty(deal.get("houseId")))
+			throw new BusinessException("房源编号不允许为空");
+		if(!deal.containsKey("shhid") || StringUtils.isEmpty(deal.get("shhid")))
+			throw new BusinessException("二手房源或一手房源编号不允许为空");
+		if(!deal.containsKey("companyId") || StringUtils.isEmpty(deal.get("companyId")))
+			throw new BusinessException("公司编号不允许为空");
+		if(!deal.containsKey("companyId") || StringUtils.isEmpty(deal.get("companyId")))
+			throw new BusinessException("公司编号不允许为空");
+		if(!deal.containsKey("traderId") || StringUtils.isEmpty(deal.get("traderId")))
+			throw new BusinessException("成交人不允许为空");
+		if(!deal.containsKey("cityCode") || StringUtils.isEmpty(deal.get("cityCode")))
+			throw new BusinessException("城市代码不允许为空");
+		if(!deal.containsKey("price") || StringUtils.isEmpty(deal.get("price")))
+			throw new BusinessException("成交金额不允许为空");
+		else {
+			try {
+				int price = (int) deal.get("price");
+				if(price<=0)
+					throw new BusinessException("成交金额必须为正整数");
+			} catch (Exception e) {
+				throw new BusinessException("成交金额必须为正整数");
+			}
+		}
+		if(!deal.containsKey("permissionArea") || StringUtils.isEmpty(deal.get("permissionArea")))
+			throw new BusinessException("权限域不允许为空");
+		if(!deal.containsKey("operatorId") || StringUtils.isEmpty(deal.get("operatorId")))
+			throw new BusinessException("操作人id不允许为空");
+//		if(!deal.containsKey("isValid") || StringUtils.isEmpty(deal.get("isValid")))
+//			deal.put("isValid", "0");
+			
+		return deal;
+	}
+	
+	/**
+	 * @Description: 封装中介类分成信息   
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>
+	 */
+	private List<Map<String,Object>> getDivides(Map<Object, Object> deal){
+		if(deal==null || deal.size()<=0)
+			throw new BusinessException("成交信息不允许为空");
+		List<Map<String,Object>> divides = new ArrayList<Map<String,Object>>(0);
+		String dType = null;
+//		商铺(写字楼，商铺，仓库，厂房，土地，公寓)
+//		住宅 ( 住宅，别墅，车位 )
+		if(HouseUsesEnum.APARTMENT.getCode().equals(deal.get("houseUsesId")) || 
+				HouseUsesEnum.FACTORY.getCode().equals(deal.get("houseUsesId")) || 
+				HouseUsesEnum.LAND.getCode().equals(deal.get("houseUsesId")) ||
+				HouseUsesEnum.OFFICE_BUILDING.getCode().equals(deal.get("houseUsesId")) ||
+				HouseUsesEnum.SHOPS.getCode().equals(deal.get("houseUsesId")) ||
+				HouseUsesEnum.WARE_HOUSE.getCode().equals(deal.get("houseUsesId")))
+			dType = DividiintoDealTypeEnum.DEAL_BUSINESS.getCode();
+		else
+			dType = DividiintoDealTypeEnum.DEAL_RESIDENCE.getCode();
+		
+		List<Map<String,Object>> custAgents = customerServiceApi.queryAgentsByDemandId(deal.get("demandId").toString());
+		List<Map<String,Object>> houseAgents = erHousingServiceApi.queryAgentsByHouseId(Long.parseLong(deal.get("shhid").toString()));
+		Map<String,Object> agentMap = new HashMap<String,Object>(0);
+		agentMap.putAll(getAgentMap(custAgents));
+		agentMap.putAll(getAgentMap(houseAgents));
+		agentMap.put(AgentTypeEnum.AGREEMENTTRADER.getCode(), deal.get("traderId"));
+		//TODO:这里需要传agentMap参数了吧
+		List<Map<String,Object>> dividConditions = divideintoServiceApi.caculateDivideIntoByConditions(String.valueOf(deal.get("commissionPrice")), 
+				(String)deal.get("dealType"), (String)dType, (String)deal.get("cityCode"),(String)deal.get("companyId"), agentMap);
+		if(dividConditions==null || dividConditions.size()<=0)
+			throw new BusinessException("未找到分成配置信息");
+		for(Map<String,Object> condition : dividConditions) {
+//			Object dividerId = getDividerId(custAgents,houseAgents,
+//					condition.get("dividReason").toString(),deal.get("operatorId").toString());
+//			if(!StringUtils.isEmpty(dividerId)) {
+				Map<String,Object> divid = new HashMap<String,Object>();
+				divid.put("dealId", deal.get("id"));
+				divid.put("companyId", deal.get("companyId"));
+				divid.put("companyName", deal.get("companyName"));
+				divid.put("dividerId", condition.get("agentId"));//分成人
+				divid.put("dividReason", AgentTypeEnum.enumMap.get(condition.get("dividReason")));//分成类型
+				divid.put("dividRate", condition.get("dividRate"));//分成利率
+				divid.put("estimateProfit", condition.get("estimateProfit"));//业绩(应收金额)
+				divid.put("actualProfit", 0);//实收金额
+				divid.put("permissionArea", deal.get("permissionArea"));
+				divid.put("operatorId", deal.get("operatorId"));
+				divides.add(divid);
+//			}
+		}
+		return divides;
+	}
+
+
+	/**     
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param custAgents
+	 * @return      
+	 * @return: Map<? extends String,? extends Object>      
+	 */ 
+	private Map<? extends String, ? extends Object> getAgentMap(List<Map<String, Object>> list) {
+		Map<String,Object> result = new HashMap<String,Object>(0);
+		for(Map<String,Object> map : list) {
+			result.put(map.get("agentType").toString(), map.get("agentId"));
+		}
+		return result;
+	}
+
+
+	/**     
+	 * @Description: 根据经纪人分成类型，获取相应的经纪人信息  
+	 * @param houseAgents 房源经纪人
+	 * @param custAgents  客源经纪人
+	 * @param dividReasonType
+	 * @return      
+	 * @return: Object      
+	 */ 
+//	private Object getDividerId(List<Map<String, Object>> custAgents, List<Map<String, Object>> houseAgents, 
+//			String dividReasonType,String operatorId) {
+//		Object dividerId = null;
+//		if(AgentTypeEnum.HOUSERECORDER.getCode().equals(dividReasonType)) {//房源录入人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.INPUT_PERSON.getCode());
+//		}else if(AgentTypeEnum.OPENDISCER.getCode().equals(dividReasonType)) {//房源开盘人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.OPENING_PERSON.getCode());
+//		}else if(AgentTypeEnum.HOUSEMAINTAINER.getCode().equals(dividReasonType)) {//房源维护人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.MANAGE_PERSON.getCode());
+//		}else if(AgentTypeEnum.CUSTRECORDER.getCode().equals(dividReasonType)) {//客源录入人
+//			dividerId = getAgent(custAgents,AgentTypeEnum.INPUT_PERSON.getCode());
+//		}else if(AgentTypeEnum.CUSTMAINTAINER.getCode().equals(dividReasonType)) {//客源维护人
+//			dividerId = getAgent(custAgents,AgentTypeEnum.MANAGE_PERSON.getCode());
+//		}else if(AgentTypeEnum.HOUSEENTRUSTER.getCode().equals(dividReasonType)) {//房源委托人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.ENTRUST_PERSON.getCode());
+//		}else if(AgentTypeEnum.RECIVEKEYER.getCode().equals(dividReasonType)) {//拿钥匙人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.KEY_PERSON.getCode());
+//		}else if(AgentTypeEnum.EXCLUSIVER.getCode().equals(dividReasonType)) {//签独家人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.EXCLUSIVE_PERSON.getCode());
+//		}else if(AgentTypeEnum.PICTURER.getCode().equals(dividReasonType)) {//传照片人
+//			dividerId = getAgent(houseAgents,AgentTypeEnum.IMAGE_PERSON.getCode());
+//		}else if(AgentTypeEnum.AGREEMENTTRADER.getCode().equals(dividReasonType)) {//合同成交人
+//			dividerId = operatorId;
+//		}
+//		
+//		return dividerId;
+//	}
+
+
+	/**
+	 * @Description: 根据经纪人类型获取经纪人id 
+	 * @param list 经纪人列表
+	 * @param typeCode 经纪人类型
+	 * @return: Object
+	 */
+//	private Object getAgent(List<Map<String, Object>> list,String typeCode) {
+//		for(Map<String,Object> map : list) {
+//			if(typeCode.equals(map.get("agentType"))) {
+//				return map.get("agentId");
+//			}
+//		}
+//		return null;
+//	}
+
+}

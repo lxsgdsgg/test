@@ -1,0 +1,170 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<div class="layui-container">
+	<form class="layui-form"  id="Form" style="margin-top: 20px;">
+	  <input name="id" type="hidden" value="${navigationBar.id}">
+      <div class="layui-form-item">
+		     <label class="layui-form-label"><span style="color:red;">*</span>导航名称</label>
+		    <div class="layui-input-inline">
+		         <input type="text" name="name" required lay-verify="required" placeholder="名称"  autocomplete="off" class="layui-input"  value="${navigationBar.name}">
+		    </div>
+	  </div>
+	   <div class="layui-form-item">
+	        <label class="layui-form-label"><span style="color:red;">*</span>导航栏编号</label>
+		    <div class="layui-input-inline">
+		         <input type="text" name="navigateCode" required lay-verify="required" placeholder="导航栏编号"  autocomplete="off" class="layui-input"  value="${navigationBar.navigateCode}" onchange="queryIsExistNavigateCode(this.value)">
+		    </div>
+		     <span style="color:red;" id="errorMsg"></span>
+	  </div>
+	  <div class="layui-form-item">
+	  	   <label class="layui-form-label"><span style="color:red;">*</span>导航栏类型</label>
+		    <div class="layui-input-inline">
+					<select  name="type"  id = "type" lay-filter="type">
+			    		<option value="0">头部导航栏</option>
+			    		<option value="1">底部部导航栏</option>
+			    	</select>
+		    </div>
+	  </div>
+	    <div class="layui-form-item">
+		    <label class="layui-form-label"><span style="color:red;">*</span>导航等级</label>
+		    <div class="layui-input-inline">
+		         <select  name="level"  id = "level" lay-filter="level_select" >
+	    				<option value="1">一级</option>
+	    				<option value="2">二级</option>
+			    	</select>
+		    </div>
+	  </div>
+  	  <div class="layui-form-item">
+		    <label class="layui-form-label">上级类别</label>
+		    <div class="layui-input-inline">
+		        <select name="parentId" id="parentId">
+       				<option value="${navigationBar.parentId}">${navigationBar.parentName}</option>
+			    </select>
+		    </div>
+	  </div>
+	  
+	  
+     <div class="layui-form-item">
+		     <label class="layui-form-label"><span style="color:red;">*</span>导航地址</label>
+		    <div class="layui-input-inline">
+		         <input type="text" name="url" required lay-verify="required" placeholder="导航地址"  autocomplete="off" class="layui-input"  value="${navigationBar.url}">
+		    </div>
+	  </div>	
+	
+	
+	  
+	  
+	  <div class="layui-form-item">
+	    <div class="layui-input-block">
+	      <button class="layui-btn" lay-submit lay-filter="navigationBarDetailAdd">立即提交</button>
+	      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+	    </div>
+	  </div>
+	</form>
+</div>
+<%@include file="/common/common.jsp" %>
+<script type="text/javascript">
+function queryIsExistNavigateCode(navigateCode){
+	 $.ajax({
+	    	type:"post",
+	    	url:"queryIsExistNavigateCode",
+	    	dataType:"json",
+	    	data:{navigateCode:navigateCode},
+	    	success:function(data){
+	    		if(data.success){
+	    			$("#errorMsg").text("");
+	    		}else{
+	    			$("#errorMsg").text(data.msg);
+	    		}
+	    	},
+	    	error:function(a,b,c){
+	    		layer.alert("操作异常，请稍后重试");
+	    	}
+	    });
+}
+layui.use('table', function(){
+	  var form = layui.form;
+	  var table = layui.table;
+	  var $ = layui.$ //重点处
+	  //提交
+	  form.on('submit(navigationBarDetailAdd)', function(data){
+	  	var parentId=  $("#parentId").val();
+		if(parentId==null && parentId=='');
+			data.field.parentId=0
+		var errorMsg = $("#errorMsg").text();
+		//判断是否有错误信息，决定是否能添加
+		if(errorMsg!=''){
+			return false;
+		}
+	    $.ajax({
+	    	type:"post",
+	    	url:"saveOrUpdataNavigationBar",
+	    	dataType:"json",
+	    	data:{jsonData:JSON.stringify(data.field)},
+	    	success:function(data){
+	    		if(data.success){
+	    			layer.alert(data.msg,function(){
+	    				parent.location.reload();
+		     			parent.layer.closeAll();
+	     			});
+	    		}else{
+	    			layer.alert(data.msg);
+	    		}
+	    	},
+	    	error:function(a,b,c){
+	    		layer.alert("操作异常，请稍后重试");
+	    	}
+	    });
+	    return false;
+	  })	
+	  
+	   	form.on('select(level_select)', function(data){
+	   	   	if(data.value!=1){
+	 	   	   $.ajax({
+	 		    	type:"post",
+	 		    	url:"queryAllNavigationBarNameByLevel",
+	 		    	dataType:"json",
+	 		    	data:{level:data.value-1},
+	 		    	success:function(test){
+	 		    		var value = data.value-1//当前等级减一 ，3  3-1=2
+	 		   			var level = test;//等级
+	 			   		var parentLevel_select = "";
+//	  			   		for(var i=1;i<=value;i++){
+	 			   				for(var j=0;j<level.length;j++){
+	 			   					parentLevel_select+='<option value="'+level[j].id+'">'+level[j].name+'</option>';
+	 			   				}
+//	  			   		}
+	 			   		$("#parentId").html(parentLevel_select);
+	 					form.render('select');//渲染
+	 		    	},
+	 		    });
+	 	   	   return false;
+	 	   	}else{
+	 	   		parentLevel_select="";
+	 	   		$("#parentId").html(parentLevel_select);
+	 			form.render('select');//渲染
+	 	   		}
+		})	
+	  
+	  if("${navigationBar.level}"!=""){
+		   $("#level").val('${navigationBar.level}');
+		   form.render('select');
+	   };
+	   if("${navigationBar.type}"!=""){
+		   $("#type").val('${navigationBar.type}');
+		   form.render('select');
+	   };
+})
+</script>
+</body>
+</html>

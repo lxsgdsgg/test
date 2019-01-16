@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.HousePictureExamineMapper">
+	<select id="queryHousePictureExamines" resultType="map">
+		select a.id, a.examineStatus,a.operatorId,a.operator,c.name as deptName,a.addTime,d.houseId,
+		a.auditorId,b.realName as auditorName,e.uuid,a.auditTime,a.reason,a.path,a.permissionArea
+		,d.id as shhId,d.houseUsesId,b.profilePhoto,e.realName
+		 from hs_houseattachment a 
+		left join sys_user b on a.auditorId = b.id 
+		left join sys_dept c on a.departmentId = c.id 
+		left join hs_secondhandhouse d on a.shhId = d.id 
+		left join sys_user e on a.operatorId = e.id 
+		where a.isvalid=1
+		<if test="status != null and status != '' "> and a.examineStatus = #{status} </if>
+		<if test="attachType != null and attachType != '' "> and a.attachType = #{attachType} </if>
+		<if test="operatorId != null and operatorId != '' "> and a.operatorId = #{operatorId} </if>
+		<if test="beginAddTime != null and beginAddTime != '' "> and a.addTime &gt;= #{beginAddTime} </if>
+		<if test="endAddTime != null and endAddTime != '' "> and a.addTime &lt;= #{endAddTime} </if>
+		<if test="houseId != null and houseId != '' "> and d.houseId = #{houseId} </if>
+		<if test="rejectReason != null and rejectReason != '' "> and a.reason like '%${rejectReason}%' </if> 
+	</select>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.WelfareConfigurateMapper">
+
+	<select id="queryWelfareCOnfigurateAll" resultType="map">
+		select a.id,a.name,a.companyId,a.companyName,a.permissionArea,a.operatorId,a.operator,a.addTime 
+		,concat('[',group_concat(concat('{"id":"',b.id,'","name":"',b.name,'","price":',truncate(b.price/100,2),'}')),']') datas   
+		from finance_welfareConfigurate a 
+		left join finance_welfareConfigurate_detail b on a.id = b.welfareId and b.isvalid=1
+		where 1=1 and a.isvalid=1
+		<if test="name != null and name !='' ">
+			and a.name like concat('%',#{name},'%')
+		</if>
+		group by a.id order by a.id desc
+	</select>
+	
+	<select id="isRelation" resultType="long">
+		select count(*)total from finance_welfareConfigurate_detail where welfareId=#{welfareId} and isvalid=1
+	</select>
+</mapper>

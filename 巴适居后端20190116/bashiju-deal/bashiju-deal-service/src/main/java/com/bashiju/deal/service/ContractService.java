@@ -1,0 +1,147 @@
+package com.bashiju.deal.service;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ *   合同模板管理
+ * @ClassName:  ContractService   
+ * @Description:  合同模板管理
+ * @author: wangkaifa
+ * @date:   2018年9月20日 下午4:56:15       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ContractService {
+	/**
+	 * 
+		 * 查询合同模板列表
+		 * @Description: 查询合同模板列表 
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	Page<Map<String, Object>> queryContractList(int page,int limit);
+	/**
+	 * 
+		 * 查询模板详细
+		 * @Description: 查询模板详细
+		 * @param templateId 模板id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryDetailed(Long templateId);
+	/**
+	 * 
+		 * 添加模板
+		 * @Description: 添加模板
+		 * @param templateName 模板名称
+		 * @param type 模板类型
+		 * @param codePrefix 合同编号前缀
+		 * @param remark 备注
+		 * @return 
+		 * Long
+	 */
+	Long addTemplate(String templateName,String type,String codePrefix,String remark);
+	/**
+	 * 
+		 * 修改模板
+		 * @Description:修改模板
+		 * @param id 模板id
+		 * @param templateName 模板名称
+		 * @param type 模板类型
+		 * @param remark 备注
+		 * @return 
+		 * int
+	 */
+	int updateTemplate(Long id,String templateName,String type,String codePrefix,String remark);
+	/**
+	 * 
+		 * 保持模板
+		 * @Description: 保持模板 
+		 * @param declaration 协议描述
+		 * @param termJson 条款详细
+		 * @param id 模板id
+		 * @return 
+		 * boolean
+	 */
+	boolean saveTemplateDetailed(Long id,String companyName,String declaration,String termJson);
+	/**
+	 * 
+		 * 删除模板
+		 * @Description: 删除模板
+		 * @param templateId 模板id
+		 * @return 
+		 * int
+	 */
+	int deleteTemplate(Long templateId);
+	/**
+	 * 
+		 * 保存合同
+		 * @Description: 保存合同
+		 * @param dataJson
+		 * @return 
+		 * Long
+	 */
+	Long saveContract(String dataJson)throws IOException;
+	/**
+	 * 
+		 * 根据房源id查询合同信息
+		 * @Description: 根据房源id查询合同信息
+		 * @param hid 房源id
+		 * @param agreementType 合同类型
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractByHouseId(Long hid,String agreementType);
+	
+	/**
+	 * 
+		 * 根据房源合同编号查询合同信息
+		 * @Description: 根据房源合同编号查询合同信息
+		 * @param code
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractByCode(String code);
+	/**
+	 * 
+		 * 根据房源 id查询图片流
+		 * @Description: 根据合同id查询图片流 
+		 * @param id 房源id
+		 * @return 
+		 * byte[]
+	 */
+	byte[] queryContractPicture(Long id)throws IOException;
+	/**
+	 * 
+		 * 根据合同编号查询合同图片
+		 * @Description: 根据合同编号查询合同图片
+		 * @param code 合同编号
+		 * @return
+		 * @throws IOException 
+		 * byte[]
+	 */
+	byte[] queryContractPicture(String code)throws IOException;
+	/**
+	 * 
+		 * 根据合同类型查询合同下拉列表
+		 * @Description: 根据合同类型查询合同下拉列表
+		 * @param templateType 合同类型
+		 * @return 
+		 * List<Map<String,Object>>
+	 */
+	List<Map<String, Object>> queryContractListByType(String templateType);
+	/**
+	 * 
+		 * 根据合同编号查询合同签订人信息
+		 * @Description: 根据合同编号查询合同签订人信息 
+		 * @param code 合同编号
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryContractMan(String code);
+}

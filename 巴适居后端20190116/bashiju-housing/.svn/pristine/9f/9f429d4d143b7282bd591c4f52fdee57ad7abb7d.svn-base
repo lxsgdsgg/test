@@ -1,0 +1,368 @@
+package com.bashiju.housing.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.FtpFileTypeEnum;
+import com.bashiju.enums.FtpSourceTypeEnum;
+import com.bashiju.housing.mapper.PrintTemplateMapper;
+import com.bashiju.housing.service.IPrintTemplateService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.FtpUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+@SystemServiceLog(sourceType="房源打印模板设置") 
+@Service
+public class PrintTemplateService implements IPrintTemplateService {
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	@Autowired
+	private PrintTemplateMapper printTemplateMapper;
+	
+	@SystemServiceLog(operationType="查询房源打印模板列表")
+	@Override
+	public Page<Map<String, Object>> queryTemplateList(int page, int limit) {
+		String companyId=UserThreadLocal.get().get("companyId").toString();
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> result=printTemplateMapper.queryTemplateList(companyId);
+		ExecutionResult.descFormat(companyId, "查询房源打印模板列表");
+		return result;
+	}
+
+	@SystemServiceLog(operationType="查询房源打印模板详细")
+	@Override
+	public Map<String, Object> queryDetailed(Integer id) {
+		List<Map<String, Object>> list=printTemplateMapper.queryDetailed(id);
+		Map<String, Object> result=new HashMap<>();
+		List<Map<String, Object>> spanArry=new ArrayList<>();
+		List<Map<String, Object>> picArry=new ArrayList<>();
+		if (list!=null) {
+			result.put("templateName", list.get(0).get("templateName"));
+			result.put("typeValue", list.get(0).get("typeId"));
+			for (Map<String, Object> item : list) {
+				if (item.get("tag").toString().equals("pic")) {
+					picArry.add(item);
+				}
+				if (item.get("tag").toString().equals("text")||item.get("tag").toString().equals("customer")) {
+					spanArry.add(item);
+				}
+				if (item.get("tag").toString().equals("back")) {
+					result.put("backgroundUrl", item.get("url"));
+				}
+			}
+		}
+		result.put("spanArry", spanArry);
+		result.put("picArry", picArry);
+		ExecutionResult.descFormat(id.toString(), "查询房源打印模板详细");
+		return result;
+	}
+	@SystemServiceLog(operationType="新增房源打印模板")
+	@Override
+	public int addPrintTemplate(String baseInfo,String spanArry,String picArry,String backUrl) {
+		Map param=JSON.parseObject(baseInfo, Map.class);
+		Map user=UserThreadLocal.get();
+		Map<Object, Object> template=new HashMap<>();
+		template.put("templateName", param.get("templateName"));
+		template.put("typeId", Integer.parseInt(param.get("typeId").toString()));
+		template.put("typeName", param.get("typeName"));
+		template.put("companyId", user.get("companyId"));
+		template.put("companyName", user.get("comName"));
+		template.put("permissionArea", user.get("deptId"));
+		template.put("operatorId", user.get("id"));
+		Long id=commonSqlServie.commonOperationDatabase(template, "hs_house_printTemplate", false);
+		saveDetailed(spanArry, picArry, backUrl,id);
+		ExecutionResult.descFormat(id.toString(), "新增房源打印模板");
+		return id.intValue();
+	}
+
+	private void saveDetailed(String spanArry, String picArry, String backUrl,Long id) {
+		Map user=UserThreadLocal.get();
+		String columns="templateId,css,dataColumn,text,tag,width,height,strong,fontstyle,underline,linethrough,color,fontfamily,fontsize,x,y,url,permissionArea,operatorId";
+		List<String> values=new ArrayList<>();
+		if (StringUtils.isNotEmpty(spanArry)) {
+			List<Map> items= JSON.parseArray(spanArry, Map.class);
+			for (Map item : items) {
+				StringBuffer sql=new StringBuffer();
+				sql.append(id);
+				sql.append(",'");
+				sql.append(item.get("css").toString().replaceAll("selected", ""));
+				sql.append("','");
+				if (item.get("dataColumn")!=null) {
+					sql.append(item.get("dataColumn"));
+				}
+				sql.append("','");
+				sql.append(item.get("text"));
+				sql.append("','");
+				if (item.get("tag")!=null) {
+					sql.append(item.get("tag"));
+				}
+				sql.append("',");
+				if (item.get("width")!=null) {
+					sql.append(item.get("width"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",");
+				if (item.get("height")!=null) {
+					sql.append(item.get("height"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",");
+				if (item.get("strong")!=null) {
+					sql.append(item.get("strong"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",");
+				if (item.get("fontstyle")!=null) {
+					sql.append(item.get("fontstyle"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",");
+				if (item.get("underline")!=null) {
+					sql.append(item.get("underline"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",");
+				if (item.get("linethrough")!=null) {
+					sql.append(item.get("linethrough"));
+				}else {
+					sql.append(0);
+				}
+				sql.append(",'");
+				if (item.get("color")!=null) {
+					sql.append(item.get("color"));
+				}
+				sql.append("','");
+				if (item.get("fontfamily")!=null) {
+					sql.append(item.get("fontfamily"));
+				}
+				sql.append("',");
+				if (item.get("fontsize")!=null) {
+					sql.append(item.get("fontsize"));
+				}else {
+					sql.append(16);
+				}
+				sql.append(",");
+				sql.append(item.get("x"));
+				sql.append(",");
+				sql.append(item.get("y"));
+				sql.append(",'','");
+				sql.append(user.get("deptId"));
+				sql.append("',");
+				sql.append(user.get("id"));
+				values.add(sql.toString());
+			}
+		}
+		if (StringUtils.isNotEmpty(picArry)) {
+			List<Map> items= JSON.parseArray(picArry, Map.class);
+			for (Map item : items) {
+				StringBuffer sql=new StringBuffer();
+				sql.append(id);
+				sql.append(",'");
+				sql.append(item.get("css").toString().replaceAll("selected", ""));
+				sql.append("','");
+				if (item.get("dataColumn")!=null) {
+					sql.append(item.get("dataColumn"));
+				}
+				sql.append("','','");
+				if (item.get("tag")!=null) {
+					sql.append(item.get("tag"));
+				}
+				sql.append("',");
+				if (item.get("width")!=null) {
+					sql.append(item.get("width"));
+				}else {
+					sql.append(300);
+				}
+				sql.append(",");
+				if (item.get("height")!=null) {
+					sql.append(item.get("height"));
+				}else {
+					sql.append(300);
+				}
+				sql.append(",");
+				sql.append(0);
+				sql.append(",");
+				sql.append(0);
+				sql.append(",");
+				sql.append(0);
+				sql.append(",");
+				sql.append(0);
+				sql.append(",'");
+				sql.append("','");
+				sql.append("',");
+				sql.append(0);
+				sql.append(",");
+				sql.append(item.get("x"));
+				sql.append(",");
+				sql.append(item.get("y"));
+				sql.append(",'");
+				sql.append(item.get("url"));
+				sql.append("','");
+				sql.append(user.get("deptId"));
+				sql.append("',");
+				sql.append(user.get("id"));
+				values.add(sql.toString());
+			}
+		}
+		if (StringUtils.isNotEmpty(backUrl)) {
+			String back=id+",'','','','back',0,0,0,0,0,0,'','',0,0,0,'"+backUrl+"','"+user.get("deptId")+"',"+user.get("id");
+			values.add(back);
+		}
+		if (values.size()>0) {
+			commonSqlServie.batchAdd(columns, "hs_house_printtemplateitem", values, false);
+		}
+	}
+
+	@SystemServiceLog(operationType="修改房源打印模板")
+	@Override
+	public int updatePrintTemplate(String baseInfo,String spanArry,String picArry,String backUrl) {
+		Map param=JSON.parseObject(baseInfo, Map.class);
+		Map<Object, Object> template=new HashMap<>();
+		template.put("templateName", param.get("templateName"));
+		template.put("id", param.get("id"));
+		commonSqlServie.commonOperationDatabase(template, "hs_house_printTemplate","id", false);
+		Long id=Long.parseLong(param.get("id").toString());
+		printTemplateMapper.deleteTemplateItem(id.intValue());
+		saveDetailed(spanArry, picArry, backUrl,id);
+		ExecutionResult.descFormat(id.toString(), "修改房源打印模板");
+		return 1;
+	}
+	@SystemServiceLog(operationType="删除房源打印模板")
+	@Override
+	public int deletePrintTemplate(Integer id) {
+		commonSqlServie.delData("hs_house_printTemplate", "id", id.toString(), false);
+		ExecutionResult.descFormat(id.toString(), "删除房源打印模板");
+		return 1;
+	}
+	@SystemServiceLog(operationType="查询房源打印模板背景图片列表")
+	@Override
+	public List<Map<String, Object>> queryBackground() {
+		String companyId=UserThreadLocal.get().get("companyId").toString();
+		List<Map<String, Object>> list=printTemplateMapper.queryBackground(companyId);
+		ExecutionResult.descFormat(companyId, "查询房源打印模板背景图片列表");
+		return list;
+	}
+	@SystemServiceLog(operationType="上传打印模板背景图片")
+	@Override
+	public int uploadBackgroundPic(HttpServletRequest request) {
+		// 将当前上下文初始化给 CommonsMutipartResolver （多部分解析器）
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+				request.getSession().getServletContext());
+		// 检查form中是否有enctype="multipart/form-data"
+		if (multipartResolver.isMultipart(request)) {
+			// 将request变成多部分request
+			MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+			// 获取multiRequest 中所有的文件名
+			Iterator iter = multiRequest.getFileNames();
+
+			if (iter.hasNext()) {
+				// 一次遍历所有文件
+				// List<MultipartFile> files = multiRequest.getFiles(iter.next().toString());
+				Map<Object, Object> user = UserThreadLocal.get();
+				MultipartFile file = multiRequest.getFile(iter.next().toString());
+				if (file != null) {
+					String filepath =FtpUtil.uploadFile(file,user.get("companyId").toString(),FtpSourceTypeEnum.FTP_SOURCE_FY.getCode(),FtpFileTypeEnum.FTP_FILE_TP.getCode(),true);;
+					
+					Long userid = Long.parseLong(user.get("id").toString());// 操作人id
+					String username = user.get("realName").toString();// 操作人
+					String deptid = user.get("deptId").toString();
+					// 保存小区附件表
+					Map<Object, Object> mm = new HashMap<>();
+					mm.put("companyId", user.get("companyId"));
+					mm.put("companyName", user.get("companyName"));
+					mm.put("url", filepath);
+					mm.put("operatorId", userid);
+					mm.put("operator", username);
+					mm.put("permissionArea", deptid);
+					Long id = commonSqlServie.commonOperationDatabase(mm, "hs_house_templatePicture", false);
+					ExecutionResult.descFormat(id.toString(), "上传打印背景图");
+					return id.intValue();
+				}
+			}
+		}
+		return 0;
+	}
+	
+	@SystemServiceLog(operationType="删除房源打印模板背景图片")
+	@Override
+	public boolean deletePrintTemplateBackGroundPic(Integer id) {
+		boolean result=commonSqlServie.delData("hs_house_templatePicture", "id", id.toString(), false);
+		ExecutionResult.descFormat(id.toString(), "删除房源打印模板背景图片");
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> queryHousePrintDetailed(Long houseId, Integer templateId) {
+		Map<String, Object> template= queryDetailed(templateId);
+		List<Map<String, Object>> spanArry= (List<Map<String, Object>>) template.get("spanArry");
+		List<Map<String, Object>> picArry=(List<Map<String, Object>>) template.get("picArry");
+		Map<String, Object> houseInfo=printTemplateMapper.queryHousePrintInfo(houseId);
+		if (spanArry!=null) {
+			for (Map<String, Object> item : spanArry) {
+				Integer left=Integer.parseInt(item.get("x").toString());
+				left-=200;
+				item.put("x", left);
+				Integer top=Integer.parseInt(item.get("y").toString());
+				top-=242;
+				item.put("y", top);
+				Object value="";
+				if (houseInfo!=null) {
+					value =houseInfo.get(item.get("dataColumn").toString());
+					if (value==null) {
+						value="";
+					}					
+				}
+				item.put("text", value);
+			}
+		}
+		if (picArry!=null) {
+			for (Map<String, Object> item : picArry) {
+				Integer left=Integer.parseInt(item.get("x").toString());
+				left-=200;
+				item.put("x", left);
+				Integer top=Integer.parseInt(item.get("y").toString());
+				top-=242;
+				item.put("y", top);
+				Object value="";
+				if (houseInfo!=null) {
+					value =houseInfo.get(item.get("dataColumn").toString());
+					if (value==null) {
+						value="";
+					}					
+				}
+				item.put("url", value);
+			}
+		}
+		return template;
+	}
+
+	@Override
+	public List<Map<String, Object>> queryTemplateSelectData() {
+		String companyId=UserThreadLocal.get().get("companyId").toString();
+		List<Map<String, Object>> results=printTemplateMapper.queryTemplateSelectData(companyId);
+		return results;
+	}
+
+}

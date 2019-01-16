@@ -1,0 +1,145 @@
+package com.bashiju.quartz.service.mq;
+
+		
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import cn.edu.hfut.dmic.webcollector.net.HttpRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.amqp.core.AmqpTemplate;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.quartz.global.QuartzGlobal;
+import com.bashiju.quartz.mapper.HousingCrawlerMapper;
+
+import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
+import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
+import cn.edu.hfut.dmic.webcollector.model.Page;
+import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
+
+
+public class Webcollector extends BreadthCrawler {
+	
+	
+	HousingCrawlerMapper housingCrawlerMapper;	
+	AmqpTemplate amqpTemplate;
+	String routingKey;
+	
+	public Webcollector(String url,Long crawlerConfigureId,Long templateId,HousingCrawlerMapper housingCrawlerMapper) {
+		super("webcollector", true);
+		this.housingCrawlerMapper=housingCrawlerMapper;
+		//读取页面爬网地址选择样式
+		Map<String, Object> template= housingCrawlerMapper.queryHouseCrawlerTemplateById(templateId);
+		if(template!=null) {
+			CrawlDatum datum = new CrawlDatum(url)
+					.meta("crawlerConfigureId", crawlerConfigureId)//url配置id
+					.meta("templateId", templateId)//解析页面模板id
+					.meta("crawlerCount", QuartzGlobal.crawlerCount)//页面错误,爬网次数
+	                .meta("aCss", template.get("aSelector").toString())
+	                .meta("nextPage", template.get("nextSelector").toString());
+	        addSeed(datum);
+	        setThreads(1);//爬网线程数，如果没有代理，线程多了访问网页会被拦截
+	        //getConf().setExecuteInterval(1000);
+		}	
+	}
+	@Override
+	public Page getResponse(CrawlDatum crawlDatum) throws Exception {
+		HttpRequest request = new CustomHttpRequest(crawlDatum);
+		return request.responsePage();
+	}
+
+	@Override
+	public void visit(Page page, CrawlDatums next) {
+		String aCss = page.meta("aCss");
+        String nextPage = page.meta("nextPage");
+
+        Elements results = page.select(aCss);
+        if (results!=null) {
+        	System.out.println("成功抓取页面" + page.url() + "，子页面："+results.size());
+            List<Map<String, Object>> urls=new ArrayList<>();
+            for (int i = 0; i < results.size(); i++) {
+                String  url = results.get(i).attr("abs:href");
+                Map<String, Object> map=new HashMap<>();
+                map.put("url", url);
+                map.put("crawlerConfigureId", page.meta("crawlerConfigureId"));
+                map.put("templateId", page.meta("templateId"));
+                map.put("crawlerCount", QuartzGlobal.crawlerCount);//页面错误,爬网次数
+               urls.add(map);
+            }
+            sendMsg(urls,amqpTemplate);
+		}
+        
+        Element result=page.select(nextPage,0);
+        
+        if (result!=null) {
+        	String url=result.absUrl("href");
+            CrawlDatum datum = new CrawlDatum(url)
+            		.meta("crawlerConfigureId", page.meta("crawlerConfigureId"))
+            		.meta("templateId", page.meta("templateId"))
+            		.meta("crawlerCount", QuartzGlobal.crawlerCount)//页面错误,爬网次数
+                    .meta("aCss", aCss)
+                    .meta("nextPage", nextPage);
+            next.add(datum);
+        }
+		
+        if (page.doc().title().contains("验证码")) {
+        	Integer maxCount=Integer.parseInt(page.meta("crawlerCount"));
+        	maxCount--;
+        	if (maxCount>=0) {
+        		CrawlDatum datum = new CrawlDatum(page.url())
+                		.meta("crawlerConfigureId", page.meta("crawlerConfigureId"))
+                		.meta("templateId", page.meta("templateId"))
+                		.meta("crawlerCount", maxCount.toString())//页面错误,爬网次数
+                        .meta("aCss", aCss)
+                        .meta("nextPage", nextPage);
+                next.add(datum);
+			}       	
+		}
+	}
+	
+	private void sendMsg(List<Map<String, Object>> msgList,AmqpTemplate amqpTemplate) {
+		/*new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				
+			}
+		}).start();*/
+		if (StringUtils.isNotEmpty(routingKey)) {
+			for (Map<String, Object> map : msgList) {
+				map.put("routingKey", routingKey);
+				String url=map.get("url").toString();
+				Integer cout=housingCrawlerMapper.queryCountByUrl(url);
+				if (cout==0) {
+					//发送mq消息
+					amqpTemplate.convertAndSend(routingKey, JSON.toJSONString(map));
+				}
+			}
+		}
+		
+	}
+
+
+	public AmqpTemplate getAmqpTemplate() {
+		return amqpTemplate;
+	}
+
+	public void setAmqpTemplate(AmqpTemplate amqpTemplate) {
+		this.amqpTemplate = amqpTemplate;
+	}
+
+	public String getRoutingKey() {
+		return routingKey;
+	}
+
+	public void setRoutingKey(String routingKey) {
+		this.routingKey = routingKey;
+	}
+	
+	
+}

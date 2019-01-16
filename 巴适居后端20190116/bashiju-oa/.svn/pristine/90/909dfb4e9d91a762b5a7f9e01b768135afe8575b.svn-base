@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.oa.mapper.OaActionLogQueryMapper">
+	<select id="auxOaActionLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.sourceTypeId,a.sourceTypeName,a.cityCode
+		,a.companyId,a.companyName,a.departmentId,a.departmentName,a.operatTypeId,a.operatTypeName
+		,a.logContent,a.path,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime
+		,a.isvalid from sys_business_log as a  
+		where a.isValid = 1 and businessTypeId = 6                  
+		<if test="null != actionType and actionType != ''">
+			and a.operatTypeId = #{actionType}
+		</if>
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and a.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+</mapper>

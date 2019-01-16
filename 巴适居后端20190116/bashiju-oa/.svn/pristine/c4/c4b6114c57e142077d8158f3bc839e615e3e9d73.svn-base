@@ -1,0 +1,300 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  TaskManageServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年12月3日 下午4:58:53   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.oa.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.oa.mapper.TaskManageMapper;
+import com.bashiju.oa.service.TaskManageService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 任务管理服务   
+ * @ClassName:  TaskManageServiceImpl   
+ * @Description:任务管理服务
+ * @author: wangpeng
+ * @date:   2018年12月3日 下午4:58:53   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class TaskManageServiceImpl extends CommonSqlServie implements TaskManageService {
+	@Autowired
+	private TaskManageMapper taskManageMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+
+	/**   
+	 * 条件查询任务信息
+	 * <p>Title: queryTask</p>   
+	 * <p>Description: 条件查询任务信息 </p>   
+	 * @param taskName 任务名称
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @see com.bashiju.manage.service.TaskManageService#queryTask(java.lang.String, int, int)   
+	 */
+	
+	@Override
+	public Page<Map<String, Object>> queryTask(String taskName, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenuEnum.MENU_854.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String, Object>> pages = taskManageMapper.queryTask(taskName);
+		return pages;
+	}
+	
+	/**
+	 * 逻辑删除任务
+	 * <p>Title: delTask</p>   
+	 * <p>Description: 逻辑删除任务</p>   
+	 * @param taskId 任务编号
+	 * @see com.bashiju.oa.service.TaskManageService#delTask(java.lang.String)
+	 */
+	@Override
+	public boolean delTask(String taskId) {
+		if(StringUtils.isEmpty(taskId))
+			throw new BusinessException("任务编号不能为空");
+		boolean result = this.delData("sys_task_main", "id", taskId, false);
+		return result;
+	}
+
+	/**   
+	 * 新增或修改任务
+	 * <p>Title: addOrUpdTask</p>   
+	 * <p>Description:新增或修改任务 </p>   
+	 * @param map
+	 * @see com.bashiju.oa.service.TaskManageService#addOrUpdTask(java.util.Map)   
+	 */
+	
+	@Override
+	public boolean addOrUpdTask(Map<Object, Object> map) {
+		if(map==null)
+			throw new BusinessException("参数不能为空");
+		long result = 0;
+		String beginTime = map.get("beginTime").toString();
+		String endTime = map.get("endTime").toString();
+		String companyId = UserThreadLocal.get().get("companyId").toString();
+		String companyName = UserThreadLocal.get().get("comName").toString();
+		//判断任务是否已创建
+		long isExist = taskManageMapper.queryTaskIsExist(companyId, beginTime, endTime);
+		if(!map.containsKey("id")|| StringUtils.isEmpty(map.get("id").toString())|| map.get("id") ==null) {
+			//新增
+			if(isExist > 0)
+				throw new BusinessException("该时间内已创建任务");
+			map.remove("id");
+			map.put("operatorId", UserThreadLocal.get().get("id"));
+			map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			map.put("companyId", companyId);
+			map.put("companyName", companyName);
+			 result = this.commonOperationDatabase(map, "sys_task_main", false);
+		}else {
+			if(isExist > 0)
+				throw new BusinessException("该时间内已创建任务");
+			//修改
+			result = this.commonOperationDatabase(map, "sys_task_main", "id", false);
+		}
+		if(result > 0)
+			return true;
+		return false;
+	}
+
+	/**   
+	 * <p>Title: taskDistributed</p>   
+	 * <p>Description: </p>   
+	 * @param paramMap
+	 * @return   
+	 * @see com.bashiju.oa.service.TaskManageService#taskDistributed(java.util.List)   
+	 */
+	
+	@SuppressWarnings({ "unlikely-arg-type", "unused" })
+	@Override
+	public boolean taskDistributed(Map<String,Object> map) {
+		List<Map<String,Object>> addArr = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> updateArr = new ArrayList<Map<String,Object>>();
+		List<String> fieldValue = new ArrayList<String>();
+		Map<String,Object> fields = new HashMap<String, Object>();
+		String key= "";
+		String value="";
+		//获取部门下的所有经纪人
+		if(!StringUtils.isEmpty(map.get("deptId").toString())) {
+				List<Map<String,Object>> user =  taskManageMapper.queryUserBelongDept(map.get("deptId").toString());
+				if(user.size() == 0 || null == user)
+					throw new BusinessException("该部门下没有经纪人");
+				//部门
+				String condition = "deptId ='"+map.get("deptId")+"'";
+				fields.put("isvalid", 0);
+			    boolean result = this.batchcommonUpdate(fields, "sys_task_detailed", "taskId", map.get("taskId").toString(),condition);
+				if(result) {
+				    for(Map<String,Object> temp :user) {
+						temp.put("permissionArea", UserThreadLocal.get().get("deptId"));
+						temp.put("operatorId", UserThreadLocal.get().get("id"));
+						//map已存在agentId,不移除会覆盖
+						map.remove("agentId");
+						temp.putAll(map);
+						addArr.add(temp);
+					}
+					for(Map<String,Object> mm : addArr) {
+						value="";
+						key="";
+						boolean flag=true;
+						for(Entry<String, Object> vo : mm.entrySet()){
+							if(!flag) {
+								value+=",";
+								key+=",";
+							}
+							value+= "'"+vo.getValue()+"'";
+							key+= vo.getKey();
+							flag=false;
+						}
+						fieldValue.add(value);
+					}
+					if(addArr.size()>0) {
+						this.batchAdd(key, "sys_task_detailed", fieldValue, false);
+					}
+				}
+		}else {
+			if("".equals(map.get("taskId"))|| map.get("taskId") == null)
+				throw new BusinessException("任务编号不能为空");
+			if("".equals(map.get("agentId"))|| map.get("agentId") == null)
+				throw new BusinessException("经纪人编号不能为空");
+			String taskId = map.get("taskId").toString();
+			String agentId = map.get("agentId").toString();
+			//查询经纪人是否已经分配任务 
+			long isExist = taskManageMapper.queryAgentIsExistTask(taskId,agentId);
+			//查询经纪人信息
+			List<Map<String,Object>> agentInfo = taskManageMapper.queryAgentInfoById(agentId);
+			if(isExist > 0 ) {
+				 //任务详情中已存在，修改
+				 String condition = "agentId ='"+agentId+"'";
+				 this.batchcommonUpdate(map, "sys_task_detailed", "taskId", map.get("taskId").toString(),condition);
+			}else {
+				//新增
+				for(Map<String,Object> temp : agentInfo) {
+					temp.put("permissionArea", UserThreadLocal.get().get("deptId"));
+					temp.put("operatorId", UserThreadLocal.get().get("id"));
+				    map.put("deptId", temp.get("deptId"));
+					temp.putAll(map);
+					addArr.add(temp);
+				}
+				for(Map<String,Object> mm : addArr) {
+					value="";
+					key="";
+					boolean flag=true;
+					for(Entry<String, Object> vo : mm.entrySet()){
+						if(!flag) {
+							value+=",";
+							key+=",";
+						}
+						value+= "'"+vo.getValue()+"'";
+						key+= vo.getKey();
+						flag=false;
+					}
+					fieldValue.add(value);
+				}
+				this.batchAdd(key, "sys_task_detailed", fieldValue, false);
+			}
+		}
+		return true;
+	}
+
+	/**   
+	 * <p>Title: queryTaskDetail</p>   
+	 * <p>Description: </p>   
+	 * @param taskId 任务编号
+	 * @param deptId 部门编号
+	 * @param agentId 经纪人编号
+	 * @return   查询任务详情
+	 * @see com.bashiju.oa.service.TaskManageService#queryTaskDetail(java.lang.String)   
+	 */
+	
+	@Override
+	public Page<Map<String, Object>> queryTaskDetail(String taskId,String deptId,String agentId,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		//TODO:权限？
+		Page<Map<String, Object>> pages = taskManageMapper.queryTaskDetail(taskId, deptId, agentId);
+		return pages;
+	}
+
+	/**   
+	 * <p>Title: queryDistributedTaskDetail</p>   
+	 * <p>Description: 条件查询任务分配详情 </p>   
+	 * @param agentId 经纪人编号
+	 * @param taskId 任务编号
+	 * @see com.bashiju.oa.service.TaskManageService#queryDistributedTaskDetail(java.lang.String, java.lang.String)   
+	 */
+	
+	@Override
+	public Map<String, Object> queryAgentDistributedTaskDetail(String agentId, String taskId) {
+		return taskManageMapper.queryAgentDistributedTaskDetail(agentId, taskId);
+	}
+	
+	/**
+	 * 删除经纪人任务
+	 * <p>Title: delAgentTask</p>   
+	 * <p>Description: 删除经纪人任务</p>   
+	 * @param id 任务详情编号
+	 * @see com.bashiju.oa.service.TaskManageService#delAgentTask(java.lang.String)
+	 */
+	@Override
+	public boolean delAgentTask(String id) {
+		boolean result = this.delData("sys_task_detailed", "id", id, false);
+		return result;
+	}
+
+	/**   
+	 *  修改经纪人任务分配 
+	 * <p>Title: updateAgentTaskDistributed</p>   
+	 * <p>Description: 修改经纪人任务分配 </p>   
+	 * @param paramMap
+	 * @see com.bashiju.oa.service.TaskManageService#updateAgentTaskDistributed(java.util.Map)   
+	 */
+	
+	@Override
+	public boolean updateAgentTaskDistributed(Map<Object, Object> paramMap) {
+		long result = this.commonOperationDatabase(paramMap, "sys_task_detailed", "id", false);
+		if(result > 0)
+			return true;
+		return false;
+	}
+
+	/**   
+	 * 条件查询经纪人任务完成量 
+	 * <p>Title: queryAgentTaksCompletedNumber</p>   
+	 * <p>Description: 条件查询经纪人任务完成量 </p>   
+	 * @param agentId 经纪人编号
+	 * @param beginTime 任务开始时间
+	 * @param endTime 任务结束时间
+	 * @see com.bashiju.oa.service.TaskManageService#queryAgentTaksCompletedNumber(java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	
+	@Override
+	public Map<String, Object> queryAgentTaksCompletedNumber(String agentId, String beginTime, String endTime) {
+		Map<String, Object> map = taskManageMapper.queryAgentTaksCompletedNumber(agentId, beginTime, endTime);
+		return map;
+	}
+}

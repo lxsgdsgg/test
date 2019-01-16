@@ -1,0 +1,60 @@
+package com.bashiju.quartz.service.mq;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.EmailServiceApi;
+import com.bashiju.quartz.mapper.QuartzMapper;
+import com.bashiju.quartz.mapper.TaskMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.util.SpringContextHolder;
+
+/**   
+ * @ClassName  houseStatusChangeMq   
+ * @Description 超过回访期未回访的状态变更类 
+ * @author zhaobin
+ * @date   2018年5月17日 上午11:29:00   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class QueryCompanyMq extends CommonSqlServie {
+
+	@Autowired
+	QuartzMapper quartzMapper;
+	@Autowired(required=false)
+	EmailServiceApi emailServiceApi;
+	/**
+	 * 查询所有有效的公司ID
+	 * @Title queryCompany   
+	 * @Description TODO(这里用一句话描述这个方法的作用)   
+	 * @param @param map      
+	 * @return void
+	 */
+	private void queryCompany(Map<String,String> map) {
+		RabbitTemplate template = (RabbitTemplate) SpringContextHolder.getBean("reRabbitTemplate");		
+		
+		try {
+			List<String> companyIdList = quartzMapper.queryAllCompanyId();
+			if (companyIdList != null) {
+				/*获取routingKey数组*/
+				String[] routingKeys = map.get("targetParam").split(",");
+				for (String routingKey : routingKeys) {
+					/*循环提交通知*/
+					for (String companyId : companyIdList) {
+						template.convertAndSend(routingKey, companyId);
+					}
+				}
+			} 
+		} catch (Exception e) {
+			emailServiceApi.sendEmailToAdmin("定时任务队列获取公司ID出现故障", e.getMessage(),"1");
+		}
+	}
+}

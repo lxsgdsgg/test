@@ -1,0 +1,266 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<% request.setAttribute("staticfile_url", "http://src.bashiju.com/svn/source/src");%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>客源等级条件编辑</title>
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/common/frame/layui/css/layui.css" media="all">
+<link rel="stylesheet" type="text/css" href="${staticfile_url}/manage-platform/css/AreaSelect.css" media="all">
+<style type="text/css">
+.areaDiv {
+    position: fixed;
+    top: 100px;
+    left: 200px;
+    margin: auto;
+    z-index: 99891010;
+    background-color: #eeeeee;
+    border-radius: 2px;
+    box-shadow: 1px 1px 50px rgba(0,0,0,.3);
+}
+</style>
+</head>
+<body>
+<div class="layui-container">
+	<form class="layui-form" action="" id="menuForm" style="margin-top: 20px;" name="res_house">
+						<input type="text" name="id" id="id" value="${resCustHouses.id}"   class="layui-input" style="width:400px;display: none">
+	 	<div class="layui-form-item">
+	 		 	 <label class="layui-form-label"><span style="color:red;">*</span>选择城市</label>
+		    <div class="layui-input-inline">
+				<input type="text"  id="cityName"  value="${resCustHouses.cityName}"  required  lay-verify="required" placeholder="城市名称" autocomplete="off" class="layui-input" style="width:200px">
+		   		<input type="text" name="cityCode" id="cityCode" value="${resCustHouses.cityCode}"  autocomplete="off" class="layui-input" style="width:200px;display: none">
+		    </div>
+	 	</div>
+	   <div class="layui-form-item">
+	   	 <label class="layui-form-label"><span style="color:red;">*</span>房屋交易类型</label>
+		    <div class="layui-input-inline">
+				    	  <select name="transactionType"  lay-verify="required" >
+				    	  		<option value="">请选择</option>
+					    	   <c:forEach var="transactionType" items="${transactionType}">
+					    	   		<c:if test="${resCustHouses.transactionType==transactionType.value}">
+										<option value="${transactionType.value}" selected="selected">${transactionType.name}</option>
+									</c:if>
+									<c:if test="${resCustHouses.transactionType!=transactionType.value}">
+										<option value="${transactionType.value}">${transactionType.name}</option>
+									</c:if>
+								</c:forEach>
+				    	  </select>
+		    </div>
+		    <label class="layui-form-label"><span style="color:red;">*</span>等级</label>
+		    <div class="layui-input-inline">
+	    	  <select name="levelType" id="levelType" lay-verify="required" >
+	    	  	<option value="">请选择</option>
+	    	  	<option value="A">A等级</option>
+	    	  	<option value="B">B等级</option>
+	    	  </select>
+		    </div>
+	  </div>
+	   <div class="layui-form-item">
+		    <label class="layui-form-label"><span style="color:red;">*</span>方案名称</label>
+		    <div class="layui-input-inline">
+					<input type="text" name="name" id="name" value="${resCustHouses.name}"  required  lay-verify="required" placeholder="方案名称" autocomplete="off" class="layui-input" style="width:400px">
+		    </div>
+	  </div>
+	  <hr class="layui-bg-gray">
+	  
+	   <div class="layui-form-item">
+	     	<label class="layui-form-label">带看次数大于等于</label>
+		    <div class="layui-input-inline">
+				  <input type="number" class="layui-input"   id="lookCount" name="lookCount" value="${resCustHouses.lookCount}" id="lookCount">
+		    </div>
+		     <div class="layui-form-mid">次</div>
+	   </div>
+	  
+	  	<div class="layui-form-item">
+			      <label class="layui-form-label">条件</label>
+			      <div class="layui-input-block">
+			        <select id="Custconditions" xm-select="select" xm-select-type="2">
+					</select>
+			      </div>
+		</div>
+				
+	  <div class="layui-form-item">
+	      <label class="layui-form-label">价格区间(万元)</label>
+		    <div class="layui-input-inline">
+			    <select  id="Price" required></select>
+		    </div>
+		    <label class="layui-form-label">面积区间(平米)</label>
+		    <div class="layui-input-inline">
+			    <select  id="Space" required></select>
+		    </div>
+	  </div>
+	  
+	  <div class="layui-form-item">
+	    <div class="layui-input-block">
+	      <button class="layui-btn" lay-submit lay-filter="res_custForm">立即提交</button>
+	      <button  class="layui-btn layui-btn-primary"  lay-filter="close">取消</button>
+	    </div>
+	  </div>
+	  </form>
+</div>
+<%@include file="/common/common.jsp" %>
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/manage-platform/js/AreaSelect.js"></script> 
+<script type="text/javascript">
+
+var path = "<%=request.getContextPath()%>";
+var resCust = JSON.stringify(${resCustHouses});
+var resCustHouses = {};
+if(resCust!='' && resCust!=undefined){
+	resCustHouses = JSON.parse(resCust);
+}
+
+
+var areaList=JSON.parse('${areaListJson}');
+var a= new AreaObject(areaList,selectArea,2);
+function selectArea(code,name){
+	$("#cityCode").val(code);
+	$("#cityName").val(name)
+}
+//No.1 定义拓展模块的路径
+layui.config({
+	base: '${staticfile_url}/common/js/'
+}).extend({
+	formSelects: 'formSelects-v3'
+});
+ layui.use(['form','formSelects'], function(){
+	  var $ = layui.$ //重点处
+	  var form = layui.form;
+	  formSelects = layui.formSelects//下拉多选框
+	  var list=${conditions}
+// 	  $.post(path+"/manage/getSelectValue/many",{param:"res_cust"},function(d){
+			var obj =list;//第i个控件
+				var html = "";
+				html+='<option value="">请选择</option>'
+				for(var j=0;j<obj.length;j++){
+					if(resCustHouses.conditions==obj[j].value){
+						html +='<option value="'+obj[j].value+'" selected>'+obj[j].name+'</option>';
+					}else{
+						html +='<option value="'+obj[j].value+'">'+obj[j].name+'</option>';
+					}	
+				}
+				$("#Custconditions").html(html);
+		form.render('select');
+		formSelects.value('select', "${resCustHouses.conditions}".split(",")); 
+// 	});
+	  
+	//获取区间数据值
+		 $.post(path+"/manage/getRegionValue/many",{tag:"1",param:"res_house"},function(d){
+			 console.log(d.data)
+			 for(var i=0;i<d.data.length;i++){
+					var obj = d.data[i];//第i个控件
+					for(var key in obj){//得到属性名   propertyType   
+						var arr = obj[key];//id?
+						var html = "";
+						html+='<option value="">请选择</option>'
+						for(var j=0;j<arr.length;j++){
+							if(arr[j].min==resCustHouses["min"+key] && arr[j].max==resCustHouses["max"+key]){
+								html +='<option value="'+arr[j].min+"-"+arr[j].max+'"selected>'+arr[j].min+ "-"+arr[j].max+'</option>';
+							}else{
+								html +='<option value="'+arr[j].min+"-"+arr[j].max+'">'+arr[j].min+ "-"+arr[j].max+'</option>';
+							}
+						}
+						$("#"+key).html(html);
+					}
+				}
+				form.render('select');
+		});
+		//取消
+		 form.on('close(filter)', function(data){
+				parent.layer.closeAll();
+		  })	
+	
+		  //监听提交
+		  form.on('submit(res_custForm)', function(data){
+			//得到价格和面积下拉控件的值
+		    var space= $("#Space").val();
+		    var price=$("#Price").val();
+		    var area=$("#area").val();
+				//初始化
+		    	  var minSpace=0;
+				  var maxSpace=0;
+				  var minPrice=0;
+				  var maxPrice=0;
+				  if(space!=""){
+					   minSpace=space.split("-")[0];
+					   maxSpace=space.split("-")[1];
+				  }if(price!=""){
+						minPrice=price.split("-")[0];
+				    	maxPrice=price.split("-")[1];
+				  }
+				   var lookCount=$("#lookCount").val()
+				   if(lookCount=="")
+					   data.field.lookCount=0;
+				   //条件多选的中文
+				   var conditionsName=formSelects.value('select', 'nameStr');
+				 //得到多选下拉的值   
+				 var result=formSelects.value('select', 'val');
+				 var conditions="";
+				 //用逗号分隔条件
+				 conditions=result.join(",")
+				data.field.conditions=conditions;
+		    	data.field.minSpace=minSpace;
+		    	data.field.maxSpace=maxSpace;
+		   		data.field.minPrice=minPrice;
+		    	data.field.maxPrice=maxPrice;
+		    	data.field.cityName=$("#cityName").val();
+		    	//初始化remark
+			 	data.field.remark=""
+					 if(conditionsName!=""&&conditionsName!=undefined)
+				    	  data.field.remark="<font style='color:black; font-weight:bold'>条件</font>:"+conditionsName+"&nbsp;&nbsp;;"
+					 if(space!="")
+					    	data.field.remark=data.field.remark+"<font style='color:black; font-weight:bold'>面积</font>"+space+";&nbsp;&nbsp;";
+				     if(price!="")	
+				    	 data.field.remark=data.field.remark+"<font style='color:black; font-weight:bold'>价格</font>"+price+";&nbsp;&nbsp;"; 
+					if(lookCount!="")
+				    	 data.field.remark=data.field.remark+"<font style='color:black; font-weight:bold'>带看次数</font>"+lookCount+";&nbsp;&nbsp;"; 
+				 $.ajax({
+		    	type:"post",
+		    	url:"saveOrUpdateResCustLevelCondition",
+		    	dataType:"json",
+		    	data:{jsonData:JSON.stringify(data.field)},
+		    	success:function(dt){
+		    		if(dt.success){
+		    			layer.alert(dt.msg,function(){
+		    				parent.location.reload();
+			     			parent.layer.closeAll();
+		     			});
+		    		}else{
+		    			layer.alert(dt.msg);
+		    		}
+		    	},
+		    	error:function(a,b,c){
+		    		layer.alert("操作异常，请稍后重试");
+		    	}
+		    });
+		    return false;
+		  });
+		  
+		  form.verify({
+			  lookCount: function(value, item){
+				  if(value<=0||value>100){
+				  		return "带看次数在0到100";
+				  	}
+			  }
+		  });
+		  //选择城市
+		   $("#cityName").on("click",function(event){
+				 event.stopPropagation();
+				 a.show();
+				 
+				 function selectArea(code,name){
+						$("#cityName").val(name);
+					}
+			});
+		   if("${resCustHouses.levelType}"!=""){
+			   $("#levelType").val('${resCustHouses.levelType}');
+			   form.render('select');
+		   };
+ 		}
+   })
+</script>
+</body>
+</html>

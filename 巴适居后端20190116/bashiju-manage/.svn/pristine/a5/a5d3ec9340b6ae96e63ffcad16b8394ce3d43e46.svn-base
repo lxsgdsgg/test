@@ -1,0 +1,343 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.manage.mapper.BuildingMapper;
+import com.bashiju.manage.service.IBuildingService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  BuildingServiceImpl   
+ * @Description:TODO(座栋管理)   
+ * @author: wangkaifa
+ * @date:   2018年4月25日 下午12:06:27   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="座栋管理")
+public class BuildingServiceImpl implements IBuildingService {
+	@Autowired
+	private BuildingMapper buildingMapper;
+	@Autowired
+	 private CommonSqlServie commonSqlServie;
+	
+	@SystemServiceLog(operationType="查询小区的座栋信息")
+	@Override
+	public Page<Map<String, Object>> queryBuildingsByCommunity(Long cid,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		ExecutionResult.descFormat(cid.toString(), "查询小区的座栋信息");
+		return buildingMapper.queryBuildingsByCommunity(cid);
+	}
+
+	@SystemServiceLog(operationType="查询座栋的单元信息")
+	@Override
+	public Page<Map<String, Object>> queryBuildingUnitsByBuild(Long bid,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		ExecutionResult.descFormat(bid.toString(), "查询座栋的单元信息");
+		return buildingMapper.queryBuildingUnitsByBuild(bid);
+	}
+	@SystemServiceLog(operationType="查询座栋单元的房号信息")
+	@Override
+	public List<Map<String, Object>> queryHouseByUnit(Long buid) {
+		ExecutionResult.descFormat(buid.toString(), "查询座栋单元的房号信息");
+		return buildingMapper.queryHouseByUnit(buid);
+	}
+	@SystemServiceLog(operationType="查询座栋信息")
+	@Override
+	public Map<String, Object> queryBuildingsById(Long id) {
+		ExecutionResult.descFormat(id.toString(), "查询座栋信息");
+		return buildingMapper.queryBuildingsById(id);
+	}
+	@SystemServiceLog(operationType="查询座栋单元信息")
+	@Override
+	public Map<String, Object> queryBuildingUnitsById(Long id) {
+		ExecutionResult.descFormat(id.toString(), "查询座栋单元信息");
+		return buildingMapper.queryBuildingUnitsById(id);
+	}
+	@SystemServiceLog(operationType="添加座栋")
+	@Override
+	public long addBuilding(Map<String, Object> param) {
+		if (param!=null&&param.get("name")!=null&&!"".equals(param.get("name").toString())) {
+			String name=param.get("name").toString();
+			Long communityId=Long.parseLong(param.get("communityId").toString());
+			long count=buildingMapper.countBuildingsByName(name,communityId);
+			//名称已存在，抛异常
+			if (count>0) {
+				throw new BusinessException("座栋【"+name+"】已存在");
+			}
+			Long id=insertBuilding(param);
+			ExecutionResult.descFormat(id.toString(), "添加座栋");	
+			return id;
+		}
+		throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+	}
+
+	private Long insertBuilding(Map<String, Object> param) {
+		Object bObject=param.get("buildingUnitCount");
+		Integer unitCount=Integer.parseInt(bObject.toString());
+		Map<Object, Object> map=new HashMap<>();
+		map.put("communityId", param.get("communityId"));
+		map.put("areaCode", param.get("areaCode"));
+		map.put("areaName", param.get("areaName"));
+		map.put("name", param.get("name").toString());
+		map.put("buildUnitAlias", param.get("buildUnitAlias"));
+		map.put("houseStartNumber", param.get("houseStartNumber"));
+		map.put("buildYear", param.get("buildYear"));
+		map.put("buildingUnitCount", param.get("buildingUnitCount"));
+		map.put("unitAlias", param.get("unitAlias"));
+		map.put("floorStartNumber", param.get("floorStartNumber"));
+		map.put("floorTotal", param.get("floorTotal"));
+		map.put("unitElevatorCount", param.get("unitElevatorCount"));
+		map.put("unitHouseCount", param.get("unitHouseCount"));
+		map.put("unitStartNumber", param.get("unitStartNumber"));
+		map.put("skipFloor", param.get("skipFloor"));
+		long bid=commonSqlServie.commonOperationDatabase(map, "sys_buildings", false);
+		if (unitCount>0) {
+			Integer start=Integer.parseInt(param.get("unitStartNumber").toString());
+			for(int i=0;i<unitCount;i++) {
+				long count=buildingMapper.countBuildingUnitsByName(start.toString(), bid);
+				//名称已存在，抛异常
+				if (count>0) {
+					throw new BusinessException("单元【"+start+"】已存在");
+				}
+				map=new HashMap<>();
+				map.put("name", start.toString());
+				map.put("unitAlias", param.get("unitAlias"));
+				map.put("unitElevatorCount", param.get("unitElevatorCount"));
+				map.put("unitHouseCount", param.get("unitHouseCount"));
+				map.put("floorTotal", param.get("floorTotal"));
+				map.put("houseStartNumber", param.get("houseStartNumber"));
+				map.put("floorStartNumber", param.get("floorStartNumber"));
+				map.put("skipFloor", param.get("skipFloor"));
+				map.put("buildingId", bid);
+				long buid=commonSqlServie.commonOperationDatabase(map, "sys_bulidingUnit", false);
+				addHouse(bid,buid,param);
+				start++;
+			}
+		}else {
+			map=new HashMap<>();
+			map.put("name", "");
+			map.put("unitAlias", param.get("unitAlias"));
+			map.put("unitElevatorCount", param.get("unitElevatorCount"));
+			map.put("unitHouseCount", param.get("unitHouseCount"));
+			map.put("floorTotal", param.get("floorTotal"));
+			map.put("houseStartNumber", param.get("houseStartNumber"));
+			map.put("floorStartNumber", param.get("floorStartNumber"));
+			map.put("skipFloor", param.get("skipFloor"));
+			map.put("buildingId", bid);
+			long buid=commonSqlServie.commonOperationDatabase(map, "sys_bulidingUnit", false);
+			addHouse(bid,buid,param);
+		}
+		return bid;
+	}
+	
+	private boolean addHouse(long bid,long buid,Map<String, Object> param) {
+		Integer count=Integer.parseInt(param.get("unitHouseCount").toString()) ;//每层户数
+		Integer height=Integer.parseInt(param.get("floorTotal").toString());//楼层数
+		Integer floorStart=Integer.parseInt(param.get("floorStartNumber").toString());//楼层开始数
+		Integer begin=Integer.parseInt(param.get("houseStartNumber").toString());//房号开始数
+		String[] skips=null; 
+		if (param.get("skipFloor")!=null) {
+			skips=param.get("skipFloor").toString().split(",");
+		}
+		count+=begin;
+		List<Map<String, Object>> list=new ArrayList<>();
+		for (Integer i = floorStart; i <= height; i++) {
+			boolean skip=false;
+			for (int j = 0; j < skips.length; j++) {
+				if (skips[j].equals(i.toString())) {
+					skip=true;
+					break;
+				}
+			}
+			//判断楼层是否要略过
+			if (skip) {
+				continue;
+			}
+			
+			for (int j = begin; j < count; j++) {
+				String houseNO=i.toString();
+				if (begin<10) {
+					houseNO+="0";
+				}
+				houseNO+=j;
+				Map<String, Object> item=new HashMap<>();
+				item.put("buildingUnitId", buid);
+				item.put("buildingId", bid);
+				item.put("houseNumber", houseNO);
+				item.put("floor", i);
+				item.put("code", j);
+				list.add(item);
+			}
+		}
+		if (list.size()>0) {
+			commonSqlServie.batchCommonOperationDatabase(list, "sys_buildingHouse", false);
+		}
+		return true;
+	}
+	
+	@SystemServiceLog(operationType="批量添加座栋")
+	@Override
+	public long batchAddBuilding(Map<String, Object> param) {
+		long result=0;
+		String sourceId="";
+		String prefix=(String) param.get("prefix");
+		String nameType=(String) param.get("nameType");
+		String begin=(String) param.get("begin");
+		String end=(String) param.get("end");
+		Long communityId=Long.parseLong(param.get("communityId").toString());
+		if (prefix==null) {
+			prefix="";
+		}
+		//1表示座栋名称为数字
+		if (nameType.equals("1")) {
+			Integer start=new Integer(begin);//开始楼栋
+			Integer over=new Integer(end);//结束楼栋
+			if (over<start) {
+				throw new BusinessException("楼栋参数错误");
+			}
+			//循环写入座栋
+			for (int i = start; i <= over; i++) {
+				String name=prefix+i;
+				long count=buildingMapper.countBuildingsByName(name,communityId);
+				//名称已存在，抛异常
+				if (count>0) {
+					throw new BusinessException("座栋"+name+"已存在");
+				}
+				param.put("name", name);
+				Long id=insertBuilding(param);
+				sourceId+=id+",";
+				result++;
+			}
+			
+		}else {//座栋名称为字母
+			char start=begin.toUpperCase().charAt(0);//开始楼栋转换为大写字符
+			char over=end.toUpperCase().charAt(0);//结束楼栋转换为大写字符
+			if (over<start) {
+				throw new BusinessException("楼栋参数错误");
+			}
+			//循环写入座栋
+			for(char c=start;c<=over;c++) {
+				String name=prefix+c;
+				long count=buildingMapper.countBuildingsByName(name,communityId);
+				//名称已存在，抛异常
+				if (count>0) {
+					throw new BusinessException("座栋"+name+"已存在");
+				}
+				param.put("name", name);
+				Long id=insertBuilding(param);
+				sourceId+=id+",";
+				result++;
+			}
+		}
+		ExecutionResult.descFormat(sourceId, "批量添加座栋");	
+		return result;
+	}
+	@SystemServiceLog(operationType="添加座栋单元")
+	@Override
+	public long addBuildingUnit(Map<String, Object> param) {
+		
+		Long bid=Long.parseLong(param.get("buildingId").toString());
+		Map<String, Object> building= queryBuildingsById(bid);
+		long count=buildingMapper.countBuildingUnitsByName(param.get("name").toString(), bid);
+		//名称已存在，抛异常
+		if (count>0) {
+			throw new BusinessException("单元【"+param.get("name").toString()+"】已存在");
+		}
+		Map<Object, Object> map=new HashMap<>();
+		map.put("name", param.get("name"));
+		map.put("unitAlias", param.get("unitAlias"));
+		map.put("unitElevatorCount", param.get("unitElevatorCount"));
+		map.put("unitHouseCount", param.get("unitHouseCount"));
+		map.put("floorTotal", param.get("floorTotal"));
+		map.put("houseStartNumber", param.get("houseStartNumber"));
+		map.put("floorStartNumber", param.get("floorStartNumber"));
+		map.put("skipFloor", param.get("skipFloor"));
+		map.put("buildingId", bid);
+		//添加单元
+		long buid=commonSqlServie.commonOperationDatabase(map, "sys_bulidingUnit", false);
+		int unitCout=Integer.parseInt(building.get("buildingUnitCount").toString());
+		//修改座栋的单元数量
+		map=new HashMap<>();
+		map.put("id", bid);
+		if (unitCout==0) {			
+			map.put("buildingUnitCount", 2);
+		}else {
+			unitCout++;
+			map.put("buildingUnitCount", unitCout);
+		}
+		commonSqlServie.commonOperationDatabase(map, "sys_buildings","id", false);
+		//添加房号
+		addHouse(bid,buid,param);
+		ExecutionResult.descFormat(bid.toString(), "添加座栋单元");	
+		return buid;
+	}
+	@SystemServiceLog(operationType="修改座栋单元信息")
+	@Override
+	public long updateBuildingUnit(Map<String, Object> param) {
+		Map<Object, Object> map=new HashMap<>();
+		map.put("id", Long.parseLong(param.get("id").toString()));
+		map.put("name", param.get("name"));
+		map.put("unitAlias", param.get("unitAlias"));
+		map.put("unitElevatorCount", param.get("unitElevatorCount"));
+
+		long buid=commonSqlServie.commonOperationDatabase(map, "sys_bulidingUnit","id", false);
+		ExecutionResult.descFormat(param.get("id").toString(), "修改座栋单元");	
+		return buid;
+	}
+	@SystemServiceLog(operationType="删除座栋单元信息")
+	@Override
+	public long deleteBuildingUnit(Long id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@SystemServiceLog(operationType="修改座栋信息")
+	@Override
+	public long updateBuilding(Map<String, Object> param) {
+		Map<Object, Object> map=new HashMap<>();
+		map.put("id", Long.parseLong(param.get("id").toString()));
+		map.put("name", param.get("name").toString());
+		map.put("buildUnitAlias", param.get("buildUnitAlias"));
+		map.put("buildYear", param.get("buildYear"));
+		map.put("unitAlias", param.get("unitAlias"));
+
+		map.put("unitElevatorCount", param.get("unitElevatorCount"));
+
+
+		long bid=commonSqlServie.commonOperationDatabase(map, "sys_buildings","id", false);
+		ExecutionResult.descFormat(param.get("id").toString(), "修改座栋信息");	
+		return bid;
+	}
+	@SystemServiceLog(operationType="删除座栋信息")
+	@Override
+	public long deleteBuilding(Long id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@SystemServiceLog(operationType="保存房号")
+	@Override
+	public long saveHouses(Map<String, Object> param) {
+		Map<Object, Object> map=new HashMap<>();
+		map.put("id", Long.parseLong(param.get("id").toString()));
+		map.put("houseNumber", param.get("houseNumber"));
+		Long result=commonSqlServie.commonOperationDatabase(map, "sys_buildingHouse","id", false);
+		ExecutionResult.descFormat(param.get("id").toString(), "修改房号名称");	
+		return result;
+	}
+	
+
+}

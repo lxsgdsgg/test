@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HouseAndCustomerStatusTaskMapper">
+	
+		<!-- 查询全员所有回访超时的的id信息 -->
+	<select id="getAllFllowTimeOutId" resultType="String">
+		select Id from ${tableName}
+		where isValid=1  
+		AND transactionTypeId=#{transactionTypeId}
+		AND statusId=#{statusId}
+		AND discStatusId=#{discStatusId}
+		AND levelType=#{levelType}
+		AND companyId=#{companyId}
+		AND taoBaoStatusId!=#{taboBaoStatusId}
+
+		<if test="allFollowDay!=null or allFollowDay!=''" >
+		 	AND  allFollowTime &lt; DATE_SUB(now(),interval #{allFollowDay} DAY)
+		</if>		
+	</select>
+	
+		<!-- 查询维护人所有回访超时的的id信息 -->
+	<select id="getMainterFllowTimeOutId" resultType="String">
+		select Id from ${tableName} 
+		where isValid=1  
+		AND transactionTypeId=#{transactionTypeId}
+		AND statusId=#{statusId}
+		AND discStatusId=#{discStatusId}
+		AND levelType=#{levelType}
+		AND companyId=#{companyId}
+		AND taoBaoStatusId!=#{taboBaoStatusId}
+		<if test="mainterFllowDay!=null or mainterFllowDay!=''" >
+			AND  mainterFllowTime &lt; DATE_SUB(now(),interval #{mainterFllowDay} DAY) 
+		</if>		
+	</select>
+	
+	<!-- 查询全员所有带看超时的的id信息 -->
+	<select id="getAllLookTimeOutId" resultType="String">
+		select Id from ${tableName} 
+		where isValid=1  
+		AND transactionTypeId=#{transactionTypeId}
+		AND discStatusId=#{discStatusId}
+		AND levelType=#{levelType}
+		AND companyId=#{companyId}
+		AND taoBaoStatusId!=#{taboBaoStatusId}
+		<if test="lastAllShowedDay!=null or lastAllShowedDay!=''" >
+			AND   lastAllShowedTime &lt; DATE_SUB(now(),interval #{lastAllShowedDay} DAY)
+		</if>
+	</select>
+	
+	
+	<!-- 查询维护人所有带看超时的的id信息 -->
+	<select id="getMainterLookTimeOutId" resultType="String">
+		select Id from ${tableName} 
+		where isValid=1  
+		AND transactionTypeId=#{transactionTypeId}
+		AND statusId=#{statusId}
+		AND discStatusId=#{discStatusId}
+		AND levelType=#{levelType}
+		AND companyId=#{companyId}
+		AND taoBaoStatusId!=#{taboBaoStatusId}
+		<if test="lastShowedDay!=null or lastShowedDay!=''" >
+			AND  lastShowedTime &lt; DATE_SUB(now(),interval #{lastShowedDay} DAY) 
+		</if>		
+	</select>
+	<!-- 查询某城市过期的置顶房源编号 -->
+	<select id="queryTopHouseIdByCityCode" resultType="map">
+		SELECT sh.houseId as id,sh.companyId FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 
+		AND sh.isSetTop=1  AND DATEDIFF(NOW(),sh.setTopTime) &gt; #{maxDay} AND hb.cityCode=#{cityCode}
+	</select>
+	<!-- 修改过期的置顶房源 -->
+	<update id="updateIsTop">
+		UPDATE hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.isSetTop=1  AND DATEDIFF(NOW(),sh.setTopTime) &gt; #{maxDay} AND hb.cityCode=#{cityCode}
+		SET sh.isSetTop=0 ,sh.setTopTime=NULL
+	</update>
+	<!-- 查询城市自动撤单房源 -->
+	<select id="querycancelNoticeHouseByCityCode" resultType="map">
+		SELECT sh.houseId as id,sh.companyId FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1
+ 		AND sh.isCancelNotice=1 AND sh.statusId='1'  AND DATEDIFF(NOW(),sh.cancelNoticeTime) &gt; #{maxDay} AND hb.cityCode=#{cityCode}
+	</select>
+	<!-- 自动撤单房源 -->
+	<update id="updateHouseIsCancelNotice">
+		UPDATE hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.isCancelNotice=1 AND sh.statusId='1'   AND DATEDIFF(NOW(),sh.cancelNoticeTime) &gt; #{maxDay} AND hb.cityCode=#{cityCode}
+		SET sh.isCancelNotice=0 ,sh.cancelNoticeTime=NULL,sh.statusId='10',sh.status='撤单'
+	</update> 
+	<!-- 查询城市自动撤单客源 -->
+	<select id="querycancelNoticeCustomerByCityCode" resultType="map">	
+		SELECT cb.id,cb.companyId FROM demand_customerBusinessInfo AS cb WHERE cb.isValid=1 AND cb.isCancelNotice=1 AND cb.statusId='1' 
+	  	AND DATEDIFF(NOW(),cb.cancelNoticeTime) &gt; #{maxDay} AND cb.operatorCityCode=#{cityCode} AND cb.transactionTypeId=#{transactionTypeId}
+	</select>
+	<!-- 自动撤单房源 -->
+	<update id="updateCustomerIsCancelNotice">
+		UPDATE demand_customerBusinessInfo AS cb SET cb.isCancelNotice=0,cb.cancelNoticeTime=NULL,cb.statusId='10',cb.status='撤单'
+		WHERE cb.isValid=1 AND cb.isCancelNotice=1 AND cb.statusId='1'  AND DATEDIFF(NOW(),cb.cancelNoticeTime) &gt; #{maxDay} AND cb.operatorCityCode=#{cityCode} AND cb.transactionTypeId=#{transactionTypeId}
+	</update> 
+	<delete id="deleteAllTodaySee">
+		DELETE FROM hs_todaySee WHERE 1=1
+	</delete>
+	<update id="updateViewingCount">
+		UPDATE hs_secondhandhouse AS house,(SELECT  id,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND houseType=2 AND DATEDIFF(NOW(),leadTime) &lt;=15 AND sourceId=sh.id) AS lastViewingCount
+		FROM hs_secondhandhouse AS sh WHERE isValid=1) AS tb
+		SET house.lastViewingCount=tb.lastViewingCount WHERE house.id=tb.id
+	</update>
+	<update id="updateSellViewingCount">
+		UPDATE sys_client_salehousequeryinfos AS house,(SELECT  id,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND houseType=2 AND DATEDIFF(NOW(),leadTime) &lt;=15 AND sh.id=sourceId) AS lastViewingCount
+		FROM hs_secondhandhouse AS sh WHERE isValid=1 AND statusId=1 AND examineStatus=1 AND isSynchron=1 AND tradingRightsId IN (1,3)) AS tb
+		SET house.lastViewingCount=tb.lastViewingCount WHERE house.id=tb.id
+	</update>
+	<update id="updateRentViewingCount">
+		UPDATE sys_client_renthousequeryinfos AS house,(SELECT  id,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND houseType=2 AND DATEDIFF(NOW(),leadTime) &lt;=15 AND sh.id=sourceId) AS lastViewingCount
+		FROM hs_secondhandhouse AS sh WHERE isValid=1 AND statusId=1 AND examineStatus=1 AND isSynchron=1 AND tradingRightsId IN (2,3)) AS tb
+		SET house.lastViewingCount=tb.lastViewingCount WHERE house.id=tb.id
+	</update>
+	<update id="updateProjectViewingCount">
+		UPDATE sys_community_project AS newHouse,(SELECT  id,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND houseType=1 AND DATEDIFF(NOW(),leadTime) &lt;=15 AND cp.id=sourceId) AS lastViewingCount
+		FROM sys_community_project AS cp WHERE isValid=1 ) AS tb
+		SET newHouse.lastViewingCount=tb.lastViewingCount WHERE newHouse.id=tb.id
+	</update>
+	<update id="updateProjectQueryViewingCount">
+		UPDATE sys_client_communityProjectQueryInfos AS newHouse,(SELECT  id,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND houseType=1 AND DATEDIFF(NOW(),leadTime) &lt;=15 AND cp.id=sourceId) AS lastViewingCount
+		FROM sys_community_project AS cp WHERE isValid=1 AND isSynchron=1) AS tb
+		SET newHouse.lastViewingCount=tb.lastViewingCount WHERE newHouse.id=tb.id
+	</update>
+	<!-- 自动关闭过期的公司开通城市 -->
+	<update id="updateCompanyOpenCityStatus">
+		UPDATE sys_companycityopeninfo SET isOpen=2  WHERE isOpen=1 AND DATEDIFF(NOW(),endTime) >0
+	</update> 
+</mapper>

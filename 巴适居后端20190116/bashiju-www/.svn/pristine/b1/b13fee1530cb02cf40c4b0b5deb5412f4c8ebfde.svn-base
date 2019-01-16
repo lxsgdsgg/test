@@ -1,0 +1,68 @@
+package com.bashiju.www.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.input.house.HouseAreaParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.HouseImageResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.github.pagehelper.Page;
+
+public interface HouseMapper {
+	/**
+	 * 
+		 * 查询房源详细基本信息
+		 * @Description: 查询房源详细基本信息 
+		 * @param houseId 房源id
+		 * @return 
+		 * HouseInfoResult
+	 */
+	public HouseInfoResult queryHouseInfo(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询经纪人简介信息
+		 * @Description: 查询经纪人简介信息
+		 * @param userId 经纪人id
+		 * @return 
+		 * AgentResult
+	 */
+	public AgentResult queryAgentResult(@Param("userId")long userId);
+	/**
+	 * 
+		 * 查询房源的带看经纪人列表
+		 * @Description: 查询房源的带看经纪人列表
+		 * @param houseId 房源id
+		 * @return 
+		 * List<AgentResult>
+	 */
+	public List<AgentResult> queryAgentsByHouseId(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的带看记录列表
+		 * @Description: 查询房源的带看记录列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<ShowedRecordResult>
+	 */
+	public List<ShowedRecordResult> queryShowedRecords(@Param("houseId")long houseId);
+	/**
+	 * 
+		 * 查询房源的小区简介
+		 * @Description: 查询房源的小区简介 
+		 * @param communityId 小区id
+		 * @return 
+		 * CommunityResult
+	 */
+	public CommunityResult queryCommunityInfo(@Param("communityId")long communityId);
+	
+	public HouseImageResult queryHouseImages(@Param("houseId")long houseId);
+	
+	public String queryMetroLabel(@Param("communityId")long communityId);
+	
+	public Page<HouseListResult> queryHouseList(HouseAreaParam param);
+}

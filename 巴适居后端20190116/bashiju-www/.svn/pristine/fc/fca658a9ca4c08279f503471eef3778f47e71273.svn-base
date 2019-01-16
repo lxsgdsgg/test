@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustomerPersonalCentralMapper">
+ 	<resultMap id="customerMap" type="com.bashiju.www.pojo.CustCustomer">
+	    <id column="id" jdbcType="INTEGER" property="id" />
+	    <result column="name" jdbcType="VARCHAR" property="username" />
+	    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+	    <result column="password" jdbcType="VARCHAR" property="password" />
+	    <result column="solt" jdbcType="VARCHAR" property="solt" />
+	    <result column="sex" jdbcType="VARCHAR" property="sex" />
+	    <result column="operator" jdbcType="VARCHAR" property="operator" />
+	    <result column="addTime" jdbcType="TIMESTAMP" property="addtime" />
+	    <result column="updateTime" jdbcType="TIMESTAMP" property="updatetime" />
+	    <result column="isValid" jdbcType="TINYINT" property="isvalid" />
+	</resultMap>
+	<resultMap id="customerEntity"
+		type="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="name" property="username" />
+		<result column="mobile" property="mobile" />
+		<result column="password" property="password" />
+		<result column="solt" property="solt" />
+		<result column="sex" property="sex" />
+		<result column="operator" property="operator" />
+		<result column="addTime" property="addtime" />
+		<result column="updateTime" property="updatetime" />
+		<result column="isValid" property="isvalid" />
+	</resultMap>
+	<resultMap id="agentEntity"
+		type="com.bashiju.www.pojo.service.agent.Agent">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="userId" property="id" />
+		<result column="agentId" property="agentId" />
+		<result column="agentName" property="userName" />
+		<result column="deptId" property="deptId" />
+		<result column="profileUrl" property="profileUrl" />
+		<result column="postName" property="postName" />
+		<result column="mainRegionsCodes" property="mainRegionsIds" />
+		<result column="mainRegionsNames" property="mainRegions" />
+		<result column="showedRdCnt" property="showedRdCnt" />
+		<result column="histShowedRdCnt" property="histShowedRdCnt" />
+		<result column="StarRating" property="star" />
+		<result column="commentCnt" property="commentCnt" />
+		<result column="telPhone" property="telPhone" />
+		<result column="label" property="label" />
+	</resultMap>
+	<select id="queryMyselfAgentList" resultMap="agentEntity">
+		<choose>
+			<when test="agentType != null and agentType != '' and agentType = '0'">
+				<![CDATA[ select a.`status`,b.id,b.id as agentId,c.id as userId,c.realName as agentName,b.mainRegionsIds
+				,b.mainRegions,b.mainCommunityIds,b.commentCnt,b.mainCommunity,b.showedRdCnt,b.histShowedRdCnt
+				,b.mainRegions,b.mainRegionsIds,c.profilePhoto as profileUrl,b.dealCnt,c.telPhone,c.realName
+				,c.mobile,d.custId,e.name as positionName,f.star,f.labels from sys_agentacceptance a
+				inner join sys_agent_details b on a.userId = b.id
+				inner join sys_user c on b.userId = c.id 
+				inner join sys_custbindinfo d ON a.sourceId = d.sourcesId
+				inner join sys_post e on c.postId = d.id 
+				inner join sys_cust_starrating f on a.userId = f.userId 
+				inner join (select senduser,receiveuser from im_message where type = 0 and senduser is not null and 
+				receiveuser and senduser <> '' and receiveuser <> '' is not null group by senduser,receiveuser) g
+				on g.receiveuser = c.id	where a.isvalid = 1 and d.custId = #{custId} ]]>
+			</when>
+			<when test="agentType != null and agentType != '' and agentType = '1'">
+				select  a.`status`,b.id,b.id as agentId,c.id as userId,c.realName as agentName,b.mainRegionsIds
+				,b.mainRegions,b.mainCommunityIds,b.commentCnt,b.mainCommunity,b.showedRdCnt,b.histShowedRdCnt
+				,b.mainRegions,b.mainRegionsIds,c.profilePhoto as profileUrl,b.dealCnt,c.telPhone,c.realName
+				,c.mobile,d.custId,e.name as positionName,f.star,f.labels from sys_agentacceptance a
+				inner join sys_agent_details b on a.userId = b.id
+				inner join sys_user c on b.userId = c.id 
+				inner join sys_custbindinfo d ON a.sourceId = d.sourcesId
+				inner join sys_post e on c.postId = d.id 
+				inner join sys_cust_starrating f on a.userId = f.userId 
+				where a.isvalid = 1 and d.custId = #{custId}
+			</when>
+		</choose>
+		
+	</select>
+  	<!-- 查询个人信息 -->
+	<select id="queryPersonalInfo" resultMap="customerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime
+		,a.updateTime,a.isValid from cust_customer a where isValid = 1
+		<if test="custId != null and custId != ''">
+			and id = #{custId}
+		</if>
+	</select>
+	<!-- 查询个人详细信息 -->
+	<select id="queryPersonalDetailInfo" parameterType="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime,
+		a.updateTime,a.isValid from cust_customer a where a.isValid = 1
+		and a.custId = #{custId}
+	</select>
+	<!-- 查询我的预约 -->
+	<select id="queryMyselfAppointmentList" resultType="map">
+		select a.id,a.custId,a.`name`,a.remark,a.mobile,a.shhId,a.maintainId,a.reservationTime,
+		a.reservationDate,a.`status`,a.handelTime,a.handelerId,a.handelResult,a.permissionArea,
+		a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid,c.mobile,c.telPhone from
+		cust_reservations as a inner join sys_agent_details b on a.maintainId = b.id
+		inner join sys_user c on b.userId = c.id where a.isvalid = 1 and a.custId = #{custId}
+	</select>
+	<update id="updatePersonalMobile">
+		update cust_customer set mobile = #{mobile} ,updateTime = #{updateTime} 
+		where custId = #{custId} and isValid = 1
+	</update>
+	<update id="modifyCustomerPassword">
+		update cust_customer set password = #{finalPassword} ,updateTime = #{updateTime} 
+		where custId = #{custId} and isValid = 1
+	</update>
+	
+	<update id="concelMyselfAppointment">
+		update cust_reservations set isValid = 0,updateTime=#{updateTime} 
+		where isValid = 1 and id = #{id}
+	</update>
+	
+	<insert id="saveReservationWatchHouse" parameterType="com.bashiju.www.pojo.service.reservation.Reservation">
+		insert into cust_reservations (custId,name,remark,mobile,shhId,maintainId,reservationTime,reservationDate,
+		status,handelTime,handelerId,handelResult,permissionArea,operatorId,operator,addTime,updateTime,isvalid) 
+		values(#{custId},#{name},#{remark},'#{mobile},#{shhId},#{maintainId},#{reservationTime},#{reservationDate},#{status},
+		#{handelTime},#{handelerId},#{handelResult},#{permissionArea},#{operatorId},#{operator},#{addTime},#{updateTime},#{isvalid})
+	</insert>
+	
+	
+	
+	<select id="">
+	
+	
+	</select>
+</mapper>

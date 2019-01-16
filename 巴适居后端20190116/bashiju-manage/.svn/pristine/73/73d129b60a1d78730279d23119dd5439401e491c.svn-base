@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-manage-mapper/src/main" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-manage-pojo" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-manage-pojo/src/main" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-manage-service/src/main" vcs="svn" />
+    <mapping directory="$PROJECT_DIR$/bashiju-manage-web/src/main" vcs="svn" />
+  </component>
+</project>

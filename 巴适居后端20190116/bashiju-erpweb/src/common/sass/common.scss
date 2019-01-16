@@ -1,0 +1,221 @@
+@charset "utf-8";
+@import "./reset";
+@import "./variable";
+@import "./transition";
+@import "./mixin";
+@import "element-custom";
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  min-width: 1180px;
+  background: #f0f2f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  width: 1180px;
+  margin: 0 auto;
+}
+
+// 页面容器
+.page-content {
+  margin: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+  background-color: #fff;
+
+  .page-content-hd {
+    padding: 20px;
+    border-bottom: 1px solid #e6ebf5;
+  }
+
+  .page-content-bd {
+    padding: 20px;
+  }
+
+  // 页面顶部查询表单
+  .query-form {
+    //.form-item {
+    //  margin-bottom: 15px;
+    //  &:before, &:after {
+    //    content: " ";
+    //    display: table;
+    //  }
+    //  &:after {clear: both;}
+    //}
+
+    .el-form--inline {
+      .el-form-item--small.el-form-item {
+        margin-bottom: 0;
+      }
+    }
+
+    .btn-group {
+      display: inline-block;
+      margin-left: 10px;
+    }
+  }
+}
+
+.btn-group {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.dialog-footer {
+  display: block;
+  text-align: center;
+}
+
+.no-scroll {
+  position: fixed;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+/* ==========
+   工具样式
+   ========== */
+
+// 边距
+.margin-b-none {
+  margin-bottom: 0;
+}
+
+// 浮动
+.pull-right {
+  float: right !important;
+}
+
+.pull-left {
+  float: left !important;
+}
+
+.clearfix:before,
+.clearfix:after {
+  content: " ";
+  display: table;
+}
+
+.clearfix:after {
+  clear: both;
+}
+
+
+//文本
+//单行文本截断
+.text-truncate {
+  word-wrap: normal; /* for IE */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.block-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+// 宽高
+.w100 {
+  width: 100px;
+}
+
+.w150 {
+  width: 150px;
+}
+
+.w180 {
+  width: 180px;
+}
+
+.w200 {
+  width: 200px;
+}
+
+.w300 {
+  width: 300px;
+}
+
+.w350 {
+  width: 350px;
+}
+
+.w_50 {
+  width: 50%;
+}
+
+.mr10 {
+  margin-right: 10px;
+}
+
+.mr5 {
+  margin-right: 5px;
+}
+
+.ml10 {
+  margin-left: 10px;
+}
+
+.ml5 {
+  margin-left: 5px;
+}
+
+.z-index-3000 {
+  z-index: 3000;
+}
+
+.vertical-center {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+  margin: auto;
+}
+
+.black-color {
+  color: $black;
+}
+
+.white-color {
+  color: #fff;
+}
+
+.span-time {
+  display: inline-block;
+  border-radius: 2px;
+  background-color: #191919;
+  padding: 2px 4px 1px 5px;
+  color: #fff;
+  font-size: 12px;
+  position: relative;
+  line-height: initial;
+}
+
+.button-text {
+  cursor: pointer;
+  border-color: transparent;
+  color: #66b1ff;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  font-size: 12px;
+  transition: all 0.3s;
+
+  &:hover {
+    color: #409eff;
+  }
+}

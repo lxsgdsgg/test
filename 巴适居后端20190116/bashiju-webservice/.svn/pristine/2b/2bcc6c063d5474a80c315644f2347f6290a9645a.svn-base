@@ -1,0 +1,341 @@
+package com.bashiju.www.service.newhouse;
+/**
+ * 
+ *   房源服务
+ * @ClassName:  IHouseService   
+ * @Description:  房源服务
+ * @author: wangkaifa
+ * @date:   2018年7月25日 下午12:01:33       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.input.house.SellHouseParam;
+import com.bashiju.www.pojo.service.out.article.RentSkillLinkResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseFeedbackResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.pojo.service.out.house.NewHouseDynamicResult;
+import com.bashiju.www.pojo.service.out.house.OpenDateResult;
+import com.bashiju.www.pojo.service.out.house.PresalePermitResult;
+import com.bashiju.www.pojo.service.out.house.RentHouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.RoomTimeResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList;
+
+public interface INewHouseService {
+	/**
+	 * 
+		 * 根据id查询二手房源基础信息
+		 * @Description: 根据id查询二手房源基础信息
+		 * @param id
+		 * @return 
+		 * HouseInfoResult
+	 */
+	HouseInfoResult selectSellHouseInfo(long id);
+	
+	/**
+	 * 
+		 * 查询新房楼盘在售户型
+		 * redis的key值:WebGlobal.NEWHOUSETYPE_REDIS_PREFIX+id+room
+		 * @Description: 查询新房楼盘在售户型
+		 * @param id 新房楼盘id
+		 * @param room 房型是几室的(0:查全部，1:查1室的，2：查2室的，3：查3室的，4：查4室的，5：查4室以上的)
+		 * @return 
+		 * RentHouseInfoResult
+	 */
+	NewHouseTypeList selectNewHouseType(int newHouseId,int room);
+	
+	
+	/**
+	 * 
+		 * 查询租房详细
+		 * @Description: 查询租房详细
+		 * @param id 房源id
+		 * @return 
+		 * RentHouseInfoResult
+	 */
+	RentHouseInfoResult selectRentHouseInfo(long id);
+	
+	/**
+	 * 
+	 * 根据城市查询租房技巧列表,按照时间倒序
+	 * 租房技巧类型id使用WebGlobal.RENT_SKILL_ID
+	 * @Description: 根据城市查询租房技巧列表
+	 * @param cityCode 城市代码
+	 * @Param limit 显示条数
+	 * @return 
+	 * List<RentSkillLinkResult>
+	 */
+	public List<RentSkillLinkResult> queryRentSkills(String cityCode,int limit);
+	/**
+	 * 
+		 * 查询带看经纪人列表
+		 * @Description: 查询带看经纪人列表 
+		 * @param houseId 房源id
+		 * @return 
+		 * List<AgentResult>
+	 */
+	List<AgentResult> queryShowedAgents(long houseId);
+	/**
+	 * 
+		 * 根据房源id查询带看记录
+		 * redis的key值:用queryShowedRecordByHouseId+房源id+当前页+每页条数,拼成字符串，调用Md5EncryptUtils.md5Encrypt(str)生成key值
+		 * @Description: 根据房源id查询带看记录 
+		 * @param houseId
+		 * @param page 当前页数
+		 * @param limit 每页条数
+		 * @return 
+		 * List<ShowedRecordResult>
+	 */
+	WebPage<ShowedRecordResult> queryShowedRecordByHouseId(long houseId,int page,int limit);
+	/**
+	 * 
+		 * 查询相似房源,房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 查询出售相似房源
+		 * @param param
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<GoodHouseListResult> querySellSameHouseList(HouseSameParam param);
+	
+	/**
+	 * 
+
+		 * 查询相似房源,房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 查询出租相似房源
+		 * @param param
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<GoodHouseListResult> queryRentSameHouseList(HouseSameParam param);
+	
+	/**
+	 * 
+		 * 根据小区名称模糊搜索二手房源
+		 * @Description: 根据小区名称模糊搜索二手房源 
+
+		 * @param communityName 小区名称
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> querySellHouseByCoummunity(String cityCode,String communityName,int page,int limit);
+	/**
+	 * 
+		 * 按区域搜索二手房源列表，房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 按区域搜索二手房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> querySellHouseListByArea(SellHouseParam param,int page,int limit);
+	/**
+	 * 
+		 * 二手房列表好房推荐查询
+		 * @Description: 二手房列表好房推荐查询 
+		 * @param cityCode 城市代码
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<GoodHouseListResult>
+	 */
+	WebPage<GoodHouseListResult> querySellGoodHouse(String cityCode,int page,int limit);
+	/**
+	 * 
+		 * 按地铁搜索二手房源列表，房源默认条件isPriority=1,isSynchron=1,statusId=1,examineStatus=1,isValid=1
+		 * @Description: 按地铁搜索二手房源列表
+		 * @param param 
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseListResult>
+	 */
+	WebPage<HouseListResult> querySellHouseListByMetro(SellHouseParam param,int page,int limit);
+
+	/**
+	 * 
+		 * 房源比较查询
+		 * @Description: 房源比较查询
+		 * @param ids 比较房源id
+		 * @return 
+		 * List<HouseCompareResult>
+	 */
+	List<HouseCompareResult> queryHouseCompareList(List<Long> ids);
+
+	/**
+	 * 
+		 * 添加房源举报，举报时间设置成当前时间
+		 * @Description: 添加房源举报
+		 * @param param 举报信息
+		 * @return 
+		 * boolean
+	 */
+	boolean addHouseTipOff(HouseTipOffParam param);
+	/**
+	 * 
+		 * 查询城市的新房、二手房、租房数量，存入redis的key值WebGlobal.HOME_HOUSE_TOTAL_REDIS_PREFIX+城市代码
+		 * @Description: 查询城市的新房、二手房、租房数量
+		 * @param cityCode 城市代码
+		 * @return 
+		 * HouseTotalResult
+	 */
+	HouseTotalResult queryHouseTotalByCityCode(String cityCode);
+	/**
+	 * 
+		 * 首页二手房推荐查询,显示4个靓房最后修改的靓房排在最前边,redis缓存key值WebGlobal.HOME_SELLGOOD_REDIS_PREFIX+城市代码
+		 * @Description: 首页二手房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<GoodHouseListResult> querySellGoodHouse(String cityCode);
+	
+	/**
+	 * 
+		 * 首页租房推荐查询,显示4个靓房最后修改的靓房排在最前边,redis缓存key值WebGlobal.HOME_RENTGOOD_REDIS_PREFIX+城市代码
+		 * @Description: 首页租房推荐查询
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<HouseListResult>
+	 */
+	List<GoodHouseListResult> queryRentGoodHouse(String cityCode);
+
+	/**
+	 * 
+		 * 新增经纪人带看反馈有用次数，同用户同反馈点击只算一次，新增同时修改反馈表的有用次数
+		 * @Description: 新增经纪人带看反馈有用次数 
+		 * @param custId
+		 * @param agentEvaluateHouseId
+		 * @return 
+		 * boolean
+	 */
+	boolean addFeedbackUseCount(int custId,int agentEvaluateHouseId);
+	/**
+	 * 
+		 * 经纪人带看反馈分页查询,需要审核通过
+		 * redis的key值:用queryFeedback+房源id+当前页+每页条数,拼成字符串，调用Md5EncryptUtils.md5Encrypt(str)生成key值
+		 * @Description: 经纪人带看反馈分页查询 
+		 * @param houseId 房源id
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseFeedbackResult>
+	 */
+	WebPage<HouseFeedbackResult> queryFeedback(long houseId,int page,int limit);
+	/**
+	 * 
+		 * 地图找房查询区域信息
+		 * @Description: 地图找房查询区域信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseArea(HouseMapParam param);
+	
+	/**
+	 * 
+		 * 地图找房查询片区信息
+		 * @Description: 地图找房查询片区信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseRegion(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房查询小区信息
+		 * @Description: 地图找房查询小区信息
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseCommunity(HouseMapParam param);
+	
+	/**
+	 * 
+		 * 二手房地图找房列表查询
+		 * @Description: 二手房地图找房列表查询
+		 * @param param
+		 * @return 
+		 * WebPage<HouseMapListResult>
+	 */
+	WebPage<HouseMapListResult> querySellHouseMapList(HouseMapListParam param, int page, int limit);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路房源统计
+		 * @Description: 地图找房二手房地铁线路房源统计 
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路小区房源统计
+		 * @Description: 地图找房二手房地铁线路小区房源统计 
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> querySellMapHouseCommunityMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 地图找房二手房地铁线路房源列表查询
+		 * @Description: 地图找房二手房地铁线路房源列表查询
+		 * @param param
+		 * @return 
+		 * WebPage<HouseMapListResult>
+	 */
+	WebPage<HouseMapListResult> querySellHouseMapMetroList(HouseMapListParam param, int page, int limit);
+	
+	/**
+	 *  条件查询楼盘动态   
+	 * @Title: queryNewHouseDynamicByProjectId   
+	 * @Description: 条件查询楼盘动态   
+	 * @param projectId 新房楼盘详情编号      
+	 * @return: List<NewHouseDynamicResult>
+	 */
+	List<NewHouseDynamicResult> queryNewHouseDynamicByProjectId(String projectId);
+	
+	/**
+	 * 条件查询预售证信息  
+	 * @Title: queryPresalePermitByProjectId   
+	 * @Description: 条件查询预售证信息  
+	 * @param projectId 楼盘编号
+	 * @return: List<PresalePermitResult>
+	 */
+	List<PresalePermitResult> queryPresalePermitByProjectId(String projectId);
+	/**
+	 * 条件查询交房时间
+	 * @Title: queryRoomTimeByPorjectId   
+	 * @Description: 条件查询交房时间  
+	 * @param projectId 楼盘编号
+	 * @return: List<RoomTimeResult>
+	 */
+	List<RoomTimeResult> queryRoomTimeByPorjectId(String projectId);
+	
+	/**
+	 * 条件查询楼盘开盘时间
+	 * @Title: queryOpenDateByProjectId   
+	 * @Description: 条件查询楼盘开盘时间
+	 * @param projectId 楼盘编号
+	 * @return: List<OpenDateResult>
+	 */
+	List<OpenDateResult> queryOpenDateByProjectId(String projectId);
+	
+}

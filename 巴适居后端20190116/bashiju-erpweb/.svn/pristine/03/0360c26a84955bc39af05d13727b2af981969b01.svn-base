@@ -1,0 +1,216 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="form" class="demo-form-inline">
+          <el-form-item label="部门">
+            <el-input v-model="form.user" placeholder="部门名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary">查询</el-button>
+            <el-button>重置</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="部门名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptType"
+          align="center"
+          label="部门类型">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptUser"
+          align="center"
+          label="部门负责人">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptUser"
+          align="center"
+          label="部门负责人">
+        </el-table-column>
+
+        <el-table-column
+          prop="createDate"
+          align="center"
+          label="创建日期">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptPhone"
+          align="center"
+          label="部门电话">
+        </el-table-column>
+
+        <el-table-column
+          prop="address"
+          align="center"
+          label="地址">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handlePermission">跨店权限</el-button>
+            <el-button @click="handleEdit" type="text" size="small">编辑</el-button>
+            <el-button @click="handleDelete" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+    </div>
+
+    <template>
+      <el-dialog
+        title="修改部门"
+        :visible.sync="editDeptDialogVisible"
+        width="400px">
+        <dept-edit @handleClick="handleEditDeptDialog"></dept-edit>
+      </el-dialog>
+
+      <el-dialog
+        title="跨部权限设置"
+        :visible.sync="permissionDialogVisible"
+        width="600px">
+        <dept-permission @handleClick="handlePermissionDialog"></dept-permission>
+      </el-dialog>
+    </template>
+  </div>
+</template>
+
+<script>
+import DeptEdit from './components/DeptEdit'
+import DeptPermission from './components/Permission'
+
+export default {
+  name: 'dept',
+  components: {DeptEdit, DeptPermission},
+  data () {
+    return {
+      form: {
+        user: '',
+        region: ''
+      },
+      tableData: [
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        },
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        },
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        },
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        },
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        },
+        {
+          deptName: '业务部',
+          deptType: 1,
+          deptUser: '张三',
+          createDate: '2018-07-21',
+          deptPhone: 13999999999,
+          address: '银河置信广场B幢1102室'
+        }
+      ],
+      editDeptDialogVisible: false,
+      permissionDialogVisible: false
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.editDeptDialogVisible = true
+    },
+    handleEdit () {
+      this.editDeptDialogVisible = true
+    },
+    handleDelete () {
+      this.$confirm('确定删除该部门？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    handlePermission () {
+      this.permissionDialogVisible = true
+    },
+    handleEditDeptDialog (action) {
+      if (action && action === 1) {
+        this.editDeptDialogVisible = false
+      } else if (action && action === 2) {
+        this.editDeptDialogVisible = false
+      }
+    },
+    handlePermissionDialog (action) {
+      if (action && action === 1) {
+        this.permissionDialogVisible = false
+      } else if (action && action === 2) {
+        this.permissionDialogVisible = false
+      }
+    }
+  }
+}
+</script>
+
+<style scoped lang="scss">
+
+</style>

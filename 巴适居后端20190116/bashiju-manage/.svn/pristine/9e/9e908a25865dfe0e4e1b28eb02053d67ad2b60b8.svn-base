@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.StoreConfigurationMapper">
+		<select id="queryFinanceCostType" resultType="map">
+			SELECT sfct.id,sfct.cityCode,sfct.cityName,sfct.companyId,sfct.companyName,sfct.`name`,
+			sfct.sortNo,sfct.permissionArea,sfct.operatorId,sfct.operator,sfct.addTime,sfct.updateTime,
+			sfct.remark,sfct.isValid FROM sys_financecosttype AS sfct  where sfct.isValid=1 order by sfct.sortNo
+		</select>
+		
+		<select id="queryFinanceCostProjByFinanceCostTypeId" resultType="map">
+				SELECT fcp.financeCostTypeId,fct.name as financeCostTypeName,fcp.id,fcp.companyId,fcp.companyName,fcp.`name`,fcp.sortNo,
+				fcp.permissionArea,fcp.operatorId,fcp.operator,fcp.addTime,fcp.updateTime,fcp.remark,fcp.isValid
+				FROM sys_financecostproj AS fcp
+				inner join sys_financecosttype fct on fct.id=fcp.financeCostTypeId
+				where fcp.financeCostTypeId = #{financeCostTypeId} and fcp.isValid=1 order by fcp.sortNo
+		</select>
+		
+		<select id="queryFinanceCostTypeNameById" resultType="map">
+			select name from sys_financecosttype where id=#{financeCostTypeId}
+		</select>
+</mapper>

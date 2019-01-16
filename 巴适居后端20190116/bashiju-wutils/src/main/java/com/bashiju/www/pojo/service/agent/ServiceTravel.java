@@ -1,0 +1,49 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ServiceTravel.java   
+ * @Package com.bashiju.www.pojo.service.agent   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月1日 下午3:49:24   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.agent;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 经纪人服务行程实体   
+ * @ClassName:  ServiceTravel   
+ * @Description:经纪人服务行程实体
+ * @author: wangpeng
+ * @date:   2018年8月1日 下午3:49:24   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class ServiceTravel implements Serializable {
+	
+	private static final long serialVersionUID = -6074178788438473568L;
+	/**服务类型**/
+	private String type;
+	/**服务日期*/
+	private String date;
+	/**小区名称**/
+	private String communityName;
+	/**房源编号**/
+	private String shhId;
+	/**卧室**/
+	private String room;
+	/**客厅**/
+	private String hall;
+	/**建筑面积**/
+	private String buildSpace;
+	/**售价/租价**/
+	private String price;
+	/**带看套数/交易套数*/
+	private String total;
+}

@@ -1,0 +1,109 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ManageActionLogQueryServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年11月30日 下午4:05:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.mapper.ManageActionLogQueryMapper;
+import com.bashiju.manage.service.IManageActionLogQueryService;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 后台操作日志查询服务实现类
+ * @ClassName:ManageActionLogQueryServiceImpl
+ * @Description:后台操作日志查询服务实现类
+ * @author:zuoyuntao
+ * @date:2018年11月30日 下午4:05:39
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class ManageActionLogQueryServiceImpl implements IManageActionLogQueryService{
+	/**
+	 * 持久层接口对象
+	 */
+	@Autowired
+	private ManageActionLogQueryMapper mManageActionLogQueryMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * <p>Title: auxManageActionLogPageList</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param paramMap 参数对象
+	 * @return   
+	 * @see com.bashiju.deal.service.IManageActionLogQueryService#queryManageActionLogPageList(int, int, java.lang.String, java.util.Map)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxManageActionLogPageList(int page, int limit,
+			Map<String, Object> paramMap) {
+		PageHelper.startPage(page,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_79.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) mManageActionLogQueryMapper.auxManageActionLogPageList(paramMap);
+	}
+	/**
+	 * <p>Title: auxSystemActionLogPageList</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param paramMap 参数对象
+	 * @return   
+	 * @see com.bashiju.deal.service.IManageActionLogQueryService#auxSystemActionLogPageList(int, int, java.lang.String, java.util.Map)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxSystemActionLogPageList(int page, int limit,
+			Map<String, Object> paramMap) {
+		PageHelper.startPage(page,limit);
+		dataAuthHelper.auth(MenuEnum.MENU_859.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		return (Page<Map<String, Object>>) mManageActionLogQueryMapper.auxSystemActionLogPageList(paramMap);
+	}
+
+	/**
+	 * <p>Title: auxManageActionLogByManageId</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param id 后台编号
+	 * @return   
+	 * @see com.bashiju.deal.service.IManageActionLogQueryService#queryManageActionLogByManageId(int, int, java.lang.String)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxManageActionLogByManageId(int page, int limit, String id) {
+		PageHelper.startPage(page,limit);
+		Page<Map<String, Object>> retPage = (Page<Map<String, Object>>) mManageActionLogQueryMapper.auxManageActionLogByManageId(id);
+		return retPage;
+	}
+
+	/**
+	 * <p>Title: auxManageActionLogByManageType</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param type 后台类型
+	 * @return   
+	 * @see com.bashiju.deal.service.IManageActionLogQueryService#queryManageActionLogByManageType(int, int, java.lang.String)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxManageActionLogByManageType(int page, int limit, String type) {
+		PageHelper.startPage(page,limit);
+		return (Page<Map<String, Object>>) mManageActionLogQueryMapper.auxManageActionLogByManageType(type);
+	}
+
+}

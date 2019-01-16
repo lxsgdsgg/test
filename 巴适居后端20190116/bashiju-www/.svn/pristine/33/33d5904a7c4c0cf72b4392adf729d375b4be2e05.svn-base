@@ -1,0 +1,107 @@
+package com.bashiju.www.service.comm.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.wutils.log.SystemServiceLog;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.IAreaMapper;
+import com.bashiju.www.mapper.IFormMapper;
+import com.bashiju.www.pojo.service.out.comm.AreaResult;
+import com.bashiju.www.pojo.service.out.comm.RangeResult;
+import com.bashiju.www.pojo.service.out.comm.RegionResult;
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+import com.bashiju.www.service.comm.IFormService;
+/**
+ * 
+ * @ClassName:  IFormServiceImpl   
+ * @Description:TODO(下拉、区间等普通配置项)   
+ * @author: liwen
+ * @date:   2018年7月25日 上午11:44:03   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@SystemServiceLog(sourceType="下拉、区间等普通配置项") 
+@Service
+public class IFormServiceImpl implements IFormService{
+	 
+	@Autowired(required=false)
+	RedisServiceApi redisServiceApi;
+	
+	@Autowired
+	IFormMapper iFormMapper ;
+	
+	/**
+	 * 
+		 * 查询城市对应的区间值
+		 * 先从redis中取值，没有再查询数据库并存入redis
+		 * redis的key为前缀(WebGlobal.RANGE_ITEM_REDIS_PREFIX)+城市代码,
+		 * value为区间值json字符串[{min:1,max:10,widgetCode:mianji},{min:10,max:20,widgetCode:mianji}] widgetCode为控件编号
+		 * @Description: 查询城市对应的区间值
+		 * @param codes 区间控件编号，多个用逗号分隔
+		 * @param cityCode 城市代码
+		 * @return {code:[{min:1,max:10},{min:10,max:20}]} code为区间控件编号，min为最小值，max为最大值
+		 * Map<String,List<RangeResult>>
+	 */
+	@Override
+	public Map<String,List<RangeResult>> queryRangeByCode(String codes,String cityCode){
+		Map<String,List<RangeResult>> resMap = new HashMap<>();
+		String key = WebGlobal.RANGE_ITEM_REDIS_PREFIX+cityCode;
+		List<RangeResult> rangeList = redisServiceApi.getList(key);
+		if(rangeList.isEmpty() || rangeList.size()<=0) {
+			rangeList = iFormMapper.queryRanges(cityCode);
+			redisServiceApi.setList(key, rangeList);
+		}
+		String[] codearr = codes.split(",");
+		for(int i=0;i<codearr.length;i++) {
+			List<RangeResult> resList = new ArrayList<>();
+			for(RangeResult r : rangeList) {
+				if(codearr[i].equals(r.getWidgetCode())) {
+					resList.add(r);
+				}
+			}
+			resMap.put(codearr[i], resList);
+		}
+		return resMap;
+	}
+	/**
+	 * 
+		 * 查询动态下拉值，先从redis中取值，没有再查询数据库并存入redis
+		 * redis的key为(WebGlobal.SELECT_ITEM_REDIS_KEY),
+		 * value为下拉值json字符串[{name:东,value:1,widgetCode:chaoxiang},{name:南,value:2,widgetCode:chaoxiang}] widgetCode为控件编号
+		 * @Description: 查询动态下拉值
+		 * @param codes 动态下拉编号，多个用逗号分隔
+		 * @return {code:[{name:东,value:1},{name:南,value:2}]} code为动态下拉编号，name为下拉显示名称，value为下拉值
+		 * Map<String,List<SelectItemResult>>
+	 */
+	@Override
+	public Map<String,List<SelectItemResult>> querySelectByCode(String codes){
+		Map<String,List<SelectItemResult>> resMap = new HashMap<>();
+		String key = WebGlobal.SELECT_ITEM_REDIS_KEY;
+		List<SelectItemResult> selectList = redisServiceApi.getList(key);
+		if(selectList.isEmpty() || selectList.size()<=0) {
+			selectList = iFormMapper.querySelects();
+			redisServiceApi.setList(key, selectList);
+		}
+		String[] codearr = codes.split(",");
+		for(int i=0;i<codearr.length;i++) {
+			List<SelectItemResult> resList = new ArrayList<>();
+			for(SelectItemResult s : selectList) {
+				if(codearr[i].equals(s.getWidgetCode())) {
+					resList.add(s);
+				}
+			}
+			resMap.put(codearr[i], resList);
+		}
+		return resMap;
+	}
+}

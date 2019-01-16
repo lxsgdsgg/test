@@ -1,0 +1,222 @@
+package com.bashiju.customer.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.customer.service.CustomerService;
+import com.bashiju.customer.service.DemandShowedRecordService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DemandShowedRecordController   
+ * @Description:客源带看记录控制层
+ * @author: wangpeng
+ * @date:   2018年6月20日 上午10:04:01   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="DemandShowedRecord")
+public class DemandShowedRecordController extends BaseController {
+	@Autowired
+	private CustomerService customerService;
+	
+	@Autowired
+	private DemandShowedRecordService demandShowedRecordService;
+	/**
+	 * 
+	 * @Title: enterCustShowedRecordPage   
+	 * @Description: 进入客源带看页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDemandShowedRecordPage")
+	public ModelAndView enterCustShowedRecordPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv=getModelAndView(request, response, "demandShowedRecord/demandShowedRecord");
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: queryDemandShowedRecordData   
+	 * @Description:查询客源带看记录
+	 * @param transactionTypeId 交易类型Id
+	 * @param leaderId 带看人Id
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDemandShowedRecordData")
+	@ResponseBody
+	public Map<String,Object> queryDemandShowedRecordData(String transactionTypeId,String leaderId,String beginTime,String endTime,int page,int limit){
+		Map<String,Object> paramMap = new HashMap<>();
+		paramMap.put("transactionTypeId", transactionTypeId);
+		paramMap.put("leaderId", leaderId);
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		Page<Map<String,Object>> pages = demandShowedRecordService.queryDemandShowedRecordData(paramMap,page, limit);
+		Map<String,Object> map=getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: enterDemandShowedRecordDetailPage   
+	 * @Description: 进入客源带看编辑页面 
+	 * @param request
+	 * @param response
+	 * @param id 客源带看记录Id
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDemandShowedRecordDetailPage")
+	public ModelAndView enterDemandShowedRecordDetailPage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv=getModelAndView(request, response, "demandShowedRecord/demandShowedRecordDetail");
+		//通过id查询客源跟进信息
+		Map<String,Object>dsr=demandShowedRecordService.queryDemandShowedRecordById(id);
+		if(dsr.get("shhId")==null || StringUtils.isEmpty(dsr.get("shhId").toString()))
+			throw new BusinessException("数据信息错误，请联系管理员");
+		Page<Map<String, Object>> pages= customerService.queryCustomerListByIds(dsr.get("shhId").toString(), 1, 999);
+		mv.addObject("dsr",dsr);
+		mv.addObject("details", JSON.toJSON(pages.getResult()));
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Title: querySecondHouseInfoByShhId   
+	 * @Description: 条件查询二手房详情
+	 * @param shhId 二手房编号
+	 * @return: Object
+	 */
+	@RequestMapping(value="querySecondHouseInfoByShhId")
+	@ResponseBody
+	public Object querySecondHouseInfoByShhId(String shhId){
+		 if(StringUtils.isEmpty(shhId))
+			throw new BusinessException("数据信息错误，请联系管理员");
+		Page<Map<String, Object>> pages= customerService.queryCustomerListByIds(shhId, 1, 999);
+		Map<String,Object> map =getPageResult(pages);
+		return map;
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @Title: delDemandShowedRecord   
+	 * @Description: 逻辑删除客源带看记录
+	 * @param id 客源带看记录Id
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delDemandShowedRecord")
+	@ResponseBody
+	public BashijuResult delCustShowedRecord(String id) {
+		boolean result=demandShowedRecordService.delDemandShowedRecord(id);
+		if(result)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 
+	 * @Title: enterHsSecondHandHouse   
+	 * @Description: 进入二手房源页面
+	 * @param response
+	 * @param request
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping("enterHsSecondHandHouse")
+	public ModelAndView enterHsSecondHandHouse(HttpServletResponse response,HttpServletRequest request){
+		ModelAndView mv=getModelAndView(request, response, "demandShowedRecord/hsSecondHandHouse");
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Title: queryHsSecondHandHouseData   
+	 * @Description: 查询二手房源
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryHsSecondHandHouseData")
+	@ResponseBody
+	public Map<String,Object> queryHsSecondHandHouseData(String conditions,int page,int limit){
+		Page<Map<String,Object>> pages = customerService.queryHouseListByCustomer(conditions, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: queryDemandShowedRecordById   
+	 * @Description: 条件查询客源带看记录
+	 * @param id 可也带看记录Id
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDemandShowedRecordById")
+	@ResponseBody
+	public Map<String,Object>queryDemandShowedRecordById(String id){
+	Map<String,Object>pages=demandShowedRecordService.queryDemandShowedRecordById(id);
+		return pages;
+	}
+	/**
+	 * 
+	 * @Title: saveOrUpdateDemandShowedRecord   
+	 * @Description: 添加或保存客源带看记录
+	 * @param jsonData 页面参数
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateDemandShowedRecord")
+	@ResponseBody
+	public BashijuResult saveOrUpdateDemandShowedRecord(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要操作的数据");
+		Map<String,Object> map=(Map<String,Object>) JSONObject.parse(jsonData);
+		boolean result=	demandShowedRecordService.saveOrUpdateDemandShowedRecord(map);
+		if(result)
+			return BashijuResult.ok();
+		throw new  BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);	
+	}
+	/**
+	 * 条件查询新房信息
+	 * @Title: queryNewHouseInfoById   
+	 * @Description: 条件查询新房信息
+	 * @param newHouseId 新房编号
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryNewHouseInfoById")
+	@ResponseBody
+	public Map<String, Object> queryNewHouseInfoById(String newHouseId){
+		if(StringUtils.isEmpty(newHouseId))
+			throw new BusinessException("新房编号不能为空");
+		Map<String, Object> map = demandShowedRecordService.queryNewHouseInfoById(newHouseId);
+		return map;
+	}
+
+}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.BusinessTypeMapper">
+
+	<select id="queryBusinessTypes" resultType="map">
+		select id,code,name,companyId,companyName,calculateFormula,permissionArea,operatorId
+		,operator,addTime,updateTime,isvalid 
+		from finance_businesstype
+		where isvalid=1 
+		<if test="companyId != null and companyId !='' ">
+			and companyId=#{companyId}
+		</if>
+		<if test="name != null and name !='' ">
+			and name like concat('%',#{name},'%')
+		</if>
+		order by id desc
+	</select>
+	
+	<select id="isRelationCommissionConfig" resultType="long">
+		select sum(total)from (
+		select count(*) total from finance_commissionsConfigurate_actualRate where comConfigId=#{commConfigId}
+		union all 
+		select count(*) total from finance_commissionsConfigurate_rate where comConfigId=#{commConfigId})a
+	</select>
+	
+	<select id="queryCommConfigActualRate" resultType="map">
+		select id,comConfigId,businessType,minactualRate,maxActualRate,commissionsRate
+		,permissionArea,operatorId,operator,addTime,updateTime,isvalid 
+		from finance_commissionsConfigurate_actualRate
+		where isvalid=1 
+		<if test="comConfigId != null">
+			and comConfigId = #{comConfigId}
+		</if>
+		<if test="businessType != null">
+			and businessType = #{BusiTypeId}
+		</if>
+		order by id
+	</select>
+	
+	<select id="queryCommConfigRate" resultType="map">
+		select id,comConfigId,businessType,comConfigDetailId,minPrice,maxPrice
+		,commissionsRate,permissionArea,operatorId,operator,addTime,updateTime,isvalid 
+		from finance_commissionsConfigurate_rate
+		where isvalid=1 
+		<if test="comConfigId != null">
+			and comConfigId = #{comConfigId}
+		</if>
+		<if test="businessType != null">
+			and businessType = #{BusiTypeId}
+		</if>
+		order by id
+	</select>
+</mapper>

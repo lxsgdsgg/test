@@ -1,0 +1,55 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ManageActionLogQueryServiceImpl.java   
+ * @Package com.bashiju.oa.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年11月30日 下午4:05:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.oa.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.oa.mapper.OaActionLogQueryMapper;
+import com.bashiju.oa.service.IOaActionLogQueryService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 后台操作日志查询服务实现类
+ * @ClassName:ManageActionLogQueryServiceImpl
+ * @Description:后台操作日志查询服务实现类
+ * @author:zuoyuntao
+ * @date:2018年11月30日 下午4:05:39
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+public class OaActionLogQueryServiceImpl implements IOaActionLogQueryService{
+	/**
+	 * 持久层接口对象
+	 */
+	@Autowired
+	private OaActionLogQueryMapper mOaActionLogQueryMapper;
+	/**
+	 * <p>Title: auxOaActionLogPageList</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param paramMap 参数对象
+	 * @return   
+	 * @see com.bashiju.oa.service.IOaActionLogQueryService#auxOaActionLogPageList(int, int, java.lang.String, java.util.Map)
+	 */
+	@Override
+	public Page<Map<String, Object>> auxOaActionLogPageList(int page, int limit,
+			Map<String, Object> paramMap) {
+		PageHelper.startPage(page,limit);
+		return (Page<Map<String, Object>>) mOaActionLogQueryMapper.auxOaActionLogPageList(paramMap);
+	}
+}

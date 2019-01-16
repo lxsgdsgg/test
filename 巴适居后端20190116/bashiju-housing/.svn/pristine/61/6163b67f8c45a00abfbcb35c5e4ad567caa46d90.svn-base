@@ -1,0 +1,148 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  HousePictureExamineServiceImpl.java   
+ * @Package com.bashiju.housing.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月7日 上午9:26:15   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.housing.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.ExamineStatusEnum;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.housing.mapper.ErHousingMapper;
+import com.bashiju.housing.mapper.HousePictureExamineMapper;
+import com.bashiju.housing.pojo.HouseAttachTypeEnum;
+import com.bashiju.housing.service.HousePictureExamineService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  HousePictureExamineServiceImpl   
+ * @Description:房源图片审核管理服务   
+ * @author: yangz
+ * @date:   2018年6月7日 上午9:26:15   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房源图片审核")
+public class HousePictureExamineServiceImpl extends CommonSqlServie implements HousePictureExamineService {
+
+	@Autowired
+	private HousePictureExamineMapper housePictureExamineMapper;
+	@Autowired
+	ErHousingMapper erHousingMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * @Description: 条件查询申请信息   
+	 * @param params 要查询的条件
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.housing.service.HousePictureExamineService#queryHousePictureExamines(java.util.Map)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryHousePictureExamines(Map<String, Object> params) {
+		dataAuthHelper.auth(MenuEnum.MENU_91.getCode(),UserThreadLocal.get().get("id").toString());
+		return this.housePictureExamineMapper.queryHousePictureExamines(params);
+	}
+
+	/**
+	 * 
+	 * @Description: 条件查询申请信息   
+	 * @param params 要查询的条件
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 * @see com.bashiju.housing.service.HousePictureExamineService#queryHousePictureExamines(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryHousePictureExamines(Map<String, Object> params, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> pages = (Page<Map<String, Object>>) this.queryHousePictureExamines(params);
+		return pages;
+	}
+
+	/**
+	 * 
+	 * @Description: 批量审核房源图片信息   
+	 * @param list 待审核的房源信息
+	 * @return: boolean 
+	 * @see com.bashiju.housing.service.HousePictureExamineService#examineApplications(java.util.List)   
+	 */
+	@Override
+	public boolean examineApplications(List<Map<String, Object>> list) {
+		if(list==null || list.size()<=0) 
+			throw new BusinessException("没有要审核的信息");
+		List<Map<String,Object>> newList = new ArrayList<Map<String,Object>>(0);
+		String videoHouseIds = "";//视频id
+		String picHouseIds = "";//图片id
+		for(Map<String,Object> map : list) {
+			if(!map.containsKey("id") || map.get("id")==null || StringUtils.isEmpty(map.get("id").toString()))
+				throw new BusinessException("主键不允许为空");
+			if(!map.containsKey("examineStatus") || map.get("examineStatus")==null 
+					|| StringUtils.isEmpty(map.get("examineStatus").toString()))
+				throw new BusinessException("审核状态结果不允许为空");
+			Map<String,Object> newMap = new HashMap<String,Object>();
+			newMap.put("id", map.get("id"));
+			newMap.put("examineStatus", map.get("examineStatus"));
+			newMap.put("reason", map.get("reason"));
+			newMap.put("auditorId", UserThreadLocal.get().get("id"));
+			newMap.put("auditTime", new Date());
+			newList.add(newMap);
+			//审核通过
+			if (ExamineStatusEnum.EXAMINED.getCode().equals(map.get("examineStatus").toString())) {
+				//判断附件是否视频
+				if (HouseAttachTypeEnum.HOUSEVIDEO.getCode().equals(map.get("attachType").toString())) {
+					if (!videoHouseIds.equals("")) {
+						videoHouseIds+=",";
+					}
+					videoHouseIds+=map.get("id").toString();
+				}
+				//判断附件是否图片
+				if (HouseAttachTypeEnum.HOUSEPICTURE.getCode().equals(map.get("attachType").toString())) {
+					if (!picHouseIds.equals("")) {
+						picHouseIds+=",";
+					}
+					picHouseIds+=map.get("id").toString();
+				}
+			}
+		}
+		boolean result = this.batchCommonOperationDatabase(newList, "hs_houseAttachment", "id", false);
+		//修改房源是否有视频状态
+		if (!videoHouseIds.equals("")) {
+			Map<String,Object> param =new HashMap<>();
+			param.put("isVideo", 1);
+			this.batchcommonUpdate(param, "hs_secondHandHouse", "id", videoHouseIds, null);
+			erHousingMapper.houseSynchron(picHouseIds);
+		}
+		//修改房源是否有图片状态
+		if (!picHouseIds.equals("")) {
+			Map<String,Object> param =new HashMap<>();
+			param.put("isPicture", 1);
+			this.batchcommonUpdate(param, "hs_secondHandHouse", "id", picHouseIds, null);
+			erHousingMapper.houseSynchron(picHouseIds);
+		}
+		return result;
+	}
+
+}

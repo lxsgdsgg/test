@@ -1,0 +1,102 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IProposalAndWageSchemaService.java   
+ * @Package com.bashiju.manage.service      
+ * @author: zuoyuntao     
+ * @date:   2018年6月25日 下午6:28:44   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 提成工资方案接口类
+ * @ClassName:IProposalAndWageSchemaService
+ * @Description:提成工资方案接口类
+ * @author:zuoyuntao
+ * @date:2018年6月25日 下午6:28:44
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IProposalAndWageSchemaService {
+	/**
+	 * 查询提成工资方案配置数据集合--分页
+	 * @Title: queryProposalAndWageSchemaInfoWithPage
+	 * @author: zuoyuntao  
+	 * @Description:查询提成工资方案配置数据集合--分页   
+	 * @param paraMap 参数对象
+	 * @param page 最少条数
+	 * @param limit 最多条数
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：
+	 */
+	public Page<Map<String,Object>> queryProposalAndWageSchemaInfoWithPage(Map<String,Object> paraMap
+			,int page,int limit);
+	/**
+	 * 查询提成工资方案配置数据集合--不分页
+	 * @Title: queryAllProposalAndWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询提成工资方案配置数据集合--不分页
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String,Object>> queryAllProposalAndWageSchemaInfo(Map<String,Object> paraMap);
+	/**
+	 * 保存提成工资方案配置
+	 * @Title: saveOrUpdateWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存提成工资方案配置 
+	 * @param paraMap      
+	 * void JSON 格式为：
+	 */
+	public void saveOrUpdateProposalAndWageSchemaInfo(Map<String,Object> paraMap);
+	/**
+	 * 删除提成工资方案配置
+	 * @Title: deleteProposalAndWageSchema
+	 * @author: zuoyuntao  
+	 * @Description:删除提成工资方案配置   
+	 * @param wageId ID
+	 * void JSON 格式为：
+	 */
+	public void deleteProposalAndWageSchema(String wageId);
+	
+	/**
+	 * 根据条件数据对象查询提成工资方案
+	 * @Title: queryAllProposalAndWageSchemaInfoByCondition
+	 * @author: zuoyuntao  
+	 * @Description:根据条件数据对象查询提成工资方案
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String, Object>> queryAllProposalAndWageSchemaInfoByCondition(Map<String, Object> paraMap);
+	/**
+	 * 判断数据是否存在
+	 * @Title: jurgeProposalAndWageDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap
+	 * @return      
+	 * boolean JSON 格式为：
+	 */
+	public boolean jurgeProposalAndWageDataExists(Map<String,Object> paraMap);
+	/**
+	 * 保存批量配置工资和提成方案
+	 * @Title: batchSaveProposalAndWageSchemaInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存批量配置工资和提成方案
+	 * @param saveList 要保存的数据集合 
+	 * @param paraMap   参数对象
+	 * void JSON 格式为：
+	 */
+	public void batchSaveProposalAndWageSchemaInfo(List<Map<String,Object>> saveList
+			,Map<String,Object> paraMap);
+}

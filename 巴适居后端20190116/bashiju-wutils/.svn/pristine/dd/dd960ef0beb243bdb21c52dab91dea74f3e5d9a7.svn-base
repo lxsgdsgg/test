@@ -1,0 +1,48 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerEntrustParamEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年9月22日 下午2:00:31   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 房源委托参数实体类
+ * @ClassName:CustomerEntrustParamEntity
+ * @Description:房源委托参数实体类
+ * @author:zuoyuntao
+ * @date:2018年9月22日 下午2:00:31
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustomerEntrustParamEntity implements Serializable{
+	/**   
+	 * @Fields serialVersionUID : 串行版本标识
+	 */ 
+	private static final long serialVersionUID = 8733115898868707933L;
+	/**委托ID**/
+	private String id;
+	/**客户ID-非必传**/
+	private String custId;
+	/**用户登陆key**/
+	private String loginKey;
+	/**手机号码**/
+	private String mobile;
+	/**出售价格**/
+	private int sellingPrice;
+	/**出租价格**/
+	private int rentPrice;
+	/**房源描述**/
+	private String descs;
+
+}

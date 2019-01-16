@@ -1,0 +1,389 @@
+package com.bashiju.manage.service.impl;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.manage.mapper.CommunityMapper;
+import com.bashiju.manage.pojo.controller.CommunityQueryEntity;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.FtpUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+
+/**
+ * 
+ * @ClassName:  CommunityServiceImpl   
+ * @Description:TODO(小区管理)   
+ * @author: zhaobin
+ * @date:   2018年4月23日 上午10:57:15   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="小区管理") 
+@Service
+public class CommunityServiceImpl implements ICommunityService {
+	@Autowired
+	private CommunityMapper communityMapper;
+	@Autowired
+	 private CommonSqlServie commonSqlServie;
+	
+	private static final int WAN=1000000;
+	private static final int YUAN=100;
+	
+	@SystemServiceLog(operationType="查询小区列表")
+	@Override
+	public Page<Map<String, Object>> queryCommunityList(CommunityQueryEntity query,int page,int limit) throws Exception {
+		PageHelper.startPage(page, limit);
+		//DataAuthHelper.auth();
+		Map<String, Object> map=new HashMap<>();
+		if (query.getRegionName()!=null) {
+			map.put("regionName", query.getRegionName());
+		}
+		
+		map.put("areaCode", "".equals(query.getAreaCode())?null:query.getAreaCode());
+		map.put("biaozhu", query.getBiaozhu());		
+		map.put("hot", query.getHot());
+		if (query.getPinyin()!=null) {
+			map.put("pinyin",URLDecoder.decode(query.getPinyin(), "utf-8"));
+		}	
+		ExecutionResult.descFormat(JSON.toJSONString(query), "查询小区列表");
+		return communityMapper.queryCommunityList(map);
+	}
+
+	@SystemServiceLog(operationType="查询小区信息")
+	@Override
+	public Map<String, Object> queryCommunityById(Long id) {
+		ExecutionResult.descFormat(id.toString(),"查询小区信息");
+		Map<String, Object> map=communityMapper.queryCommunityById(id);
+		//销售均价	
+		if (map.get("salePrice")!=null&&!map.get("salePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("salePrice").toString());
+			price=price/YUAN;
+			map.put("salePrice", price);
+		}
+		//地上车位出租价
+		if (map.get("groundParkingLeasePrice")!=null&&!map.get("groundParkingLeasePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("groundParkingLeasePrice").toString());
+			price=price/YUAN;
+			map.put("groundParkingLeasePrice", price);
+		}
+		//地下车位出租价
+		if (map.get("underGroundParkingLeasePrice")!=null&&!map.get("underGroundParkingLeasePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("underGroundParkingLeasePrice").toString());
+			price=price/YUAN;
+			map.put("underGroundParkingLeasePrice", price);
+		}
+		//地上车位出售价
+		if (map.get("groundParkingSalePrice")!=null&&!map.get("groundParkingSalePrice").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("groundParkingSalePrice").toString());
+			price=price/WAN;
+			map.put("groundParkingSalePrice", price);
+		}
+		//地下车位出售价
+		if (map.get("underGroundParkingSalePrice")!=null&&!map.get("underGroundParkingSalePrice").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("underGroundParkingSalePrice").toString());
+			price=price/WAN;
+			map.put("underGroundParkingSalePrice", price);
+		}		
+		//物业费
+		if (map.get("propertyFees")!=null&&!map.get("propertyFees").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("propertyFees").toString());
+			price=price/YUAN;
+			map.put("propertyFees", price);
+		}		
+		return map;
+	}
+
+	@SystemServiceLog(operationType="添加小区")
+	@Override
+	public String addCommunity(String name,String recordName,String pinyin, String areaCode, Long regionId, String address, int price, int isHot) {
+		// TODO Auto-generated method stub
+		long count=communityMapper.countCommunityByName(name,recordName,areaCode);
+		if (count>0) {
+			throw new BusinessException("小区已经存在");
+		}
+		Map<Object, Object> user=UserThreadLocal.get();
+		Map<Object, Object> map=new HashMap<>();
+		map.put("permissionArea", user.get("deptId"));
+		map.put("operatorId", user.get("id"));
+		map.put("name", name);
+		map.put("recordName", recordName);
+		map.put("pinyin", pinyin);
+		map.put("areaCode", areaCode);
+		map.put("regionId", regionId);
+		map.put("address", address);
+		map.put("communityProfile", "");
+		Long id=this.commonSqlServie.commonOperationDatabase(map, "sys_community", false);
+		Map<Object, Object> mapInfo=new HashMap<>();
+		mapInfo.put("communityId", id);
+		mapInfo.put("salePrice", price*YUAN);
+		mapInfo.put("isHot", isHot); 
+		mapInfo.put("permissionArea", user.get("deptId"));
+		mapInfo.put("operatorId", user.get("id"));
+		Long id1=this.commonSqlServie.commonOperationDatabase(mapInfo, "sys_community_second", false);
+		ExecutionResult.descFormat(id.toString(), "添加小区");
+		return "success";
+	}
+
+	@SystemServiceLog(operationType="修改小区信息")
+	@Override
+	public long updateCommunity(Map<Object, Object> map) {
+		ExecutionResult.descFormat(map.get("id").toString(), "小区信息修改");
+		map.remove("estateType");
+		map.remove("residence");
+		//销售均价
+		if (map.get("salePrice")!=null&&!map.get("salePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("salePrice").toString());
+			price=price*YUAN;
+			map.put("salePrice", price);
+		}
+		//地上车位出租价
+		if (map.get("groundParkingLeasePrice")!=null&&!map.get("groundParkingLeasePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("groundParkingLeasePrice").toString());
+			price=price*YUAN;
+			map.put("groundParkingLeasePrice", price);
+		}
+		//地下车位出租价
+		if (map.get("underGroundParkingLeasePrice")!=null&&!map.get("underGroundParkingLeasePrice").toString().equals("")) {
+			Integer price=Integer.parseInt(map.get("underGroundParkingLeasePrice").toString());
+			price=price*YUAN;
+			map.put("underGroundParkingLeasePrice", price);
+		}
+		//地上车位出售价
+		if (map.get("groundParkingSalePrice")!=null&&!map.get("groundParkingSalePrice").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("groundParkingSalePrice").toString());
+			price=price*WAN;
+			map.put("groundParkingSalePrice", price);
+		}
+		//地下车位出售价
+		if (map.get("underGroundParkingSalePrice")!=null&&!map.get("underGroundParkingSalePrice").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("underGroundParkingSalePrice").toString());
+			price=price*WAN;
+			map.put("underGroundParkingSalePrice", price);
+		}		
+		//物业费
+		if (map.get("propertyFees")!=null&&!map.get("propertyFees").toString().equals("")) {
+			Double price=Double.parseDouble(map.get("propertyFees").toString());
+			price=price*YUAN;
+			map.put("propertyFees", price);
+		}
+		Map<Object, Object> param=new HashMap<>();
+		param.put("id", map.get("id"));
+		if (map.get("name")!=null) {
+			param.put("name", map.get("name"));
+			map.remove("name");
+		}
+		if (map.get("recordName")!=null) {
+			param.put("recordName", map.get("recordName"));
+			map.remove("recordName");
+		}
+		if (map.get("pinyin")!=null) {
+			param.put("pinyin", map.get("pinyin"));
+			map.remove("pinyin");
+		}
+		if (map.get("areaCode")!=null) {
+			param.put("areaCode", map.get("areaCode"));
+			map.remove("areaCode");
+		}
+		if (map.get("regionId")!=null) {
+			param.put("regionId", map.get("regionId"));
+			map.remove("regionId");
+		}
+		if (map.get("address")!=null) {
+			param.put("address", map.get("address"));
+			map.remove("address");
+		}
+		if (map.get("longitude")!=null) {
+			param.put("longitude", map.get("longitude"));
+			map.remove("longitude");
+		}
+		if (map.get("latitude")!=null) {
+			param.put("latitude", map.get("latitude"));
+			map.remove("latitude");
+		}
+		if (map.get("floorArea")!=null) {
+			param.put("floorArea", map.get("floorArea"));
+			map.remove("floorArea");
+		}
+		if (map.get("buildingArea")!=null) {
+			param.put("buildingArea", map.get("buildingArea"));
+			map.remove("buildingArea");
+		}
+		if (map.get("buildingCount")!=null) {
+			param.put("buildingCount", map.get("buildingCount"));
+			map.remove("buildingCount");
+		}
+		if (map.get("houseCount")!=null) {
+			param.put("houseCount", map.get("houseCount"));
+			map.remove("houseCount");
+		}
+		if (map.get("propertyLimit")!=null) {
+			param.put("propertyLimit", map.get("propertyLimit"));
+			map.remove("propertyLimit");
+		}
+		if (map.get("capacityRatio")!=null) {
+			param.put("capacityRatio", map.get("capacityRatio"));
+			map.remove("capacityRatio");
+		}
+		if (map.get("greenRate")!=null) {
+			param.put("greenRate", map.get("greenRate"));
+			map.remove("greenRate");
+		}
+		if (map.get("developers")!=null) {
+			param.put("developers", map.get("developers"));
+			map.remove("developers");
+		}
+		if (map.get("communityProfile")!=null) {
+			param.put("communityProfile", map.get("communityProfile"));
+			map.remove("communityProfile");
+		}
+		Map<Object, Object> user=UserThreadLocal.get();
+		List<Map<String, Object>> paramList=new ArrayList<>();
+		if (map.get("buildTypeId")!=null&&!map.get("buildTypeId").toString().equals("")) {
+			String[] bids=map.get("buildTypeId").toString().split(",");
+			String[] bnames=map.get("buildTypeName").toString().split(",");
+			for (int i = 0; i < bids.length; i++) {
+				Map<String, Object> item=new HashMap<>();
+				item.put("communityId", map.get("id"));
+				item.put("type", 2);
+				item.put("code", bids[i]);
+				item.put("name", bnames[i]);
+				item.put("permissionArea", user.get("deptId"));
+				item.put("operatorId", user.get("id"));
+				paramList.add(item);
+			}
+			map.remove("buildTypeId");
+			map.remove("buildTypeName");
+		}
+		if (map.get("houseTypeId")!=null&&!map.get("houseTypeId").toString().equals("")) {
+			String[] ids=map.get("houseTypeId").toString().split(",");
+			String[] names=map.get("houseTypeName").toString().split(",");
+			for (int i = 0; i < ids.length; i++) {
+				Map<String, Object> item=new HashMap<>();
+				item.put("communityId", map.get("id"));
+				item.put("type", 1);
+				item.put("code", ids[i]);
+				item.put("name", names[i]);
+				item.put("permissionArea", user.get("deptId"));
+				item.put("operatorId", user.get("id"));
+				paramList.add(item);
+			}
+			map.remove("houseTypeId");
+			map.remove("houseTypeName");
+		}
+		if (map.get("houseUseId")!=null&&!map.get("houseUseId").toString().equals("")) {
+			String[] ids=map.get("houseUseId").toString().split(",");
+			String[] names=map.get("houseUseName").toString().split(",");
+			for (int i = 0; i < ids.length; i++) {
+				Map<String, Object> item=new HashMap<>();
+				item.put("communityId", map.get("id"));
+				item.put("type", 0);
+				item.put("code", ids[i]);
+				item.put("name", names[i]);
+				item.put("permissionArea", user.get("deptId"));
+				item.put("operatorId", user.get("id"));
+				paramList.add(item);
+			}
+			map.remove("houseUseId");
+			map.remove("houseUseName");
+		}
+		map.put("communityId", map.get("id"));
+		map.remove("id");
+		Long result=0l;
+		result+=this.commonSqlServie.commonOperationDatabase(param, "sys_community", "id",false);
+		result+=this.commonSqlServie.commonOperationDatabase(map, "sys_community_second", "communityId",false);
+		if (paramList.size()>0) {
+			commonSqlServie.delData("sys_community_property", "communityId", param.get("id").toString(), false);
+			commonSqlServie.batchCommonOperationDatabase(paramList, "sys_community_property", false);
+		}		
+		return result;
+	}
+
+	@SystemServiceLog(operationType="查询行政区域下拉")
+	@Override
+	public List<Map<String, Object>> queryAreaSelect() {
+		ExecutionResult.descFormat("", "查询行政区域下拉");
+		return communityMapper.queryAreaList();
+	}
+	@SystemServiceLog(operationType="根据行政区域查询片区下拉")
+	@Override
+	public List<Map<String, Object>> queryRegionSelect(String code){
+		List<Map<String, Object>>  list=communityMapper.queryRegionsByArea(code);
+		ExecutionResult.descFormat(code, "根据行政区域查询片区下拉");
+		return list;
+	}
+	@SystemServiceLog(operationType="上传图片")
+	@Override
+	public Long uploadImage(Long communityId, MultipartFile  imageFile) throws Exception {
+		/*ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte[] b = new byte[1024];
+		int i = 0;
+		InputStream imageStream=imageFile.getInputStream();
+		while((i = imageStream.read(b)) != -1){
+			baos.write(b, 0, i);
+		}
+		byte[] image = baos.toByteArray();*/
+		String  filepath = FtpUtil.uploadFile(imageFile,1,true);
+		UUID uuid = UUID.randomUUID();
+		String code=uuid.toString().replaceAll("-", "");
+		Map<Object, Object> map=new HashMap<>();
+		map.put("code", code);
+		//map.put("image", image);
+		map.put("url", filepath);
+		map.put("communityId", communityId);
+		map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		map.put("operatorId", UserThreadLocal.get().get("id"));
+		Long result=this.commonSqlServie.commonOperationDatabase(map, "sys_communityImage",false);
+		ExecutionResult.descFormat(code, "上传图片");
+		return result;
+	}
+	@SystemServiceLog(operationType="查询小区图片编号列表")
+	@Override
+	public List<Map<String, Object>> queryImageList(Long communityId) {
+		List<Map<String, Object>> result=communityMapper.queryImagesByCommunity(communityId);
+		ExecutionResult.descFormat(communityId.toString(), "查询小区图片编号列表");
+		return result;
+	}
+	@SystemServiceLog(operationType="获取图片流")
+	@Override
+	public byte[] queryImageBycode(String code) {
+		Map<String, Object> result=communityMapper.queryImageBycode(code);
+		if (result!=null) {
+			ExecutionResult.descFormat(code, "显示小区图片");
+			return (byte[]) result.get("image");
+		}
+		return null;
+	}
+	@SystemServiceLog(operationType="删除图片")
+	@Override
+	public boolean deleteImage(String code) {
+		communityMapper.deleteImage(code);
+		ExecutionResult.descFormat(code, "删除小区图片");
+		return true;
+	}
+
+	@Override
+	public boolean delete(Long id) {
+		commonSqlServie.delData("sys_community", "id", id.toString(), false);
+		return true;
+	}
+}

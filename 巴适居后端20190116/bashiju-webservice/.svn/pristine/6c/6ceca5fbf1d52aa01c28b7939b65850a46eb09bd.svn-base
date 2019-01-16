@@ -1,0 +1,63 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerConcernedPageServiceApiImpl.java   
+ * @Package com.bashiju.www.service.api.impl.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:45:38   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.api.impl.usercentral;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi;
+import com.bashiju.www.service.user.ICustomerConcernedHouseService;
+import com.github.pagehelper.Page;
+
+/**
+ * （简单描述）
+ * @ClassName:CustomerConcernedPageServiceApiImpl
+ * @Description:（详细描述）
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:45:38
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerConcernedPageServiceApiImpl extends CustomerPersonalCentralBaseServiceApi
+		implements ICustomerConcernedPageServiceApi {
+	/**
+	 * 个人中心服务接口
+	 */
+	@Autowired
+	private ICustomerConcernedHouseService mICustomerConcernedHouseService;
+	/**   
+	 * <p>Title: queryMyConcernedListPage</p>   
+	 * <p>Description: </p>   
+	 * @param key
+	 * @return   
+	 * @see com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi#queryMyConcernedListPage(java.lang.String)   
+	 */
+
+	@Override
+	public Page<?> queryMyConcernedListPage(String key,String houseType,int page,int limit) {
+		String custId = getUserIdByRedisKey(key);
+		return mICustomerConcernedHouseService.queryAllConcernedHouseList(custId, houseType, page, limit);
+	}
+	/**
+	 * <p>Title: cancelConcernedHouse</p>   
+	 * <p>Description:取消房源关注 </p>  
+	 * @param key 用户登陆标记
+	 * @param sourceId 房源、小区或其他关注对象的ID
+	 * @param houseType 房源类型（1：新房、2：二手房、3：租房、4：小区） 
+	 * @see com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi#cancelConcernedHouse(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void cancelConcernedHouse(String key, String sourceId, String houseType) {
+		String custId = getUserIdByRedisKey(key);
+		mICustomerConcernedHouseService.cancelConcernedHouse(custId, sourceId, houseType);
+	}
+}

@@ -1,0 +1,62 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerStarCommentsEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 上午10:54:00   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 客户对经纪人的星级评价实体类
+ * @ClassName:CustomerStarCommentsEntity
+ * @Description:客户对经纪人的星级评价实体类
+ * @author:zuoyuntao
+ * @date:2018年7月26日 上午10:54:00
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerStarCommentsEntity {
+	/**经纪人ID**/
+	private String userId;
+	/**经纪人详情编号**/
+	private String agentId;
+	/**星级**/
+	private String star;
+	/**客户ID**/
+	private String custId;
+	/**客户名称**/
+	private String custName;
+	/**评价标签ID**/
+	private String labelIds;
+	/**评价标签**/
+	private String labels;
+	/**评价二级标签ID**/
+	private String secondLabelIds;
+	/**评价二级标签**/
+	private String secondLabels;
+	/**审核状态**/
+	private String examineStatus;
+	/**审核人ID**/
+	private String auditorId;
+	/**审核人**/
+	private String auditor;
+	/**审核时间**/
+	private String auditTime;
+	/**驳回原因**/
+	private String reason;
+	/**是否可用**/
+	private String isValid;
+	/**评价内容**/
+	private String content;
+	
+	public CustomerStarCommentsEntity() {
+		super();
+	}
+}

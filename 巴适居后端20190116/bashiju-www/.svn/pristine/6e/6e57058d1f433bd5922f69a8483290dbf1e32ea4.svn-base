@@ -1,0 +1,60 @@
+package com.bashiju.www.pojo.service.input.house;
+/**
+ * 
+ *   房源查询基础参数
+ * @ClassName:  HouseParam   
+ * @Description: 房源查询基础参数
+ * @author: wangkaifa
+ * @date:   2018年7月24日 下午1:58:47       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.HouseSortEnum;
+import com.bashiju.www.pojo.service.out.comm.RangeResult;
+
+import lombok.Data;
+@Data
+public class HouseBaseParam {
+	/**城市代码**/
+	protected String cityCode;
+	/**交易类型1:二手房,2:租房**/
+	protected Integer transactionTypeId;
+	/**出售价格单位万元**/
+	protected List<RangeResult> sellPrices;
+	/**出租价格单位元**/
+	protected List<RangeResult> rentPrices;
+	/**最低价格单位分**/
+	protected Integer minPrice;
+	/**最高价格单位分**/
+	protected Integer maxPrice;
+	/**面积单位平米**/
+	protected List<RangeResult> spaces;
+	/**最小面积单位平米**/
+	protected Integer minSpace;
+	/**最大面积单位平米**/
+	protected Integer maxSpace;
+	/**房间数**/
+	protected List<Integer> rooms;
+	/**几室**/
+	protected Integer room;
+	/**几厅**/
+	protected Integer hall;
+	/**几卫**/
+	protected Integer toilet;
+	/**楼层id**/
+	protected Long houseTypeId;
+	/**朝向id**/
+	protected Long orientationId;
+	/**装修id**/
+	protected Long decorationId;
+	/**楼龄**/
+	protected String buildYears;
+	/**房源用途编号**/
+	protected String houseUse;
+	/**排序**/
+	private HouseSortEnum sort;
+	
+}

@@ -1,0 +1,35 @@
+package com.bashiju.ext.service.mq;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.ext.mapper.LogOperateMapper;
+
+@Service
+public class ReportOperationConsumerMq {
+	Logger logger=LoggerFactory.getLogger(this.getClass());
+	@Autowired
+	LogOperateMapper logOperateMapper;
+	
+	public void addReportOperationData(HashMap map) {		
+		try {
+			if (map.get("addTime")==null||"".equals(map.get("addTime"))) {
+				map.put("addTime", new Date());
+				map.put("updateTime", new Date());
+			}
+			Map<String,Object> paramMap=new HashMap<>();
+			paramMap.put("tableName", "report_operation_analysis");
+			paramMap.put("fields", map);
+			paramMap.put("id", "");
+			logOperateMapper.commonAdd(paramMap);
+		} catch (Exception e) {
+			logger.error("【综合运营分析报表】消息队列日志【添加到数据表report_operation_analysis】出错,值是{}，原因是：{}",map,e.getMessage());
+		}
+	}
+}

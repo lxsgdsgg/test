@@ -1,0 +1,235 @@
+package com.bashiju.www.service.api.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.enums.BottomContentEnum;
+import com.bashiju.enums.HouseArticleTypeEnum;
+import com.bashiju.enums.pc.ConditionTypeEnum;
+import com.bashiju.wapi.IHomePageServiceApi;
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.comm.ContactUsResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.comm.NavigationBar;
+import com.bashiju.www.pojo.service.out.comm.OpenCity;
+import com.bashiju.www.pojo.service.out.comm.ThemeResult;
+import com.bashiju.www.pojo.service.out.comm.WebMapList;
+import com.bashiju.www.pojo.service.out.comm.WebProtocolResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.GoodNewHouseListResult;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerInsertBingdingParam;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+import com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingParam;
+import com.bashiju.www.service.article.IArticleService;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.community.CommunityService;
+import com.bashiju.www.service.house.IHouseService;
+import com.bashiju.www.service.navigationbar.NavigationBarService;
+import com.bashiju.www.service.newhouse.INewHouseService;
+import com.bashiju.www.service.user.CustCustomerService;
+import com.bashiju.www.service.user.UserRegisterService;
+/**
+ * 
+ *  首页接口实现
+ * @ClassName:  HomePageServiceImpl   
+ * @Description:   首页接口实现
+ * @author: wangkaifa
+ * @date:   2018年7月31日 下午1:29:49       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class HomePageServiceApiImpl implements IHomePageServiceApi {
+	@Autowired
+	private IArticleService articleService;
+	@Autowired
+	private IHouseService houseService;
+	@Autowired
+	NavigationBarService navigationBarService;
+	@Autowired
+	UserRegisterService userRegisterService;
+	@Autowired
+	CommunityService communityService;
+	@Autowired
+	ICommService commService;
+	@Autowired
+	CustCustomerService custCustomerService;
+	@Autowired
+	INewHouseService newHouseService;
+	
+	@Override
+	public HouseTotalResult queryHouseTotalByCityCode(String cityCode) {
+		HouseTotalResult result=houseService.queryHouseTotalByCityCode(cityCode);
+		return result;
+	}
+
+	@Override
+	public List<ArticleListResult> queryNewZiXunList(String cityCode, int limit) {
+		List<ArticleListResult> results=articleService.queryArticleList(cityCode, HouseArticleTypeEnum.PROPERTYINFORMATION.getCode(), limit);
+		return results;
+	}
+
+	/*@Override
+	public List<GoodHouseListResult> querySellGoodHouse(String cityCode) {
+		List<GoodHouseListResult> results=houseService.querySellGoodHouse(cityCode);
+		return results;
+	}*/
+
+	@Override
+	public List<GoodHouseListResult> queryRentGoodHouse(String cityCode) {
+		List<GoodHouseListResult> results=houseService.queryRentGoodHouse(cityCode);
+		return results;
+	}
+
+	@Override
+	public List<NavigationBar> queryHeadNavigationBar(String cityCode) {
+		List<NavigationBar> results=navigationBarService.queryHeadNavigationBar(cityCode);
+		return results;
+	}
+
+	@Override
+	public List<NavigationBar> queryLinkedNavigationBar(String cityCode) {
+		List<NavigationBar> results=navigationBarService.queryLinkedNavigationBar(cityCode);
+		return results;
+	}
+
+	/**
+	 * 首页查询城市下的热门小区   (返回最热门的3条房产资讯)
+	 * @Description: 查询城市下的热门小区   (返回最热门的3条房产资讯)
+	 * @param cityCode 城市代码
+	 * @return: List<Community>
+	 */
+	@Override
+	public List<Community> queryHotCommunitys(String cityCode) {
+		int size = 3;
+		return communityService.queryFirstPageHotCommunitys(cityCode, size);
+	}
+
+	@Override
+	public boolean saveCustCustomer(CustCustomerParam CustCustomerParam) {
+		boolean result=custCustomerService.saveCustCustomer(CustCustomerParam);
+		return result;
+	}
+
+	@Override
+	public List<OpenCity> queryOpenCitys() {
+		List<OpenCity> results=navigationBarService.queryOpenCitys();
+		return results;
+	}
+
+	@Override
+	public WebProtocolResult queryArticle(Integer type) {
+		if (type==null) {
+			return null;
+		}
+		BottomContentEnum bottomContentEnum=BottomContentEnum.parseOf(type.toString());
+		WebProtocolResult result=commService.queryWebProtocol(bottomContentEnum);
+		return result;
+	}
+
+	@Override
+	public List<ContactUsResult> queryContactUs() {
+		List<ContactUsResult> results=commService.queryContactUs();
+		return results;
+	}
+
+
+	@Override
+	public String sendMobileMsgVerfyCode(String mobile) {
+		String result =  custCustomerService.sendMobileMsgVerfyCode(mobile);
+		return result;
+	}
+	@Override
+	public String userLogin(String mobile, String password) {
+		return custCustomerService.customerLogin(mobile, password);
+	}
+
+	
+	@Override
+	public boolean userLoginout(String redisKey) {
+		boolean result = custCustomerService.customerLoginout(redisKey);
+		return result;
+	}
+
+	@Override
+	public String mobileLogin(String mobile, String msgCode) {
+		String result = custCustomerService.customerMobileLogin(mobile, msgCode);
+		return result;
+	}
+	
+	@Override
+	public boolean updateUserInfo(CustCustomerEntity custCustomerEntity) {
+		boolean result = custCustomerService.updateCustCustomer(custCustomerEntity);
+		return result;
+	}
+	
+	
+	@Override
+	public boolean checkMobileIsExist(String mobile) {
+		boolean result = custCustomerService.queryIsExistMobile(mobile);
+		return result;
+	}
+
+	@Override
+	public List<ThemeResult> querySellHouseThemes(String cityCode) {
+		List<ThemeResult> results=commService.queryThemes(cityCode, ConditionTypeEnum.SELLHOUSE);
+		return results;
+	}
+
+	@Override
+	public List<GoodNewHouseListResult> queryGoodProjects(String cityCode, int limit) {
+		List<GoodNewHouseListResult> results= newHouseService.queryGoodProjects(cityCode, limit);
+		return results;
+	}
+
+	
+	@Override
+	public boolean updateCustomerPwdByMobile(String mobile, String password) {
+		boolean result = custCustomerService.updateCustomerPwdByMobile(mobile, password);
+		return result;
+	}
+
+	
+	@Override
+	public boolean mobileMsgCheck(String mobile, String msgCode) {
+		boolean result = custCustomerService.mobileMsgCheck(mobile, msgCode);
+		return result;
+	}
+
+	@Override
+	public List<WebMapList> queryWebMap(String cityCode) {
+		List<WebMapList> results=commService.queryWebMap(cityCode);
+		return results;
+	}
+
+	
+	
+	@Override
+	public Map<String,Object> thirdPartyBing(CustCustomerInsertBingdingParam custCustomerInsertBingdingParam) {
+		Map<String,Object> map = custCustomerService.bindingThirdparty(custCustomerInsertBingdingParam);
+		return map;
+	}
+	
+	
+	@Override
+	public String updateBingding(CustCustomerUpdateBingdingParam custCustomerUpdateBingdingParam) {
+		String result = custCustomerService.updateBingding(custCustomerUpdateBingdingParam);
+		return result;
+	}
+
+
+	
+	@Override
+	public String thirdPartyLogin(String code,String numType) {
+		String result = custCustomerService.thirdPartyLogin(code, numType);
+		return result;
+	}
+
+
+
+}

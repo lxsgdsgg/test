@@ -1,0 +1,180 @@
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.CustCustomer;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerInsertBingdingParam;
+import com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingEntity;
+
+public interface CustCustomerMapper {
+	public List<CustCustomer> queryAllCustomer();
+	public Long saveCustomer(CustCustomer custCustomer);
+	
+	
+	/**
+	 * 查询手机号码是否已存在  
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否已存在  
+	 * @param mobile 手机号码
+	 * @return: long
+	 */
+    public long queryIsExistMobile(@Param("mobile")String mobile);
+    
+    /****
+     * 保存用户信息
+     * @Title: saveCustCustomer   
+     * @Description: 保存用户信息   
+     * @param custCustomerParam 用户注册时输入信息
+     * @return: long
+     */
+    public int  saveCustCustomer(CustCustomerEntity custCustomerEntity);
+    
+    /**
+     * 条件验证手机号码
+     * @Title: userMobileCheck   
+     * @Description:条件验证手机号码
+     * @param mobile 手机号码
+     * @param msgCode 短信验证码
+     * @return: boolean
+     */
+    public long userMobileCheck(@Param("mobile")String mobile,@Param("msgCode")String msgCode);
+    
+    /**
+     * 修改用户信息
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param paramMap 要修改的参数
+     * @return: long
+     */
+    public long updateCustCustomer(CustCustomerEntity custCustomerEntity );
+    
+    /**
+     *  用户登录   
+     * @Title: customerLogin   
+     * @Description: 用户登录   
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: long
+     */
+    public Map<String,Object> customerLogin(@Param("mobile")String mobile,@Param("password")String password);
+    
+    /**
+     *  短信登录   
+     * @Title: customerMobileLogin   
+     * @Description: 短信登录   
+     * @param mobile 手机号码
+     * @return: Map<String,String>
+     */
+    public Map<String,Object> customerMobileLogin(@Param("mobile")String mobile);
+	
+    
+    /**
+     * 通过手机号码修改用户密码
+     * @Title: updateCustomerPwdByMobile   
+     * @Description: 通过手机号码修改用户密码
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: long
+     */
+    public long updateCustomerPwdByMobile(@Param("mobile")String mobile,@Param("password")String password);
+    
+    /**
+     * 绑定微信
+     * @Title: bindingWeChat   
+     * @Description:绑定微信     
+     * @param custId 绑定的客户编号
+     * @param code 第三方账号
+     * @param name 第三方账号名称
+     * @param profilePhoto 第三方头像
+     * @return: long
+     */
+    public long bindingThirdparty(CustCustomerInsertBingdingParam custCustomerInsertBingdingParam);
+//    /**
+//     * 绑定QQ
+//     * @Title: bindingWeChat   
+//     * @Description:绑定QQ     
+//     * @param custId 绑定的客户编号
+//     * @param code 第三方账号
+//     * @param name 第三方账号名称
+//     * @param profilePhoto 第三方头像
+//     * @return: long
+//     */
+//    public long bindingQQ(@Param("code") String code,@Param("name")String name,@Param("custId")String custId,@Param("profilePhoto")String profilePhoto);
+//    
+    /**
+     * 查询是否绑定第三方
+     * @Title: queryIsBingding   
+     * @Description: 查询是否绑定第三方
+     * @param custId 绑定用户id
+     * @return: long
+     */
+    public long queryIsBingding(@Param("code")String code,@Param("numType")String numType);
+    
+    /**
+     * 
+     * @Title: updateBingdingInfo   
+     * @Description: 修改第三方绑定信息
+     * @param custCustomerUpdateBingdingParam
+     * @return: long
+     */
+    public long updateBingdingInfo(CustCustomerUpdateBingdingEntity CustCustomerUpdateBingdingEntity);
+//    /**
+//     * 微信登录
+//     * @Title: weChatLogin   
+//     * @Description: 微信登录
+//     * @param wxNumber 微信号
+//     * @return: Map<String,Object>
+//     */
+//    public Map<String,Object> weChatLogin(@Param("wxNumber")String wxNumber);
+//    
+//    /**
+//     * qq登录
+//     * @Title: qqLogin   
+//     * @Description: qq登录
+//     * @param qqNumber qq号码
+//     * @return: Map<String,Object>
+//     */
+//    public Map<String,Object> qqLogin(@Param("qqNumber")String qqNumber);
+    	
+      /**
+       * 第三方账号登录   
+       * @Title: thirdPartyLogin   
+       * @Description:第三方账号登录   
+       * @param code 账号
+       * @param numType 类型
+       * @return: Map<String,Object>
+       */
+	  public Map<String,Object> thirdPartyLogin(@Param("code")String code,@Param("numType")String numType);
+    
+    
+    /**
+     * 查询用户信息
+     * @Title: queryCustomerInfo   
+     * @Description:查询用户信息
+     * @param mobile 电话号码
+     * @return: Map<String,Object>
+     */
+    public Map<String,Object> queryCustomerInfo(@Param("mobile")String mobile);
+    
+    /**
+     * 添加头像和名称   
+     * @Title: saveNameAndProfilePhoto   
+     * @Description:添加头像和名称   
+     * @param custCustomerInsertBingdingParam
+     * @return: long
+     */
+    public long  saveNameAndProfilePhoto(CustCustomerInsertBingdingParam custCustomerInsertBingdingParam);
+    
+    /**
+     * 查詢第三方用户信息
+     * @Title: queryCustomerThirdInfo   
+     * @Description: 查詢第三方用户信息
+     * @param id 第三方账号id
+     * @return: Map<String,Object>
+     */
+    public Map<String,Object> queryCustomerThirdInfo(@Param("id")String id);
+}

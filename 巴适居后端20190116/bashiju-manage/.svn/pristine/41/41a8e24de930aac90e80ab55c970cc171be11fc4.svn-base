@@ -1,0 +1,73 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.ResHouseReturnCycleMapper;
+import com.bashiju.manage.service.ResHouseReturnCycleService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+
+/**
+ * 
+ * @ClassName:  ResHouseReturnCycleServiceImpl   
+ * @Description:房源回访周期服务   
+ * @author: wangpeng
+ * @date:   2018年5月28日 上午10:01:26   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房源回访周期服务")
+public class ResHouseReturnCycleServiceImpl extends CommonSqlServie implements ResHouseReturnCycleService {
+	@Autowired
+	private ResHouseReturnCycleMapper  resHouseReturnCycleMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryResHouseReturnCycleData</p>   
+	 * <p>Description: 查询房源回访周期</p>   
+	 * @return   
+	 * @see com.bashiju.manage.service.ResHouseReturnCycleService#queryResHouseReturnCycleData()
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询回访周期")
+	public List<Map<String, Object>> queryResHouseReturnCycleData() {
+		String companyId=(String) UserThreadLocal.get().get("companyId");
+		if(StringUtils.isEmpty(companyId))
+			return null;
+		dataAuthHelper.auth(MenusEnum.MENU_145.getCode(),UserThreadLocal.get().get("id").toString());
+		List<Map<String,Object>> map= resHouseReturnCycleMapper.queryResHouseReturnCycleData(companyId);
+		return  map;
+	}
+	/**
+	 * 
+	 * <p>Title: saveOrUpdateResHouseReturnCycle</p>   
+	 * <p>Description: 批量修改房源回访周期</p>   
+	 * @param map
+	 * @return   
+	 * @see com.bashiju.manage.service.ResHouseReturnCycleService#saveOrUpdateResHouseReturnCycle(java.util.Map)
+	 */
+	@SystemServiceLog(operationType="批量修改房源周期")
+	public boolean saveOrUpdateResHouseReturnCycle(List<Map<String, Object>> map) {
+		boolean result = this.batchCommonOperationDatabase(map, "res_house_return_cycle", "id", false);
+		if(result) {
+			ExecutionResult.descFormat(map.get(0).get("id").toString(),"批量更新房源回访周期");
+			return true;
+		}else
+			return false;
+	}
+	
+}

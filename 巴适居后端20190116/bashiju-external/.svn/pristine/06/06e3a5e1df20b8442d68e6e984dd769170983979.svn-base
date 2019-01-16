@@ -1,0 +1,162 @@
+package com.bashiju.ext.service.mq;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.ext.mapper.LogOperateMapper;
+import com.bashiju.utils.pojo.BusinessLogModel;
+
+
+@Service
+public class LogDealConsumerMq {
+	@Autowired
+	LogOperateMapper logOperateMapper;
+	Logger logger=LoggerFactory.getLogger(this.getClass());
+	
+	public void auxAddLog(BusinessLogModel businessLogModel) {
+		String jsonString=null;
+		try {
+			jsonString=JSON.toJSONString(businessLogModel);
+			Map<Object, Object> map=JSON.parseObject(jsonString,Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				map.put("addTime", new Date());
+				map.put("updateTime", new Date());
+				map.put("isValid",1);
+				insertData(map);
+		} catch (Exception e) {
+			logger.error("【成交】消息队列添加【新增操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+
+		}
+	}
+
+	public void auxUpdateLog(BusinessLogModel businessLogModel) {
+		
+		String jsonString=null;
+		try {
+			jsonString=JSON.toJSONString(businessLogModel);
+			Map<Object, Object> map=JSON.parseObject(JSON.toJSONString(businessLogModel),Map.class);
+				Map originalData=(Map) map.get("originalData");
+				Map newData=(Map) map.get("newData");
+				Map labelData=(Map) map.get("labelData");
+				Set<String> keys=labelData.keySet();
+				if (keys!=null&&keys.size()>0) {
+					StringBuffer log=new StringBuffer();
+					for (String key : keys) {
+						if (originalData.get(key)==null) {
+							originalData.put(key, "");
+						}
+						if (newData.get(key)==null) {
+							newData.put(key, "");
+						}
+						if (!originalData.get(key).toString().trim().equals(newData.get(key).toString().trim())) {
+							Map label = (Map) labelData.get(key);
+							if (label.get("label")!=null&&!"".equals(label.get("label"))) {
+								log.append(label.get("label")+":");
+								log.append(originalData.get(key).toString());
+								log.append("->");
+								log.append(newData.get(key)==null?"":newData.get(key).toString());
+								log.append(";");
+							}
+						}
+						
+					}
+					map.remove("originalData");
+					map.remove("newData");
+					map.remove("labelData");
+					map.put("permissionArea", businessLogModel.getDepartmentId());
+					map.put("addTime", new Date());
+					map.put("updateTime", new Date());
+					map.put("isValid",1);
+					map.put("logContent", log.toString());
+					insertData(map);
+				}		
+				
+		} catch (Exception e) {
+			logger.error("【成交】消息队列添加【更新操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+
+		}
+	}
+	
+	public void auxDeleteLog(BusinessLogModel businessLogModel) {
+		
+		String jsonString=null;
+		try {
+			jsonString=JSON.toJSONString(businessLogModel);
+			Map<Object, Object> map=JSON.parseObject(JSON.toJSONString(businessLogModel),Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				map.put("addTime", new Date());
+				map.put("updateTime", new Date());
+				map.put("isValid",1);
+				insertData(map);
+		} catch (Exception e) {
+			logger.error("【成交】消息队列添加【删除操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+
+		}
+	}
+	
+	public void auxQueryLog(BusinessLogModel businessLogModel) {
+		
+		String jsonString=null;
+		try {
+			jsonString=JSON.toJSONString(businessLogModel);
+			Map<Object, Object> map=JSON.parseObject(JSON.toJSONString(businessLogModel),Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				map.put("addTime", new Date());
+				map.put("updateTime", new Date());
+				map.put("isValid",1);
+				insertData(map);
+		} catch (Exception e) {
+			logger.error("【成交】消息队列添加【查询操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+
+		}
+	}
+	/**
+	 * 插入数据库
+	 */
+	private void insertData(Map<Object, Object> map) {
+		Map<Object, Object> paramMap=new HashMap<>();
+		paramMap.put("tableName", "sys_business_log");
+		paramMap.put("fields", map);
+		paramMap.put("id", "");
+		try {
+			logOperateMapper.commonAdd(paramMap);
+		} catch (Exception e) {
+			logger.error("【成交】消息队列日志【添加到数据库】出错,值是{}，原因是：{}",map,e.getMessage());
+		}
+	}
+}

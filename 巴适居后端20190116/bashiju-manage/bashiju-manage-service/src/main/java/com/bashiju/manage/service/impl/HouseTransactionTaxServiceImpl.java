@@ -1,0 +1,155 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.enums.HouseDeedTaxEnum;
+import com.bashiju.manage.mapper.HouseTransactionTaxMapper;
+import com.bashiju.manage.service.IHouseTransactionTaxService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 
+ *   首付房屋类型接口
+ * @ClassName:  HouseTransactionTaxServiceImpl   
+ * @Description:  首付房屋类型接口
+ * @author: wangkaifa
+ * @date:   2018年12月28日 上午11:45:20       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class HouseTransactionTaxServiceImpl implements IHouseTransactionTaxService {
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	@Autowired
+	private HouseTransactionTaxMapper houseTransactionTaxMapper;
+	
+	@Override
+	public Page<Map<String, Object>> queryHousePropertyListByCity(String cityCode, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> result=houseTransactionTaxMapper.queryHousePropertyListByCity(cityCode);
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> queryDeedTaxs(Integer housePropertyId) {
+		List<Map<String, Object>> list= houseTransactionTaxMapper.queryDeedTaxs(housePropertyId);
+		Map<String, Object> result=new HashMap<>();
+		if (list!=null&&list.size()>0) {
+			for (Map<String, Object> map : list) {
+				result.put(map.get("code").toString(), map.get("taxRate"));
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public Integer addHouseProperty(Map<String, Object> houseProperty) {
+		Map<String,Object> param=new HashMap<>();
+		param.put("name", houseProperty.get("name"));
+		param.put("cityCode", houseProperty.get("cityCode"));
+		Integer isHouse=houseProperty.get("isHouse")==null?0:Integer.parseInt(houseProperty.get("isHouse").toString());
+		param.put("isHouse", isHouse);
+		Double addedValueTax=Double.parseDouble(houseProperty.get("addedValueTax").toString())*100;
+		param.put("addedValueTax", addedValueTax.intValue());
+		Double incomeTax=Double.parseDouble(houseProperty.get("incomeTax").toString())*100;
+		param.put("incomeTax", incomeTax.intValue());
+		Double landTtransferTax=Double.parseDouble(houseProperty.get("landTtransferTax").toString())*100;
+		param.put("landTtransferTax", landTtransferTax.intValue());
+		if (isHouse==0) {
+			Double deedTax=Double.parseDouble(houseProperty.get("deedTax").toString())*100;
+			param.put("deedTax", deedTax.intValue());
+		}else {
+			param.put("deedTax", 0);
+		}
+		Map user=UserThreadLocal.get();
+		param.put("permissionArea", user.get("deptId"));
+		param.put("operatorId", user.get("id"));
+		Long id=commonSqlServie.commonOperationDatabase(param, "cust_calculator_houseProperty", false);
+		if (isHouse==0) {
+			String columns="code,housePropertyId,isTwoYear,isFirst,isTwo,isThree,isLimitAreaAbove,taxRate,permissionArea,operatorId";
+			List<String> fields=new ArrayList<>();
+			for(Map<String , Object> item :HouseDeedTaxEnum.enumList) {
+				String code=item.get("value").toString();
+				StringBuffer sb=new StringBuffer();
+				sb.append("'").append(code).append("',");
+				sb.append(id).append(",");
+				sb.append(item.get("isTwoYear")).append(",");
+				sb.append(item.get("isFirst")).append(",");
+				sb.append(item.get("isTwo")).append(",");
+				sb.append(item.get("isThree")).append(",");
+				sb.append(item.get("isLimitAreaAbove")).append(",");
+				Double taxRate= Double.parseDouble(houseProperty.get(code).toString())*100;
+				sb.append(taxRate.intValue()).append(",'");
+				sb.append(user.get("deptId")).append("',");
+				sb.append(user.get("id"));
+				fields.add(sb.toString());
+			}
+			if (fields.size()>0) {
+				commonSqlServie.batchAdd(columns, "", fields, false);
+			}
+		}
+		return id.intValue();
+	}
+
+	@Override
+	public Integer updateHouseProperty(Map<String, Object> houseProperty) {
+		if (houseProperty.get("id")!=null&&!"".equals(houseProperty.get("id").toString())) {
+			Map<String,Object> param=new HashMap<>();
+			param.put("id", houseProperty.get("id"));
+			if (houseProperty.get("name")!=null&&!houseProperty.get("name").toString().equals("")) {
+				param.put("name", houseProperty.get("name"));
+			}
+			if (houseProperty.get("addedValueTax")!=null&&!houseProperty.get("addedValueTax").toString().equals("")) {
+				Double addedValueTax=Double.parseDouble(houseProperty.get("addedValueTax").toString())*100;
+				param.put("addedValueTax", addedValueTax.intValue());
+			}
+			if (houseProperty.get("incomeTax")!=null&&!houseProperty.get("incomeTax").toString().equals("")) {
+				Double incomeTax=Double.parseDouble(houseProperty.get("incomeTax").toString())*100;
+				param.put("incomeTax", incomeTax.intValue());
+			}
+			if (houseProperty.get("landTtransferTax")!=null&&!houseProperty.get("landTtransferTax").toString().equals("")) {
+				Double landTtransferTax=Double.parseDouble(houseProperty.get("landTtransferTax").toString())*100;
+				param.put("landTtransferTax", landTtransferTax.intValue());
+			}
+			if (houseProperty.get("deedTax")!=null&&!houseProperty.get("deedTax").toString().equals("")) {
+				Double deedTax=Double.parseDouble(houseProperty.get("deedTax").toString())*100;
+				param.put("deedTax", deedTax.intValue());
+			}
+			Long result=commonSqlServie.commonOperationDatabase(param, "cust_calculator_houseProperty","id", false);
+			List<Map<String, Object>> fields=new ArrayList<>();
+			for(Map<String , Object> item :HouseDeedTaxEnum.enumList) {
+				Map<String, Object> map=new HashMap<>();
+				map.put("housePropertyId", houseProperty.get("id"));
+				String code=item.get("value").toString();
+				map.put("code", code);
+				Double taxRate= Double.parseDouble(houseProperty.get(code).toString())*100;
+				map.put("taxRate", taxRate);
+				fields.add(map);
+			}
+			if (fields.size()>0) {
+				commonSqlServie.batchCommonOperationDatabase(fields,"cust_calculator_houseProperty_deedTax","housePropertyId,code",false);
+			}
+			return result.intValue();
+		}
+		throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+	}
+
+	@Override
+	public boolean deleteHouseProperty(Integer id) {
+		boolean result=commonSqlServie.delData("cust_calculator_houseProperty", "id", id.toString(), false);
+		return result;
+	}
+
+}

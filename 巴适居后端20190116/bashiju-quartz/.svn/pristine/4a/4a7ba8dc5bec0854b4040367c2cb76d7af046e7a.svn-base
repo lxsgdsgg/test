@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.AgentCommunityDealCountMapper">
+
+	<!--经纪人小区成交记录统计-->
+	<insert id="updateAgentCommunityDealCount" parameterType="string">
+		delete a from sys_agent_community_cnt a 
+		left join (
+		select a.traderId userId,b.id agentId,a.communityId,a.communityName,a.areaName,a.regionName
+		,count(case when a.dealType='01' then a.dealType end) saleDealCnt
+		,count(case when a.dealType='00' then a.dealType end)  rentDealCnt 
+		from deal_transactionInfo a 
+		left join sys_agent_details b on a.traderId = b.userId
+		where a.cityCode=#{cityCode}
+		group by a.communityId,a.traderId order by rentDealCnt) b on a.agentId = b.agentId  and a.communityId = b.communityId;
+		set @num = 0;
+		delete from sys_agent_community_cnt where communityId in (SELECT communityId from deal_transactioninfo);
+		INSERT into sys_agent_community_cnt (userId,agentId,communityId,community,areaName,region,saleDealCnt,rentDealCnt,sortNo) 
+		select a.userId,agentId,communityId,communityName as community,areaName,regionName as region,saledealCnt,rentDealCnt,@num := @num+1 as sortno 
+		from (select a.traderId userId,b.id agentId,a.communityId,a.communityName,a.areaName,a.regionName
+		,count(case when a.dealType='01' then a.dealType end) saleDealCnt
+		,count(case when a.dealType='00' then a.dealType end)  rentDealCnt 
+		from deal_transactionInfo a 
+		left join sys_agent_details b on a.traderId = b.userId
+		where a.cityCode=#{cityCode}
+		group by a.communityId,a.traderId order by rentDealCnt,saleDealCnt desc) a 
+	</insert>
+	
+</mapper>

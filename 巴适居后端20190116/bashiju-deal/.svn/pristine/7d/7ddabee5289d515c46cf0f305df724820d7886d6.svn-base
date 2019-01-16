@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.deal.mapper.DealActionLogQueryMapper">
+	<select id="auxDealActionLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 4
+		<if test="null != dealType and dealType != '' and dealType == '00'">
+			and a.sourceTypeId = 6
+		</if>
+		<if test="null != dealType and dealType != '' and dealType == '01'">
+			and a.sourceTypeId = 7
+		</if>
+		<if test="null != dealType and dealType != '' and dealType == '02'">
+			and a.sourceTypeId = 8
+		</if>
+		<if test="null != actionType and actionType != ''">
+			and a.operatTypeId = #{actionType}
+		</if>
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="departmentId != null and departmentId != ''">
+			and a.departmentId like concat(#{departmentId},'%')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="sourceId != null and sourceId.trim != ''">
+			and a.sourceId = #{sourceId}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and a.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+		
+	<select id="auxDealActionLogByDealId" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 4
+		<if test="null != dealId and dealId != '' ">
+			and a.sourceId = #{dealId}
+		</if>
+		order by a.id desc
+	</select>
+	
+	<select id="auxDealActionLogByDealType" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 4
+		<if test="null != dealType and dealType != '' and dealType == '00'">
+			and a.sourceTypeId = 6
+		</if>
+		<if test="null != dealType and dealType != '' and dealType == '01'">
+			and a.sourceTypeId = 7
+		</if>
+		<if test="null != dealType and dealType != '' and dealType == '02'">
+			and a.sourceTypeId = 8
+		</if>
+		order by a.id desc
+	</select>
+</mapper>

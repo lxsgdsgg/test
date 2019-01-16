@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.IMetroMapper">
+	
+	<select id="queryLines" resultType="com.bashiju.www.pojo.service.out.comm.MetroLinesResult">
+		select id,name from sys_metro where cityCode=#{cityCode} and isvalid = 1 
+	</select>
+	
+	<select id="queryStations" resultType="com.bashiju.www.pojo.service.out.comm.MetroStationResult">
+		select id,metroId as lineId,stationName from sys_metro_station where rgCode=#{cityCode}
+	</select>
+	
+</mapper>

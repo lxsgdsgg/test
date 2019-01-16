@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.base.mapper.AdminMapper">
+	<select id="queryAdminInfo" resultType="com.bashiju.base.pojo.SysAdminEmailList">
+		select adminName,adminEmail from sys_admin_email_list where headModuleId=#{headModuleId} and isValid=1 and isSendMsg=1
+	</select>
+	
+</mapper>

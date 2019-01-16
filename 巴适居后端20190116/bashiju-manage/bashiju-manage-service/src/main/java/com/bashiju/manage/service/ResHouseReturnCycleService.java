@@ -1,0 +1,33 @@
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+/**
+ * 
+ * @ClassName:  ResHouseReturnCycleService   
+ * @Description:房源回访周期设置接口
+ * @author: wangpeng
+ * @date:   2018年5月28日 上午9:59:34   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ResHouseReturnCycleService {
+		/**
+		 * 
+		 * @Title: queryResHouseReturnCycleData   
+		 * @Description: 查询房源回访周期信息
+		 * @return: Page<Map<String,Object>>
+		 */
+		public List<Map<String,Object>> queryResHouseReturnCycleData();
+		
+		/**
+		 * @Title: saveOrUpdateResHouseReturnCycle   
+		 * @Description: 编辑 
+		 * @param maps
+		 * @return: boolean
+		 */
+		boolean saveOrUpdateResHouseReturnCycle(List<Map<String, Object>> map);
+
+
+
+}

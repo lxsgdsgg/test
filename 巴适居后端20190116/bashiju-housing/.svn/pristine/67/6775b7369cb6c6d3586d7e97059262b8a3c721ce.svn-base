@@ -1,0 +1,327 @@
+
+
+package com.bashiju.housing.controller;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.housing.service.PropertyDynamicService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * 楼盘动态控制层
+ * @ClassName:  PropertyDynamicController   
+ * @Description:楼盘动态控制层
+ * @author: wangpeng
+ * @date:   2018年8月17日 下午4:31:59   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="propertyDynamic")
+public class PropertyDynamicController  extends BaseController{
+	@Autowired
+	private PropertyDynamicService propertyDynamicService;
+	
+	/**
+	 * 
+	 * @Title: queryPropertyDynamicByProjectId   
+	 * @Description:分页查询楼盘动态信息
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @param projectId 新房楼盘详情编号
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPropertyDynamicByProjectId")
+	@ResponseBody
+	public Map<String,Object> queryPropertyDynamicByProjectId(String projectId,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Page<Map<String,Object>> pages =  propertyDynamicService.queryPropertyDynamicByProjectId(projectId, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 
+	 * @Title: saveOrUpdatePropertyDynamic   
+	 * @Description:新增或修改楼盘动态 
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdatePropertyDynamic")
+	@ResponseBody
+	public BashijuResult saveOrUpdatePropertyDynamic(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("参数不能为空");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = propertyDynamicService.saveOrUpdatePropertyDynamic(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 逻辑删除楼盘动态
+	 * @Title: delPropertyDynamic   
+	 * @Description: 逻辑删除楼盘动态
+	 * @param id  楼盘动态编号
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delPropertyDynamic")
+	@ResponseBody
+	public BashijuResult delPropertyDynamic(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("楼盘动态编号不能为空");
+		boolean result = propertyDynamicService.delPropertyDynamicById(id);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 分页查询预售证信息列表
+	 * @Title: queryPresalePermitListInfoByProjectId   
+	 * @Description: 分页查询预售证信息列表
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @param projectId 新房楼盘详情编号
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPresalePermitListInfoByProjectId")
+	@ResponseBody
+	public Map<String,Object> queryPresalePermitListInfoByProjectId(String projectId,int page,int limit){
+		if(StringUtils.isEmpty(projectId)) {
+			throw new BusinessException("楼盘编号不能为空");
+		}
+		PageHelper.startPage(page, limit);
+		Page<Map<String,Object>> pages =  propertyDynamicService.queryPresalePermitListInfoByProjectId(projectId, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 条件查询预售证信息列表 
+	 * @Title: queryPresalePermitListInfoById   
+	 * @Description: 条件查询预售证信息列表 
+	 * @param id 预售证信息编号
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPresalePermitListInfoById")
+	@ResponseBody
+	public Map<String,Object> queryPresalePermitListInfoById(String id,int page,int limit){
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("预售证信息编号不能为空");
+		PageHelper.startPage(page, limit);
+		Page<Map<String,Object>> pages = propertyDynamicService.queryPresalePermitListInfoByProjectId(id, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 逻辑删除预售证信息
+	 * @Title: delPresalePermitListInfo   
+	 * @Description: 逻辑删除预售证信息
+	 * @param id 预售证信息编号
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delPresalePermitListInfo")
+	@ResponseBody
+	public BashijuResult delPresalePermitListInfo(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("预售证信息编号不能为空");
+		boolean result = propertyDynamicService.delPresalePermitListInfoById(id);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 新增或修改预售证信息
+	 * @Title: saveOrUpdatePresalePermitListInfo   
+	 * @Description: 新增或修改预售证信息
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdatePresalePermitListInfo")
+	@ResponseBody
+	public BashijuResult saveOrUpdatePresalePermitListInfo(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存参数不能为空");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = propertyDynamicService.saveOrUpdatePresalePermitListInfo(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * @Title: queryPropertyOpenDateByProjectId   
+	 * @Description: 条件查询楼盘开盘日期
+	 * @param projectId 新房楼盘详情编号
+	 * @param page 当前页
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPropertyOpenDateByProjectId")
+	@ResponseBody
+	public Map<String,Object> queryPropertyOpenDateByProjectId(String projectId,int page,int limit){
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		Page<Map<String,Object>> pages = propertyDynamicService.queryPropertyOpenDateByProjectId(projectId, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 逻辑删除楼盘开盘日期
+	 * @Title: delPropertyOpenDateById   
+	 * @Description: 逻辑删除楼盘开盘日期
+	 * @param id  楼盘开盘日期编号
+	 * @return: boolean
+	 */
+	@RequestMapping(value="delPropertyOpenDateById")
+	@ResponseBody
+	public boolean delPropertyOpenDateById(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("楼盘开盘日期编号不能为空");
+		boolean result = propertyDynamicService.delPropertyOpenDateById(id);
+		if(result)
+			return true;
+		return false;
+		
+	}
+	
+	/**
+	 * 新增或修改楼盘开盘日期
+	 * @Title: saveOrUpdatePropertyOpenDate   
+	 * @Description: 新增或修改楼盘开盘日期
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdatePropertyOpenDate")
+	@ResponseBody
+	public BashijuResult saveOrUpdatePropertyOpenDate(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存参数不能空");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = propertyDynamicService.saveOrUpdatePropertyOpenDate(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 条件查询楼盘价格历史
+	 * @Title: queryPropertyPriceTrendByProjectId   
+	 * @Description: 条件查询楼盘价格历史
+	 * @param projectId 新房楼盘详情编号
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryPropertyPriceTrendByProjectId")
+	@ResponseBody
+	public Map<String,Object> queryPropertyPriceTrendByProjectId(String projectId,int page,int limit){
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		Page<Map<String,Object>> pages =  propertyDynamicService.queryPropertyPriceTrendByProjectId(projectId, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * 逻辑删除楼盘价格历史  
+	 * @Title: delPropertyPriceTrendByProjectId   
+	 * @Description: 逻辑删除楼盘价格历史   
+	 * @param id 楼盘价格历史编号
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delPropertyPriceTrendByProjectId")
+	@ResponseBody
+	public BashijuResult delPropertyPriceTrendByProjectId(String id,String projectId) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("楼盘价格历史编号不能为空");
+		boolean result = propertyDynamicService.delPropertyPriceTrendById(id,projectId);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 *  新增或修改楼盘价格历史
+	 * @Title: saveOrUpdatePropertyPriceTrend   
+	 * @Description: 新增或修改楼盘价格历史
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdatePropertyPriceTrend")
+	@ResponseBody
+	public BashijuResult saveOrUpdatePropertyPriceTrend(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("输入参数不能为空");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = propertyDynamicService.saveOrUpdatePropertyPriceTrend(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 新房楼盘详情编号
+	 * @Title: queryRoomTimeByProjectId   
+	 * @Description: 条件查询楼盘交房日期
+	 * @param projectId 新房楼盘详情编号
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryRoomTimeByProjectId")
+	@ResponseBody
+	public Map<String,Object> queryRoomTimeByProjectId(String projectId,int page,int limit){
+		if(StringUtils.isEmpty(projectId))
+			throw new BusinessException("新房楼盘详情编号不能为空");
+		Page<Map<String,Object>> map = propertyDynamicService.queryRoomTimeByProjectId(projectId, page, limit);
+		Map<String,Object> roomTime = getPageResult(map);
+		return roomTime;
+	}
+	/**
+	 * 逻辑删除楼盘交房日期
+	 * @Title: delRoomTimeByProjectId   
+	 * @Description: 逻辑删除楼盘交房日期
+	 * @param id 楼盘交房日期编号
+	 * @return: boolean
+	 */
+	@RequestMapping(value="delRoomTimeByProjectId")
+	@ResponseBody
+	public boolean delRoomTimeByProjectId(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("楼盘交房日期编号不能为空");
+		boolean result = propertyDynamicService.delRoomTimeById(id);
+		if(result)
+			return true;
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 新增或修改楼盘交房日期   
+	 * @Title: saveOrUpdateRoomTime   
+	 * @Description: 新增或修改楼盘交房日期   
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateRoomTime")
+	@ResponseBody
+	public BashijuResult saveOrUpdateRoomTime(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存参数不能为空");
+		Map<Object,Object> paramMap =(Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = propertyDynamicService.saveOrUpdateRoomTime(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+}

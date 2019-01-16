@@ -1,0 +1,188 @@
+package com.bashiju.pojo;
+
+import java.io.Serializable;
+
+import com.bashiju.enums.LogHouseOperateTypeEnum;
+import com.bashiju.enums.LogSourceTypeEnum;
+import com.bashiju.enums.LogTransactionTypeEnum;
+
+/**
+ * 
+ *   业务日志类
+ * @ClassName:  BusinessLogModel   
+ * @Description:    业务日志类
+ * @author: wangkaifa
+ * @date:   2018年11月15日 上午11:05:21       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class BusinessLogModel implements Serializable {
+
+	/**   
+	 * @Fields serialVersionUID : TODO(用一句话描述这个变量表示什么)   
+	 */ 
+	
+	private static final long serialVersionUID = 910772641606086370L;
+	/**资源id**/
+	private String sourceId;
+	/**资源编号**/
+	private String sourceCode;
+	/**资源交易类型id**/
+	private int transactionTypeId;	
+	/**资源交易类型名称**/
+	private String transactionTypeName;
+	/**资源类型id**/
+	private int sourceTypeId;	
+	/**资源类型名称**/
+	private String sourceTypeName;
+	/**城市编码**/
+	private String cityCode;
+	/**公司id**/
+	private String companyId;
+	/**公司名称**/
+	private String companyName;
+	/**部门id**/
+	private String departmentId;
+	/**部门名称**/
+	private String departmentName;
+	/**操作人id**/
+	private int operatorId;
+	/**操作人姓名**/
+	private String operator;
+	/**操作类型id**/
+	private int operatTypeId;
+	/**操作类型名称**/
+	private String operatTypeName;
+	/**图片/视频路径**/
+	private String path;
+	/**日志类容**/
+	private String logContent;
+	/**原始数据对象**/
+	private Object originalData;
+	/**修改后数据对象**/
+	private Object newData;
+	public String getSourceId() {
+		return sourceId;
+	}
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
+	}
+	public String getSourceCode() {
+		return sourceCode;
+	}
+	public void setSourceCode(String sourceCode) {
+		this.sourceCode = sourceCode;
+	}
+	public int getTransactionTypeId() {
+		return transactionTypeId;
+	}
+	public void setTransactionTypeId(int transactionTypeId) {
+		this.transactionTypeId = transactionTypeId;
+	}
+	public String getTransactionTypeName() {
+		if (this.transactionTypeId>0) {
+			return LogTransactionTypeEnum.parseOf(this.transactionTypeId+"").getDesc();
+		}
+		return "";
+	}
+	public void setTransactionTypeName(String transactionTypeName) {
+		this.transactionTypeName = transactionTypeName;
+	}
+	public int getSourceTypeId() {
+		return sourceTypeId;
+	}
+	public void setSourceTypeId(int sourceTypeId) {
+		this.sourceTypeId = sourceTypeId;
+	}
+	public String getSourceTypeName() {
+		if (this.sourceTypeId>0) {
+			return LogSourceTypeEnum.parseOf(this.sourceTypeId+"").getDesc();
+		}
+		return "";
+	}
+	public void setSourceTypeName(String sourceTypeName) {
+		this.sourceTypeName = sourceTypeName;
+	}
+	public String getCityCode() {
+		return cityCode;
+	}
+	public void setCityCode(String cityCode) {
+		this.cityCode = cityCode;
+	}
+	public String getCompanyId() {
+		return companyId;
+	}
+	public void setCompanyId(String companyId) {
+		this.companyId = companyId;
+	}
+	public String getCompanyName() {
+		return companyName;
+	}
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+	public String getDepartmentId() {
+		return departmentId;
+	}
+	public void setDepartmentId(String departmentId) {
+		this.departmentId = departmentId;
+	}
+	public String getDepartmentName() {
+		return departmentName;
+	}
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
+	}
+	public int getOperatorId() {
+		return operatorId;
+	}
+	public void setOperatorId(int operatorId) {
+		this.operatorId = operatorId;
+	}
+	public String getOperator() {
+		return operator;
+	}
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+	public int getOperatTypeId() {
+		return operatTypeId;
+	}
+	public void setOperatTypeId(int operatTypeId) {
+		this.operatTypeId = operatTypeId;
+	}
+	public String getOperatTypeName() {
+		if (this.operatTypeId >0) {
+			return LogHouseOperateTypeEnum.parseOf(this.operatTypeId +"").getDesc();
+		}
+		return "";
+	}
+	public void setOperatTypeName(String operatTypeName) {
+		this.operatTypeName = operatTypeName;
+	}
+	public Object getOriginalData() {
+		return originalData;
+	}
+	public void setOriginalData(Object originalData) {
+		this.originalData = originalData;
+	}
+	public Object getNewData() {
+		return newData;
+	}
+	public void setNewData(Object newData) {
+		this.newData = newData;
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getLogContent() {
+		return logContent;
+	}
+	public void setLogContent(String logContent) {
+		this.logContent = logContent;
+	}
+	
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ExcelModelMapper">
+	<select id="queryAreaCodeDropDown" resultType="String">
+		select concat(code,'.',name)str from sys_area where parentCode=#{cityCode} and isvalid=1
+	</select>
+	
+	<select id="queryRegionDropDown" resultType="String" >	    
+		select concat(a.id,'.',a.name)str from sys_region a 
+		left join sys_area b on a.areaCode = b.code
+		where b.parentCode=#{cityCode} and b.isvalid=1 and a.isvalid=1
+	</select>
+	<select id="queryCommunityMatchingDropDown" resultType="String">
+		SELECT concat(id,'.',fieldValue)str FROM dynamicform_field_value WHERE isValid=1 AND widgetCode='comunitMatching'
+	</select>
+</mapper>

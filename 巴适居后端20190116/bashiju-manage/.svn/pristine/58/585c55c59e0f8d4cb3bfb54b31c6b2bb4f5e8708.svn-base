@@ -1,0 +1,453 @@
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.IRegionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+
+
+/**
+ * 
+ * @ClassName:  FormController   
+ * @Description:动态表单  
+ * @author: liwen
+ * @date:   2018年4月9日 上午10:17:04   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@RequestMapping(value="dynamicConfigure")
+@Controller
+public class FormController {
+	
+	@Resource
+	private FormService formservice;
+	@Autowired
+	private IRegionService regionService;
+	@Autowired	
+	private ICommunityService communityService;
+	
+	@RequestMapping("/form/{pageName}")
+	public String formPage(HttpServletRequest request,HttpServletResponse response,Model m,@PathVariable("pageName") String pageName){
+		
+		if(pageName.equals("addWidget")) {
+			List<Map<String, Object>> list = communityService.queryAreaSelect();
+			m.addAttribute("areaListJson", JSON.toJSONString(list));
+		}
+		
+		return "dynamicform/"+pageName;
+		
+		
+	}
+	
+	@RequestMapping("/formList")
+	public String toFormList(Model model) {
+		List<Map<String, Object>> list=regionService.queryAreaSelect();
+		model.addAttribute("AreaListJson", JSON.toJSONString(list));
+		return "dynamicform/formList";
+	}
+	@RequestMapping("/guestFormList")
+	public String toGuestFormList(Model model) {
+		List<Map<String, Object>> list=regionService.queryAreaSelect();
+		model.addAttribute("AreaListJson", JSON.toJSONString(list));
+		return "dynamicform/guestFormList";
+	}
+	/*@RequestMapping("/showform")
+	public String showform(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String sourceid){
+		
+		//List<WidgetModel> widgetModel = formservice.getWidgetModel();
+		m.addAttribute("sourceid", sourceid);
+		return "createform2";
+		
+		
+	}*/
+	
+	@RequestMapping("/editform")
+	public String editform(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String sourceid){
+		
+		//List<WidgetModel> widgetModel = formservice.getWidgetModel();
+		m.addAttribute("sourceid", sourceid);
+		return "editform";
+		
+		
+	}
+	
+	//******必填项设置******//
+	
+	@RequestMapping("/getRequiredType")
+	@ResponseBody
+	public BashijuResult getRequiredType(HttpServletRequest request,HttpServletResponse response,Model m){
+		LinkedList<Map> types = formservice.queryRequiredType();
+		if(types.size()>0) {
+			return BashijuResult.ok(types);
+		}else {
+			throw new BusinessException(ErrorCodeEnum. NULL_OBJ);
+		}
+	}
+	
+	
+	@RequestMapping("/getFieldRequired")
+	@ResponseBody
+	public BashijuResult getRequired(HttpServletRequest request,HttpServletResponse response,Model m){
+		Map fields = formservice.queryFieldRequired();
+		if(fields.size()>0) {
+			return BashijuResult.ok(fields);
+		}else {
+			throw new BusinessException(ErrorCodeEnum. NULL_OBJ);
+		}
+	}
+	
+	@RequestMapping("/setFieldRequired")
+	@ResponseBody
+	public BashijuResult setRequired(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String commonfield){
+		
+		boolean res = formservice.saveFieldRequired(commonfield);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum. NULL_OBJ);
+		}
+		
+		
+	}
+	
+	//******必填项结束******//
+	
+	@RequestMapping("/validateWidgetCode")
+	@ResponseBody
+	public BashijuResult validateWidgetCode(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String widgetCode,@RequestParam(required=false) String widgetType,@RequestParam(required=false) String cityCode){
+		boolean res = formservice.validateWidgetCode(widgetCode,widgetType,cityCode);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException("编号被占用了");
+		}
+	}
+	
+	
+	@RequestMapping("/setWidget")
+	@ResponseBody
+	public BashijuResult setWidget(HttpServletRequest request,HttpServletResponse response,String formData,String valueData){
+		Map<Object,Object> formDataMap=JSON.parseObject(formData, Map.class);
+		List valueDataMap=JSON.parseArray(valueData, Map.class);
+		boolean res = formservice.saveWidget(formDataMap,valueDataMap);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+	}
+	
+	
+	//******下拉设置相关操作******//
+	
+	@RequestMapping("/getSelectType")
+	@ResponseBody
+	public Map<String,Object> getSelectType(HttpServletRequest request,HttpServletResponse response,Model m,int page,int limit,String queryForm){
+		Map<String,Object> conditions = new HashMap<>();
+		conditions.put("widgetCode", request.getParameter("widgetCode"));
+		conditions.put("name", request.getParameter("name"));
+		Page<Map<String, Object>> pageInfo = formservice.querySelectType(page,limit,conditions);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	@RequestMapping("/getSelectItem")
+	@ResponseBody
+	public BashijuResult getSelectItem(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String widgetCode,@RequestParam(required=false) String type){
+		List selectitems = formservice.querySelectItem(widgetCode,type);
+		return BashijuResult.ok(selectitems);
+		
+	}
+	
+	@RequestMapping("/setSelectItem")
+	@ResponseBody
+	public BashijuResult setSelectItem(HttpServletRequest request,HttpServletResponse response,Model m,String jsonData){
+		Map<Object,Object> data=JSON.parseObject(jsonData, Map.class);
+		if(StringUtils.isEmpty(data.get("fieldValue").toString())) {
+			throw new BusinessException("值不能为空");
+		}
+		Long res = formservice.saveSelectItem(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+	}
+	
+	@RequestMapping("/saveSelectSql")
+	@ResponseBody
+	public BashijuResult saveSelectSql(HttpServletRequest request,HttpServletResponse response,String jsonData){
+		Map<Object,Object> data = JSON.parseObject(jsonData, Map.class);
+		if(StringUtils.isEmpty(data.get("sqlDescription").toString())) {
+			throw new BusinessException("sql语句不能为空");
+		}
+		long res = formservice.saveSelectSql(data);
+		if(res>0) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+	}
+	
+	@RequestMapping("/delDropdownValue")
+	@ResponseBody
+	public BashijuResult delDropdownValue(Long id){
+		boolean res = formservice.delDropdownValue(id);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+		}
+	}
+	
+	
+	//******下拉结束******//
+	
+	//******区间设置相关操作******//
+	
+	@RequestMapping("/getRangeType")
+	@ResponseBody
+	public Map<String,Object> getRegionType(HttpServletRequest request,HttpServletResponse response,Model m,int page,int limit){
+		Map<String,Object> conditions = new HashMap<>();
+		conditions.put("cityCode", request.getParameter("cityCode"));
+		conditions.put("widgetCode", request.getParameter("widgetCode"));
+		conditions.put("name", request.getParameter("name"));
+		Page<Map<String, Object>> pageInfo = formservice.queryRegionType(page,limit,conditions);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	@RequestMapping("/getRange")
+	@ResponseBody
+	public BashijuResult getRegion(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String widgetCode){
+		List regions = formservice.queryRegion(widgetCode);
+		return BashijuResult.ok(regions);
+		
+	}
+	
+	@RequestMapping("/setRange")
+	@ResponseBody
+	public BashijuResult setRegion(HttpServletRequest request,HttpServletResponse response,String firstmin,String widgetCode,String maxregion){
+		Map<String,Object> data = new HashMap<>();
+		data.put("firstmin", firstmin);
+		data.put("widgetCode", widgetCode);
+		List maxregionArr = JSON.parseArray(maxregion);
+		data.put("maxregion", maxregionArr);
+		boolean res = formservice.saveRegion(data);
+		if(res) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_ADD_ERROR);
+		}
+	}
+	
+	
+	
+	//******区间结束******//
+	
+	
+	
+	
+	@RequestMapping(value="getDynamicFormList")
+	@ResponseBody
+	public Map<String,Object> queryDynamicFormList(String cityCode,Integer formType,int page,int limit){
+		Page<Map<String, Object>> pageInfo =formservice.queryDynamicFormList(cityCode,formType, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	@RequestMapping(value="getDynamicFormFieldList")
+	@ResponseBody
+	public BashijuResult queryDynamicFormFieldList(Long formId,String cityCode){
+		List<Map<String, Object>> res =formservice.queryDynamicFormFieldList(formId,cityCode);
+		return BashijuResult.ok(res);
+	}
+	
+	@RequestMapping(value="saveFormField")
+	@ResponseBody
+	public BashijuResult saveFormField(String dataJson) {
+		Map<Object, Object> map=(Map<Object, Object>) JSON.parse(dataJson);
+		Object id=map.get("id");
+		if (id!=null&&!id.toString().equals("")) {
+			formservice.updateDynamicFormField(map);
+		}else {
+			formservice.addDynamicFormField(map);
+		}
+		return BashijuResult.ok();
+	}
+	
+	@RequestMapping(value="delFormField")
+	@ResponseBody
+	public BashijuResult delFormField(String id) {
+		formservice.delDynamicFormField(id);
+		return BashijuResult.ok();
+	}
+	
+	@RequestMapping(value="queryCompanyDynamicFormList")
+	@ResponseBody
+	public Map<String,Object> queryCompanyDynamicFormList(int page,int limit){
+		Page<Map<String, Object>> pageInfo =formservice.queryCompanyDynamicFormList(page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	@RequestMapping(value="queryCompanyDynamicFormFieldList")
+	@ResponseBody
+	public BashijuResult queryCompanyDynamicFormFieldList(Long formId){
+		List<Map<String, Object>> res =formservice.queryCompanyDynamicFormFieldList(formId);
+		return BashijuResult.ok(res);
+	}
+	
+	@RequestMapping(value="queryCompanyDynamicFormFieldSelect")
+	@ResponseBody
+	public BashijuResult queryCompanyDynamicFormFieldSelect(Long formId) {
+		List<Map<String, Object>> list=formservice.queryCompanyDynamicFormFieldSelect(formId);
+		return BashijuResult.ok(list);
+	}
+	
+	@RequestMapping(value="queryCityDynamicFormFieldSelect")
+	@ResponseBody
+	public BashijuResult queryCityDynamicFormFieldSelect(Long formId) {
+		List<Map<String, Object>> list=formservice.queryCityDynamicFormFieldSelect(formId);
+		return BashijuResult.ok(list);
+	}
+	@RequestMapping(value="saveCompanyFormField")
+	@ResponseBody
+	public BashijuResult saveCompanyFormField(String dataJson) {
+		Map<Object, Object> map=(Map<Object, Object>) JSON.parse(dataJson);
+		Object id=map.get("id");
+		if (id!=null&&!id.toString().equals("")) {
+			formservice.updateCompanyDynamicFormField(map);
+		}else {
+			formservice.addCompanyDynamicFormField(map);
+		}
+		return BashijuResult.ok();
+	}
+	
+	@RequestMapping(value="delCompanyFormField")
+	@ResponseBody
+	public BashijuResult delCompanyFormField(long id) {
+		formservice.delCompanyField(id);
+		return BashijuResult.ok();
+	}
+	
+	
+	//*******调用接口*******//
+	
+	//返回城市和公司自定义字段
+	@RequestMapping("/getCustomField")
+	@ResponseBody
+	public BashijuResult getCustomField(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String formName){
+		List fields = formservice.queryCustomField(formName);
+		return BashijuResult.ok(fields);
+		
+	}
+	
+	//返回下拉值
+	@RequestMapping("/getSelectValue/{type}")
+	@ResponseBody
+	public BashijuResult getSelectValue(HttpServletRequest request,HttpServletResponse response,Model m,@PathVariable("type") String type,@RequestParam(required=false) String param){
+		List selectitems = formservice.querySelectValue(type,param);
+		if ("many".equals(type)) {
+			Map<String, Object> map=new HashMap<>();
+			for (Object o : selectitems) {
+				Map<String, Object> item=(Map<String, Object>) o;
+				for (String key : item.keySet()) {
+					map.put(key, item.get(key));
+					break;
+				}			
+			}
+			return BashijuResult.ok(map);
+		}
+		return BashijuResult.ok(selectitems);
+		
+	}
+	
+	
+	//返回区间值
+	@RequestMapping("/getRegionValue/{type}")
+	@ResponseBody
+	public BashijuResult getRegionValue(HttpServletRequest request,HttpServletResponse response,Model m,@PathVariable("type") String type,@RequestParam(required=false) String tag,@RequestParam(required=false) String widgetCode){
+		Map<String,Object> values = formservice.queryRegionValue(type,tag,widgetCode);
+		return BashijuResult.ok(values);
+		
+	}
+	
+	//返回表单值
+	@RequestMapping("/getFormValue")
+	@ResponseBody
+	public BashijuResult getFormValue(HttpServletRequest request,HttpServletResponse response,Model m,@RequestParam(required=false) String formName,@RequestParam(required=false) String sourceId){
+		Map values = formservice.queryFormValue(formName,sourceId);
+		return BashijuResult.ok(values);
+		
+	}
+	
+
+	@RequestMapping(value="queryTableDatas")
+	@ResponseBody
+	public Map<String,Object> queryTableDatas(String formName,List<Map<String, Object>> conditions,int page,int limit){
+		Page<Map<String, Object>> pageInfo = formservice.queryTableDatas(formName, conditions, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	@RequestMapping(value="getTableColHiddenList")
+	@ResponseBody
+	public BashijuResult getTableColHiddenList(String formName) {
+		Map<String, Object> result=formservice.queryTableHiddenField(formName);
+		return BashijuResult.ok(result);
+	}
+
+	@RequestMapping(value="setTableColHidden")
+	@ResponseBody
+	public BashijuResult setTableColHidden(String formName,String columns) {
+		boolean result=formservice.saveTableHiddenInfo(formName, columns);
+		return BashijuResult.ok();
+	}
+	
+}

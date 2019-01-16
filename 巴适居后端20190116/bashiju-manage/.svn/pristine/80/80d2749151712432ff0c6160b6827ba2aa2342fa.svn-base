@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.TransferProcessMapper">
+	<select id="queryTransferProcessDataInfo" resultType="java.util.LinkedHashMap">
+		select * from house_exchange_config a where 1 = 1 and isValid=1 
+		<if test="programmeName != null and programmeName != ''">
+			and programmeName like '%${programmeName}%'
+		</if>
+		<if test="areaCode != null and areaCode != ''">
+			and areaCode = #{areaCode}
+		</if>
+	</select>
+	
+	<select id ="queryTransferProcByName" resultType="java.util.LinkedHashMap">
+		select * from house_exchange_config where 1 = 1 and isValid=1 
+		<if test="null != procName and procName != ''">
+			and programmeName like '%${procName}%'
+		</if>
+	</select>
+	
+	<select id ="queryTransferProcById" resultType="java.util.LinkedHashMap">
+		select * from house_exchange_config where 1 = 1 and isValid=1 
+		<if test="null != procId and procId != ''">
+			and id = #{procId}
+		</if>
+	</select>
+	
+	<select id="queryTransferDetailByConfId" resultType="java.util.LinkedHashMap">
+	 	select * from house_exchange_detail where 1 = 1 and isValid=1  
+	 	<if test="null != confId and confId != ''">
+	 		and confId = #{confId}
+	 	</if>
+	 	<if test="null != confType and confType != ''">
+	 		and confType = #{confType}
+	 	</if>
+	</select>
+	
+	<delete id="delTransProcByConditions">
+		delete from ${tableName} where 
+		<if test="condition != null and condition != ''">
+			and ${condition}
+		</if>
+	</delete>
+	
+	<select id="queryDataInfoConfByConn" resultType="map">
+		select * from ${tableName} where isValid = 1 
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+</mapper>

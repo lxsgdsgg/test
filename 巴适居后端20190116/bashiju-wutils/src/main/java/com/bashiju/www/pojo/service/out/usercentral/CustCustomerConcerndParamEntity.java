@@ -1,0 +1,39 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustCustomerConcerndParamEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年9月22日 下午3:33:57   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 查询我的关注参数对象
+ * @ClassName:CustCustomerConcerndParamEntity
+ * @Description:查询我的关注参数对象
+ * @author:zuoyuntao
+ * @date:2018年9月22日 下午3:33:57
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustCustomerConcerndParamEntity implements Serializable{
+	/**   
+	 * @Fields serialVersionUID :   
+	 */ 
+	private static final long serialVersionUID = 4572900194734219819L;
+	/**用户登陆key**/
+	private String key;
+	/**当前页**/
+	private int page;
+	/**每页条数**/
+	private int limit;
+}

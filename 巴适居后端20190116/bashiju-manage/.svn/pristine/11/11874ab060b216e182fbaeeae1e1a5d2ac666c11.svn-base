@@ -1,0 +1,52 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<table class="layui-table" id="table_navigationBar" lay-filter="table_navigationBar"></table>
+<%@include file="/common/common.jsp" %>
+<script type="text/html" id="operationBar">
+  {{# if(d.table_navigationBarEdit !='' && d.table_navigationBarEdit!=null){ }}
+	  <a class="layui-btn layui-btn-xs" lay-event="edit" name="table_navigationBarEdit">编辑</a>
+  {{# } }}
+  {{# if(d.table_navigationBarDel !='' && d.table_navigationBarDel !=null){ }}
+	   <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" name="table_navigationBarDel">删除</a>
+  {{# } }}	
+</script>
+<script type="text/javascript">
+layui.use('table', function(){
+	  var table = layui.table;
+	  var $ = layui.$ //重点处
+	  
+	  table.render({
+		    elem: '#table_navigationBar'
+		    ,method:"post"
+		    ,url: 'queryNavigationBarData'
+		    ,page: true //开启分页
+		    ,cols: [[ //表头
+		      {field: 'id', title: 'ID', width: 100,  sort: true, fixed: 'left'}
+		      ,{field: 'type', title: '导航类型', sort: true,templet: '<div>{{ layui.laytpl.toTypeStr(d.type) }}</div>'}
+		      ,{field: 'level', title: '导航等级', sort: true,templet: '<div>{{ layui.laytpl.toLevelStr(d.level) }}</div>'} 
+		      ,{field: 'name', title: '导航名称', sort: true} 
+		      ,{field: 'parentId', title: '上级导航id', sort: true} 
+		      ,{field: 'url', title: '导航地址', sort: true} 
+		      ,{field: 'operator', title: '操作人', sort: true} 
+		      ,{field: 'addTime', title: '添加时间', sort: true,templet: '<div>{{ common.toDateString(d.addTime,"yyyy-MM-dd HH:mm:ss") }}</div>'} 	
+		      ,{field: 'updateTime', title: '更新时间', sort: true,templet: '<div>{{ common.toDateString(d.updateTime,"yyyy-MM-dd HH:mm:ss") }}</div>'} 
+		      ,{fixed: 'right', title: '操作', width: 140, align:'center', toolbar: '#operationBar'}
+		      ]]
+		  });	  
+	  
+	  
+})
+</script>
+
+</body>
+</html>

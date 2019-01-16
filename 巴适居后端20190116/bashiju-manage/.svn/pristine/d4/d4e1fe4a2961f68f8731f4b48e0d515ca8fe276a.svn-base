@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.IMetroStationManageMapper">
+	<select id="queryAllMetroStationInfo" resultType="map">
+		select * from metro_station_manage where isValid=1
+		<if test="null != metroName and metroName != ''">
+			and metroName like '%${metroName}%'
+		</if>
+		<if test="null != rgCode and rgCode != ''">
+			and rgCode like '%${rgCode}%'
+		</if>
+		<if test="null != stationName and stationName != ''">
+			and stationName like '%${stationName}%'
+		</if>
+		order by metroName,sortNo
+	</select>
+	<select id="queryMetroDataByCondition" resultType="map">
+		select * from metro_station_manage where isValid = 1
+		<if test="null != condition and condition != ''">
+			and ${condition}
+		</if>
+	</select>
+	<select id="getStationCommunityPageObj" resultType="map">
+		select * from station_block_community where isValid = 1 and stationId = #{stationId}
+	</select>
+</mapper>

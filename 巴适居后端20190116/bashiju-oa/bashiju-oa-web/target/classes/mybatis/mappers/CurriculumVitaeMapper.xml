@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.oa.mapper.CurriculumVitaeMapper">
+	
+	<select id="queryCurriculumVitaeData" resultType="map">
+		select a.recruitInfoId,a.name,b.name as recruitName ,a.workDate,a.sex,a.mobile,a.birthdate,
+		a.email,a.docType,a.nationalities,a.politicalOrientation,a.householdRegister,a.permissionArea,
+		a.graduatDate,a.address,a.isMarry,a.attachment,a.addTime,a.remark from sys_curriculumVitae a
+		inner join sys_recruitInfo b on a.recruitInfoId = b.id  where a.isValid= 1
+		<if test="name!=null and name !='' " >
+			and a.name  like concat('%',#{name},'%')
+		</if>
+		
+	</select>	
+</mapper>

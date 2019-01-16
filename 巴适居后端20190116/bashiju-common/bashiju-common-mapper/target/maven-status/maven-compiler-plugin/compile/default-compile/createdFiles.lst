@@ -1,0 +1,10 @@
+com\bashiju\common\mapper\FormMapper.class
+com\bashiju\common\mapper\CompanyMapper.class
+com\bashiju\common\mapper\DeptMapper.class
+com\bashiju\common\mapper\ErHousingMapper.class
+com\bashiju\common\mapper\DivideIntoConfigMapper.class
+com\bashiju\common\mapper\TreesInfoMapper.class
+com\bashiju\common\mapper\PhoneSecurityManageMapper.class
+com\bashiju\common\mapper\CustomerMapper.class
+com\bashiju\common\mapper\DecisionConfigurateMapper.class
+com\bashiju\common\mapper\TransferProcessMapper.class

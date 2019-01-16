@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.NewHouseMapper">
+	
+	<select id="queryNewHouseDynamicByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseDynamicResult" parameterType="string">
+		select title ,content,addTime as time from sys_community_project_news where projectId = #{projectId}
+	</select>	
+
+	<select id="selectNewHouseDetailInfo" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseDetailResult">
+		select 
+		(select openDate from sys_community_project_openDate where projectId=#{newHouseId} order by id desc limit 1) as openDate,
+		(select deliverDate from sys_community_project_deliverdate where projectId=#{newHouseId} order by id desc limit 1) as deliverDate,
+		(select price from sys_community_project_priceTrend where projectId=#{newHouseId} order by id desc limit 1) as avgPrice,
+		(select name from sys_community_project_prePermit where projectId=#{newHouseId} order by id desc limit 1) as preSellNo,
+		a.salesDeptAdd,CONCAT(b.name,'(','备案名:',b.recordName,')') as name,b.propertyLimit,b.developers,b.address from sys_community_project a 
+		NNER JOIN sys_community b on a.id = #{newHouseId} and a.communityId = b.id and a.isvalid=1 and b.isvalid =1 INNER JOIN sys_area c on b.areaCode = c.`code` 
+	</select>
+	
+	<select id="selectNewHouseType" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList">
+		select count(0) as count,name,buildingArea,totalPrice,room,hall,toilet,characteristicName,url from sys_community_project_huxing where projectId=#{projectId}
+		<if test="room==5">
+			and room &gt;= #{room}
+		</if>
+		<if test="room &lt;5 and room!=0">
+			and room = #{room}
+		</if>
+		and isvalid = 1 order by updateTime limit 4
+	</select>
+	
+
+	<select id="queryPresalePermitByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.PresalePermitResult" parameterType="string">
+
+	<select id="selectNewHouseTypeForPage" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList">
+		select count(0) as count,name,buildingArea,totalPrice,room,hall,toilet,characteristicName,url from sys_community_project_huxing where projectId=#{projectId}
+		<if test="room==5">
+			and room &gt;= #{room}
+		</if>
+		<if test="room &lt;5 and room!=0">
+			and room = #{room}
+		</if>
+		and isvalid = 1 order by updateTime
+	</select>
+	
+	<select id="selectNewHouseInfo" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseInfoResult">
+		select 
+		(select openDate from sys_community_project_openDate where projectId=#{newHouseId} order by id desc limit 1) as openDate,
+		(select deliverDate from sys_community_project_deliverdate where projectId=#{newHouseId} order by id desc limit 1) as deliverDate,
+		(select price from sys_community_project_priceTrend where projectId=#{newHouseId} order by id desc limit 1) as avgPrice,
+		(select name from sys_community_project_prePermit where projectId=#{newHouseId} order by id desc limit 1) as preSellNo,
+		(select GROUP_CONCAT(descs) from sys_community_project_decoration where projectId=#{newHouseId} ) as decoration,
+		(select GROUP_CONCAT(name) from sys_community_property where communityId=b.id and type=0 and isvalid=1) as propertyType,
+		a.parkCnt,a.salesDeptAdd,a.propertyName,CONCAT(b.name,'(','备案名:',b.recordName,')') as name,b.developers,b.address,b.floorArea,b.capacityRatio,b.greenRate,c.name as areaName from sys_community_project a 
+		NNER JOIN sys_community b on a.id = #{newHouseId} and a.communityId = b.id and a.isvalid=1 and b.isvalid =1 INNER JOIN sys_area c on b.areaCode = c.`code` 
+	</select>
+	
+	<select id="selectNewHouseImgs" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseImgList">
+		select pictureTypeName,path from sys_community_attachment a INNER JOIN sys_community_project b on a.communityId = b.communityId and b.id=#{newHouseId} and a.isvalid=1 ORDER BY updateTime desc
+	</select>
+	<select id="selectNewHouseJwd" resultType="com.bashiju.www.pojo.service.out.newhouse.NewHouseJwd">
+		select longitude,latitude from sys_community a INNER JOIN sys_community_project b on a.id = b.communityId and b.id=#{newHouseId} and a.isvalid=1
+	</select>
+	<select id="querySameNewHouseList" resultType="com.bashiju.www.pojo.service.out.newhouse.SameNewHouseList">
+		select CONCAT(b.name,'(','备案名:',b.recordName,')') as name, b.address,b.longitude,b.latitude from sys_community_project a 
+		INNER JOIN sys_community b on a.id in (select projectId from sys_community_project_priceTrend where price=#{avgPrice}*1000000 order by id desc) and a.communityId = b.id and a.isvalid=1 and b.isvalid =1 limit #{limit}
+	</select>
+
+	
+	
+	<select id="queryPresalePermitByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.PresalePermitResult" parameterType="string">
+
+		select name,buildings from sys_community_project_prePermit where projectId = #{projectId} ORDER BY name desc
+	</select>
+	
+	<select id="queryRoomTimeByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.RoomTimeResult" parameterType="string">
+		select deliverDate,remark from sys_community_project_deliverdate where projectId = #{projectId}
+	</select>
+	
+	<select id="queryOpenDateByProjectId" resultType="com.bashiju.www.pojo.service.out.newhouse.OpenDateResult" parameterType="string">
+		select openDate ,buildings,remark from sys_community_project_openDate where projectId = 1 
+		 and isvalid = 1 order by openDate 
+	</select>
+
+
+</mapper>

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.FinMapper">
+
+	<select id="queryCommissionList" resultType="map">
+		select a.id,a.dealId,a.billNo,a.moneyProjName,FLOOR(a.price/100) as price,FLOOR(a.actualPrice/100) as actualPrice,replace(replace(a.payerType,0,'业主'),1,'客户') as payerType,a.status,a.settlementTypeName,a.bankCardNo,a.reason,a.actualPayTime,a.sureTime,a.permissionArea,a.operatorId,a.operator,replace(replace(a.isDivide,0,'未分成'),1,'已分成') as isDivide,b.agreementId,b.areaName,b.regionName,b.communityName,b.buildingsName,b.dealType,b.buildingHouseName,b.dealTime,c.realName as traderId from deal_commissionrecord a
+		INNER JOIN deal_transactionInfo b on a.moneyType=#{moneyType} and a.status!='00' and a.dealId = b.id and a.isValid=1 and b.isValid = 1
+		<!-- 按佣金状态查（待确认，已确认，驳回） -->
+		<if test="status!=null and status!='' ">
+			and a.status=#{status}
+		</if>
+		<!-- 按成交类型查（买卖，租赁，一手） -->
+		<if test="dealType!=null and dealType!='' ">
+			and b.dealType=#{dealType}
+		</if>
+		<!-- 按成交时间查 -->
+		<if test="timeType=='dealTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and b.dealTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and b.dealTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按收取时间查 -->
+		<if test="timeType=='actualPayTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and a.actualPayTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and a.actualPayTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按确认时间查 -->
+		<if test="timeType=='sureTime'">
+			<if test="starttime!=null and starttime!='' ">
+				and a.sureTime &gt;= #{starttime}
+			</if>
+			<if test="endtime!=null and endtime!='' ">
+				and a.sureTime &lt;= #{endtime}
+			</if>
+		</if>
+		<!-- 按成交人查 （或是部门id,或是人员id）-->
+		<if test="dataType=='dept' ">
+			<if test="deptId!=null and deptId!='' ">
+				and b.permissionArea=#{deptId}
+			</if>
+		</if>
+		<if test="dataType=='user' ">
+			<if test="deptId!=null and deptId!='' ">
+				and b.traderId=#{deptId}
+			</if>
+		</if>
+		<!-- 按小区id查 -->
+		<if test="communityId!=null and communityId!='' ">
+			and b.communityId=#{communityId}
+		</if>
+		<!-- 下面是模糊查询条件 -->
+		<!-- 按成交编号查 -->
+		<if test="vagueType==1">
+			<if test="vagueData!=null and vagueData!='' ">
+				and b.id like '%${vagueData}%'
+			</if>
+		</if>
+		<!-- 按小区名查 -->
+		<if test="vagueType==2">
+			<if test="vagueData!=null and vagueData!='' ">
+				and b.communityName like '%${vagueData}%'
+			</if>
+		</if>
+		<!-- 按门牌号查 -->
+		<if test="vagueType==3">
+			<if test="vagueData!=null and vagueData!='' ">
+				and b.buildingHouseName like '%${vagueData}%'
+			</if>
+		</if>
+		<!-- 按票据编号查 -->
+		<if test="vagueType==4">
+			<if test="vagueData!=null and vagueData!='' ">
+				and a.billNo like '%${vagueData}%'
+			</if>
+		</if>
+		<!-- 查成交人名字 -->
+		INNER JOIN sys_user c on b.traderId = c.id order by a.id desc
+	</select>
+	<select id="queryPayRecord" resultType="map">
+		SELECT pr.id,pr.dealId,pr.companyId,pr.companyName,pr.billNo,pr.transactionType,pr.moneyTypeName,FLOOR(pr.price/100) as price,pr.payerType,pr.tradeTime,pr.settlementTypeName,
+		pr.remark,pr.examineStatus,pr.auditor,pr.auditTime,pr.reason,pr.recorderName,pr.recordTime,pr.permissionArea,pr.operatorId,b.dealType
+		FROM deal_payrecord AS pr inner join deal_transactionInfo b on pr.dealId = b.id
+		WHERE pr.isValid=1 and transactionType=#{transactionType} 
+		<if test="status!=null and status!='' "> AND pr.examineStatus=#{status}</if>
+		<if test="status==0 "> AND pr.examineStatus=#{status} or pr.examineStatus is null</if>
+		<if test="timeType!=null and timeType!='' ">
+			<choose>
+				<when test="timeType ==1">
+					<if test="beginTime!=null and beginTime!='' "> AND pr.recordTime &gt;= #{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.recordTime &lt;= #{endTime}</if>
+				</when>
+				<when test="timeType ==2">
+					<if test="beginTime!=null and beginTime!='' "> AND pr.auditTime &gt;= #{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.auditTime &lt;= #{endTime}</if>
+				</when>
+				<otherwise>
+					<if test="beginTime!=null and beginTime!='' "> AND pr.tradeTime &gt;=#{beginTime}</if>
+					<if test="endTime!=null and endTime!='' "> AND pr.tradeTime &lt;= #{endTime}</if>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="moneyTypeId!=null and moneyTypeId!='' "> AND pr.moneyTypeId = #{moneyTypeId}</if>
+		<if test="settlementTypeId!=null and settlementTypeId!='' "> AND pr.settlementTypeId = #{settlementTypeId}</if>
+		<if test="payerType!=null"> AND pr.payerType = #{payerType}</if>
+		<if test=" keywordType!=null and keywordType!='' and keyword!=null and keyword!='' ">
+			<choose>
+				<when test="keywordType =='billNo' ">
+					AND pr.billNo LIKE '%${keyword}%'
+				</when>
+				<when test="keywordType =='dealId' ">
+					AND pr.dealId LIKE '%${keyword}%'
+				</when>
+				<otherwise>
+					AND pr.remark LIKE '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>	
+		order by pr.id desc     
+	</select>
+	<select id="queryFinanceDivide" resultType="map">
+		select a.dividerId,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,b.realName,c.`name` as deptName from deal_financedivideninfo a INNER JOIN sys_user b on a.commissionId=#{commissionId} and a.dividerId=b.id and a.isValid = 1 INNER JOIN sys_dept c on b.deptId = c.id
+	</select>
+	<!-- 薪酬日志 -->
+	<select id="queryWagesLog" resultType="map">
+		select a.* from sys_business_log a where a.sourceTypeId = 10 and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="null != minTime and minTime != ''">
+			and a.addTime &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and a.addTime &lt;= #{maxTime}
+		</if>
+		<if test="queryType!=null and queryType==1 ">
+			and a.operatTypeId in(540,541,542,543,544)
+		</if>
+		<if test="queryType!=null and queryType==2 ">
+			and a.operatTypeId in(545)
+		</if>
+		<if test="queryType!=null and queryType==3 ">
+			and a.operatTypeId in(537,538,539,546,547)
+		</if>
+		<if test="actionType!=null and actionType!='' ">
+			and a.operatTypeId =#{actionType}
+		</if>
+		<if test="logContent!=null and logContent!='' ">
+			and a.logContent LIKE '%${logContent}%'
+		</if>
+		
+		order by a.id desc
+	</select>
+	<!-- 配置日志 -->
+	<select id="queryConfigLog" resultType="map">
+		select a.* from sys_business_log a where a.sourceTypeId = 11 and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="null != minTime and minTime != ''">
+			and a.addTime &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and a.addTime &lt;= #{maxTime}
+		</if>
+		<if test="queryType!=null and queryType==1 ">
+			and a.operatTypeId in(510,511,512,513,514,515)
+		</if>
+		<if test="queryType!=null and queryType==2 ">
+			and a.operatTypeId in(516,517,518,519,520,521)
+		</if>
+		<if test="queryType!=null and queryType==3 ">
+			and a.operatTypeId in(522)
+		</if>
+		<if test="queryType!=null and queryType==4 ">
+			and a.operatTypeId in(523,524,525,526,529,530)
+		</if>
+		<if test="queryType!=null and queryType==5 ">
+			and a.operatTypeId in(533)
+		</if>
+		<if test="queryType!=null and queryType==6 ">
+			and a.operatTypeId in(534,535,536)
+		</if>
+		<if test="queryType!=null and queryType==7 ">
+			and a.operatTypeId in(548)
+		</if>
+		<if test="queryType!=null and queryType==8 ">
+			and a.operatTypeId in(548)
+		</if>
+		<if test="actionType!=null and actionType!='' ">
+			and a.operatTypeId =#{actionType}
+		</if>
+		<if test="logContent!=null and logContent!='' ">
+			and a.logContent LIKE '%${logContent}%'
+		</if>
+		order by a.id desc
+	</select>
+	<!-- 佣金日志 -->
+	<select id="queryCommissionLog" resultType="map">
+		select a.* from sys_business_log a where a.operatTypeId in(416,417,418,419,421,500,501,502) and a.sourceCode = #{dealCode} and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="months!=null and months!='' ">
+			and DATE_FORMAT(a.addTime,'%Y-%m') = #{months}
+		</if>
+		order by a.id 
+	</select>
+	<!-- 金融日志 -->
+	<select id="queryFinanceLog" resultType="map">
+		select a.* from sys_business_log a where a.operatTypeId in(433,434,435,436,438,503,504,503) and a.sourceCode = #{dealCode} and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="months!=null and months!='' ">
+			and DATE_FORMAT(a.addTime,'%Y-%m') = #{months}
+		</if>
+		order by a.id 
+	</select>
+	<!-- 代收日志 -->
+	<select id="queryReceiveRecordLog" resultType="map">
+		select a.* from sys_business_log a where a.operatTypeId in(426,427,428,506,507) and a.sourceCode = #{dealCode} and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="months!=null and months!='' ">
+			and DATE_FORMAT(a.addTime,'%Y-%m') = #{months}
+		</if>
+		order by a.id 
+	</select>
+	<!-- 代付日志 -->
+	<select id="queryPayRecordLog" resultType="map">
+		select a.* from sys_business_log a where a.operatTypeId in(439,440,441,508,509) and a.sourceCode = #{dealCode} and a.companyId = #{companyId}
+		<!-- 按部门id -->
+		<if test="deptId!=null and deptId!='' ">
+			and a.departmentId=#{deptId}
+		</if>
+		<!-- 按人员id -->
+		<if test="userId!=null and userId!='' ">
+			and a.operatorId=#{userId}
+		</if>
+		<!-- 按时间 -->
+		<if test="months!=null and months!='' ">
+			and DATE_FORMAT(a.addTime,'%Y-%m') = #{months}
+		</if>
+		order by a.id 
+	</select>
+	
+</mapper>

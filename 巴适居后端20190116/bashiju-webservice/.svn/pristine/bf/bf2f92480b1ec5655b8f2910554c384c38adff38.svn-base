@@ -1,0 +1,167 @@
+package com.bashiju.www.service.article.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.enums.BottomContentEnum;
+import com.bashiju.enums.HouseArticleTypeEnum;
+import com.bashiju.webservice.mapper.ArticleMapper;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.article.ArticleInfoResult;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+import com.bashiju.www.service.article.IArticleService;
+import com.bashiju.www.service.comm.WebPageUtils;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+@Service
+public class ArticleServiceImpl implements IArticleService{
+	@Autowired
+	ArticleMapper articleMapper;
+	@Autowired
+	ICacheService cacheService;
+	@Autowired(required=false)
+	RedisServiceApi redisServiceApi;
+	
+	@Override
+	public List<ArticleListResult> queryArticleList(String cityCode,String type,int limit){
+		String key="queryArticleList"+cityCode+type+limit;
+		key = Md5EncryptUtils.md5Encrypt(key);
+		String json = cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			List<ArticleListResult> res = articleMapper.queryArticleList(cityCode,type,limit); 
+			cacheService.saveCache(key,res, WebGlobal.LIST_EXPTIME);
+			return res;
+		}
+		List<ArticleListResult> res=JSON.parseArray(json, ArticleListResult.class);
+		return res;
+	}
+	
+	@Override
+	public List<ArticleTypeResult> queryArticleType(String cityCode,String type){
+		String key = WebGlobal.ARTICLE_TYPE_REDIS_PREFIX+cityCode+type;
+		String typeStr = cacheService.getCache(key);
+		List<ArticleTypeResult> typeList = null;
+		if(StringUtils.isEmpty(typeStr)) {
+			typeList = articleMapper.queryArticleType(cityCode, type);
+			cacheService.saveCache(key,typeList, WebGlobal.OTHER_EXPTIME);
+		}else {
+			typeList = JSON.parseArray(typeStr, ArticleTypeResult.class);
+		}
+		return typeList;
+	}
+
+	@Override
+	public List<ArticleListResult> queryHotZiXunList(String cityCode, int limit) {
+		String key = WebGlobal.ARTICLE_ZIXUN_HOT_REDIS_PREFIX+cityCode+limit;
+		String articleStr = cacheService.getCache(key);
+		List<ArticleListResult> articleList =  null;
+		if(StringUtils.isEmpty(articleStr)) {
+			articleList = articleMapper.queryHotList(cityCode, limit,HouseArticleTypeEnum.PROPERTYINFORMATION.getCode());
+			cacheService.saveCache(key, articleList, WebGlobal.OTHER_EXPTIME);
+		}else {
+			articleList = JSON.parseArray(articleStr, ArticleListResult.class);
+		}
+		return articleList;
+	}
+
+	@Override
+	public WebPage<ArticleListResult> queryZiXunListByType(String cityCode, int typeId, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		String keyStr = "queryZiXunListByType"+cityCode+typeId+page+limit;
+		String key = Md5EncryptUtils.md5Encrypt(keyStr);
+		String articleStr = cacheService.getCache(key);
+		WebPage<ArticleListResult> articleList = null;
+		if(StringUtils.isEmpty(articleStr)) {
+			Page<ArticleListResult> pageInfo=articleMapper.queryZiXunListByType(cityCode,typeId,HouseArticleTypeEnum.PROPERTYINFORMATION.getCode());
+			articleList = new WebPage<>(pageInfo);
+			cacheService.saveCache(key, articleList,  WebGlobal.OTHER_EXPTIME);
+		}else {
+			articleList = WebPageUtils.parseWebPage(articleStr, ArticleListResult.class);
+		}
+		return articleList;
+	}
+
+	@Override
+	public WebPage<ArticleListResult> queryBaikeListByType(String cityCode, int typeId, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		String keyStr = "queryBaikeListByType"+cityCode+typeId+page+limit;
+		String key = Md5EncryptUtils.md5Encrypt(keyStr);
+		String articleStr = cacheService.getCache(key);
+		WebPage<ArticleListResult> articleList = null;
+		if(StringUtils.isEmpty(articleStr)) {
+			Page<ArticleListResult> pageInfo=articleMapper.queryBaikeListByType(cityCode,typeId,HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode());
+			articleList = new WebPage<>(pageInfo);
+			cacheService.saveCache(key, articleList,  WebGlobal.OTHER_EXPTIME);
+		}else {
+			articleList = WebPageUtils.parseWebPage(articleStr, ArticleListResult.class);
+		}
+		return articleList;
+	}
+
+	@Override
+	public ArticleInfoResult queryArticleInfo(int id) {
+		String key = WebGlobal.ARTICLE_INFO_REDIS_PREFIX + id;
+		String infoStr = cacheService.getCache(key);
+		ArticleInfoResult articleInfo = new ArticleInfoResult();
+		if(StringUtils.isEmpty(infoStr)) {
+			articleInfo = articleMapper.queryArticleInfo(id);
+			cacheService.saveCache(key, articleInfo, WebGlobal.OTHER_EXPTIME);
+		}else {
+			//cacheService.saveCache(key, "",  WebGlobal.OTHER_EXPTIME);
+			articleInfo = JSON.parseObject(infoStr, ArticleInfoResult.class);
+		}
+		articleMapper.addBrowseCnt(id);//添加浏览次数
+		return articleInfo;
+	}
+
+	@Override
+	public List<ArticleListResult> queryHotBaiKeList(String cityCode, int limit) {
+		String key = WebGlobal.ARTICLE_BAIKE_HOT_REDIS_PREFIX+cityCode+limit;
+		String articleStr = cacheService.getCache(key);
+		List<ArticleListResult> articleList =  null;
+		if(StringUtils.isEmpty(articleStr)) {
+			articleList = articleMapper.queryHotList(cityCode, limit,HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode());
+			cacheService.saveCache(key, articleList, WebGlobal.LIST_EXPTIME);
+		}else {
+			articleList = JSON.parseArray(articleStr, ArticleListResult.class);
+		}
+		return articleList;
+	}
+
+	@Override
+	public WebPage<ArticleListResult> queryArticleList(String cityCode, String key, String type, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		Page<ArticleListResult> res = articleMapper.queryArticleListForPage(cityCode,key,type); 
+		WebPage<ArticleListResult> result=new WebPage<>(res);
+		return result;
+	}
+
+	@Override
+	public ArticleInfoResult queryArticle(BottomContentEnum bottomContentEnum) {
+		String key = WebGlobal.HOME_PROTOCOL_REDIS_PREFIX+bottomContentEnum.getCode();
+		String infoStr = cacheService.getCache(key);
+		ArticleInfoResult info = null;	
+		if(StringUtils.isEmpty(infoStr)) {
+			List<ArticleInfoResult> infoList = articleMapper.queryArticle(bottomContentEnum.getCode());
+			if(infoList.size()>0) {
+				info = infoList.get(0);
+				cacheService.saveCache(key, info, WebGlobal.LIST_EXPTIME);
+			}
+			
+		}else {
+			info = JSON.parseObject(infoStr, ArticleInfoResult.class);
+		}
+		return info;
+	}
+}

@@ -1,0 +1,83 @@
+package com.bashiju.www.service.api.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wapi.IMapHouseRentPageServiceApi;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.out.comm.MetroLinesResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.service.comm.IMetroService;
+import com.bashiju.www.service.house.IRentHouseService;
+
+/**
+ * 
+ *   租房地图找房页面接口实现
+ * @ClassName:  MapHouseRentPageServiceApi   
+ * @Description:  租房地图找房页面接口实现
+ * @author: wangkaifa
+ * @date:   2018年8月13日 下午4:52:54       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class MapHouseRentPageServiceApiImpl implements IMapHouseRentPageServiceApi {
+	@Autowired
+	IRentHouseService rentHouseService;
+	@Autowired
+	IMetroService metroService;
+	
+	@Override
+	public List<HouseMapPointResult> queryRentMapHouseArea(HouseMapParam param) {
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseArea(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> queryRentMapHouseRegion(HouseMapParam param) {
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseRegion(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> queryRentMapHouseCommunity(HouseMapParam param) {
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseCommunity(param);
+		return results;
+	}
+
+	@Override
+	public WebPage<HouseMapListResult> queryRentHouseMapList(HouseMapListParam param, int page, int limit) {
+		WebPage<HouseMapListResult> result=rentHouseService.queryRentHouseMapList(param, page, limit);
+		return result;
+	}
+
+	@Override
+	public List<MetroLinesResult> queryMetroLines(String cityCode) {
+		List<MetroLinesResult> results=metroService.queryMetroLines(cityCode);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> queryRentMapHouseMetro(HouseMapParam param) {
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseMetro(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> queryRentMapHouseCommunityMetro(HouseMapParam param) {
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseCommunityMetro(param);
+		return results;
+	}
+
+	@Override
+	public WebPage<HouseMapListResult> queryRentHouseMapMetroList(HouseMapListParam param, int page, int limit) {
+		WebPage<HouseMapListResult> result=rentHouseService.queryRentHouseMapMetroList(param, page, limit);
+		return result;
+	}
+
+}

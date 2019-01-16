@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.DealFinanceDividenInfoMapper">
+	<select id="queryDealFinanceDividenInfoData" resultType="map">
+	<!-- 	SELECT CONCAT(dti.areaName,dti.regionName,dti.communityName,dti.buildingsName,dti.buildingsUnitName,dti.buildingHouseName) 
+		as address,dti.dealType,sd.name as dividerDeptName,sy.realName as dividerName,a.id as commissionId,a.dealId,a.isDivide,b.id,b.companyId,b.companyName,b.dividerId,b.dividReason,b.dividRate,b.estimateProfit,
+		b.actualProfit,b.permissionArea,b.addTime,b.updateTime,b.operatorId,b.operator,b.isValid
+		FROM deal_commissionrecord AS a
+		INNER JOIN deal_financedivideninfo AS b ON a.id = b.commissionId
+		INNER JOIN sys_user sy on sy.id= b.dividerId
+		INNER JOIN sys_dept sd on sy.deptId =sd.id
+		INNER JOIN deal_transactioninfo dti on dti.id=a.dealId where a.isValid=1 -->
+		select CONCAT(b.areaName,b.regionName,b.communityName,b.buildingsName,b.buildingsUnitName,b.buildingHouseName) as address ,
+		b.dealType,d.realName as dividerName,a.dealId ,f.name as dividerDeptName,b.isDivide,a.companyId,a.companyName,a.dividerId,a.dividReason,a.dividRate,a.estimateProfit,a.actualProfit,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime from deal_financeDividenInfo a 
+		inner join deal_transactionInfo b on a.dealId = b.id
+		inner join  deal_commissionRecord c on a.commissionId = c.id
+		inner join sys_user d on a.dividerId = d.id 
+		inner join sys_dept f on d.deptId = f.id 
+		where a.isValid = 1
+		<if test="dealType!=null and dealType!='' "> and a.dealType = #{dealType}</if>
+		<if test="beginTime!=null and beginTime !='' "> and a.addTime &gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime !='' "> and a.addTime &lt;=#{endTime}</if>
+		<if test="dividerId!=null and dividerId!='' ">and a.dividerId = #{dividerId}</if>
+		<if test="isValid!=null and isValid!='' "> and a.isValid = #{isValid}</if>
+		<if test="dealId!=null and dealId!='' "> and a.dealId = #{dealId}</if>
+	</select>
+</mapper>

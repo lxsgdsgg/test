@@ -1,0 +1,24 @@
+package com.bashiju.www.pojo.service.out.comm;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   标签输出对象
+ * @ClassName:  LabelResult   
+ * @Description:   标签输出对象
+ * @author: liwen
+ * @date:   2018年8月9日 下午18:32:01       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class LabelResult implements Serializable {
+	/**标签名称**/
+	private String name;
+	/**标签颜色**/
+	private String color;
+	
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.common.mapper.DivideIntoConfigMapper">
+	<select id="queryDivideInfoConfByCondition" resultType="map">
+		select houseEntrustTrans,keyMgrTrans,signUkTrans,picUploadTrans,actionRoleIptRate,actRoleOpMgrRate,
+			actRoleHouseMsgRate,actRoleCusIptRate,actRoleCusMgrRate,actRoleContractMgrRate,actHouseEntrustMgrRate,
+			actRoleKeyMgrRate,actRoleSignUkRate,actRolePivUploadRate
+ 		from config_divide_into_info where isValid = 1
+		<if test=" condition != null and condition != ''">
+			 and ${condition}
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,99 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  EmployeeWagesConfigurateServiceImpl.java   
+ * @Package com.bashiju.fin.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年9月11日 上午9:27:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.fin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.fin.mapper.EmployeeCommissionsInfoMapper;
+import com.bashiju.fin.service.EmployeeCommissionsInfoService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  EmployeeCommissionsInfoServiceImpl   
+ * @Description: 员工提成信息
+ * @author: liwen
+ * @date:   2018年9月29日 下午14:37:36   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(operationType="员工提成信息")
+public class EmployeeCommissionsInfoServiceImpl extends CommonSqlServie implements EmployeeCommissionsInfoService {
+
+	@Autowired
+	private EmployeeCommissionsInfoMapper employeeCommissionsInfoMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	/**
+	 * 查询员工提成信息   
+	 * @Description: 查询员工提成信息   
+	 * @param userName 员工名称
+	 * @param months 月份
+	 * @return: List<Map<String,Object>>
+	 */
+	@Override
+	public List<Map<String, Object>> queryEmployeeCommissionsInfo(Long userId,String deptId,String startMonth,String endMonth,int businessType) {
+		dataAuthHelper.auth(MenuEnum.MENU_122.getCode(), UserThreadLocal.get().get("id").toString());
+		return employeeCommissionsInfoMapper.queryEmployeeCommissionsInfo(userId,deptId,startMonth,endMonth,businessType);
+	}
+
+	/**
+	 * 查询员工薪资信息(分页)  
+	 * @Description: 查询员工薪资信息(分页)   
+	 * @param userName 员工名称
+	 * @param months 月份
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 */
+	@Override
+	public Page<Map<String, Object>> queryEmployeeCommissionsInfo(Long userId,String deptId,String startMonth,String endMonth,int businessType,int pageNum,int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) this.queryEmployeeCommissionsInfo(userId,deptId,startMonth,endMonth,businessType);
+		return page;
+	}
+
+	/**
+	 * 生成公司员工月提成信息
+	 * @Description: 生成公司员工月提成信息  
+	 * @param companyId 公司编号
+	 * @param month 月份(2018-01)
+	 * @param userIds 员工编号，多个员工之间用英文逗号隔开
+	 * @return: boolean
+	 * @see com.bashiju.fin.service.EmployeeCommissionsInfoService#saveGenerateCommissions(java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public boolean saveGenerateCommissions(String companyId, String month, String userIds) {
+		if(StringUtils.isEmpty(companyId)) 
+			throw new BusinessException("请选择公司");
+		if(StringUtils.isEmpty(month))
+			throw new BusinessException("请选择月份");
+		employeeCommissionsInfoMapper.saveGenerateCommissions(companyId,month,userIds);
+		return true;
+	}
+
+	
+
+}

@@ -1,0 +1,72 @@
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**   
+ * @ClassName:  DealTransferStatus   
+ * @Description:成交过户状态   
+ * @author: yangz
+ * @date:   2018年6月15日 上午10:20:00   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public enum DealTransferStatusEnum {
+
+	/**
+	 * 未启动
+	 */
+	NOTSTARTING("00","未启动"),
+	/**
+	 * 过户中
+	 */
+	TRANSFERING("01","过户中"),
+	/**
+	 * 已完成
+	 */
+	FINISHED("02","已完成");
+	
+	private String code;
+    private String desc;
+    
+    public String getCode() {
+        return this.code;
+    }
+    
+    public String getDesc() {
+        return this.desc;
+    }
+    
+    
+    DealTransferStatusEnum(String value, String displayName){
+        this.code = value ;
+        this.desc = displayName ;
+    }
+    
+    public static Map<String, String> map = new TreeMap<String, String>();
+    public static List<Map<String , String>> enumList = new ArrayList<>();;
+    static {
+        for (DealTransferStatusEnum _enum : DealTransferStatusEnum.values()) {
+        	map.put(_enum.code, _enum.desc);
+        	Map<String , String> map=new HashMap<>();
+            map.put("value", _enum.code);
+            map.put("name", _enum.desc);
+            enumList.add(map);
+        }
+    }
+    
+    /**
+     * 枚举转换
+     */
+    public static DealTransferStatusEnum parseOf(String value){
+        for(DealTransferStatusEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+}

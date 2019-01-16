@@ -1,0 +1,209 @@
+package com.bashiju.manage.service;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  FormService   
+ * @Description:动态表单接口
+ * @author: liwen
+ * @date:   2018年4月9日 上午10:16:27   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface FormService {
+	//必填项相关
+	public LinkedList<Map> queryRequiredType();
+	public Map queryFieldRequired();
+	public boolean saveFieldRequired(String commonfield);
+	
+	public boolean validateWidgetCode(String widgetCode,String widgetType,String cityCode);
+	public boolean saveWidget(Map<Object,Object> formDataMap,List valueDataMap);
+	//下拉选项相关
+	public Page<Map<String, Object>> querySelectType(int page,int limit,Map<String,Object> conditions);
+	public List querySelectItem(String widgetCode,String type);
+	public Long saveSelectItem(Map<Object,Object> data);
+	public Long saveSelectSql(String widgetCode,String sql);
+	public boolean delDropdownValue(Long id);
+	
+	//区间设置相关
+	public LinkedList<Map> queryRegionType();
+	public List queryRegion(String widgetCode);
+	public boolean saveRegion(Map<String,Object> data);
+	
+	
+	//返回接口
+	public List queryCustomField(String formName);
+	public List querySelectValue(String type,String param);
+	public Map queryFormValue(String formName,String sourceId);
+	public List queryRegionValue(String type,String tag,String param);
+	public Map<String, List> queryFormSelectValue(String type,String param);
+	/**
+	 * 
+	 * @Title: queryDynamicFormList   
+	 * @Description: TODO(查询动态表单列表)   
+	 * @param: @param cityCode 城市区划码
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryDynamicFormList(String cityCode,Integer formType,int page,int limit);
+	/**
+	 * 
+	 * @Title: queryDynamicFormFieldList   
+	 * @Description: TODO(查询动态表单字段列表)   
+	 * @param: @param tableName 动态表单名称
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryDynamicFormFieldList(Long formId,String cityCode,int page,int limit);
+	/**
+	 * 
+	 * @Title: addDynamicFormField   
+	 * @Description: TODO(新增表单字段)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public long addDynamicFormField(Map<Object, Object> data);
+	/**
+	 * 
+	 * @Title: updateDynamicFormField   
+	 * @Description: TODO(修改表单字段)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public long updateDynamicFormField(Map<Object, Object> data);
+	/**
+	 * 
+	 * @Title: delDynamicFormField   
+	 * @Description: TODO(删除表单字段)   
+	 * @param: @param id
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public boolean delDynamicFormField(String id);
+	/**
+	 * 
+	 * @Title: queryCompanyDynamicFormList   
+	 * @Description: TODO(查询公司可自定义表单列表)   
+	 * @param: @param cityCode
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryCompanyDynamicFormList(int page, int limit);
+	/**
+	 * 
+	 * @Title: queryCompanyDynamicFormFieldList   
+	 * @Description: TODO(查询公司定义字段)   
+	 * @param: @param tableName
+	 * @param: @param companyId
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryCompanyDynamicFormFieldList(Long formId, int page, int limit);
+	/**
+	 * 
+	 * @Title: queryCompanyDynamicFormFieldSelect   
+	 * @Description: TODO(查询公司未使用字段)   
+	 * @param: @param tableName
+	 * @param: @param companyId
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryCompanyDynamicFormFieldSelect(Long formId);
+	/**
+	 * 
+	 * @Title: queryCityDynamicFormFieldSelect   
+	 * @Description: TODO(查询为使用字段)   
+	 * @param: @param formId
+	 * @param: @return      
+	 * @return: List<Map<String,Object>>      
+	 * @throws
+	 */
+	public List<Map<String, Object>> queryCityDynamicFormFieldSelect(long formId);
+	/**
+	 * 
+	 * @Title: delCompanyField   
+	 * @Description: TODO(删除公司自定义字段)   
+	 * @param: @param id      
+	 * @return: void      
+	 * @throws
+	 */
+	public void delCompanyField(long id);
+	/**
+	 * 
+	 * @Title: addCompanyDynamicFormField   
+	 * @Description: TODO(新增公司表单自定义字段)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public long addCompanyDynamicFormField(Map<Object, Object> data);
+	/**
+	 * 
+	 * @Title: updateCompanyDynamicFormField   
+	 * @Description: TODO(修改公司表单自定义字段)   
+	 * @param: @param data
+	 * @param: @return      
+	 * @return: long      
+	 * @throws
+	 */
+	public long updateCompanyDynamicFormField(Map<Object, Object> data);
+	/**
+	 * 
+	 * @Title: queryTableDatas   
+	 * @Description: TODO(根据表单名称及搜索条件，查询表单table数据)   
+	 * @param: @param formName
+	 * @param: @param conditions
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryTableDatas(String formName,List<Map<String, Object>> conditions, int page, int limit);
+	/**
+	 * 
+	 * @Title: queryTableHiddenField   
+	 * @Description: TODO(查询用户自定义的表格隐藏列)   
+	 * @param: @param formName
+	 * @param: @param userId
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	public Map<String, Object> queryTableHiddenField(String formName);
+	/**
+	 * 保存表单隐藏设置
+	 * @Title: saveTableHiddenInfo   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param: @param formName
+	 * @param: @param values
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	public boolean saveTableHiddenInfo(String formName,String values);
+}

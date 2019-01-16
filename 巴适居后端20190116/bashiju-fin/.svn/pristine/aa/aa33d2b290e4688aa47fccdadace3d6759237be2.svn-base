@@ -1,0 +1,130 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  EmployeeWagesConfigurateServiceImpl.java   
+ * @Package com.bashiju.fin.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年9月11日 上午9:27:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.fin.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.fin.mapper.EmployeeWagesConfigurateMapper;
+import com.bashiju.fin.service.EmployeeWagesConfigurateService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  EmployeeWagesConfigurateServiceImpl   
+ * @Description: 员工薪资配置方案服务   
+ * @author: yangz
+ * @date:   2018年9月11日 上午9:27:36   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(operationType="员工薪资配置")
+public class EmployeeWagesConfigurateServiceImpl extends CommonSqlServie implements EmployeeWagesConfigurateService {
+
+	@Autowired
+	private EmployeeWagesConfigurateMapper employeeWagesConfigurateMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	/**
+	 * 查询员工薪资配置信息   
+	 * @Description: 查询员工薪资配置信息   
+	 * @param userName 员工名称
+	 * @param welfareId 福利方案编号
+	 * @param ssfConfigId 社保方案编号
+	 * @param agentComConfigId 中介类提成方案编号
+	 * @param financeComConfigId 金融类提成方案编号
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.fin.service.EmployeeWagesConfigurateService#queryEmployeeWagesConfigurates(java.lang.String, java.lang.String, java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryEmployeeWagesConfigurates(Long userId,String deptId,String welfareId
+			,String ssfConfigId,String agentComConfigId,String financeComConfigId) {
+		dataAuthHelper.auth(MenuEnum.MENU_126.getCode(), UserThreadLocal.get().get("id").toString());
+		return employeeWagesConfigurateMapper.queryEmployeeWagesConfigurates(userId,deptId,welfareId, ssfConfigId, agentComConfigId,financeComConfigId);
+	}
+
+	/**
+	 * 查询员工薪资配置信息(分页)  
+	 * @Description: 查询员工薪资配置信息(分页)   
+	 * @param userName 员工名称
+	 * @param welfareId 福利方案编号
+	 * @param ssfConfigId 社保方案编号
+	 * @param agentComConfigId 中介类提成方案编号
+	 * @param financeComConfigId 金融类提成方案编号
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>>
+	 * @see com.bashiju.fin.service.EmployeeWagesConfigurateService#queryEmployeeWagesConfigurates(java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryEmployeeWagesConfigurates(Long userId,String deptId,String welfareId
+			,String ssfConfigId,String agentComConfigId,String financeComConfigId,int pageNum,int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) this.queryEmployeeWagesConfigurates(userId,deptId,welfareId, ssfConfigId, agentComConfigId,financeComConfigId);
+		return page;
+	}
+
+	/**
+	 * 保存员工薪资配置方案信息
+	 * @Description: 保存员工薪资配置方案信息   
+	 * @param map 待保存的员工薪资配置方案
+	 * @return: boolean
+	 * @see com.bashiju.fin.service.EmployeeWagesConfigurateService#saveOrUpdateEmployeeWagesConfigurate(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="员工薪资")
+	public boolean saveOrUpdateEmployeeWagesConfigurate(Map<Object, Object> map) {
+		if(map == null || map.size()<=0)
+			throw new BusinessException("待保存的员工薪资配置方案信息不允许为空");
+		if(map.containsKey("id") && map.get("id")!=null) {//编辑
+			long id = this.commonOperationDatabase(map, "sys_employee_wagesConfigurate", "id", false);
+			ExecutionResult.descFormat(Long.toString(id), "编辑员工薪资");
+		}else {
+			long id = this.commonOperationDatabase(map, "sys_employee_wagesConfigurate", false);
+			ExecutionResult.descFormat(Long.toString(id), "新增员工薪资");
+		}
+		return true;
+	}
+
+	/**
+	 * 删除薪资配置方案
+	 * @Description:删除薪资配置方案   
+	 * @param wagesId 薪资配置方案编号
+	 * @return: boolean
+	 * @see com.bashiju.fin.service.EmployeeWagesConfigurateService#delEmployeeWagesConfigurate(java.lang.String)   
+	 */
+	@Override
+	public boolean delEmployeeWagesConfigurate(String wagesId) {
+		if(StringUtils.isEmpty(wagesId))
+			return false;
+		boolean result = this.delData("sys_employee_wagesConfigurate", "id", wagesId, false);
+		if(result) {
+			ExecutionResult.descFormat(wagesId, "删除员工薪资");
+			return true;
+		}
+		return false;
+	}
+
+}

@@ -1,0 +1,6 @@
+com\bashiju\oa\controller\ArticleController.class
+com\bashiju\oa\controller\RecruitInfoController.class
+com\bashiju\oa\controller\PersonnelController.class
+com\bashiju\oa\controller\TaskManageController.class
+com\bashiju\oa\controller\OaActionLogQueryController.class
+com\bashiju\oa\controller\CurriculumVitaeController.class

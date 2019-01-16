@@ -1,0 +1,215 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealServiceImpl.java   
+ * @Package com.bashiju.deal.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年6月16日 上午11:06:37   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.deal.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealMapper;
+import com.bashiju.deal.service.DealService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  DealServiceImpl   
+ * @Description:成交管理服务   
+ * @author: yangz
+ * @date:   2018年6月16日 上午11:06:37   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="成交管理")
+@Service
+public class DealServiceImpl extends CommonSqlServie implements DealService {
+	
+	@Autowired
+	private DealMapper dealMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+
+	/**
+	 * @Description: 根据成交id获取成交信息  
+	 * @param dealId 成交id
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#getDeals(java.lang.String)   
+	 */
+	@Override
+	public Map<String, Object> getDeals(String dealId) {
+		if(StringUtils.isEmpty(dealId))
+			return null;
+		return this.dealMapper.getDeals(dealId);
+	}
+
+	/**
+	 * @Description: 条件查询成交信息   
+	 * @param params 查询信息的条件
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#queryDeals(java.util.Map)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryDeals(Map<String, Object> params) {
+//		String menuId = "7";//TODO:这里要设置菜单id以后才知道
+//		dataAuthHelper.auth(menuId, UserThreadLocal.get().get("id").toString());
+		return this.dealMapper.queryDeals(params);
+	}
+
+	/**
+	 * @Description: 条件查询成交信息 (分页)    
+	 * @param params 查询信息的条件
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数 
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#queryDeals(java.util.Map, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryDeals(Map<String, Object> params, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		Page<Map<String,Object>> pages = (Page<Map<String, Object>>) this.queryDeals(params);
+		return pages;
+	}
+
+	/**
+	 * @Description: 更新成交信息   
+	 * @param deal 待更新的成交信息
+	 * @return   
+	 * @see com.bashiju.deal.service.DealService#updateDeal(java.util.Map)   
+	 */
+	@Override
+	public boolean updateDeal(Map<String, Object> deal) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/**
+	 * @Description: 根据成交编号查询中介类分成信息  
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.deal.service.DealService#queryDividenInfos(java.lang.String)   
+	 */
+	@Override
+	public List<Map<String, Object>> queryDividenInfos(String dealId) {
+		if(StringUtils.isEmpty(dealId))
+			return null;
+		else
+			return this.dealMapper.queryDividenInfos(dealId);
+	}
+
+	/**
+	 * @Description: 批量保存中介类分成信息   
+	 * @param dividenInfos 待保存的分成信息列表
+	 * @return: boolean  
+	 * @see com.bashiju.deal.service.DealService#batchSaveDividenInfos(java.util.List)   
+	 */
+	@Override
+	public boolean batchSaveDividenInfos(List<Map<String, Object>> dividenInfos) {
+		if(dividenInfos==null || dividenInfos.size()<=0)
+			return false;
+		else {
+			return this.batchCommonOperationDatabase(dividenInfos, "deal_dividenInfo", "id", false);
+		}
+	}
+
+	/**     
+	 * @Description: 成交违约  
+	 * @param dealId 成交编号
+	 * @return: boolean 
+	 * @see com.bashiju.deal.service.DealService#dealBreach(java.lang.String)   
+	 */
+	@Override
+	public boolean dealBreach(String dealId) {
+		if(StringUtils.isEmpty(dealId))
+			throw new BusinessException("成交编号不允许为空");
+		Map<String,Object> deal = this.getDeals(dealId);
+		if(deal==null || deal.size()<=0) {
+			throw new BusinessException("未找到有效的成交信息");
+		}
+		if("1".equals(deal.get("isBreach"))) {
+			throw new BusinessException("该成交信息已经违约，不允许再次操作");
+		}
+		Map<Object,Object> newDeal = new HashMap<Object,Object>();
+		newDeal.put("id", dealId);
+		newDeal.put("isBreach", 1);//违约
+		this.commonOperationDatabase(newDeal, "deal_transactionInfo", "id", false);
+		//TODO:这里将来可能还要修改相应的合同违约状态，或者增加违约金等其他操作，待定！
+		return true;
+	}
+
+	/**     
+	 * @Description: 取消成交违约   
+	 * @param dealId 成交编号
+	 * @return: boolean       
+	 * @see com.bashiju.deal.service.DealService#cancelDealBreach(java.lang.String)   
+	 */
+	@Override
+	public boolean cancelDealBreach(String dealId) {
+		if(StringUtils.isEmpty(dealId))
+			throw new BusinessException("成交编号不允许为空");
+		Map<String,Object> deal = this.getDeals(dealId);
+		if(deal==null || deal.size()<=0) {
+			throw new BusinessException("未找到有效的成交信息");
+		}
+		if("0".equals(deal.get("isBreach"))) {
+			throw new BusinessException("该成交信息已经取消违约，不允许再次操作");
+		}
+		Map<Object,Object> newDeal = new HashMap<Object,Object>();
+		newDeal.put("id", dealId);
+		newDeal.put("isBreach", 0);//取消违约
+		this.commonOperationDatabase(newDeal, "deal_transactionInfo", "id", false);
+		//TODO:这里将来可能还要修改相应的合同违约状态，或者增加违约金等其他操作，待定！
+		return true;
+	}
+
+	/**     
+	 * @Description: 保存佣金记录信息   
+	 * @param map 待保存的佣金信息
+	 * @return: boolean 
+	 * @see com.bashiju.deal.service.DealService#saveDealCommission(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存佣金记录")
+	public boolean updateDealCommission(Map<Object, Object> map) {
+		if(map==null || map.size()<=0)
+			throw new BusinessException("没有要保存的佣金记录");
+		this.commonOperationDatabase(map, "deal_commissionRecord", "id", false);
+		ExecutionResult.descFormat(map.get("id").toString(), "保存佣金记录");
+		return true;
+	}
+
+	/**
+	 * @Description: 批量新增佣金记录信息 
+	 * @param list 待保存的佣金信息列表
+	 * @return: boolean
+	 * @see com.bashiju.deal.service.DealService#batchSaveDealCommissions(java.util.List)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="批量新增佣金记录")
+	public boolean batchSaveDealCommissions(List<Map<String, Object>> list) {
+		if(list==null || list.size()<=0)
+			throw new BusinessException("没有要保存的佣金记录");
+		this.batchCommonOperationDatabase(list, "deal_commissionRecord", false);
+		ExecutionResult.descFormat("newId", "批量新增佣金记录");
+		return false;
+	}
+	
+	
+
+}

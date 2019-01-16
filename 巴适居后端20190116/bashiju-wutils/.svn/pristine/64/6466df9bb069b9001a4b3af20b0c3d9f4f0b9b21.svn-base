@@ -1,0 +1,57 @@
+package com.bashiju.www.pojo.service.out.newhouse;
+
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.List;
+
+import lombok.Data;
+
+/**
+ * 
+ *   新房楼盘返回对象
+ * @ClassName:  NewHouseInfoResult   
+ * @Description:   新房楼盘返回对象
+ * @author: liwen
+ * @date:   2018年8月18日 下午17:10:39       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class NewHouseInfoResult implements Serializable{
+	
+	private static final long serialVersionUID = -8034222945621191964L;
+	/**开盘日期**/
+	protected String openDate;
+	/**楼盘名称**/
+	private String name;
+	/**所属区域**/
+	private String areaName;
+	/**交房时间**/
+	private String deliverDate;	
+	/**物业用途**/
+	private String propertyType;
+	/**装修情况**/
+	private String decoration;
+	/**预售证号**/
+	private String preSellNo;
+	/**车位数量**/
+	private int parkCnt;
+	/**容积率**/
+	private BigDecimal capacityRatio;
+	/**绿化率**/
+	private BigDecimal greenRate;
+	/**楼盘地址**/
+	protected String address;
+	/**占地面积**/
+	private double floorArea;
+	/**平均价格**/
+	private int avgPrice;
+	/**售楼地址**/
+	private String salesDeptAdd;
+	/**物业公司**/
+	private String propertyName;
+	/**开发商**/
+	private String developers;
+	
+}

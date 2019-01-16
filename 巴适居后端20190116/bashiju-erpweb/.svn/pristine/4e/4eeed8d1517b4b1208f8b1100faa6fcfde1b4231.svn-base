@@ -1,0 +1,183 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="form" class="demo-form-inline">
+          <el-form-item label="角色名称">
+            <el-input v-model="form.roleName" placeholder="请输入角色名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary">查询</el-button>
+            <el-button>重置</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="角色名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptUser"
+          align="center"
+          label="操作人">
+        </el-table-column>
+
+        <el-table-column
+          prop="createDate"
+          align="center"
+          label="新增时间">
+        </el-table-column>
+
+        <el-table-column
+          prop="address"
+          align="center"
+          label="排序码">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handlePermission">角色授权</el-button>
+            <el-button @click="handleEdit" type="text" size="small">编辑</el-button>
+            <el-button @click="handleDelete" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+    </div>
+
+    <template>
+      <el-dialog
+        title="角色编辑"
+        :visible.sync="editRoleDialogVisible"
+        width="400px">
+        <role-edit @handleClick="handleEditRoleDialog"></role-edit>
+      </el-dialog>
+
+      <el-dialog
+        title="角色权限设置"
+        :visible.sync="permissionDialogVisible"
+        width="800px">
+        <role-permission @handleClick="handlePermissionDialog"></role-permission>
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+import RoleEdit from './components/RoleEdit'
+import RolePermission from '../components/ThePermissionManage'
+export default {
+  name: 'role',
+  components: {RoleEdit, RolePermission},
+  data () {
+    return {
+      form: {
+        roleName: ''
+      },
+      tableData: [
+        {
+          deptName: '业务部',
+          deptType: '系统管理员',
+          createDate: '2018-07-21',
+          address: 1,
+          deptUser: '张三'
+        },
+        {
+          deptName: '业务部',
+          deptType: '系统管理员',
+          createDate: '2018-07-21',
+          address: 1,
+          deptUser: '张三'
+        },
+        {
+          deptName: '业务部',
+          deptType: '系统管理员',
+          createDate: '2018-07-21',
+          address: 1,
+          deptUser: '张三'
+        },
+        {
+          deptName: '业务部',
+          deptType: '系统管理员',
+          createDate: '2018-07-21',
+          address: 1,
+          deptUser: '张三'
+        },
+        {
+          deptName: '业务部',
+          deptType: '系统管理员',
+          createDate: '2018-07-21',
+          address: 1,
+          deptUser: '张三'
+        }
+      ],
+      editRoleDialogVisible: false,
+      permissionDialogVisible: false
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.editRoleDialogVisible = true
+    },
+    handleEdit () {
+      this.editRoleDialogVisible = true
+    },
+    handleDelete () {
+      this.$confirm('确定删除该部门？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    handlePermission () {
+      this.permissionDialogVisible = true
+    },
+    handleEditRoleDialog (action) {
+      if (action && action === 1) {
+        this.editRoleDialogVisible = false
+      } else if (action && action === 2) {
+        this.editRoleDialogVisible = false
+      }
+    },
+    handlePermissionDialog (action) {
+      if (action && action === 1) {
+        this.permissionDialogVisible = false
+      } else if (action && action === 2) {
+        this.permissionDialogVisible = false
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

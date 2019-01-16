@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustCustomerMapper">
+
+	 <select id="queryIsExistMobile" resultType="long">
+		select count(0) from  cust_customer where mobile = #{mobile}
+	 </select>
+	
+	<insert id="saveCustCustomer" parameterType="com.bashiju.www.pojo.service.user.CustCustomerParam" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO cust_customer(name, mobile, password,birthday, addTime,isValid) 
+		VALUES (#{name}, #{mobile}, #{password},#{birthday},#{addTime}, #{isValid})
+	</insert>
+	
+	<update id="updateCustCustomer"  parameterType="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		update cust_customer 
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name!=null"> name=#{name},</if>
+			<if test="newMobile!=null"> mobile=#{newMobile},</if>
+			<if test="newPassword">password=#{newPassword},</if>
+			<if test="operator!=null">operator=#{operator},</if>
+			<if test="solt!=null">solt=#{solt},</if>
+			<if test="sex!=null">sex=#{sex},</if>
+			<if test="operator!=null">operator=#{operator},</if>
+			<if test="proviceCode!=null">proviceCode=#{proviceCode},</if>
+			<if test="areaCode!=null">areaCode=#{areaCode},</if>
+			<if test="cityCode!=null">cityCode=#{cityCode},</if>
+			<if test="address!=null">address=#{address},</if>
+			<if test="birthday!=null">birthday=#{birthday},</if>
+			<if test="updateTime!=null">updateTime=#{updateTime},</if>
+			<if test="isValid!=null">isValid=#{isValid},</if>
+		</trim>
+		where mobile =#{mobile}
+	</update>
+	<select id="userMobileCheck" resultType="long">
+		select count(0) from cust_customer where mobile=#{mobile} and msgCode =#{msgCode}
+	</select>
+	
+	<update id="updateCustomerPwdByMobile" parameterType="string">
+			UPDATE cust_customer SET  password=#{password} WHERE mobile = #{mobile}
+	</update>
+		
+	<select id="customerLogin" resultType="map">
+		select id,name,mobile from cust_customer where mobile = #{mobile} and  password = #{password}
+	</select>
+	
+	
+	<select id="customerMobileLogin"  resultType="map">
+		select id,name,mobile from cust_customer where mobile = #{mobile}
+	</select>
+		
+	<insert id="bindingThirdparty" parameterType="com.bashiju.www.pojo.service.user.CustCustomerInsertBingdingParam">
+		INSERT INTO cust_thirdparty(numType, code, name, custId, profilePhoto, operator, addTime,isValid)
+		VALUES (#{numType}, #{code}, #{name}, #{custId}, #{profilePhoto}, #{operator}, #{addTime},#{isValid}) 
+	</insert>
+	
+	<update id="updateBingdingInfo" parameterType="com.bashiju.www.pojo.service.user.CustCustomerUpdateBingdingEntity">
+			update cust_thirdparty set code = #{code} ,name=#{name},profilePhoto =#{profilePhoto},
+			updateTime = #{updateTime} where custId =#{custId} and numType =#{numType}
+	</update>
+	
+	<select id="queryCustomerInfo" resultType="map">
+		select id,name from cust_customer where mobile = #{mobile} and isValid = 1
+	</select>
+	
+	<select id="queryIsBingding" resultType="map">
+		select id,numType,code,name,custId,profilePhoto from cust_thirdparty where code = #{code} and numType = #{numType} and isValid = 1
+	</select>
+	
+		
+	<select id="thirdPartyLogin" resultType="map">
+		select name,custId from cust_thirdparty where code =#{code} and numType =#{numType} and isValid = 1
+	</select>	
+	
+	<insert id="saveNameAndProfilePhoto" parameterType="string">
+		insert into cust_thirdparty(numType,code,name,custId,addTime,isValid) 
+		values(#{numType},#{code},#{name},#{custId},#{addTime},#{isValid})		
+	</insert>
+	
+	<select id="queryCustomerThirdInfo" resultType="map">
+		 select custId,name,numType from cust_thirdparty where id = #{id} and isValid=1
+	</select>
+	
+	
+	
+	
+</mapper>

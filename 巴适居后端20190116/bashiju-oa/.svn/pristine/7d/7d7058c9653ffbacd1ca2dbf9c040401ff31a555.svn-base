@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.oa.mapper.RecruitInfoMapper">
+		
+		<select id="queryRecruitInfo" resultType="map">
+			SELECT a.id,b.cityName as workCityName,a.workCityCode,a.`name`,a.count,a.education,a.majorSubject,a.minWorking,a.maxWorking,
+			a.wages,a.mobile,a.endTime,a.requirement,a.duty,a.publisherId,a.publisher,a.publishTime,
+			a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid FROM  sys_recruitinfo AS a 
+			left join sys_cityopeninfo b on b.cityCode = a. workCityCode
+			where a.isValid=1
+			<if test="name!=null and name!='' ">and a.name like concat('%',#{name},'%')</if>
+		</select>
+		
+		<select id="queryRecruitInfoById" resultType="map">
+			SELECT a.id,a.workCityCode,b.cityName as workCityName,a.`name`,a.count,a.education,a.majorSubject,a.minWorking,a.maxWorking,
+			a.wages,a.mobile,a.endTime,a.requirement,a.duty,a.publisherId,a.publisher,a.publishTime,
+			a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid FROM  sys_recruitinfo AS a
+			left join sys_cityopeninfo b on b.cityCode = a. workCityCode
+			 where a.id = #{id}
+		</select>
+</mapper>

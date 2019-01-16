@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.AgentMapper">
+	
+	<select id="queryAgentDeailByAgentId" resultType="com.bashiju.www.pojo.service.agent.AgentDeail" parameterType="com.bashiju.www.pojo.service.agent.AgentDeail">
+		SELECT sd.id as deptId,su.id as userId,su.realName,sd.`name` AS deptName,sad.StarRating,sad.seniority,sad.histDealCnt,sad.lastComment,
+		sad.showedRdCnt,sad.mainCommunity,sad.evaluateMyself,su.telPhone,sad.mainRegions,sca.labels,sca.labelIds
+		FROM sys_agent_details AS sad
+		INNER JOIN sys_user AS su ON su.id = sad.userId
+		INNER JOIN sys_dept AS sd ON su.deptId = sd.id
+		INNER JOIN sys_cust_starrating AS sca ON sca.agentId = sad.id
+		where sad.id =#{agentId}
+	</select>
+	
+	<select id="queryAgentAbilityByAgentId" resultType="com.bashiju.www.pojo.service.agent.AgentAbility" parameterType="com.bashiju.www.pojo.service.agent.AgentAbility">
+		SELECT  sacc.agentId,sacc.id,sacc.communityId,sacc.community,sacc.areaName,sacc.region,sacc.dealCnt,
+		sacc.sortNo FROM sys_agent_community_cnt AS sacc
+		where  sacc.agentId=#{agentId} ORDER BY sacc.sortNo desc
+	</select>
+	
+	
+	<select id="queryUserRatingByAgentId" resultType="com.bashiju.www.pojo.service.agent.CustStarRating" parameterType="com.bashiju.www.pojo.service.agent.CustStarRating">
+		SELECT  count(*)as starNum,scsr.star FROM sys_cust_starrating AS scsr INNER JOIN sys_agent_details AS sad ON scsr.agentId = sad.id
+ 		where scsr.agentId =#{agentId} GROUP BY scsr.star
+	</select>
+	
+	<select id="queryAgentAbilityIdentificationByAgentId" parameterType="com.bashiju.www.pojo.service.agent.AgentAbilityIdentification" resultType="com.bashiju.www.pojo.service.agent.AgentAbilityIdentification">
+			select  saab.introduction,saab.name from sys_agent_abilityidentify 
+			as saab where saab.agentId=#{agentId} ORDER  BY saab.addTime desc limit 0,5
+	</select>
+	
+	<insert id="saveGuestMessage" parameterType="com.bashiju.www.pojo.service.agent.GuestMessage">
+		INSERT INTO sys_guestmessage(userId, agentId, messageTypeId, messageType, realName, mobile,content, isRead, permissionArea, operatorId, operator, addTime, updateTime, isvalid) 
+		VALUES (#{userId}, #{agentId}, #{messageTypeId}, #{messageType}, #{realName}, #{mobile}, #{content}, #{isRead}, #{permissionArea}, #{operatorId}, #{operator}, #{addTime}, #{updateTime}, #{isvalid});
+	</insert>
+	
+	
+	<select id="queryDealTransactionInfoByTraderId" parameterType="com.bashiju.www.pojo.service.agent.DealTransactionInfo" resultType="com.bashiju.www.pojo.service.agent.DealTransactionInfo">
+		select d.floorDes, b.sellingPrice/b.buildSpace/100 AS averagePrice,b.room,b.buildDates,a.dealTime,
+		a.totalLayers,b.hall,a.communityName,b.toilet,b.orientation,b.useSpace,b.decoration,b.buildSpace,b.sellingPrice,
+		ifnull(c.path,(select min(path) path from hs_houseattachment where shhId = b.id))as imageUrl from deal_transactioninfo a 
+		left join hs_secondhandhouse b on a.shhid = b.id 
+		left join hs_houseattachment c on b.id = c.shhId and c.isCover=1
+		left join hs_housebaseinfo d on d.id = a.houseId
+		where a.traderId=#{traderId} ORDER BY a.dealTime 
+	</select>
+	
+	<select id="queryServiceTravel" resultType="com.bashiju.www.pojo.service.agent.ServiceTravel"  parameterType="com.bashiju.www.pojo.service.agent.ServiceTravel">
+		select '带看' type,d.date,c.communityName,
+		b.room,b.hall,b.buildSpace,
+		case when b.transactionTypeId='2' then concat(format(b.rentPrice/100,2),' 元/月') else concat(format(b.sellingPrice/1000000,2),' 万元') end price,
+		d.total from demand_showedRecord a 
+		inner join (
+		select max(id)id,date_format(leadTime,'%Y-%m-%d') date ,count(*) total from demand_showedRecord 
+		where leaderId=#{userId} group by date_format(leadTime,'%Y-%m-%d') order by id desc limit 0,12) d on a.id = d.id
+		left join hs_secondhandhouse b on b.id = substring_index(a.shhId,',', 1)
+		left join hs_housebaseinfo c on c.id = substring_index(b.houseId,',', 1) 
+		union all 
+		select '成交' type, date_format(a.dealTime,'%Y-%m-%d') as date,a.communityName,
+		a.room,a.hall,a.buildSpace,
+		case when a.dealType='01' then concat(format(a.price/100,2),' 元/月') else concat(format(a.price/1000000,2),' 万元') end price,
+		b.total from deal_transactioninfo a 
+		inner join (select max(id)id,date_format(dealTime,'%Y-%m-%d')date,count(*)total from deal_transactioninfo 
+		where traderId=#{userId} group by date_format(dealTime,'%Y-%m-%d') order by id desc limit 0,12)b using(id)
+		order by date desc limit 0,6
+	</select>
+</mapper>

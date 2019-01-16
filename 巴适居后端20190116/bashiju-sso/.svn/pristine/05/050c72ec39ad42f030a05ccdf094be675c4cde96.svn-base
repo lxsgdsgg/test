@@ -1,0 +1,377 @@
+package com.bashiju.sso.controller;
+
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.sso.global.SsoGlobal;
+import com.bashiju.sso.service.IUserManageService;
+import com.bashiju.sso.service.api.Constants;
+import com.bashiju.sso.service.api.RequestUtils;
+import com.bashiju.sso.service.api.VerifyCodeProvider;
+import com.bashiju.utils.cookie.CookieUtils;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.global.SYSGlobal;
+import com.bashiju.utils.properties.PropertyConfigurer;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.bashiju.utils.util.SQLFilter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import net.coobird.thumbnailator.Thumbnails;
+
+@Controller
+public class UserController{
+
+	@Autowired
+	PropertyConfigurer propertyConfigurer;/*获取配置文件中值*/
+	@Autowired
+	private IUserManageService userManageService;
+	@Autowired
+	private VerifyCodeProvider verifyCodeProvider;	
+
+	/**
+	 * 打开页面
+	 * @param pageName
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	@RequestMapping(value="{pageName}",method=RequestMethod.GET)
+	public ModelAndView toPage(@PathVariable("pageName") String pageName,HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+		
+		ModelAndView mv=new ModelAndView(pageName);
+		if ("login".equals(pageName)) {
+			//String isVerfiy=RequestUtils.getCookiteValue(request, userManageService.USER_LOGIN_ISVERFIY);
+			String isVerfiy=CookieUtils.getCookieValue(request, SsoGlobal.USER_LOGIN_ISVERFIY);
+			if (StringUtils.isNoneEmpty(isVerfiy)&&isVerfiy.equals(SsoGlobal.USEVERFIY)) {
+				mv.addObject("showVerify", "1");
+			}
+		}
+		return mv;
+	}
+	
+	@RequestMapping(value="doLogin", method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult doLogin(
+			@RequestParam String userPhone, @RequestParam String userPass,@RequestParam String userIp, @RequestParam String areaCode,
+			@RequestParam String areaName,@RequestParam(required=false) String code,
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
+			long adate=new Date().getTime();
+			
+			userPhone=SQLFilter.sqlInject(userPhone);
+			userPass=SQLFilter.sqlInject(userPass);
+			userIp=SQLFilter.sqlInject(userIp);
+			areaCode=SQLFilter.sqlInject(areaCode);
+			code=SQLFilter.sqlInject(code);
+			areaName=SQLFilter.sqlInject(areaName);
+
+		
+			if (StringUtils.isNoneEmpty(code)) {
+				String csessionid = RequestUtils.getCSESSIONID(request, response);
+		        String redisCodeKey = Constants.PN + "_" +Constants.VERIFYCODE+ ":" + csessionid;
+		        String verifyCode=verifyCodeProvider.getVerifyCode(redisCodeKey);
+		        if (!code.equalsIgnoreCase(verifyCode)) {
+					throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_VCODE);
+				}
+			}
+			
+			String token;			
+				token = this.userManageService.doLogin(userPhone,userPass,userIp,areaCode,areaName,request,response);
+				if(StringUtils.isNotEmpty(token)){//如果token不为空	
+					if (token.equals("unaudited")) {
+						throw new BusinessException("用户未审核，请联系管理员！");
+					}
+					//账号限制登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN);
+					}
+					//IP限制异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_IP);
+					}
+					//密码错误异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD);
+					}
+					//账号不存在异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE);
+					}
+					//已登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN);
+					}
+
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN, token);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN, userIp);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN, areaCode);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN, areaName,true);
+					CookieUtils.deleteCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY);
+					/*登陆成功后获取客户端计算机的相关信息  
+			        getComputerInfo.computerInfoResult(request, response);*/
+					long bdate=new Date().getTime();
+					long s=bdate-adate;
+					System.out.print("耗时："+s);
+			        return BashijuResult.ok();
+				}else{
+					throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+				}
+	}
+	
+	@RequestMapping(value="userLogin", method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult userLogin(
+			@RequestParam String userPhone, @RequestParam String userPass,@RequestParam String userIp, @RequestParam String areaCode,
+			@RequestParam String areaName,@RequestParam(required=false) String code,@RequestParam String hardware,
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
+			long adate=new Date().getTime();
+			System.out.println("密码是-----------"+userPass);
+//			userPhone=SQLFilter.sqlInject(userPhone);
+//			userPass=SQLFilter.sqlInject(userPass);
+//			userIp=SQLFilter.sqlInject(userIp);
+//			areaCode=SQLFilter.sqlInject(areaCode);
+//			code=SQLFilter.sqlInject(code);
+//			areaName=SQLFilter.sqlInject(areaName);
+			
+		
+			if (StringUtils.isNoneEmpty(code)) {
+				String csessionid = RequestUtils.getCSESSIONID(request, response);
+		        String redisCodeKey = Constants.PN + "_" +Constants.VERIFYCODE+ ":" + csessionid;
+		        String verifyCode=verifyCodeProvider.getVerifyCode(redisCodeKey);
+		        if (!code.equalsIgnoreCase(verifyCode)) {
+					throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_VCODE);
+				}
+			}
+			
+			String token;			
+				token = this.userManageService.login(userPhone,userPass,userIp,areaCode,areaName,hardware,request,response);
+				if(StringUtils.isNotEmpty(token)){//如果token不为空	
+					if (token.equals("unaudited")) {
+						throw new BusinessException("登录电脑未审核，请联系管理员！");
+					}
+					if (token.equals("usererror")) {
+						throw new BusinessException("该电脑不允许"+userPhone+"登录！");
+					}
+					if (token.equals("companyerror")) {
+						throw new BusinessException("账户"+userPhone+"不在该电脑绑定的公司！");
+					}
+					//账号限制登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN);
+					}
+					//IP限制异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_IP);
+					}
+					//密码错误异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD);
+					}
+					//账号不存在异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PHONE);
+					}
+					//已登录异常
+					if (token.equals(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN.getCode())) {
+						throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN);
+					}
+					if (token.equals("closeCity")) {
+						throw new BusinessException("账户所在城市已关闭，禁止登录！");
+					}
+					
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN, token);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN, userIp);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN, areaCode);
+					CookieUtils.setCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN, areaName,true);
+					//CookieUtils.deleteCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY);
+					Map<String, Object> cookies=new HashMap<>();
+					cookies.put(SYSGlobal.USER_LOGIN_TOKEN, token);
+					cookies.put(SYSGlobal.USER_IP_CLIENT_TOKEN, userIp);
+					cookies.put(SYSGlobal.USER_AREACODE_CLIENT_TOKEN, areaCode);
+					cookies.put(SYSGlobal.USER_AREANAME_CLIENT_TOKEN, areaName);
+					/*登陆成功后获取客户端计算机的相关信息  
+			        getComputerInfo.computerInfoResult(request, response);*/
+					long bdate=new Date().getTime();
+					long s=bdate-adate;
+					System.out.print("耗时："+s);
+			        return BashijuResult.ok(cookies);
+				}else{
+					throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+				}
+	}
+	/**
+	 * 检查手机号码是否输入正确
+	 * @param userPhone
+	 * @return
+	 */
+	
+	@RequestMapping(value="checkPhone",method=RequestMethod.POST)
+	public ResponseEntity<Void> checkPhone(
+			@PathVariable("userPhone") String userPhone){
+		boolean tag=this.userManageService.checkUserPhone(userPhone);
+		if(tag==true)
+		{	
+			return ResponseEntity.status(HttpStatus.OK).body(null);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+	
+	}
+
+	/**
+	 * 用户注销
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	@RequestMapping(value="loginout")
+	public void doLoginout(String cookie,HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException{
+		String token="";
+		String areaName="";
+		String ip="";
+		String areaCode="";
+		if (StringUtils.isNotEmpty(cookie)) {
+			Map map = JSON.parseObject(cookie, Map.class);
+			
+			if (map.get(SYSGlobal.USER_LOGIN_TOKEN)!=null) {
+				token = map.get(SYSGlobal.USER_LOGIN_TOKEN).toString();	
+			}
+			if (map.get(SYSGlobal.USER_AREANAME_CLIENT_TOKEN)!=null) {
+				areaName = map.get(SYSGlobal.USER_AREANAME_CLIENT_TOKEN).toString();	
+			}
+			if (map.get(SYSGlobal.USER_IP_CLIENT_TOKEN)!=null) {
+				ip = map.get(SYSGlobal.USER_IP_CLIENT_TOKEN).toString();	
+			}	
+			if (map.get(SYSGlobal.USER_AREACODE_CLIENT_TOKEN)!=null) {
+				areaCode = map.get(SYSGlobal.USER_AREACODE_CLIENT_TOKEN).toString();	
+			}
+			
+		}else {
+			token = CookieUtils.getCookieValue(request, SYSGlobal.USER_LOGIN_TOKEN);
+			areaName=CookieUtils.getCookieValue(request, SYSGlobal.USER_AREANAME_CLIENT_TOKEN,true);	
+			ip = CookieUtils.getCookieValue(request, SYSGlobal.USER_IP_CLIENT_TOKEN);
+			areaCode = CookieUtils.getCookieValue(request, SYSGlobal.USER_AREACODE_CLIENT_TOKEN);
+		}
+		this.userManageService.delRedisData(token,ip,areaCode,areaName);
+		UserThreadLocal.remove();
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_IP_CLIENT_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_AREACODE_CLIENT_TOKEN);
+		CookieUtils.deleteCookie(request, response, SYSGlobal.USER_AREANAME_CLIENT_TOKEN);
+	}
+	
+	@RequestMapping(value="unlock", method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult unlock(String userPhone, String userPass,HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException {
+		String token = this.userManageService.unlock(userPhone,userPass);
+		if (!token.equals("error")) {
+			CookieUtils.setCookie(request, response, SYSGlobal.USER_LOGIN_TOKEN, token);
+			return BashijuResult.ok();
+		}
+		throw new BusinessException(ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD);
+	}
+	/**
+	 * 
+		 * 查询登录用户信息
+		 * @Description: 查询登录用户信息
+		 * @param request
+		 * @return
+		 * @throws Exception 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryUserInfo")
+	@ResponseBody
+	public BashijuResult queryUserInfo(HttpServletRequest request) throws Exception{
+		Map<Object, Object> user=userManageService.queryUserInfo(request);
+		if (user==null) {
+			new BusinessException("用户未登录");
+		}
+		return BashijuResult.ok(user);
+	}
+	
+	
+	@RequestMapping(value="showImage")
+    public void showImage(HttpServletRequest request,HttpServletResponse response) throws Exception{
+    	URL url=new URL("https://up.enterdesk.com/edpic_source/a2/7a/95/a27a957696c16e93f6a75540abef0a8b.jpg");
+    	Image image2= ImageIO.read(url);
+    	int width = image2.getWidth(null);
+        int heigth = image2.getHeight(null);
+        BufferedImage bufferImage = new BufferedImage(width, heigth, BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g = bufferImage.createGraphics();
+        g.drawImage(image2, 0, 0, width, heigth, null);
+        URL logoPath = new URL("http://sso.bashiju.com/src/common/images/logo1.png");
+        Image logo = ImageIO.read(logoPath);
+        int widthReal = logo.getWidth(null);
+        int heigthReal = logo.getHeight(null);
+
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.1f));
+        // 因为水印已经倾斜，所以不做画布倾斜
+         g.rotate(Math.toRadians(-30), bufferImage.getWidth() / 2,
+         bufferImage.getHeight() / 2);
+
+        int x = -width / 2;
+        int y = -heigth / 2;
+
+        while (x < width * 1.5) {
+            y = -heigth / 2;
+
+            while (y < heigth * 1.5) {
+                g.drawImage(logo, x, y, null);
+
+                y += heigthReal + 50;
+            }
+
+            x += widthReal + 50;
+        }
+
+        //输出图片
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(bufferImage, "jpg", out);
+        ByteArrayInputStream inputStream=new ByteArrayInputStream(out.toByteArray());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Thumbnails.of(inputStream).scale(1f).outputQuality(0.25f).toOutputStream(baos);
+        response.setContentType("image/jpeg");//设置相应类型,告诉浏览器输出的内容为图片
+        //response.setHeader("Pragma", "No-cache");//设置响应头信息，告诉浏览器不要缓存此内容
+        //response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expire", 0);
+        response.getOutputStream().write(baos.toByteArray());
+     // 9、释放资源
+        g.dispose();
+        
+    }
+}

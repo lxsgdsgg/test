@@ -1,0 +1,93 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IStoreShareManageService.java   
+ * @Package com.bashiju.fin.service      
+ * @author: zuoyuntao     
+ * @date:   2018年12月5日 上午9:37:51   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.fin.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 门店分摊管理服务层接口
+ * @ClassName:IStoreShareManageService
+ * @Description:门店分摊管理服务层接口 
+ * @author:zuoyuntao
+ * @date:2018年12月5日 上午9:37:51
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IStoreShareManageService {
+	/**
+	 * 查询页面数据列表
+	 * @Title: queryStoreSharePageList
+	 * @author: zuoyuntao  
+	 * @Description:查询页面数据列表
+	 * @param page 当前页
+	 * @param limit 每页最大条数
+	 * @param paraMap 参数对象
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryStoreSharePageList(int page,int limit,Map<String,Object> paraMap );
+	
+	/**
+	 * 保存添加或修改的门店分摊数据
+	 * @Title: saveOrUpdateStoreShareData
+	 * @author: zuoyuntao  
+	 * @Description:保存添加或修改的门店分摊数据
+	 * @param paraMap 表单提交数据
+	 * @return      
+	 * void
+	 */
+	public void saveOrUpdateStoreShareData(Map<String,Object> paraMap) ;
+	/**
+	 * 保存门店分摊详细数据
+	 * @Title: saveStoreShareDetailData
+	 * @author: zuoyuntao  
+	 * @Description:保存门店分摊详细数据
+	 * @param shareId 主配置ID
+	 * @param saveList 参数集合	
+	 * @return      
+	 * void
+	 */
+	public void saveStoreShareDetailData(String shareId,List<Map<String, Object>> saveList);
+	/**
+	 * 根据ID删除门店分摊数据
+	 * @Title: deleteStoreShareDataById
+	 * @author: zuoyuntao  
+	 * @Description:根据ID删除门店分摊数据
+	 * @param id 配置ID
+	 * @return      
+	 * void
+	 */
+	public void deleteStoreShareDataById(String id);
+	/**
+	 * 根据配置ID查询下属门店分摊详细
+	 * @Title: queryStoreShareDetailByShareId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param shareId 主配置ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	public List<Map<String,Object>> queryStoreShareDetailByShareId(String shareId);
+	/**
+	 * 根据部门ID查询下属门店
+	 * @Title: querySubordinateStoreDataByDeptId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param deptId 部门ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	public List<Map<String,Object>> querySubordinateStoreDataByDeptId(String deptId);
+}

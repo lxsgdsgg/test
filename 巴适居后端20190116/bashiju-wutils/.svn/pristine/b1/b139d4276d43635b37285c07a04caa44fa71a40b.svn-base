@@ -1,0 +1,45 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerAgentStarCommentsParamsEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年9月25日 下午3:17:48   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
+import lombok.Data;
+
+/**
+ * 经纪人评价参数实体类
+ * @ClassName:CustomerAgentStarCommentsParamsEntity
+ * @Description:经纪人评价参数实体类
+ * @author:zuoyuntao
+ * @date:2018年9月25日 下午3:17:48
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustomerAgentStarCommentsParamsEntity implements Serializable{
+
+	/**   
+	 * @Fields serialVersionUID : TODO(用一句话描述这个变量表示什么)   
+	 */ 
+	private static final long serialVersionUID = -3522335973474311362L;
+	/**经纪人ID**/
+	@NotEmpty(message="经纪人ID不能为空")
+	private int userId;
+	/**经纪人详情ID**/
+	private int agentId;
+	/**评价星级**/
+	@NotEmpty(message="星级评价不能为空")
+	private int star;
+	/**评价内容**/
+	private String content;
+}

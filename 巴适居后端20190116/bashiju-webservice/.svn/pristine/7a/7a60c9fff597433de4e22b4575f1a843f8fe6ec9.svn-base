@@ -1,0 +1,189 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  NewHouseMapper.java   
+ * @Package com.bashiju.webservice.mapper   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月18日 下午5:20:45   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.input.newhouse.NewHouseQueryParam;
+import com.bashiju.www.pojo.service.out.newhouse.GoodNewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.HotNewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseDetailResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseDynamicResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseImgList;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseListResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHousePriceDetailResult;
+import com.bashiju.www.pojo.service.out.newhouse.NewHouseTypeList;
+import com.bashiju.www.pojo.service.out.newhouse.OpenDateResult;
+import com.bashiju.www.pojo.service.out.newhouse.PresalePermitResult;
+import com.bashiju.www.pojo.service.out.newhouse.RoomTimeResult;
+import com.bashiju.www.pojo.service.out.newhouse.SameNewHouseList;
+import com.github.pagehelper.Page;
+
+
+
+/**   
+ * @ClassName:  NewHouseMapper   
+ * @Description:新房持久层
+ * @author: wangpeng
+ * @date:   2018年8月18日 下午5:20:45   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface NewHouseMapper {
+	/**
+	 *  条件查询新房动态
+	 * @Title: queryNewHouseDynamicByProjectId   
+	 * @Description: 条件查询新房动态
+	 * @param projectId 楼盘编号
+	 * @return: List<NewHouseDynamicResult>
+	 */
+	public List<NewHouseDynamicResult> queryNewHouseDynamicByProjectId(@Param("projectId")String projectId);
+
+	/**
+	 * 
+	 * @Title: selectNewHouseDetailInfo   
+	 * @Description: TODO(查询新房楼盘各详细信息)   
+	 * @param: @param newHouseId      
+	 * @return: void      
+	 * @throws
+	 */
+	public NewHouseDetailResult selectNewHouseDetailInfo(int newHouseId);
+	
+	/**
+	 * 
+	 * @Title: updateBrowseCnt   
+	 * @Description: TODO(修改浏览次数)   
+	 * @param: @param updateTable 需要修改的表名
+	 * @param: @param newHouseId   新房楼盘id   
+	 * @return: void      
+	 * @throws
+	 */
+	public void updateBrowseCnt(@Param("updateTable")String updateTable,@Param("newHouseId")int newHouseId);
+	
+	/**
+	 * 
+	 * @Title: selectNewHouseType   
+	 * @Description: TODO(查询新房楼盘户型)   
+	 * @param: @param newHouseId ：新房楼盘id
+	 * @param: @param room:楼盘是几室的
+	 * @param: @return      
+	 * @return: List<NewHouseTypeList>      
+	 * @throws
+	 */
+	public List<NewHouseTypeList> selectNewHouseType(@Param("projectId") int newHouseId) ;
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: selectNewHouseImgs   
+	 * @Description: TODO(查询新房楼盘相册)   
+	 * @param: @param newHouseId：新房楼盘id
+	 * @param: @return      
+	 * @return: List<NewHouseImgList>      
+	 * @throws
+	 */
+	public List<NewHouseImgList> selectNewHouseImgs(int newHouseId);
+	
+	
+	/**
+	 * 
+	 * @Title: querySellSameHouseList   
+	 * @Description: TODO(查询相似新房楼盘)   
+	 * @param: @param avgPrice：新房楼盘均价
+	 * @param: @param limit：查几条数据
+	 * @param: @return      
+	 * @return: List<SameNewHouseList>      
+	 * @throws
+	 */
+	public List<SameNewHouseList> querySameNewHouseList(@Param("avgPrice") int avgPrice,@Param("limit") int limit);
+
+	
+	/**
+	 * 条件查询楼盘预售证信息
+	 * @Title: queryPresalePermitByProjectId   
+	 * @Description: 条件查询楼盘预售证信息
+	 * @param projectId 楼盘编号
+	 * @return: List<PresalePermitResult>
+	 */
+	public List<PresalePermitResult> queryPresalePermitByProjectId(@Param("projectId")String projectId);
+	
+	/**
+	 * 条件查询交房时间  
+	 * @Title: queryRoomTimeByPorjectId   
+	 * @Description: 条件查询交房时间  
+	 * @param projectId 新房楼盘id
+	 * @return: List<RoomTimeResult>
+	 */
+	public List<RoomTimeResult> queryRoomTimeByProjectId(@Param("projectId")String projectId);
+	
+	/**条件查询开盘时间 
+	 * 	
+	 * @Title: queryOpenDateByProjectId   
+	 * @Description: 条件查询开盘时间  
+	 * @param projectId 新房楼盘id
+	 * @return: List<OpenDateResult>
+	 */
+	public List<OpenDateResult> queryOpenDateByProjectId(@Param("projectId")String projectId);
+	
+	/**
+	 * 条件查询楼盘价格详情
+	 * @Title: queryNewHousePriceDetailByProjectId   
+	 * @Description: 条件查询楼盘价格详情
+	 * @param projectId 新房楼盘id
+	 * @return: List<NewHousePriceDetailResult>
+	 */
+	public List<NewHousePriceDetailResult> queryNewHousePriceDetailByProjectId(@Param("projectId")String projectId);
+	
+	/**
+	 * 
+		 * 首页查询推荐新房列表
+		 * @Description: 首页查询推荐新房列表
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<GoodNewHouseListResult>
+	 */
+	public List<GoodNewHouseListResult> queryGoodProjects(@Param("cityCode") String cityCode,@Param("limit") int limit);
+	/**
+	 * 
+		 * 新房列表，热门楼盘列表
+		 * @Description: 新房列表，热门楼盘列表
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<HotNewHouseListResult>
+	 */
+	public List<HotNewHouseListResult> queryHotProjects(@Param("cityCode") String cityCode,@Param("limit") int limit);
+	/**
+	 * 
+		 * 新房列表查询
+		 * @Description: 新房列表查询
+		 * @param param
+		 * @return 
+		 * Page<NewHouseListResult>
+	 */
+	public Page<NewHouseListResult> queryNewHouseList(NewHouseQueryParam param);
+	/**
+	 * 
+		 * 根据新房楼盘名称查询楼盘列表
+		 * @Description: 根据新房楼盘名称查询楼盘列表
+		 * @param cityCode 城市代码
+		 * @param name 新房楼盘名称
+		 * @return 
+		 * Page<NewHouseListResult>
+	 */
+	public Page<NewHouseListResult> queryNewHouseListByName(@Param("cityCode") String cityCode,@Param("name") String name);
+}

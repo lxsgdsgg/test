@@ -1,0 +1,25 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralMapper.java   
+ * @Package com.bashiju.www.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午2:41:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.mapper;
+
+/**
+ * 客户个人中心映射接口
+ * @ClassName:CustomerPersonalCentralMapper
+ * @Description:客户个人中心映射接口
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午2:41:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerPersonalCentralMapper {
+
+}

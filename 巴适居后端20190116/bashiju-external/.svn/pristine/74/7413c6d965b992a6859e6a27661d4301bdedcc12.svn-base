@@ -1,0 +1,103 @@
+package com.bashiju.ext.controller;
+
+import java.io.IOException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.bashiju.ext.service.ExtCloudServiceApi;
+import com.bashiju.ext.service.impl.ExtCloudServiceImpl;
+import com.bashiju.utils.util.HttpClientUtil;
+import com.bashiju.utils.util.SpringContextHolder;
+
+@Controller
+public class TencentCloudController {
+	
+	 ExtCloudServiceApi extCloudServiceApi=(ExtCloudServiceImpl)SpringContextHolder.getBean("ExtCloudService");
+		
+	/**
+	 * @throws IOException 
+	 * 接受腾讯云返回的录音下载URL并保存到数据库
+	 * @Title: saveTencentRecord   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param: @param obj
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	@RequestMapping(value="/saveTencentRecord", method = RequestMethod.POST)
+	public void saveTencentRecord(@RequestBody Map<Object,Object> map,HttpServletResponse response) throws IOException {
+		map.put("src", map.get("src").toString().replace("0086", ""));
+		map.put("dst", map.get("dst").toString().replace("0086", ""));
+		String[] companyidandhouseid=map.get("requestId").toString().split("!");
+		map.put("companyId", companyidandhouseid[0].toString());
+		map.put("houseId", companyidandhouseid[1].toString());
+		map.remove("requestId");
+		String localUrl=new HttpClientUtil().getPhoneRecordHttpClient(map.get("recordUrl").toString(),false);
+		if(StringUtils.isEmpty(localUrl)) {
+			return;
+		}
+        map.put("recordUrl",localUrl);
+		boolean res=extCloudServiceApi.auxSave(map,"tencentcloud_phonerecord");
+		if(res) {
+		 response.getWriter().write("HTTP/1.1 200 OK\r\n" + 
+		 		"Content-Type: text/plain;charset=utf-8\r\n" + 
+		 		"Content-Length: 0");
+		}
+		
+	}
+	
+	
+	/**
+	 * 接受腾讯云返回的话单下载URL并保存到数据库
+	 * @Title: saveTencentRecord   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param: @param obj
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	@RequestMapping(value="/saveTencentRecordList",method = RequestMethod.POST)
+	public void saveTencentRecordList(@RequestBody Map<Object,Object> map,HttpServletResponse response) throws IOException {
+		switch (Integer.parseInt(map.get("callEndStatus").toString())) {
+		case 0:
+			map.put("callEndStatus", "未知状态");
+			break;
+		case 1:
+			map.put("callEndStatus", "正常通话");
+			break;
+		case 2:
+			map.put("callEndStatus", "主叫未接");
+			break;
+		case 3:
+			map.put("callEndStatus", "主叫接听，被叫未接");
+			break;
+		case 4:
+			map.put("callEndStatus", "主叫未接通");
+			break;
+		default:
+			map.put("callEndStatus", "被叫未接通");
+			break;
+		}
+		map.put("src", map.get("src").toString().replace("0086", ""));
+		map.put("dst", map.get("dst").toString().replace("0086", ""));
+		String[] companyidandhouseid=map.get("requestId").toString().split("!");
+		map.put("companyId", companyidandhouseid[0].toString());
+		map.put("houseId", companyidandhouseid[1].toString());
+		map.remove("requestId");
+		boolean res=extCloudServiceApi.auxSave(map,"tencentcloud_phonelist");
+		if(res) {
+			 response.getWriter().write("HTTP/1.1 200 OK\r\n" + 
+			 		"Content-Type: text/plain;charset=utf-8\r\n" + 
+			 		"Content-Length: 0");
+			}
+		
+	}
+	
+}

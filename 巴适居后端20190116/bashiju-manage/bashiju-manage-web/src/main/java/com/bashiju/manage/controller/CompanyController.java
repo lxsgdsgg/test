@@ -1,0 +1,240 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CompanyController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年5月4日 上午11:50:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.CompanyStatusEnum;
+import com.bashiju.enums.RoleGroupEnum;
+import com.bashiju.manage.pojo.DoctypeEnum;
+import com.bashiju.manage.pojo.LegdoctypeEnum;
+import com.bashiju.manage.service.CompanyService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/** 
+ * 公司管理控制器   
+ * @ClassName:  CompanyController   
+ * @Description:公司管理控制器   
+ * @author: yangz
+ * @date:   2018年5月4日 上午11:50:36   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@RequestMapping(value="company")
+@Controller
+public class CompanyController extends BaseController {
+	@Autowired	
+	private ICommunityService communityService; 
+	
+	
+	@Autowired
+	private CompanyService companyService;
+
+	/**
+	 * 进入公司管理主页面   
+	 * @Description: 进入公司管理主页面   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="company")
+	public ModelAndView companyPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = this.getModelAndView(request, response, "company/company");
+		mv.addObject("doctypeJson", JSONObject.toJSON(DoctypeEnum.enumMap));
+		mv.addObject("legdoctypeJson", JSONObject.toJSON(LegdoctypeEnum.enumMap));
+		return mv;
+	}
+	
+	/**
+	 * 条件加载公司信息   
+	 * @Description: 条件加载公司信息   
+	 * @param request
+	 * @param response
+	 * @return: Object
+	 */
+	@RequestMapping(value="getCompanyData")
+	@ResponseBody
+	public Object getCompanyData(HttpServletRequest request ,HttpServletResponse response,int page,int limit,String name,String doccode,String legrepname,String legdocmobile,String status) {
+		Page<Map<String,Object>> pages =companyService.queryCompanys(name, doccode, legrepname, legdocmobile, status, page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return JSONObject.toJSON(map);
+	}
+	
+	/**
+	 * 获取公司状态
+	 * @Title: getCompanyStatus   
+	 * @Description: 获取公司状态
+	 * @return: Object
+	 */
+	@RequestMapping(value="getCompanyStatus")
+	@ResponseBody
+	public Object getCompanyStatus() {
+		Map<String,Object> map = new HashMap<>();
+		map.put("status", CompanyStatusEnum.enumList);
+		//法人证件类型 
+		map.put("doctype", DoctypeEnum.enumList);
+		//法代证件类型
+		map.put("legdoctype", LegdoctypeEnum.enumList);
+		return map;
+	}
+	
+	/**
+	 * 进入公司编辑页面
+	 * @Description: 进入公司编辑页面
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="companyDetailPage")
+	public ModelAndView companyDetailPage(HttpServletRequest request,HttpServletResponse response,String companyId,String regaddrcity) {
+		ModelAndView mv = getModelAndView(request, response, "company/companyDetail");
+		if(!StringUtils.isEmpty(companyId)) {
+			Map<String,Object> company = this.companyService.getCompany(companyId);
+			if(company!=null)
+				mv.addObject("company", company);
+		}
+		//区域代码
+		List<Map<String, Object>> list = communityService.queryAreaSelect();
+		if(list!=null&&list.size()>0) {
+			mv.addObject("areaList", list);
+			mv.addObject("areaListJson", JSON.toJSONString(list));
+		}
+		
+		if(!StringUtils.isEmpty(regaddrcity)) {
+			//城市名称
+			Map<String,Object> cityName = companyService.queryCityByAreacode(regaddrcity);
+			if(cityName!=null&&cityName.size()>0){
+				mv.addObject("cityName", cityName);
+			}
+			
+		}
+		
+		mv.addObject("doctype", JSONObject.toJSON(DoctypeEnum.enumMap));
+		mv.addObject("legdoctype", JSONObject.toJSON(LegdoctypeEnum.enumMap));
+		return mv;
+	}
+	
+	/**
+	 * 保存公司信息 
+	 * @Description: 保存公司信息  
+	 * @param request
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateCompany")
+	@ResponseBody
+	public BashijuResult saveOrUpdateCompany(HttpServletRequest request,String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("没有要保存的数据");
+		Map<String,Object> map = (Map<String,Object>) JSONObject.parse(jsonData);
+		map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		map.put("operatorId", UserThreadLocal.get().get("id"));
+		boolean tt = this.companyService.saveOrUpdateCompany(map);
+		if(tt)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * 删除公司信息   
+	 * @Description: 删除公司信息   
+	 * @param request
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delCompany")
+	@ResponseBody
+	public BashijuResult delCompany(HttpServletRequest request,String companyId) {
+		boolean flg = this.companyService.delCompany(companyId);
+		if(flg)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 
+	 * @Title: queryCompanyById   
+	 * @Description: 查询数据库是否已有公司id   
+	 * @param request
+	 * @param response
+	 * @param companyId 公司id
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="queryCompanyById")
+	@ResponseBody
+	public BashijuResult queryCompanyById(HttpServletRequest request,HttpServletResponse response,String companyId){
+			Map<String,Object> map = companyService.getCompany(companyId);
+			if(map!= null && map.size()>0)
+				return BashijuResult.build(false, "已存在公司编号");
+			else {
+				return BashijuResult.build(true, "公司编号可用");
+			}
+	}
+	/**
+	 * @Title: queryCompanyNameAndId   
+	 * @Description: 查询公司名称和公司编号
+	 * @return: List<Map<String,Object>>
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="queryCompanyNameAndId")
+	@ResponseBody
+	public List<Map<String,Object>> queryCompanyNameAndId(){
+		Map<String,Object> user = UserThreadLocal.get();
+		if(!StringUtils.isEmpty(user.get("roleGroup").toString()) && 
+				RoleGroupEnum.ORDINARY_USER.getCode().equals(user.get("roleGroup").toString())) {
+			Map<String,Object> company = companyService.getCompany(user.get("companyId").toString());
+			List<Map<String,Object>> list = new ArrayList<Map<String,Object>>(0);
+			list.add(company);
+			return list;
+		}else
+			return companyService.queryCompanys(null, null, null, null, null);
+	}
+	/**
+	 * 
+	 * @Title: queryCompanyIdIsExist   
+	 * @Description: 查询公司电话是否存在
+	 * @param companyId
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryCompanyIdIsExist")
+	@ResponseBody
+	public Map<String,Object> queryCompanyIdIsExist(String companyId){
+			Map<String,Object> map = new HashMap<String, Object>();
+			boolean result = companyService.queryCompanyIsExist(companyId);
+			if(result) {
+				 map.put("isExist",true);
+			}else
+				map.put("isExist",false);
+			return map;
+				
+	}
+}

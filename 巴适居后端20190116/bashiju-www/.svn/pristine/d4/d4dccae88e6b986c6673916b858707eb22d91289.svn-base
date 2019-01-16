@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustomerPersonalCentralMapper">
+ <resultMap id="customerMap" type="com.bashiju.www.pojo.CustCustomer">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="username" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="solt" jdbcType="VARCHAR" property="solt" />
+    <result column="sex" jdbcType="VARCHAR" property="sex" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="addTime" jdbcType="TIMESTAMP" property="addtime" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updatetime" />
+    <result column="isValid" jdbcType="TINYINT" property="isvalid" />
+  </resultMap>
+  	<!-- 查询个人信息 -->
+	<select id="queryPersonalInfo" resultMap="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime
+		,a.updateTime,a.isValid from cust_customer a where isValid = 1
+		<if test="custId != null and custId != ''">
+			and id = #{custId}
+		</if>
+	</select>
+	<!-- 查询个人详细信息 -->
+	<select id="queryPersonalDetailInfo" parameterType="com.bashiju.www.pojo.service.user.CustCustomerEntity">
+		select a.id,a.`name`,a.mobile,a.`password`,a.solt,a.sex,a.operator,a.addTime,
+		a.updateTime,a.isValid from cust_customer a where a.isValid = 1
+	</select>
+	<select id="queryMyselfAgentList">
+		select a.`status`,b.mainRegionsIds,b.mainRegions,b.mainCommunityIds,
+		b.mainCommunity,b.showedRdCnt,b.histShowedRdCnt,b.dealCnt,c.realName,
+		c.mobile,d.custId,e.name as positionName from sys_agentacceptance a
+		inner join sys_agent_details b on a.userId = b.id
+		inner join sys_user c on b.userId = c.id 
+		inner join sys_custbindinfo d ON a.sourceId = d.sourcesId
+		inner join sys_post e on c.postId = d.id where a.isvalid = 1 and d.custId = #{custId}
+	</select>
+	<!-- 查询我的预约 -->
+	<select id="queryMyselfAppointmentList">
+		select a.id,a.custId,a.`name`,a.remark,a.mobile,a.shhId,a.maintainId,a.reservationTime,
+		a.reservationDate,a.`status`,a.handelTime,a.handelerId,a.handelResult,a.permissionArea,
+		a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid,c.mobile,c.telPhone from
+		cust_reservations as a inner join sys_agent_details b on a.maintainId = b.id
+		inner join sys_user c on b.userId = c.id where a.isvalid = 1 and a.custId = #{custId}
+	</select>
+	<update id="updatePersonalMobile">
+		update cust_customer set mobile = #{mobile} ,updateTime = #{updateTime} 
+		where custId = #{custId} and isValid = 1
+	</update>
+	<update id="modifyCustomerPassword">
+		update cust_customer set password = #{finalPassword} ,updateTime = #{updateTime} 
+		where custId = #{custId} and isValid = 1
+	</update>
+	
+	<update id="concelMyselfAppointment">
+		update cust_reservations set isValid = 0,updateTime=#{updateTime} 
+		where isValid = 1 and id = #{id}
+	</update>
+</mapper>

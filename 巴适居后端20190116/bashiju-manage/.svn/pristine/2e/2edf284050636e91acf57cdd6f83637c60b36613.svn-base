@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.UserManageMapper">
+	<select id="queryAllUser"  parameterType="Map" resultType="java.util.Map">	
+		<!-- {call queryUserInfo(#{getCondition,jdbcType=VARCHAR,mode=IN},#{page,jdbcType=INTEGER,mode=IN},#{pageSize,jdbcType=INTEGER,mode=IN},#{out_rows,jdbcType=INTEGER,mode=OUT})} -->	
+		SELECT sys_user.id,sys_user.realName,sys_user.mobile,sys_user.wxNum,sys_user.telPhone,
+		sys_user.companyId,sys_user.deptId,sys_user.roleId,sys_user.`password`,sys_user.solt,
+		sys_user.sex,sys_user.employee_num,sys_user.birthDate,sys_user.entryDate,sys_user.idCode,
+		sys_user.email,sys_user.postId,sys_user.refereeId,sys_user.sortNo,sys_user.birthWindowFlag,
+		sys_user.`status`,sys_user.permissionArea,sys_user.operatorId,sys_user.operator,
+		sys_user.addTime,sys_user.updateTime,sys_user.userType,sys_user.loginStatus,
+		sys_user.parentMobile,sys_user.isPCLogin,sys_user.isMobileLogin,sys_user.lastLoginSuccessTime,
+		sys_user.passwordErrorCount,sys_user.areaCode,sys_user.isValid,sys_user.IP,sys_user.signature,
+		sys_user.profilePhoto,sys_user.isAgent from sys_user
+		where isValid=1
+	</select>
+	
+	<select id="queryAllUserInfo"  parameterType="Map" resultType="java.util.Map">	
+		SELECT sys_user.`id`,sys_user.`realName`,sys_user.`mobile`,sys_user.`wxNum`,sys_user.`telPhone`,sys_user.`companyId`,sys_user.`deptId`
+		,(SELECT	`a`.`name` FROM	`sys_dept` `a` WHERE((sys_user.`deptId` = `a`.`id`)AND (`a`.`isvalid` = 1))) AS `deptName`,sys_user.`roleId`
+		,(SELECT	`a`.`name` FROM	`sys_role` `a` WHERE((sys_user.`roleId` = `a`.`id`)AND (`a`.`isvalid` = 1))) AS `roleName`
+		,(SELECT	`a`.`groups` FROM	`sys_role` `a` WHERE((sys_user.`roleId` = `a`.`id`)AND (`a`.`isvalid` = 1))) AS `groups`
+		,(SELECT `a`.`name` FROM	`sys_post` `a` WHERE((sys_user.`postId` = `a`.`id`)	AND (`a`.`isvalid` = 1))) AS `postName`
+		,sys_user.`password` AS `password`,sys_user.`solt`,sys_user.`sex`,IF ((sys_user.`sex` = '1'),'女','男') AS `sexName`
+		,sys_user.`employee_num`,sys_user.`birthDate`,sys_user.`entryDate`,sys_user.`idCode`,sys_user.`email`,sys_user.`postId`
+		,sys_user.`refereeId` as code,sys_user.`sortNo`,sys_user.`birthWindowFlag`,sys_user.`status`,IF ((sys_user.`status` = '0')
+		,'锁定','正常') AS `statusName`,sys_user.`permissionArea`,sys_user.`operatorId`,sys_user.`operator`,sys_user.`addTime`
+		,sys_user.`updateTime`,sys_user.`userType`,IF ((sys_user.`userType` = '1'),'是','否') AS `userTypeName`,sys_user.`loginStatus`
+		,sys_user.`parentMobile`,sys_user.`isPCLogin`,IF ((sys_user.`isPCLogin` = '1'),'是','否') AS `isPCLoginName`,sys_user.`isMobileLogin`
+		,sys_user.`lastLoginSuccessTime`,sys_user.`passwordErrorCount`,sys_user.`areaCode`,sys_user.isAgent,sys_agent_details.mainArea
+		,sys_agent_details.mainAreaCodes,(SELECT `b`.`name`	FROM `sys_area` `b`	WHERE(sys_user.`areaCode` = `b`.`code`)) AS `areaName`,sys_user.refereeId
+		,sys_agent_details.hotAgentFlag,sys_agent_details.mainCommunity,sys_agent_details.mainRegions,sys_agent_details.mainCommunityIds
+		,sys_agent_details.mainRegionsIds,sys_agent_details.syncFlag,sys_agent_details.id as agentDetailId
+		,b.realName as refereeName,sys_user.`isValid` FROM sys_user sys_user LEFT JOIN sys_agent_details 
+		on sys_user.id = sys_agent_details.userId	LEFT JOIN sys_user b on sys_user.refereeId = b.id
+		where sys_user.isValid = 1
+		<if test="null != realName and realName != ''">
+			and sys_user.realName like '%${realName}%'
+		</if>
+		<if test="null != deptId and deptId != ''">
+			and sys_user.deptId = #{deptId}
+		</if>
+		<if test="null != roleId and roleId != ''">
+			and sys_user.roleId = #{roleId}
+		</if>
+		<if test="null != employee_num and employee_num != ''">
+			and sys_user.employee_num like '%${employee_num}%'
+		</if>
+		<if test="null != mobile and mobile != ''">
+			and sys_user.mobile like '%${mobile}%'
+		</if>
+		<if test="null != isLocked and isLocked != ''">
+			and sys_user.status = #{isLocked}
+		</if>
+		<if test="null != areaCode and areaCode != ''">
+			and sys_user.areaCode = #{areaCode}
+		</if>
+	</select>
+	
+	<select id="queryUserDataUpdateLogWithPage" resultType="map">
+		select * from user_post_adjust_log
+	</select>
+	
+	<select id="queryDeptInfoToCreateTree" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				UNION
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union
+				select a.permissionArea,a.operatorId,a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+2)  
+				from sys_dept where isvalid=1) as level from sys_user a left join sys_dept b on 
+				a.deptId = b.id where a.isValid = 1 and b.isvalid = 1
+			</when>
+			<otherwise>
+				select (select max(FORMAT((length(id)-length(companyId))/2,0)) from sys_dept where isvalid = 1) 
+				as maxLevel,permissionArea,operatorId,id as code,name,parentId as parentCode,FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+				union all
+				select (select max(FORMAT((length(id)-length(companyId))/2,0))  from sys_dept where isvalid=1) as maxLevel,
+				a.permissionArea,a.operatorId,a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+1)  
+				from sys_dept where isvalid=1) as level from sys_user a left join sys_dept b on 
+				a.deptId = b.id where a.isValid = 1 and b.isvalid = 1
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryReferenInfoToCreateTree" resultType="map">
+		select id as code,name,'' as parentCode,'company' as dataType,'' as mobile from sys_company where isValid=1 union all
+		select id as code,name,if(parentId is null or parentId = '' , companyId , parentId) as parentCode,'dept' as dataType,'' as mobile from sys_dept where isValid=1 union all 
+		select id as code,realName as name,deptId as parentCode,'user' as dataType,mobile from sys_user where isValid=1  
+	</select>
+	
+	<select id="queryAgentInfoToCreateTree" resultType="map">
+		select id as code,name,'' as parentCode from sys_company where isValid=1 union all
+		select id as code,name,if(parentId is null or parentId = '' , companyId , parentId) as parentCode from sys_dept where isValid=1 
+		union all 
+		select CONCAT(a.id,'-',b.id) as code,a.realName as name,a.deptId as parentCode from sys_user a left join sys_agent_details b
+		on a.id = b.userId where a.isValid=1 and b.isvalid = 1
+	</select>
+	
+	<select id="counterUserByConn" resultType="long">
+		SELECT count(1) FROM sys_user where isValid = 1
+		<if test="condition != null and condition != ''">
+			and ${condition}
+		</if> 
+	</select>
+	
+	<select id="queryUserInfoByConn" resultType="map">
+		SELECT id,realName,mobile,wxNum,telPhone,companyId,deptId,roleId,`password`,solt,
+		sex,employee_num,birthDate,entryDate,idCode,email,postId,refereeId,sortNo,birthWindowFlag,
+		`status`,permissionArea,operatorId,operator,addTime,updateTime,userType,loginStatus,
+		parentMobile,isPCLogin,isMobileLogin,lastLoginSuccessTime,passwordErrorCount,areaCode,isValid,IP,signature,
+		profilePhoto,isAgent from sys_user where isValid = 1 and ${condition}
+	</select>
+	
+	<select id="queryAreaLikeCode" resultType="map" >
+		SELECT code,name,parentCode,level from sys_area WHERE code like '${code}%'
+	</select>
+</mapper>

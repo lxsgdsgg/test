@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.MenuMapper">
+	<select id="queryMenus" resultType="map">
+		select a.id,a.name,a.parentId,b.name as parentName,a.url,a.btnName,a.functionType,a.operator,a.level
+		,a.sortNo,a.dataPerFlag,a.permissionArea,a.operatorId,a.isvalid,a.roleGroup from sys_menu a left join sys_menu b on a.parentId = b.id where a.isvalid=1 
+		<if test="menuName != null and menuName != '' "> and a.name like '%${menuName}%' </if> 
+		<if test="functionType != null and functionType != '' "> and a.functionType = #{functionType} </if>
+		<if test="level != null and level != '' "> and a.level = #{level} </if>
+		<if test="parentMenuId != null and parentMenuId != '' "> and a.parentId = #{parentMenuId} </if>
+		<if test="dataPerFlag != null and dataPerFlag != '' "> and a.dataPerFlag = #{dataPerFlag} </if>
+	</select>
+	
+	<select id="getMenu" resultType="map">
+		select * from sys_menu where isvalid=1 and id = #{menuId}
+	</select>
+	
+	<select id="isRelation" resultType="long">
+		select count(id)id from sys_permission where menuPermission=#{menuId}
+	</select>
+</mapper>

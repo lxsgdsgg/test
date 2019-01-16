@@ -1,0 +1,94 @@
+package com.bashiju.deal.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.deal.service.DealDividenInfoService;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DealDividenInfoController   
+ * @Description:TODO(分成明细查询控制层)   
+ * @author: wangpeng
+ * @date:   2018年6月29日 下午2:45:20   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="dealDividenInfo")
+public class DealDividenInfoController extends BaseController {
+	@Autowired
+	private DealDividenInfoService dealDividenInfoService;
+	/**
+	 * 
+	 * @Title: enterDealDividenInfoPage   
+	 * @Description: TODO(进入分成查询页面)   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDealDividenInfoPage")
+	public ModelAndView enterDealDividenInfoPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv=getModelAndView(request, response, "dealDividenInfo/dealDividenInfo");
+		mv.addObject("dealType", JSON.toJSON(DealTypeEnum.enumMap));
+		mv.addObject("DealType",DealTypeEnum.enumList);
+		return mv;
+	}
+	
+	/***
+	 * @Title: dropDown   
+	 * @Description: 下拉查询条件
+	 * @return: Object
+	 */
+	@RequestMapping(value="dropDown")
+	@ResponseBody
+	public Object dropDown() {
+		Map<String,Object> dropDown = new HashMap<>();
+		dropDown.put("dealType", DealTypeEnum.enumList);
+		return dropDown;
+	}
+	
+	/**
+	 * 
+	 * @Title: queryDealDividenInfoData   
+	 * @Description: TODO(分成明细查询)   
+	 * @param dealType 成交类型
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param dividerId 分成人id
+	 * @param dealId 成交编号
+	 * @param isValid 是否有效
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDealDividenInfoData")
+	@ResponseBody
+	public Map<String,Object> queryDealDividenInfoData(String dealType,String beginTime,String endTime,String dividerId,String dealId,String isValid,int page,int limit){
+		Map<String,Object> paramMap = new HashMap<>();
+		paramMap.put("dealType", dealType);
+		paramMap.put("endTime", endTime);
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("dividerId", dividerId);
+		paramMap.put("dealId", dealId);
+		paramMap.put("isValid", isValid);
+		Page<Map<String,Object>> pages = dealDividenInfoService.queryDealDividenInfo(paramMap,page, limit);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+}

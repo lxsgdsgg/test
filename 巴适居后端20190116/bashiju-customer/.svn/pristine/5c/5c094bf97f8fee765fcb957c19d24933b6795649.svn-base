@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.DemandFollowRecordMapper">
+	<select id="queryDemandFollowRecordData" resultType="map">
+	select df.id,dcb.formName,dcb.maintainer,dcb.maintainId,df.companyName,dcb.id as demandId,dcb.status as status,dcb.statusId as statusId,dcb.transactionType as transactionType,dcb.transactionTypeId as transactionTypeId,
+		df.companyId,df.followType,df.follower,df.followTime,
+		df.followTypeName,df.followerId as followerId,
+		df.permissionArea,df.operatorId,df.operator ,df.deptId,b.name as deptName,df.addTime,df.updateTime,df.content,df.isValid from  demand_followrecord df
+		right join (select max(id) id from demand_followrecord group by demandId)a on df.id = a.id 
+		inner join demand_customerbusinessinfo dcb on dcb.id=df.demandId
+		INNER JOIN sys_dept b on b.id = df.deptId  where df.isValid = 1 and df.isValid = 1
+		<if test="transactionType!=null and transactionType!='' ">and dcb.transactionTypeId=#{transactionType}</if>
+		<if test="isValid!=null and isValid!='' ">and df.isValid=#{isValid}</if>
+		<if test="followType!=null and followType!='' ">and df.followType=#{followType}</if>
+		<if test="followType!=null and followType!='' ">and df.followType=#{followType}</if>
+		<if test="followerId!=null and followerId!='' ">and df.followerId=#{followerId}</if>
+		<if test="operatorId!=null and operatorId!='' ">and df.operatorId=#{operatorId}</if>
+		<if test="beginTime!=null and beginTime!='' ">and df.addTime&gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' ">and df.addTime&lt;=#{endTime}</if>
+		<if test="custIdAndFollowfollower!=null and custIdAndFollowfollower!=''">and dcb.id like concat('%',#{custIdAndFollowfollower},'%') or df.follower like  concat('%',#{custIdAndFollowfollower},'%')</if>
+		<if test="maintainId!=null and maintainId!=''">and dcb.maintainId =#{maintainId} </if>
+			
+	</select>
+	
+	<select id="queryDemandFollowRecordByDemandId" resultType="map">
+		select df.id,dcb.formName,dcb.maintainer,dcb.maintainId,df.companyName,dcb.id as demandId,dcb.status as status,b.name as deptName,dcb.statusId as statusId,dcb.transactionType as transactionType,dcb.transactionTypeId as transactionTypeId,
+		df.companyId,df.followType,df.follower,df.followTime, 
+		df.followTypeName,df.followerId as followerId,df.operatorId,df.permissionArea,
+		df.deptId,df.addTime,df.updateTime,df.content,df.isValid from  demand_followrecord df
+		inner join demand_customerbusinessinfo dcb on dcb.id=df.demandId
+		left join sys_dept b on b.id = df.deptId
+		where dcb.id=#{demandId}  and df.isValid  order by df.addTime desc 
+	</select>
+</mapper>

@@ -1,0 +1,101 @@
+package com.bashiju.customer.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.customer.mapper.CustomerMapper;
+import com.bashiju.customer.service.CustomerService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+@SystemServiceLog(sourceType="客源") 
+@Service
+public class CustomerServiceImpl implements CustomerService{
+	
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	
+	@Autowired
+	CustomerMapper customerMapper;
+	
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public Long saveCustomerFollow(Map<String,Object> data) {
+		Long res = 0l;
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		String companyName=user.get("comName").toString();
+		Long userid = Long.parseLong(user.get("id").toString());
+		String username = user.get("realName").toString();
+		Map dept = customerMapper.queryDeptName(userid);
+		String deptid = dept.get("deptId").toString();
+		Long shhId = 0l;
+		if(data.containsKey("followInfo")) {//写跟进
+			Map<Object,Object> followInfo = (Map)data.get("followInfo");
+			shhId = Long.parseLong(followInfo.get("shhId").toString());
+			followInfo.put("companyId", companyId);
+			followInfo.put("companyName", companyName);
+			followInfo.put("operatorId", userid);
+			followInfo.put("operator", username);
+			followInfo.put("deptId", deptid);
+			followInfo.put("followerId",userid);
+			followInfo.put("follower",username);
+			followInfo.put("permissionArea",deptid);
+			followInfo.put("followTime",new Date());
+			res = commonSqlServie.commonOperationDatabase(followInfo, "cust_followrecord", false);
+			//客源表跟进时间
+			Map<Object,Object> mm = new HashMap<>();
+			mm.put("id",shhId);
+			Map mainter =customerMapper.queryMainter(shhId) ;
+			Long mainterId = Long.parseLong(mainter.get("maintainId").toString());
+			if(mainterId==userid) {//维护人跟进时间
+				mm.put("mainterFllowTime", new Date());
+				res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			}else {//其他人员跟进时间
+				mm.put("allFollowTime", new Date());
+				res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			}
+			ExecutionResult.descFormat("", "保存房源跟进信息");
+		}
+		if(data.containsKey("remindInfo")) {//写提醒
+			Map<Object,Object> remindInfo = (Map)data.get("remindInfo");
+			String receivePeopleName = remindInfo.get("receivePeopleName").toString();
+			if(!"".equals(receivePeopleName)) {
+				remindInfo.put("sendPeopleId", userid);
+				remindInfo.put("sendPeopleName", username);
+				remindInfo.put("status", 0);
+				remindInfo.put("operator", username);
+				res = commonSqlServie.commonOperationDatabase(remindInfo, "sys_remind", false);
+				ExecutionResult.descFormat("", "保存提醒");
+			}
+			
+		}
+		if(data.containsKey("cancelOrder")) {//通知撤单
+			Map mainter =customerMapper.queryMainter(shhId) ;
+			Map<Object,Object> mm = new HashMap<>();
+			mm.put("sendPeopleId", userid);
+			mm.put("sendPeopleName", username);
+			mm.put("receivePeopleId", mainter.get("maintainId"));
+			mm.put("receivePeopleName", mainter.get("maintainer"));
+			mm.put("remindTime",new Date());
+			mm.put("status", 0);
+			mm.put("operator", username);
+			mm.put("remindContent", "通知撤单");
+			res = commonSqlServie.commonOperationDatabase(mm, "sys_remind", false);
+			//二手房源表撤单标志
+			mm = new HashMap<>();
+			mm.put("id", data.get("shhId"));
+			mm.put("cancelNoticeFlg", 1);
+			res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			ExecutionResult.descFormat("", "通知维护人撤单");
+		}
+		
+		return res;
+	}
+}

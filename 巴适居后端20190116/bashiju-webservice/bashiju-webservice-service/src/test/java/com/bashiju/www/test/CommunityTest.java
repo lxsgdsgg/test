@@ -1,0 +1,91 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CommunityTest.java   
+ * @Package com.bashiju.www.test   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月15日 下午3:57:19   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.test;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.community.CommunityDetail;
+import com.bashiju.www.pojo.service.community.CommunityPriceTrend;
+import com.bashiju.www.pojo.service.community.CommunityQueryParams;
+import com.bashiju.www.pojo.service.community.HotCommunity;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.service.community.CommunityService;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  CommunityTest   
+ * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @author: wangpeng
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class CommunityTest extends BaseServiceTest{
+	@Autowired
+	private  CommunityService communityService;
+	//小区列表
+	@Test
+	public void communityServiceListTest() {
+		CommunityQueryParams  params = new CommunityQueryParams();
+		params.setCityCode("530100");
+		Page<Community> comm = communityService.queryCommunitys(params);
+		System.out.println(comm);
+	}
+	//热门小区
+		@Test
+		public void  HotCommunityTest() {
+		 HotCommunity   params = new  HotCommunity();
+		 List<HotCommunity> result =  communityService.queryHotCommunitys("530100", 1);
+		 System.out.println(result);
+	}
+////		小区价格走势
+			@Test
+			public void  sys_community_priceTrendTest() {
+			 HotCommunity   params = new  HotCommunity();
+			 List<CommunityPriceTrend>  result = communityService.queryCommunityPriceTrend("1");
+			 System.out.println(result);
+		}
+			
+			@Test
+			public void  queryLeaseHousingByCommunityId() {
+			 List<HouseListResult> result = communityService.queryLeaseHousingByCommunityId("1",1);
+			 System.out.println(result);
+		}
+	
+	
+		@Test
+		public void  queryNearbyCommunity() {
+		 List<Community>  result = communityService.queryNearbyCommunity("1");
+		 System.out.println(result);
+		
+		}
+		
+		@Test
+		public void  querySealHousingByCommunityId() {
+			List<HouseListResult>    result = communityService.querySealHousingByCommunityId("1",1);
+					System.out.println(result);
+		}
+//	@Test
+//	public void  queryLeaseHousingByCommunityId() {
+//		List<HouseListResult>    result = communityService.queryLeaseHousingByCommunityId("1");
+//				System.out.println(result);
+//	}
+		
+		@Test
+		public void  getCommunityDetail() {
+			CommunityDetail communityDetail  = communityService.getCommunityDetail("1");
+					System.out.println(communityDetail);
+		}
+}

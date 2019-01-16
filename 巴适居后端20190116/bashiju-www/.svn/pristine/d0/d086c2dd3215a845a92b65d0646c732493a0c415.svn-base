@@ -1,0 +1,176 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerStarCommentsServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:14:14   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.CustomerStarCommentsMapper;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.comm.RandomValidateCode;
+import com.bashiju.www.service.user.ICustomerStarCommentsService;
+import com.bashiju.www.tools.WebCommonTools;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 客户评价服务
+ * @ClassName:CustomerStarCommentsServiceImpl
+ * @Description:客户评价服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:14:14
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerStarCommentsServiceImpl implements ICustomerStarCommentsService{
+	/**
+	 * Redis操作服务
+	 */
+	@Autowired
+	private ICacheService mICacheService;
+	/**
+	 * 客户星级评价持久层接口对象
+	 */
+	@Autowired
+	private CustomerStarCommentsMapper mCustomerStarCommentsMapper;
+	/**
+	 * 对象映射
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * 图片验证码获取实例
+	 */
+	@Autowired
+	private RandomValidateCode mRandomValidateCode;
+	/**
+	 * <p>Title: queryCustomerComments</p>   
+	 * <p>Description:查询客户的所有评价 </p>   
+	 * @param custId 登陆用户ID
+	 * @param page 每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerStarCommentsService#queryCustomerComments(java.lang.String)
+	 */
+	@Override
+	public Page<CustomerStarCommentsEntity> queryCustomerComments(
+			String custId,int page,int limit) {
+		String redisKey = Md5EncryptUtils.md5Encrypt("queryCustomerComments" 
+				+ custId.trim() + page + limit);
+		List<CustomerStarCommentsEntity> retList 
+				= this.readCustomerCommentsFromRedisByKey(redisKey);
+		if(retList.size() == 0) {
+			PageHelper.startPage(page,limit);
+			retList = mCustomerStarCommentsMapper.queryCustomerCommentsDataList(custId);
+			mICacheService.saveCache(redisKey,retList,WebGlobal.OTHER_EXPTIME);
+		}
+		return (Page<CustomerStarCommentsEntity>) retList;
+	}
+	/**
+	 * <p>Title: saveCustomerComments</p>   
+	 * <p>Description:保存用户评价 </p>   
+	 * @param commentEntity 要保存的评价数据对象 
+	 * @param imgVerifyCode 图片验证码
+	 * @param request 页面请求对象
+	 * @param response 页面响应对象
+	 * @see com.bashiju.www.service.user.ICustomerStarCommentsService#saveCustomerComments(com.bashiju.www.pojo.service.out.usercentral.CustomerStarCommentsEntity)
+	 */
+	@Override
+	public void saveCustomerComments(CustomerStarCommentsEntity commentEntity
+			,String imgVerifyCode,HttpServletRequest request,HttpServletResponse response) {
+//		String verifyCodeKey = mRandomValidateCode.getRedisKey(request, response);
+//		String verifyCode = mICacheService.getCache(verifyCodeKey);
+//		if(StringUtil.isEmpty(imgVerifyCode) && imgVerifyCode.equals(verifyCode)) {
+//			throw new BusinessException("输入验证码不正确");
+//		}
+		if(StringUtil.isEmpty(String.valueOf(commentEntity.getUserId()))) {
+			throw new BusinessException("传入经纪人ID为空");
+		}
+		Map<String,Object> userMap = mCustomerStarCommentsMapper.queryUserInfoById(
+				commentEntity.getUserId());
+		String now = WebCommonTools.formatDataTest("yyyy-mm-dd HH:mm:ss");
+		commentEntity.setOperator(String.valueOf(userMap.get("operator"))); 
+		commentEntity.setOperatorId(String.valueOf(userMap.get("operatorId"))); 
+		commentEntity.setPermissionArea(String.valueOf(userMap.get("permissionArea"))); 
+		commentEntity.setIsValid(1); 
+		commentEntity.setAddTime(now);
+		commentEntity.setUpdateTime(now);
+		//保存客户对经纪人的评价
+		if(commentEntity.getType().equals("0")) {
+			mCustomerStarCommentsMapper.saveCustomerComments(commentEntity);
+		}
+		if(commentEntity.getType().equals("0")) {
+			//TODO 保存客户对房源的评价
+		}
+		//删除图片验证码的Redis存储
+//		mICacheService.delCache(verifyCodeKey);
+		//获取Cookie的key
+//    	String csessionid = RequestUtils.getCSESSIONID(request, response);
+    	//删除cookie
+//    	RequestUtils.delCookiteValue(request, response, csessionid);
+	}
+	/**
+	 * 根据Key从Redis读取数据
+	 * @Title: readCustomerCommentsFromRedisByKey
+	 * @author: zuoyuntao  
+	 * @Description:根据Key从Redis读取数据
+	 * @param key
+	 * @return      
+	 * Page<CustomerStarCommentsEntity>
+	 */
+	@SuppressWarnings("unchecked")
+	private Page<CustomerStarCommentsEntity> readCustomerCommentsFromRedisByKey(String key){
+		Page<CustomerStarCommentsEntity> pageList = null;
+		String retStr = mICacheService.getCache(key);
+		if(StringUtil.isEmpty(retStr)) {
+			return new Page<CustomerStarCommentsEntity>();
+		}
+		try {
+			pageList = MAPPER.readValue(retStr, Page.class);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return pageList;
+	}
+	
+	/**
+	 * 获取图片验证码(生成的图片验证码已经写入到ImageIO对象中，C端直接使用)
+	 * @Title: getImageVerifyCode
+	 * @author: zuoyuntao  
+	 * @Description:获取图片验证码
+	 * @param request 页面请求对象
+	 * @param response 页面响应对象
+	 * void
+	 */
+	@Override
+	public void getImageVerifyCode(HttpServletRequest request,HttpServletResponse response) {
+		mRandomValidateCode.getRandcode(request, response);
+	}
+}

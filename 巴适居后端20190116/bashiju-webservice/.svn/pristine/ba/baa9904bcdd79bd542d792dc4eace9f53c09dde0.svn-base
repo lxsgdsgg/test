@@ -1,0 +1,101 @@
+package com.bashiju.www.service.user;
+
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+/**
+ * 用户服务接口
+ * @ClassName:  CustCustomerService   
+ * @Description:用户服务接口
+ * @author: wangpeng
+ * @date:   2018年8月15日 下午1:38:50   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface CustCustomerService  {
+
+
+	/**
+	 * 查询手机号码是否已存在
+	 * @Title: queryIsExistMobile   
+	 * @Description: 查询手机号码是否已存在  
+	 * @param mobile 手机号码
+	 * @return: boolean
+	 */
+	public boolean queryIsExistMobile(String mobile);
+	
+	/**
+	 *  保存用户在注册时输入信息 
+	 * @Title: saveCustCustomer   
+	 * @Description: 保存用户在注册时输入信息 
+	 * @param CustCustomerParam 用户输入参数
+	 * @return: long
+	 */
+	public boolean  saveCustCustomer(CustCustomerParam custCustomerParam);
+	
+	  /**
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param custCustomerEntity 要修改的参数
+     * @return: boolean
+     */
+    public boolean updateCustCustomer(CustCustomerEntity custCustomerEntity);
+    
+    /**
+     * 用户登录
+     * @Title: customerLogin   
+     * @Description:用户登录
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: String 用于查询登录用户信息，注销时用的参数
+     */
+    public String customerLogin(String mobile,String password);
+    /**
+     * 发送短信验证码
+     * @Title: sendMobileMsgVerfyCode   
+     * @Description: 发送短信验证码
+     * @param mobile 电话号码
+     * @return: String  
+     */
+    public String sendMobileMsgVerfyCode(String mobile);
+    /**
+     * @Title: customerMobileLogin   
+     * @Description: 短信登录
+     * @param mobile 电话号码
+     * @param solt 短信验证码
+     * @return:String 用于查询登录用户信息，注销时用的参数
+     * 
+     */
+    public String customerMobileLogin(String mobile,String solt);
+ 
+    /***
+     * 退出登陆
+     * @Title: customerLoginout   
+     * @Description: 退出登陆
+     * @param redisKey 用户登录成功后的返回值，用于清空用户信息
+     * @return: boolean
+     */
+    public boolean customerLoginout(String redisKey);
+    
+    /**
+     *  通过手机号码修改用户密码
+     * @Title: updateCustomerPwdByMobile   
+     * @Description: 通过手机号码修改用户密码
+     * @param mobile 手机号码
+     * @param password 密码
+     * @return: boolean
+     */
+    public boolean updateCustomerPwdByMobile(String mobile,String password);
+    
+    /***
+     *  短信验证手机号码
+     * @Title: mobileMsgCheck   
+     * @Description: 短信验证手机号码
+     * @param mobile 手机号码
+     * @param slot 手机短信验证码
+     * @return: boolean true:已存在,false:不存在
+     */
+    public boolean mobileMsgCheck(String mobile,String slot);
+    
+    
+    public String getCustIdByKey(String key );
+}

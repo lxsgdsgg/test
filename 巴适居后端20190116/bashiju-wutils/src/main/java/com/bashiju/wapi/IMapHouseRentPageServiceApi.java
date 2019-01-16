@@ -1,0 +1,110 @@
+package com.bashiju.wapi;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.QueryCondition;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.out.comm.MetroLinesResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+
+/**
+ * 
+ *  租房地图找房页面接口
+ * @ClassName:  IMapHouseRentPageServiceApi   
+ * @Description:   租房地图找房页面接口
+ * @author: wangkaifa
+ * @date:   2018年8月13日 下午4:04:31       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IMapHouseRentPageServiceApi {
+	/**
+	 * 
+		 * 查询租房列表除区域、地铁外的搜索条件类
+		 * @Description: 查询租房列表除区域、地铁外的搜索条件类
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<QueryCondition>
+	 */
+	List<QueryCondition> queryConditionsSellHouse(String cityCode);
+	/**
+	 * 
+		 * 租房地图找房，查询区域房源数量
+		 * @Description: 租房地图找房，查询区域房源数量
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> queryRentMapHouseArea(HouseMapParam param);
+	
+	/**
+	 * 
+		 * 租房地图找房，查询片区房源数量
+		 * @Description: 租房地图找房，查询片区房源数量
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> queryRentMapHouseRegion(HouseMapParam param);
+	/**
+	 * 
+		 * 租房地图找房，查询小区房源数量
+		 * @Description: 租房地图找房，查询小区房源数量
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> queryRentMapHouseCommunity(HouseMapParam param);
+	/**
+	 * 
+		 * 租房地图找房，房源列表查询
+		 * @Description: 租房地图找房，房源列表查询
+		 * @param param 查询参数
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseMapListResult>
+	 */
+	WebPage<HouseMapListResult> queryRentHouseMapList(HouseMapListParam param,int page,int limit);
+	/**
+	 * 
+		 * 根据城市查询地铁线路
+		 * @Description: 根据城市查询地铁线路
+		 * @param cityCode 城市代码
+		 * @return [{id:1,name:1号线},{id:2,name:2号线}]
+		 * List<MetroLinesResult>
+	 */
+	List<MetroLinesResult> queryMetroLines(String cityCode);
+	/**
+	 * 
+		 * 租房地图找房，按地铁线路站点统计房源数量
+		 * @Description: 租房地图找房，按地铁线路站点统计房源数量
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> queryRentMapHouseMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 租房地图找房，按地铁站点小区统计房源数量
+		 * @Description: 租房地图找房，按地铁站点小区统计房源数量
+		 * @param param
+		 * @return 
+		 * List<HouseMapPointResult>
+	 */
+	List<HouseMapPointResult> queryRentMapHouseCommunityMetro(HouseMapParam param);
+	/**
+	 * 
+		 * 租房地图找房，按地铁站点查询房源列表
+		 * @Description: 地图找房租房地铁线路房源列表查询
+		 * @param param 查询参数
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * WebPage<HouseMapListResult>
+	 */
+	WebPage<HouseMapListResult> queryRentHouseMapMetroList(HouseMapListParam param,int page,int limit);
+}

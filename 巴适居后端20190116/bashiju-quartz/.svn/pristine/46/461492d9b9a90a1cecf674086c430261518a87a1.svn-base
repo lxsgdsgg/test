@@ -1,0 +1,26 @@
+package com.bashiju.quartz.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.quartz.mapper.HousingCrawlerMapper;
+import com.bashiju.quartz.service.mq.HousingCrawlerConsumerMq;
+import com.bashiju.quartz.service.mq.HousingCrawlerProducerMq;
+import com.bashiju.utils.util.BashijuResult;
+
+@Controller
+public class CrawlerController {
+	@Autowired
+	HousingCrawlerProducerMq housingCrawlerProducerMq;
+	@Autowired
+	HousingCrawlerConsumerMq housingCrawlerConsumerMq;
+	
+	@RequestMapping(value="crawlerPage")
+	@ResponseBody
+	public void crawlerPage() {
+		/*housingCrawlerProducerMq.crawlerPage();
+		return BashijuResult.ok();*/
+	}
+}

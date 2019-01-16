@@ -1,0 +1,88 @@
+package com.bashiju.www.service.api.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseFeedbackResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.service.api.IHouseSellInfoPageService;
+import com.bashiju.www.service.house.IHouseService;
+
+/**
+ * 
+ *   二手房详细页面接口实现
+ * @ClassName:  HouseSellInfoPageService   
+ * @Description:  二手房详细页面接口实现
+ * @author: wangkaifa
+ * @date:   2018年8月10日 上午11:02:49       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class HouseSellInfoPageService implements IHouseSellInfoPageService {
+	@Autowired
+	IHouseService houseService;
+	
+	@Override
+	public HouseInfoResult querySellHouseInfo(long id) {
+		HouseInfoResult result=houseService.querySellHouseInfo(id);
+		return result;
+	}
+
+	@Override
+	public List<AgentResult> queryShowedAgents(long houseId) {
+		List<AgentResult> results=houseService.queryShowedAgents(houseId);
+		return results;
+	}
+
+	@Override
+	public WebPage<HouseFeedbackResult> queryFeedback(long houseId, int page, int limit) {
+		WebPage<HouseFeedbackResult> result=houseService.queryFeedback(houseId, page, limit);
+		return result;
+	}
+
+	@Override
+	public boolean addFeedbackUseCount(int custId, int agentEvaluateHouseId) {
+		boolean result=houseService.addFeedbackUseCount(custId, agentEvaluateHouseId);
+		return result;
+	}
+
+	@Override
+	public WebPage<ShowedRecordResult> queryShowedRecordByHouseId(long houseId, int page, int limit) {
+		WebPage<ShowedRecordResult> result=houseService.queryShowedRecordByHouseId(houseId, page, limit);
+		return result;
+	}
+
+	@Override
+	public List<HouseListResult> querySameHouseList(int communityId, int room, int price) {
+		HouseSameParam param=new HouseSameParam();
+		param.setCommunityId(communityId);
+		param.setRoom(room);
+		param.setSellPrice(price);
+		param.setTransactionTypeId(1);
+		List<HouseListResult> results=houseService.querySameHouseList(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseCompareResult> queryHouseCompareList(List<Long> ids) {
+		List<HouseCompareResult> results=houseService.queryHouseCompareList(ids);
+		return results;
+	}
+
+	@Override
+	public boolean addHouseTipOff(HouseTipOffParam param) {
+		boolean result=houseService.addHouseTipOff(param);
+		return result;
+	}
+
+}

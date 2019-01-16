@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.webservice.mapper.CustomerHouseRequestMapper">
+	 <resultMap id="requestEntity" type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseRequestEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="custName" property="custName" />
+	    <result column="releaseTime" property="releaseTime" />
+	    <result column="lastShowedTime" property="lastShowedTime" />
+	    <result column="companyName" property="companyName" />
+	    <result column="agentName" property="agentName" />
+	    <result column="agentMobile" property="agentMobile" />
+	    <result column="label" property="label" />
+	    <result column="statusName" property="statusName" />
+	    <result column="profilePhoto" property="profilePhoto" />
+	  </resultMap>
+	  
+	<select id="queryCustomerRequestDataList" resultMap="requestEntity">
+		select a.custId,b.custName,b.recordTime as releaseTime,d.profilePhoto,
+		b.id,b.companyName,d.realName as agentName,e.name as postName,CONCAT(ff.virtualNum,'-'
+		,ff.virtualExtensionNum) as agentMobile,e.`name` as label
+		,case when b.statusId in(1,12) then '挂牌中' when b.statusId in(2,3) then 
+		(case when c.transferStatus='00' then '已成交' when c.transferStatus='01' then 
+		'过户中' when c.transferStatus='02' then '已完成' end) else '已失效' end as statusName
+		,case when b.statusId in(1,12) then '0' when b.statusId in(2,3) then 
+		(case when c.transferStatus='00' then '1' when c.transferStatus='01' then 
+		'2' when c.transferStatus='02' then '3' end) else '4' end as status
+		,b.lastAllShowedTime as lastShowedTime from sys_custBindInfo a 
+		left join demand_customerBusinessInfo b on a.sourcesId = b.id 
+		left join deal_transactioninfo c on b.id = c.demandId 
+		left join sys_user d on d.id = b.maintainId
+		left join sys_post e on d.postId = e.id
+		inner join sys_agent_details dd on d.id = dd.userId
+		left join sys_phonesecuritymanage ff on d.id = ff.agentId
+		where a.type = 1 and a.custId = #{custId} 
+		<if test="null != requestType and requestType != '' and requestType != 0">
+			and a.transactionTypeId = #{requestType}
+		</if>
+	  </select>
+	  
+	  <select id="queryMyRequestDetailById" resultType="com.bashiju.www.pojo.service.out.usercentral.CustomerRequestDetailEntity">
+	  	select id as demandId,id as demandSequence,transactionType,houseUses,floor(minPrice/100) as minPrice
+		,floor(maxPrice/100) as maxPrice,minSpace,maxSpace,areaNames,regionNames
+		,communityNames,minRoom,maxRoom,CONCAT(minFloorCount,'-',maxFloorCount,'层') as floorCount
+		,(maxBuildDates-minBuildDates) as elevatorroomrount,matching,remark,labeld,orientation
+		,decoration,houseType,reason from demand_customerbusinessinfo where isValid=1 and id=#{demandId}
+	  </select>
+</mapper>
+
+
+

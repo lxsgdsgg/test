@@ -1,0 +1,39 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  MyEntrustmentEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.house      
+ * @author: zuoyuntao     
+ * @date:   2018年7月25日 下午6:11:08   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 我的房源委托实体类
+ * @ClassName:MyEntrustmentEntity
+ * @Description:我的房源委托实体类
+ * @author:zuoyuntao
+ * @date:2018年7月25日 下午6:11:08
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustomerEntrustmentEntity {
+	/**房源ID**/
+	private String houseId;
+	/**房源编号**/
+	private String houseSequence;
+	/**房源委托时间**/
+	private String entrustmentTime;
+	/**经纪人录入房源时间**/
+	private String houseInputTime;
+	/**客户ID**/
+	private String custId;
+	/**客户电话**/
+	private String custMobile;
+}

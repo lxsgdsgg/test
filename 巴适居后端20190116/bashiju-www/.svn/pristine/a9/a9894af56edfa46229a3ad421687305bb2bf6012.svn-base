@@ -1,0 +1,69 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  Reservation.java   
+ * @Package com.bashiju.www.pojo.service.reservation   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月3日 下午3:11:36   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.reservation;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import lombok.Data;
+
+/**   
+ * @ClassName:  Reservation   
+ * @Description:预约实体   
+ * @author: wangpeng
+ * @date:   2018年8月3日 下午3:11:36   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class ReservationEntity implements Serializable {
+	
+	private static final long serialVersionUID = -6025058787641405592L;
+	
+	/**客户编号**/
+	private String custId;
+	/**登记名称**/
+	private String name;
+	/**需求备注**/
+	private String remark;
+	/**登记电话**/
+	private String mobile;
+	/**预约房源(编号)**/
+	private String shhId;
+	/**房源维护人id(经纪人)**/
+	private String maintainId;
+	/**看房时间段**/
+	private String reservationTime;
+	/**预约看房日期**/
+	private Date reservationDate;
+	/**处理状态**/
+	private  String status;
+	/**处理时间**/
+	private String handelTime;
+	/**处理人**/
+	private String handelerId;
+	/**处理结果**/
+	private String handelResult;
+	/**权限域**/
+	private String permissionArea;
+	/**操作人id**/
+	private String operatorId;
+	/**操作人**/
+	private String operator;
+	/**新增时间**/
+	private Date addTime;
+	/**更新时间**/
+	private Date updateTime;
+	/**是否有效**/
+	private String isvalid;
+
+}

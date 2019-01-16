@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ResponsibilityCityMapper">
+	<select id="queryResponsibilityCity" resultType="java.util.LinkedHashMap">
+		<choose>
+			<when test=" userId != null and userId != '' ">
+				select a.roleId,a.userId,c.name as roleName,group_concat(b.code)as areaCode,group_concat(b.name)as areaName,
+				a.permissionArea,a.operatorId from sys_city_responsibility a 
+				left join sys_area b on a.cityCode = b.code
+				left join sys_role c on a.roleId = c.id
+				where userId=#{userId} group by a.roleId,a.userId,a.userId
+			</when>
+			<otherwise>
+				select a.roleId,a.userId,c.name as roleName,group_concat(b.code)as areaCode,group_concat(b.name)as areaName,
+				a.permissionArea,a.operatorId from sys_city_responsibility a 
+				left join sys_area b on a.cityCode = b.code
+				left join sys_role c on a.roleId = c.id
+				where 1=1 
+				<if test="roleId !=null and roleId!='' "> and a.roleId=#{roleId}</if>
+				and ifnull(length(userId),0)=0 group by a.roleId,a.userId,a.userId
+			</otherwise>
+		</choose>
+	</select>
+	
+	<delete id="deleteResponsibilityCityByuserId" parameterType = "String">
+		delete from sys_city_responsibility where userId=#{userId};
+	</delete>
+	<delete id="deleteResponsibilityCityByRoleId" parameterType = "String">
+		delete from sys_city_responsibility where roleId=#{roleId};
+	</delete>
+	
+	<delete id="deletePermissionAdminRelationsInfo">
+		delete a from sys_permission_admin a 
+		left join  sys_city_responsibility b on find_in_set(a.permissions,b.cityCode)
+		where 1=1
+		<choose>
+			<when test=" userId != null and userId != '' ">
+				and a.userId=#{userId}
+			</when>
+			<otherwise>
+				and a.roleId=#{roleId}  and ifnull(length(a.userId),0)=0 
+			</otherwise>
+		</choose>
+		and b.cityCode is null
+	</delete>
+	
+</mapper>

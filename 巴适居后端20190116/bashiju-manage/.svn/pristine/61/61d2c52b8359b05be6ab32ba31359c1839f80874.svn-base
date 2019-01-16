@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.NavigationBarMapper">
+
+	<select id="queryNavigationBarData" resultType="map">
+		SELECT sng.id,sng.type,sng.`level`,sng.`name`,sng.parentId,sng.url,sng.operatorId,sng.operator,
+		sng.addTime,sng.updateTime,sng.isvalid FROM sys_navigationbar AS sng where sng.isvalid=1
+	</select>
+	
+	<select id="queryNavigationBarById" resultType="map">
+		SELECT sng.id,sng.type,sng.`level`,sng.`name`,sng.parentId,sng.url,sng.operatorId,sng.operator,
+		sng.addTime,sng.updateTime,sng.isvalid FROM sys_navigationbar AS sng where sng.isvalid=1
+		where sng.id=#{navigationBarId}
+	</select>
+	
+	<select id="queryNavigationBarTrees" resultType="map">
+		select id,type,level,name,parentId,url from sys_navigationBar where isValid=1
+	</select>
+</mapper>

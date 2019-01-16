@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.HousingCrawlerMapper">
+
+<!-- 查询房源採集路徑配置 -->
+<select id="queryHouseCrawlerConfigure" resultType="map">
+	SELECT hcc.id,hcc.cityCode,hcc.templateName,hcc.templateId,hcc.areaCode,hcc.areaName,hcc.regionId,hcc.regionName,hcc.transactionTypeId,
+	hcc.transactionType,hcc.houseListUrl,hcc.permissionArea,hcc.operatorId,hcc.operator
+	FROM hs_housecrawlerconfigure AS hcc
+	WHERE hcc.isvalid = 1
+</select>
+
+<select id="queryCountByUrl" resultType="int">
+	SELECT COUNT(*) FROM hs_housecrawler AS hc WHERE hc.isvalid = 1 AND hc.houseUrl = #{houseUrl}
+</select>
+
+<select id="queryHouseCrawlerTemplateById" resultType="map">
+	SELECT hct.id,hct.templateName,hct.aSelector,hct.nextSelector,hct.titleSelector,hct.communitySelector,hct.floorSelector,hct.phoneSelector,
+	hct.buildSpaceSelector,hct.orientationSelector,hct.decorationSelector,hct.priceSelector,hct.roomSelector,hct.houseTypeSelector
+	FROM hs_housecrawlertemplate AS hct WHERE hct.id = #{id}
+</select>
+
+<select id="queryHouseCrawlerConfigureById" resultType="map">
+	SELECT hcc.id,hcc.cityCode,hcc.templateName,hcc.templateId,hcc.areaCode,hcc.areaName,hcc.regionId,hcc.regionName,hcc.transactionTypeId,hcc.transactionType
+	FROM hs_housecrawlerconfigure AS hcc WHERE hcc.id = #{id}	
+</select>
+</mapper>

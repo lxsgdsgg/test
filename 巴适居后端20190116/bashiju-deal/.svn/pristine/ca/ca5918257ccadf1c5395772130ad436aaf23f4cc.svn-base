@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.ContractInfoMapper">
+	
+	<select id="queryContractInfoList" resultType="map">
+		SELECT a.id,a.`code`,a.houseId,a.shhId,a.custId,a.agreementType,
+		(case when agreementType = '01' then concat(Floor(a.price/10000),'万元') else concat(a.price,'元/月') end) as price,
+		a.partyA,a.partyB,a.cardNoA,a.cardNoB,a.`status`,a.approvalResult,a.mobileA,a.partyAType,
+		a.addressA,concat(a.commissionA,'元') as commissionA,a.mobileB,a.partyBType,a.addressB,concat(a.commissionB,'元') as commissionB,a.agency,a.propertyRrightNO,a.attachment,a.signPerson,a.signTime,a.beginTime,
+		a.endTime,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid,a.totalMoney,a.approver,a.approvalTime
+		FROM oa_agreement AS a WHERE a.isValid = 1 
+		<if test="houseId!=null"> AND a.houseId LIKE CONCAT('%',#{houseId},'%')</if>
+		<if test="custId!=null">AND a.custId LIKE CONCAT('%',#{custId},'%') </if> 
+		<if test="code!=null">AND a.code LIKE CONCAT('%',#{code},'%') </if> 
+		<if test="agreementType!=null and agreementType!='' ">AND a.agreementType = #{agreementType} </if>
+		<if test="minPrice!=null">AND a.price &gt;= #{minPrice}</if>
+		<if test="maxPrice!=null"> AND a.price &lt;= #{maxPrice}</if> 
+		<if test="status!=null"> AND `status` =#{status}</if>
+		order by id desc
+	</select>
+	
+	<select id="queryDetailed" resultType="map">
+		SELECT a.id,a.`code`,a.houseId,a.shhId,a.custId,a.agreementType,a.price,a.partyA,a.partyB,a.cardNoA,a.cardNoB,a.`status`,a.approvalResult,a.mobileA,a.partyAType,
+		a.addressA,a.commissionA,a.mobileB,a.partyBType,a.addressB,a.commissionB,a.agency,a.propertyRrightNO,a.attachment,a.signPerson,a.signTime,a.beginTime,
+		a.endTime,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isValid,a.totalMoney,a.approver,a.approvalTime
+		FROM oa_agreement AS a WHERE id=#{id}	
+	</select>
+	
+	<select id="queryPayerInfo" resultType="map">
+		SELECT sh.`owner` AS name,hor.phone,1 AS type FROM hs_secondhandhouse AS sh INNER JOIN hs_houseownerrelate AS hor ON sh.id = hor.shhId AND isMainFlag=1 AND sh.id=#{houseId}
+	UNION
+	SELECT cb.custName,cp.phone,2 AS type FROM demand_custrelaterphone AS cp INNER JOIN demand_customerbusinessinfo AS cb ON cb.id=cp.demandId AND cp.ismainFlag=1 AND cb.id = #{customerId}
+	</select>
+</mapper>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.HouseMapper">
+	
+	<select id="queryHouseInfo"  resultType="com.bashiju.www.pojo.service.out.house.HouseInfoResult">
+		SELECT sh.id,sh.houseId AS houseCode,sh.titles AS title, sh.room,sh.hall,sh.toilet,sh.orientation,sh.buildSpace ,sh.useSpace,sh.decoration,hb.floorDes,hb.totalLayers AS totalFloor,sh.buildDates,FLOOR(sellingPrice/1000000) AS sellingPrice,
+		FLOOR(rentPrice/100) AS rentPrice,hb.communityName AS community,hb.communityId,hb.regionName AS region,hb.areaName,sh.labeld,sh.verificationCode,sh.kitchen,sh.balcony,hb.elevatorCount,hb.householdCount AS houseCount,sh.propRightsLen,sh.heatingModeName AS heatingName,
+		sh.houseType,sh.structure,sh.openPlateDate,sh.lastTradingTime,sh.housingYears,sh.mortgageName,sh.tradingRightsName,sh.houseUses,sh.propertyType, CASE WHEN sh.isUploadCertificate=1 THEN '已上传' ELSE '未上传' END AS uploadCertificate,sh.maintainId as agentId,
+		(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND shhId=1) AS showedTotal,(SELECT COUNT(*) FROM demand_showedRecord WHERE isValid=1 AND FIND_IN_SET(#{houseId},shhId) AND DATEDIFF(NOW(),leadTime)&lt;=7) AS sevenShowedCount 
+		FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.id=#{houseId}
+	</select>
+	
+	<select id="queryAgentById"  resultType="com.bashiju.www.pojo.service.out.house.AgentResult" >
+		SELECT u.realName AS name,u.profilePhoto,u.signature,u.telPhone,ad.starRating,ad.commentCnt  
+		FROM sys_user AS u LEFT  JOIN sys_agent_details AS ad ON u.id=ad.userId AND ad.isvalid=1 WHERE u.id=#{userId}
+	</select>
+	
+	<select id="queryShowedRecords"  resultType="com.bashiju.www.pojo.service.out.house.ShowedRecordResult">
+		SELECT u.realName AS leader,u.telPhone AS phone,sr.leadTime AS showedTime,(SELECT COUNT(*) FROM demand_showedRecord WHERE FIND_IN_SET(#{houseId},shhId) AND sr.isvalid=1 AND leaderId=sr.leaderId) AS showedCount
+		FROM demand_showedRecord AS sr INNER JOIN sys_user AS u ON u.id=sr.leaderId AND sr.isvalid=1 AND  FIND_IN_SET(#{houseId},sr.shhId)
+	</select>
+	
+	<select id="queryAgentsByHouseId" resultType="com.bashiju.www.pojo.service.out.house.AgentResult">
+		SELECT DISTINCT u.realName AS name,u.profilePhoto,u.signature,u.telPhone,ad.starRating,ad.commentCnt
+		FROM demand_showedRecord AS sr INNER JOIN sys_user AS u ON u.id=sr.leaderId AND sr.isvalid=1 AND  FIND_IN_SET(#{houseId},sr.shhId)
+		LEFT  JOIN sys_agent_details AS ad ON u.id=ad.userId AND ad.isvalid=1
+	</select>
+	
+	<select id="queryCommunityInfo" resultType="com.bashiju.www.pojo.service.out.house.CommunityResult">
+		SELECT c.`name`,FLOOR(c.salePrice/100) AS salePrice,c.residence AS buildIngType,c.buildingCount,(SELECT url  FROM sys_communityimage WHERE communityId=c.id AND isValid=1 ORDER BY addTime DESC LIMIT 1) AS imageUrl,cs.onSaleCnt AS sellHouseCount,cs.leaseCnt AS rentHouseCount
+  		FROM sys_community AS c LEFT JOIN sys_community_statistics AS cs ON c.id=communityId AND cs.isValid=1 WHERE c.id=#{communityId}
+	</select>
+	<select id="queryHouseImages" resultType="com.bashiju.www.pojo.service.out.house.HouseImageResult">
+		SELECT attachType,pictureType AS pictureTypeId,pictureName AS pictureTypeName,path AS url,isCover FROM hs_houseAttachment WHERE isValid=1  AND examineStatus=1 AND isSynchron=1 AND shhId=#{houseId}
+	</select>
+	<select id="queryMetroLabel" resultType="string">
+		SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM metro_station_manage AS msm INNER JOIN station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 AND communityId=#{communityId}
+	</select>
+	<select id="queryHouseList" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		SELECT sh.id,sh.titles AS title, sh.room,sh.hall,sh.toilet,sh.orientation,sh.buildSpace ,sh.useSpace,sh.decoration,hb.floorDes,hb.totalLayers AS totalFloor,sh.buildDates,FLOOR(sellingPrice/1000000) AS sellingPrice,
+		FLOOR(rentPrice/100) AS rentPrice,hb.communityName AS community,hb.regionName AS region,hb.areaName,sh.labeld,
+		(SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM metro_station_manage AS msm INNER JOIN station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 WHERE communityId=hb.communityId) AS metroLabel, 
+		(SELECT path FROM hs_houseAttachment WHERE shhId=sh.id AND isValid=1  AND examineStatus=1 AND isSynchron=1 AND isCover=1 ORDER BY id DESC LIMIT 1) AS url,(SELECT path FROM hs_houseAttachment WHERE shhId=sh.id AND isValid=1  AND examineStatus=1 AND isSynchron=1 ORDER BY id DESC LIMIT 1) AS imageUrl
+ 		FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.isSynchron=1 AND sh.isPriority=1 AND sh.statusId=1 AND sh.examineStatus=1
+	</select> 
+	<select id="queryHouseDescriptionList" resultType="com.bashiju.www.pojo.service.out.house.HouseDescriptionResult">
+		SELECT typeId,typeName,description FROM hs_house_description WHERE isValid=1 AND shhId=#{houseId}
+	</select>
+	<update id="updateHouseBrowsingCount">
+		UPDATE hs_secondhandhouse SET browsingCount = browsingCount +1 WHERE id=#{houseId}
+	</update>
+	
+	<select id="querySameHouseList" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		select a.communityName as community,a.regionName as region,a.areaName,a.totalLayers as totalFloor,a.floorDes,
+		(SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM metro_station_manage AS msm INNER JOIN station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 AND communityId=#{communityId}) as metroLabel,
+		(SELECT path FROM hs_houseAttachment WHERE shhId=b.id AND isValid=1  AND examineStatus=1 AND isSynchron=1 ORDER BY id DESC LIMIT 1) AS imageUrl,
+		b.labeld,floor(b.sellingPrice/1000000) as sellingPrice, floor(b.rentPrice/100) as rentPrice,b.buildDates,b.decoration,b.useSpace,b.buildSpace,b.orientation,b.toilet,b.hall,b.room,b.titles as title,b.id,c.path as url
+		from hs_houseBaseInfo a INNER JOIN hs_secondHandHouse b on a.id = b.houseId and a.communityId =#{communityId} and b.room=#{room} 
+		and b.isPriority=1 and b.statusId='1' and b.examineStatus='1' and b.isSynchron=1 and b.isValid=1 
+		<if test="sellPrice!=null and sellPrice!=0 ">
+			and b.sellingPrice between (#{sellPrice}-10)*1000000 and (#{sellPrice}+10)*1000000
+		</if>
+		<if test="rentPrice!=null and rentPrice!=0 ">
+			and b.rentPrice between (#{rentPrice}-1000)*100 and (#{rentPrice}+1000)*100
+		</if>
+		LEFT JOIN hs_houseAttachment c on b.id = c.shhId and c.isCover = 1
+		
+	</select>
+	<select id="queryHouseSameLinks" resultType="com.bashiju.www.pojo.service.out.house.HouseSameLinkResult">
+		SELECT m.id,m.houseId AS houseCode,m.companyName AS company FROM hs_secondhandhouse AS m INNER JOIN hs_secondhandhouse AS s 
+		ON  m.isValid=1 AND m.isSynchron=1 AND m.statusId=1 AND m.examineStatus=1 AND m.houseId=s.houseId AND s.id=#{houseId} AND m.id!=#{houseId}
+	</select>
+
+	
+	<insert id="saveHouseTipOff">
+       insert into cust_housetipoff(custId,shhId,tipOffTypeId,tipOffType,content,addTime) 
+       value(#{custId},#{houseId},#{tipOffTypeId},#{tipOffType},#{content},#{addTime})
+     </insert> 
+
+	<select id="queryHouseCompareList" resultType="com.bashiju.www.pojo.service.out.house.HouseCompareResult">
+		SELECT sh.id,sh.houseId AS houseCode,sh.titles AS title, sh.room,sh.hall,sh.toilet,sh.orientation,sh.buildSpace ,sh.useSpace,sh.decoration,hb.floorDes,hb.totalLayers AS totalFloor,sh.buildDates,FLOOR(sellingPrice/1000000) AS sellingPrice,
+		FLOOR(rentPrice/100) AS rentPrice,hb.communityName AS community,hb.communityId,hb.regionName AS region,hb.areaName,sh.labeld,sh.verificationCode,sh.kitchen,sh.balcony,hb.elevatorCount,hb.householdCount AS houseCount,sh.propRightsLen,sh.heatingModeName AS heatingName,
+		sh.houseType,sh.structure,sh.openPlateDate,sh.lastTradingTime,sh.housingYears,sh.mortgageName,sh.tradingRightsName,sh.houseUses,sh.propertyType,c.id AS communityId,c.`name` AS communityName,FLOOR(c.salePrice/100) AS communitySalePrice,
+		c.buildYear AS communityBuildYear,c.buildingCount AS communityBuildingCount,c.houseCount AS communityHouseCount,ROUND(c.propertyFees/100,2) AS propertyFees	
+		FROM hs_secondhandhouse AS sh INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.id in 
+		<foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">#{id}</foreach>
+		 INNER JOIN sys_community AS c ON c.id=hb.communityId 
+	</select>
+	<select id="queryHouseByCoummunity" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		select a.communityId,a.communityName as community,a.regionName as region,a.areaName,a.totalLayers as totalFloor,a.floorDes,
+		(SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM metro_station_manage AS msm INNER JOIN station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 WHERE communityId=a.communityId) AS metroLabel,
+		(SELECT path FROM hs_houseAttachment WHERE shhId=b.id AND isValid=1  AND examineStatus=1 AND isSynchron=1 ORDER BY id DESC LIMIT 1) AS imageUrl,
+		b.labeld,floor(b.sellingPrice/1000000) as sellingPrice, floor(b.rentPrice/100) as rentPrice,b.buildDates,b.decoration,b.useSpace,b.buildSpace,b.orientation,b.toilet,b.hall,b.room,b.titles as title,b.id,c.path as url
+		from hs_houseBaseInfo a INNER JOIN hs_secondHandHouse b on a.id = b.houseId and a.communityId in (select id from sys_community where name like '%${communityName}%')
+		and b.isPriority=1 and b.statusId='1' and b.examineStatus='1' and b.isSynchron=1 and b.isValid=1 
+		<if test="type==1 ">
+			and b.transactionTypeId in (1,3)
+		</if>
+		<if test="type==2">
+			and b.transactionTypeId in (2,3)
+		</if>
+		LEFT JOIN hs_houseAttachment c on b.id = c.shhId and c.isCover = 1
+	</select>
+	<select id="queryErHouseTotalByCityCode" resultType="map">
+		select count(0) as houseCount,transactionTypeId from hs_houseBaseInfo a INNER JOIN hs_secondHandHouse b on a.id = b.houseId and a.cityCode=#{cityCode} and b.isPriority=1 and b.statusId='1' and b.examineStatus='1' and b.isSynchron=1 and b.isValid=1 group by transactionTypeId
+	</select>
+	
+	<select id="queryGoodHouse" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		select a.communityId,a.communityName as community,a.regionName as region,a.areaName,a.totalLayers as totalFloor,a.floorDes,
+		(SELECT GROUP_CONCAT(CONCAT('距离地铁',msm.metroName,msm.stationName,'站',sbc.metroDistance,'米'))  FROM metro_station_manage AS msm INNER JOIN station_block_community AS sbc ON msm.id=sbc.stationId AND sbc.isValid=1 AND msm.isValid=1 WHERE communityId=a.communityId) AS metroLabel,
+		(SELECT path FROM hs_houseAttachment WHERE shhId=b.id AND isValid=1  AND examineStatus=1 AND isSynchron=1 ORDER BY id DESC LIMIT 1) AS imageUrl,
+		b.labeld,floor(b.sellingPrice/1000000) as sellingPrice, floor(b.rentPrice/100) as rentPrice,b.buildDates,b.decoration,b.useSpace,b.buildSpace,b.orientation,b.toilet,b.hall,b.room,b.titles as title,b.id,b.goodTime ,c.path as url
+		from hs_houseBaseInfo a INNER JOIN hs_secondHandHouse b on a.id = b.houseId and a.cityCode=#{cityCode} and b.isGood = 1 
+		and b.isPriority=1 and b.statusId='1' and b.examineStatus='1' and b.isSynchron=1 and b.isValid=1 
+		<if test="type=='1'">
+			and b.transactionTypeId in (1,3)
+		</if>
+		<if test="type=='2'">
+			and b.transactionTypeId in (2,3)
+		</if>
+		LEFT JOIN hs_houseAttachment c on b.id = c.shhId and c.isCover = 1 order by b.goodTime desc limit 4
+	</select>
+	<select id="queryBaikes" resultType="com.bashiju.www.pojo.service.out.article.ArticleListResult">
+		select a.title,a.abstracts,a.addTime, a.cover from sys_article a INNER JOIN sys_article_classes b on a.classesId=b.id and b.type=#{type} and b.cityCode=#{cityCode} and a.examineStatus=1 and a.isValid=1 
+		UNION select a.title,a.abstracts,a.addTime, a.cover from sys_article a INNER JOIN sys_article_classes b on a.classesId=b.id and b.type = #{type} and b.cityCode!=#{cityCode} and a.examineStatus=1 and a.isValid=1 
+	</select>
+	
+	<select id="queryCustEvaluate" resultType="int">
+		select count(0) from sys_agentEvaluateHouse_thumbsUp where custId = #{custId} and agentEvaluateHouseId = #{agentEvaluateHouseId} and isValid=1
+	</select>
+	<insert id="saveFeedbackUse">
+       insert into sys_agentEvaluateHouse_thumbsUp(custId,agentEvaluateHouseId,addTime,isValid) 
+       value(#{custId},#{agentEvaluateHouseId},now(),1)
+     </insert> 
+	<update id="updateFeedbackUseCount">
+		UPDATE hs_agentEvaluateHouse SET usefulCnt = usefulCnt +1 WHERE id=#{agentEvaluateHouseId}
+	</update>
+	<select id="queryFeedback" resultType="com.bashiju.www.pojo.service.out.house.HouseFeedbackResult">
+		select a.content,a.lastTime,a.showedCnt,a.usefulCnt,b.realName as agentName,b.mobile as agentPhone from hs_agentEvaluateHouse a INNER JOIN sys_user b on a.shhId =#{houseId} and a.userId = b.id and a.isValid=1
+	</select>
+	
+</mapper>

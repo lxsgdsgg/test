@@ -1,0 +1,124 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IProposalSetService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:提成方案配置接口 
+ * @author: zuoyuntao     
+ * @date:   2018年6月22日 上午10:57:01   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 提成方案配置接口
+ * @ClassName:IProposalSetService
+ * @Description:提成方案配置接口
+ * @author:zuoyuntao
+ * @date:2018年6月22日 上午10:57:01
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IProposalSetService {
+	/**
+	 * 获取提成方案信息
+	 * @Title: queryProposalSetAllDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取提成方案信息   
+	 * @param paraMap 参数对象（key-value 格式）
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryProposalSetAllDataList(Map<String,Object> paraMap);
+	
+	/**
+	 * 获取提成方案信息--带分页
+	 * @Title: queryProposalSetAllDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取提成方案信息--带分页   
+	 * @param paraMap 参数对象（key-value 格式）
+	 * @param page 每页显示最少条数
+	 * @param limit 最大条数
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryProposalSetAllDataListPage(Map<String,Object> paraMap
+			,int page,int limit);
+	/**
+	 * 保存或修改提成方案信息
+	 * @Title: saveOrUpdateProposalInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存或修改提成方案信息
+	 * @param paraMap 参数对象 
+	 * void JSON 格式为：{}     
+	 * @throws
+	 */
+	public void saveOrUpdateProposalInfo(Map<String,Object> paraMap);
+	/**
+	 * 根据ID删除提成方案信息
+	 * @Title: deleteProposalInfoById
+	 * @author: zuoyuntao  
+	 * @Description:根据ID删除提成方案信息
+	 * @param proposalId 方案ID     
+	 * void  
+	 * @throws
+	 */
+	public void deleteProposalInfoById(String proposalId);
+	/**
+	 * 保存提成方案配置明细
+	 * @Title: saveProposalSetDetail
+	 * @author: zuoyuntao  
+	 * @Description:保存提成方案配置明细
+	 * @param saveList  保存的数据集合
+	 * @param confId  提成方案ID
+	 * @param pfmTypeId 业绩类型ID
+	 * @param areaCode 区划编码
+	 * void    
+	 * @throws
+	 */
+	public void saveProposalSetDetail(List<Map<String,Object>> saveList
+			,String confId,String pfmTypeId,String areaCode);
+	/**
+	 * 获取业绩类型数据--分页
+	 * @Title: queryPfmTypePageObjForProposal
+	 * @author: zuoyuntao  
+	 * @Description:获取业绩类型数据--分页
+	 * @param paraMap 参数对象--包含 areaCode、proposalSetId
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryPfmTypePageObjForProposal(
+			Map<String,Object> paraMap,int page,int limit);
+	/**
+	 * 判断数据是否存在 
+	 * @Title: isDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap 参数集合
+	 * @return      
+	 * boolean true/false     
+	 * @throws
+	 */
+	public boolean isDataExists(Map<String,Object> paraMap);
+	/**
+	 * 根据业绩类型、提成方案、城市等条件查询提成方案详细配置
+	 * @Title: queryAllProposalDetail
+	 * @author: zuoyuntao  
+	 * @Description:根据业绩类型、提成方案、城市等条件查询提成方案详细配置
+	 * @param paraMap 参数集合
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryAllProposalDetail(Map<String,Object> paraMap);
+}

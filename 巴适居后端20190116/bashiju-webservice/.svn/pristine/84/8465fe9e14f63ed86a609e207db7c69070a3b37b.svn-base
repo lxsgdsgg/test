@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.webservice.mapper.CustomerRecruitMapper">
+	
+	 <resultMap id="recruitDetailEntity" 
+	 	type="com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitDetailEntity">
+	    <id column="id" property="id" />
+	    <result column="name" property="name" />
+	    <result column="count" property="count" />
+	    <result column="education" property="education" />
+	    <result column="minWorking" property="minWorking" />
+	    <result column="maxWorking" property="maxWorking" />
+	    <result column="wages" property="wages" />
+	    <result column="endTime" property="endTime" />
+	    <result column="publisher" property="publisher" />
+	    <result column="publisherId" property="publisherId" />
+	    <result column="publishTime" property="publishTime" />
+	    <result column="workCityCode" property="workCityCode" />
+	    <result column="majorSubject" property="majorSubject" />
+	    <result column="mobile" property="mobile" />
+	    <result column="requirement" property="requirement" />
+	    <result column="duty" property="duty" />
+	    <result column="permissionArea" property="permissionArea" />
+	    <result column="operator" property="operator" />
+	    <result column="addTime" property="addTime" />
+	    <result column="isValid" property="isValid" />
+	    <result column="updateTime" property="updateTime" />
+	  </resultMap>
+	  
+	 <resultMap type="com.bashiju.www.pojo.service.out.recruit.CustReleaseRecruitEntity" id="recruitEntity">
+	  	<id column="id" property="id" />
+	    <result column="name" property="name" />
+	    <result column="count" property="count" />
+	    <result column="workCityCode" property="workCityCode" />
+	    <result column="publishTime" property="publishTime" />
+	</resultMap>
+	<select id="queryRecruitPositionDataWithPage" resultMap="recruitEntity">
+		select a.id,a.workCityCode,a.`name`,a.count,a.education,a.majorSubject,a.minWorking,
+		a.maxWorking,a.wages,a.mobile,a.endTime,a.requirement,a.duty,a.publisherId,
+		a.publisher,a.publishTime,a.permissionArea,a.operatorId,a.operator,a.addTime,
+		a.updateTime,a.isValid from sys_recruitinfo as a where isValid = 1 
+		<if test="null != name and name != ''">
+			and a.name like '%${name}%'
+		</if>
+		<if test="null != workCityCode and workCityCode != ''">
+			and a.workCityCode = #{workCityCode}
+		</if>
+	</select>
+	<select id="queryPositionDetailList" resultMap="recruitDetailEntity">
+	  	select a.id,a.workCityCode,a.`name`,a.count,a.education,a.majorSubject,a.minWorking,
+		a.maxWorking,a.wages,a.mobile,a.endTime,a.requirement,a.duty,a.publisherId,
+		a.publisher,a.publishTime,a.permissionArea,a.operatorId,a.operator,a.addTime,
+		a.updateTime,a.isValid from sys_recruitinfo as a where isValid = 1 
+		and id = #{positionId}	
+	</select>
+	
+	<insert id="saveResumeInfo"  parameterType="map">
+		insert into sys_curriculumVitae	
+		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+</mapper>
+
+
+

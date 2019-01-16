@@ -1,0 +1,135 @@
+package com.bashiju.housing.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.api.PrivacyProtectionBaseServiceApi;
+import com.bashiju.housing.mapper.CommMapper;
+import com.bashiju.housing.pojo.BusinessRateResult;
+import com.bashiju.housing.pojo.DeedTaxResult;
+import com.bashiju.housing.pojo.HousePropertyResult;
+import com.bashiju.housing.pojo.LoanRateItem;
+import com.bashiju.housing.pojo.LoanRateResult;
+import com.bashiju.housing.service.ICommService;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+@Service
+public class CommServiceImpl implements ICommService {
+	@Autowired
+	CommMapper commMapper;
+	@Autowired
+	PrivacyProtectionBaseServiceApi privacyProtectionBaseServiceApi;
+	
+	@Override
+	public LoanRateResult queryLoanRate() {
+		String cityCode=UserThreadLocal.get().get("cityCode").toString();
+		LoanRateResult result=new LoanRateResult();
+		String businessRate="[";
+		businessRate+="{\"value\":\"4.9\",\"name\":\"最新基准利率 4.9\"}";
+/*		businessRate+="{\"value\":\"5.15\",\"name\":\"15/08/26基准利率 5.15%\"},";
+		businessRate+="{\"value\":\"5.4\",\"name\":\"15/06/28基准利率 5.4%\"},";
+		businessRate+="{\"value\":\"5.65\",\"name\":\"15/05/10基准利率 5.65%\"},";
+		businessRate+="{\"value\":\"5.9\",\"name\":\"15/03/01基准利率5.9%\"},";
+		businessRate+="{\"value\":\"6.15\",\"name\":\"14/11/22基准利率 6.15%\"},";
+		businessRate+="{\"value\":\"6.55\",\"name\":\"12/07/06基准利率 6.55%\"},";
+		businessRate+="{\"value\":\"6.8\",\"name\":\"12/06/08基准利率 6.8%\"},";
+		businessRate+="{\"value\":\"7.05\",\"name\":\"11/07/07基准利率 7.05%\"},";
+		businessRate+="{\"value\":\"6.8\",\"name\":\"11/04/06基准利率 6.8%\"},";
+		businessRate+="{\"value\":\"6.6\",\"name\":\"11/02/09基准利率 6.6%\"},";
+		businessRate+="{\"value\":\"6.4\",\"name\":\"10/12/26基准利率 6.4%\"},";
+		businessRate+="{\"value\":\"6.14\",\"name\":\"10/10/20基准利率 6.14%\"}";*/
+		businessRate+="]";
+		String publicFundRate="[";
+		publicFundRate+="{\"value\":\"3.25\",\"name\":\"最新基准利率3.25\"}";
+		/*publicFundRate+="{\"value\":\"3.5\",\"name\":\"15/06/28基准利率 3.5%\"},";
+		publicFundRate+="{\"value\":\"3.75\",\"name\":\"15/05/10基准利率 3.75%\"},";
+		publicFundRate+="{\"value\":\"4\",\"name\":\"15/03/01基准利率4%\"},";
+		publicFundRate+="{\"value\":\"4.5\",\"name\":\"12/07/06基准利率4.5\"},";
+		publicFundRate+="{\"value\":\"4.7\",\"name\":\"12/06/08基准利率4.7%\"},";
+		publicFundRate+="{\"value\":\"4.9\",\"name\":\"11/07/07基准利率4.9%\"},";
+		publicFundRate+="{\"value\":\"4.7\",\"name\":\"11/04/06基准利率4.7%\"},";
+		publicFundRate+="{\"value\":\"4.5\",\"name\":\"11/02/09基准利率4.5%\"},";
+		publicFundRate+="{\"value\":\"4.3\",\"name\":\"10/12/26基准利率4.3%\"},";
+		publicFundRate+="{\"value\":\"4.05\",\"name\":\"10/10/20基准利率4.05%\"}";*/
+		publicFundRate+="]";
+		String rebates="[";
+		//rebates+="{\"value\":\"1\",\"name\":\"无折扣\"},";
+		rebates+="{\"value\":\"0.95\",\"name\":\"95折\"},";
+		rebates+="{\"value\":\"0.9\",\"name\":\"9折\"},";
+		rebates+="{\"value\":\"0.88\",\"name\":\"88折\"},";
+		rebates+="{\"value\":\"0.87\",\"name\":\"87折\"},";
+		rebates+="{\"value\":\"0.86\",\"name\":\"86折\"},";
+		rebates+="{\"value\":\"0.85\",\"name\":\"85折\"},";
+		rebates+="{\"value\":\"0.82\",\"name\":\"82折\"},";
+		rebates+="{\"value\":\"0.8\",\"name\":\"8折\"},";
+		rebates+="{\"value\":\"0.75\",\"name\":\"75折\"},";
+		rebates+="{\"value\":\"0.7\",\"name\":\"7折\"},";
+		rebates+="{\"value\":\"1.1\",\"name\":\"1.1倍\"},";
+		rebates+="{\"value\":\"1.2\",\"name\":\"1.2倍\"},";
+		rebates+="{\"value\":\"1.3\",\"name\":\"1.3倍\"},";
+		rebates+="{\"value\":\"1.4\",\"name\":\"1.4倍\"},";
+		rebates+="{\"value\":\"1.5\",\"name\":\"1.5倍\"}";
+		rebates+="]";
+		result.setBusinessRates(JSON.parseArray(businessRate, LoanRateItem.class));
+		result.setPublicFundRates(JSON.parseArray(publicFundRate, LoanRateItem.class));
+		result.setRebates(JSON.parseArray(rebates, LoanRateItem.class));
+		Map<String, Object> map=commMapper.queryLoanCeiling(cityCode);
+		result.setPublicLoanCeiling(Integer.parseInt(map.get("publicLoanCeiling").toString()));
+		result.setLoanRatioCeiling(Integer.parseInt(map.get("LoanRatioCeiling").toString()));
+		return result;
+	}
+
+	@Override
+	public List<HousePropertyResult> queryHousePropertyList() {
+		String cityCode=UserThreadLocal.get().get("cityCode").toString();
+		List<HousePropertyResult> results=commMapper.queryHousePropertyList(cityCode);	
+		if (results!=null&&results.size()>0) {
+			for (HousePropertyResult housePropertyResult : results) {
+				if (housePropertyResult.getType()>0) {
+					List<DeedTaxResult> deedTaxResults=commMapper.queryDeedTaxResult(housePropertyResult.getId());
+					housePropertyResult.setDeedTaxs(deedTaxResults);	
+				}else {
+					BusinessRateResult businessRateResult= queryBusinessRateResult();
+					housePropertyResult.setBusinessDeedTax(businessRateResult.getDeedTax());
+					housePropertyResult.setAddedValueTax(businessRateResult.getAddedValueTax());
+					housePropertyResult.setIncomeTax(businessRateResult.getIncomeTax());
+				}		
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public BusinessRateResult queryBusinessRateResult() {
+		List<Map<String, Object>> list=commMapper.queryBusinessRateResult();
+		BusinessRateResult result=new BusinessRateResult();
+		if (list!=null&&list.size()>0) {
+			for (Map<String, Object> map : list) {
+				if ("deedTax".equals(map.get("code").toString())) {
+					result.setDeedTax(Float.parseFloat(map.get("value").toString()));
+				}
+				if ("addedValueTax".equals(map.get("code").toString())) {
+					result.setAddedValueTax(Float.parseFloat(map.get("value").toString()));
+				}
+				if ("incomeTax".equals(map.get("code").toString())) {
+					result.setIncomeTax(Float.parseFloat(map.get("value").toString()));
+				}
+			}
+		}	
+		return result;
+	}
+
+	@Override
+	public boolean tencentCloudClickDial(String houseId, String dst) {
+		Map user = UserThreadLocal.get();
+		String companyId = user.get("companyId").toString();
+		String phone = user.get("mobile").toString();
+		boolean result = privacyProtectionBaseServiceApi.tencentCloudClickDial(companyId, houseId, phone, dst);
+		return result;
+	}
+
+}

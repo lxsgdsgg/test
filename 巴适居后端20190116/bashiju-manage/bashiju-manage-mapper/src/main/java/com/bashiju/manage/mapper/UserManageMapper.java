@@ -1,0 +1,124 @@
+package com.bashiju.manage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * 用户管理映射类 
+ * @ClassName  UserManageMapper   
+ * @Description 用户管理映射类   
+ * @author zhaobin
+ * @date   2018年5月2日 上午9:48:39   
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface UserManageMapper {
+
+	/**
+	 * 查询所有用户数据信息---分页
+	 * @Title: queryAllUser
+	 * @author: zuoyuntao  
+	 * @Description:查询所有用户数据信息---分页   
+	 * @return: Page<Map<String,Object>>      
+	 * Page{count=true, pageNum=0, pageSize=10, startRow=0, endRow=0, total=11, pages=2, reasonable=false, pageSizeZero=false}
+	 * [{deptName=A组, permissionArea=BSJ0103, isHotName=是, addTime=2018-05-30 09:43:20.0, isPCLoginName=是, lockedUser=lockedUser, operator=1, passwordErrorCount=0, moveUserInfo=moveUserInfo, solt=123, telPhone=40000004, password=1, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-30 15:25:38.0, id=10, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888882, userEdit=userEdit, syncFlag=1, roleId=3, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888882, deptId=BSJ0103, updateTime=2018-05-30 15:25:38.0, loginStatus=online, isPCLogin=1, sortNo=8, realName=城市管理员1号, companyId=BSJ01, permissionSet=permissionSet, employee_num=008, userTypeName=是, roleName=大区经理, userType=1, parentMobile=, status=01}] 
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryAllUser();
+	
+	/**
+	 * 查询所用用户数据信息--带分页
+	 * @Title: queryAllUserInfoWithPage   
+	 * @Description: 查询所用用户数据信息--带分页   
+	 * @param: paraMap
+	 * @param: minCount 每页显示最小条数
+	 * @param: maxCount 每页显示最大条数
+	 * @return: Page<Map<String,Object>>     
+	 * Page{count=true, pageNum=0, pageSize=10, startRow=0, endRow=0, total=11, pages=2, reasonable=false, pageSizeZero=false}
+	 * [{deptName=呈贡一区二店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, isPCLoginName=否, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, solt=123, password=1, areaName=昆明市, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:48:52.0, id=5, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888884, userEdit=userEdit, syncFlag=1, roleId=7, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888884, deptId=BSJ010101010201, updateTime=2018-05-29 15:49:35.0, sortNo=1, realName=呈贡一区一店一组组员1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=006, userTypeName=是, roleName=组员, userType=1, parentMobile=13577000337, status=1}] 
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryAllUserInfo(Map<String
+			, Object> paraMap);
+	/**
+	 * 查询用户数据更新日志--带分页
+	 * @Title: queryUserDataUpdateLogWithPage
+	 * @author: zuoyuntao  
+	 * @Description: 查询用户数据更新日志--带分页  
+	 * @param: paraMap
+	 * @param: minCount 每页显示最小条数
+	 * @param: maxCount 每页显示最大条数
+	 * @return: Page<Map<String,Object>>      
+	 * @throws
+	 */
+	public Page<Map<String,Object>> queryUserDataUpdateLogWithPage(Map<String,Object> paraMap);
+	/**
+	 * 查询部门信息创建部门树
+	 * @Title: queryDeptInfoToCreateTree
+	 * @author: zuoyuntao  
+	 * @Description: 查询部门信息创建部门树   
+	 * @param: roleGroup：当前用户所属角色组
+	 * @return: List<Map<String,Object>>  
+	 * 部门信息：[{"maxLevel":"5","name":"昆明市","code":"BSJ0101","parentCode":"","level":"1"}]
+	 * 介绍人信息：[{"maxLevel":6,"name":"昆明市","code":"BSJ0101","parentCode":"","level":"1"}]
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryDeptInfoToCreateTree(@Param("roleGroup")String roleGroup);
+	/**
+	 * @Title: counterUserByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据封装条件统计用户数据数量 
+	 * @param: condition 附加查询条件
+	 * @return: long 数字 满足条件的数据条数
+	 * @throws
+	 */
+	public long counterUserByConn(@Param("condition") String condition);
+	/**
+	 * 根据参数对象查询用户信息--参数Map对象中的key必须和表（视图）中的字段名称一致
+	 * @Title: queryUserInfoByConn   
+	 * @Description: 根据参数对象查询用户信息--参数Map对象中的key必须和表（视图）中的字段名称一致  
+	 * @param: condition 附加条件
+	 * @return: List<Map<String, Object>>   
+	 * Page{count=true, pageNum=0, pageSize=10, startRow=0, endRow=0, total=11, pages=2, reasonable=false, pageSizeZero=false}
+	 * [{deptName=呈贡一区二店一组, permissionArea=BSJ0103, isHotName=是, addTime=2018-04-09 16:06:01.0, 
+	 * isPCLoginName=否, lockedUser=lockedUser, operator=1, moveUserInfo=moveUserInfo, solt=123, password=1,
+	 *  areaName=昆明市, sexName=男, statusName=正常, resetPsw=resetPsw, lastLoginSuccessTime=2018-05-29 15:48:52.0, id=5, dataUpdate=dataUpdate, birthWindowFlag=1, operatorId=1, wxNum=18888888884, userEdit=userEdit, syncFlag=1, roleId=7, sex=2, syncFlagName=是, hotAgentFlag=1, isValid=1, mobile=18888888884, deptId=BSJ010101010201, updateTime=2018-05-29 15:49:35.0, sortNo=1, realName=呈贡一区一店一组组员1, companyId=BSJ01, areaCode=530100, permissionSet=permissionSet, employee_num=006, userTypeName=是, roleName=组员, userType=1, parentMobile=13577000337, status=1}] 
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryUserInfoByConn(@Param("condition") String condition);
+	/**
+	 * 根据区划的编码做向后模糊查询
+	 * @Title: queryAreaLikeCode
+	 * @author: zuoyuntao  
+	 * @Description: 根据区划的编码做向后模糊查询  
+	 * @param: areaCode 行政区划编码
+	 * @return: List<Map<String,Object>>    
+	 * areaList 行政区划[{"name":"北京市","code":"110000","parentCode":"0","level":"1"}]
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryAreaLikeCode(@Param("code") String areaCode);
+	/**
+	 * 查询介绍人信息 
+	 * @Title: queryReferenInfoToCreateTree
+	 * @author: zuoyuntao  
+	 * @Description:查询介绍人信息
+	 * @param areaCode 行政区划
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String,Object>> queryReferenInfoToCreateTree(@Param("areaCode") String areaCode);
+	/**
+	 * 查询经纪人信息（code是userId和agentId的拼接）
+	 * @Title: queryReferenInfoToCreateTree
+	 * @author: zuoyuntao  
+	 * @Description:查询经纪人信息（code是userId和agentId的拼接）
+	 * @param areaCode 行政区划
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 */
+	public List<Map<String,Object>> queryAgentInfoToCreateTree(@Param("areaCode") String areaCode);
+}

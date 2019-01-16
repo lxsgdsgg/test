@@ -1,0 +1,204 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  StoreShareManageServiceImpl.java   
+ * @Package com.bashiju.fin.service.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年12月5日 上午9:40:44   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.fin.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.fin.mapper.StoreShareManageMapper;
+import com.bashiju.fin.service.IStoreShareManageService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 门店分摊管理服务层接口实现类
+ * @ClassName:StoreShareManageServiceImpl
+ * @Description:门店分摊管理服务层接口实现类
+ * @author:zuoyuntao
+ * @date:2018年12月5日 上午9:40:44
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Service
+@SystemServiceLog(sourceType="storeShare")
+public class StoreShareManageServiceImpl extends CommonSqlServie implements IStoreShareManageService {
+	/**
+	 * 持久层接口对象
+	 */
+	@Autowired
+	private StoreShareManageMapper mStoreShareManageMapper;
+	/**
+	 * 权限控制接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	/**   
+	 * <p>Title: queryStoreSharePageList</p>   
+	 * <p>Description: </p>   
+	 * @param page 当前页
+	 * @param limit 最大条数
+	 * @param paraMap 参数对象
+	 * @return  Page<Map<String,Object>>
+	 * @see com.bashiju.fin.service.IStoreShareManageService#queryStoreSharePageList(int, int, java.util.Map)   
+	 */
+	@Override
+	public Page<Map<String,Object>> queryStoreSharePageList(int page, int limit, Map<String, Object> paraMap) {
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_130.getCode(), String.valueOf(UserThreadLocal.get().get("id")));
+		List<Map<String,Object>> retList = mStoreShareManageMapper.queryStoreSharePageList(paraMap);
+		return (Page<Map<String, Object>>) retList;
+	}
+
+	/**   
+	 * <p>Title: saveOrUpdateStoreShareData</p>   
+	 * <p>Description: 更新或添加</p>   
+	 * @param paraMap 参数对象
+	 * @return   
+	 * @see com.bashiju.fin.service.IStoreShareManageService#saveOrUpdateStoreShareData(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="添加或修改")
+	public void saveOrUpdateStoreShareData(Map<Object, Object> paraMap) {
+		String operatorId = String.valueOf(UserThreadLocal.get().get("id"));
+		String company = String.valueOf(UserThreadLocal.get().get("companyId"));
+		String permissionArea = String.valueOf(UserThreadLocal.get().get("deptId"));
+		paraMap.put("operatorId", operatorId);
+		paraMap.put("company", company);
+		paraMap.put("permissionArea", permissionArea);
+		
+		long id = 0L;
+		//添加操作
+		if(!paraMap.containsKey("id") 
+				|| paraMap.get("id") ==null 
+				|| StringUtils.isEmpty(paraMap.get("id").toString())) {
+			id = commonOperationDatabase(paraMap, "finance_store_share", false);
+			ExecutionResult.descFormat(String.valueOf(id), "添加门店分摊");
+			
+		}else {// 修改操作
+			id = Long.parseLong(String.valueOf(paraMap.get("id")));
+			this.commonOperationDatabase(paraMap, "finance_store_share", "id", false);
+			ExecutionResult.descFormat(String.valueOf(paraMap.get("id")), "修改门店分摊");
+		}
+		
+		clearData("finance_store_share_detail", " shareId = " + id);
+		List<Map<String,Object>> saveDetailList = buildShareDetailSaveData(paraMap, id);
+		// 保存门店分摊详细
+		batchCommonOperationDatabase(saveDetailList, "finance_store_share_detail", false);
+		ExecutionResult.descFormat(String.valueOf(id), "保存门店分摊详细");
+	}
+	
+	/**
+	 * 组装分摊明细数据 
+	 * @Title: buildShareDetailSaveData
+	 * @author: zuoyuntao  
+	 * @Description:组装分摊明细数据
+	 * @param shareSaveMap 主配置信息
+	 * @param shareId 主配置ID
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	private List<Map<String,Object>> buildShareDetailSaveData(Map<Object,Object> shareSaveMap,long shareId){
+		List<Map<String,Object>> storeList = 
+				this.querySubordinateStoreDataByDeptId(String.valueOf(shareSaveMap.get("shareDeptId")));
+		int count = storeList.size();
+		BigDecimal totalMoney = new BigDecimal(String.valueOf(shareSaveMap.get("totalMoney")));
+		BigDecimal shareMoney = totalMoney.divide(new BigDecimal(String.valueOf(count)));
+		List<Map<String,Object>> saveDetailList = new ArrayList<Map<String,Object>>();
+		for(Map<String,Object> map : storeList) {
+			final Map<String,Object> tempMap = new HashMap<String,Object>();
+			tempMap.put("shareId", shareId);
+			tempMap.put("shareDeptId", map.get("id"));
+			tempMap.put("shareDeptName", map.get("name"));
+			tempMap.put("payDate", shareSaveMap.get("payDate"));
+			tempMap.put("companyId", UserThreadLocal.get().get("companyId"));
+			tempMap.put("shareMoney", shareMoney);
+			tempMap.put("operatorId", shareSaveMap.get("operatorId"));
+			tempMap.put("permissionArea", shareSaveMap.get("permissionArea"));
+			saveDetailList.add(tempMap);
+		}
+		return saveDetailList;
+	}
+	
+	/**   
+	 * <p>Description: 保存门店分摊详细</p>   
+	 * @param shareId 主配置ID
+	 * @param saveList 参数集合
+	 * @return   
+	 * @see com.bashiju.fin.service.IStoreShareManageService#saveStoreShareDetailData(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="保存门店分摊详细")
+	public void saveStoreShareDetailData(String shareId,List<Map<String, Object>> saveList) {
+		for(Map<String,Object> paraMap : saveList) {
+			paraMap.put("shareMoney", new BigDecimal(String.valueOf(paraMap.get("shareMoney"))).multiply(new BigDecimal("100")));
+		}
+		this.clearData("finance_store_share_detail", " shareId = " + shareId);
+		this.batchCommonOperationDatabase(saveList, "finance_store_share_detail", false);
+		ExecutionResult.descFormat(shareId, "保存门店分摊详细");
+	}
+
+	/**   
+	 * <p>Title: deleteStoreShareDataById</p>   
+	 * <p>Description: 删除数据</p>   
+	 * @param id 主键
+	 * @return
+	 * @see com.bashiju.fin.service.IStoreShareManageService#deleteStoreShareDataById(java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除门店分摊")
+	public void deleteStoreShareDataById(String id) {
+		this.delData("finance_store_share", "id", id, false);
+		this.delData("finance_store_share_detail", "shareId", id, false);
+		ExecutionResult.descFormat(String.valueOf(id), "删除门店分摊");
+	}
+	/**
+	 * 根据部门ID查询下属门店
+	 * @Title: querySubordinateStoreDataByDeptId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param deptId 部门ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	@Override
+	public List<Map<String,Object>> querySubordinateStoreDataByDeptId(String deptId){
+		return mStoreShareManageMapper.querySubordinateStoreDataByDeptId(deptId);
+	}
+	
+	/**
+	 * 根据配置ID查询下属门店分摊详细
+	 * @Title: queryStoreShareDetailByShareId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param shareId 主配置ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	@Override
+	public List<Map<String,Object>> queryStoreShareDetailByShareId(String shareId){
+		return mStoreShareManageMapper.queryStoreShareDetailByShareId(shareId);
+	}
+
+}

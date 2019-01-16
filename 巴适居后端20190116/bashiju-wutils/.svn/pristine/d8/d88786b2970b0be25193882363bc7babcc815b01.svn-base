@@ -1,0 +1,25 @@
+package com.bashiju.www.pojo.service.out.newhouse;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 
+ *   新房楼盘周边配套（经纬度）
+ * @ClassName:  NewHouseJwd   
+ * @Description:  新房楼盘周边配套（经纬度）
+ * @author: liwen
+ * @date:   2018年8月21日 下午9:15:02       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class NewHouseJwd implements Serializable{
+	
+	private static final long serialVersionUID = 2593752829256238125L;
+	/**经度**/
+	private String longitude;
+	/**纬度**/
+	private String latitude;
+}

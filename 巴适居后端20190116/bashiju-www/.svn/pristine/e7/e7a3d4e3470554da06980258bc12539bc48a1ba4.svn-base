@@ -1,0 +1,22 @@
+package com.bashiju.www.pojo.service.out.comm;
+
+import lombok.Data;
+
+/**
+ * 
+ *   地铁站点输出对象
+ * @ClassName:  MetroStationResult   
+ * @Description:  地铁站点输出对象
+ * @author: wangkaifa
+ * @date:   2018年7月24日 上午11:48:18       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class MetroStationResult {
+	/**站点名称**/
+	private String name;
+	/**站点id**/
+	private Long id;
+	
+}

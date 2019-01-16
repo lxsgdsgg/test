@@ -1,0 +1,294 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd">
+      <div class="query-form" ref="query-form">
+        <el-form size="small" :inline="true" :model="form" class="demo-form-inline">
+
+          <el-form-item label="部门">
+            <el-input v-model="form.deptName" placeholder="部门名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="员工名称">
+            <el-input v-model="form.userName" placeholder="请输入角色名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="员工编号">
+            <el-input v-model="form.userNo" placeholder="请输入角色名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="员工电话">
+            <el-input v-model="form.userMobile" placeholder="请输入角色名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="状态">
+            <el-select clearable style="width: 100%" v-model="form.status" placeholder="请选择员工状态">
+              <el-option label="正常" value="1"></el-option>
+              <el-option label="锁定" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary">查询</el-button>
+            <el-button>重置</el-button>
+          </el-form-item>
+
+          <el-form-item class="pull-right">
+            <el-button type="primary" @click="handleAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class="page-content-bd">
+      <el-table
+        :data="tableData"
+        border
+        align="center"
+        style="width: 100%"
+      >
+
+        <el-table-column
+          prop="userName"
+          align="center"
+          label="员工名称">
+        </el-table-column>
+
+        <el-table-column
+          prop="deptName"
+          align="center"
+          label="所在部门">
+        </el-table-column>
+
+        <el-table-column
+          prop="birthdate"
+          align="center"
+          label="出生日期">
+        </el-table-column>
+
+        <el-table-column
+          prop="role"
+          align="center"
+          label="员工角色">
+        </el-table-column>
+
+        <el-table-column
+          prop="mobile"
+          align="center"
+          label="手机号码">
+        </el-table-column>
+
+        <el-table-column
+          prop="userNo"
+          align="center"
+          label="员工编号">
+        </el-table-column>
+
+        <el-table-column
+          prop="status"
+          align="center"
+          label="状态">
+        </el-table-column>
+
+        <el-table-column
+          align="center"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handlePermission">权限设置</el-button>
+            <el-button type="text" size="small" @click="handleDataTransfer">信息转移</el-button>
+            <el-button type="text" size="small" @click="handleDataUpdate">数据更新</el-button>
+            <el-button @click="handleResetPassword" type="text" size="small">重置密码</el-button>
+            <el-button @click="handleEdit" type="text" size="small">编辑</el-button>
+            <el-button @click="handleDelete" type="text" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+    </div>
+
+    <template>
+      <el-dialog
+        title="用户编辑"
+        :visible.sync="editRoleDialogVisible"
+        width="600px">
+        <user-edit @handleClick="handleEditRoleDialog"></user-edit>
+      </el-dialog>
+
+      <el-dialog
+        title="用户权限设置"
+        :visible.sync="permissionDialogVisible"
+        width="800px">
+        <user-permission @handleClick="handlePermissionDialog"></user-permission>
+      </el-dialog>
+
+      <el-dialog
+        title="用户信息转移"
+        :visible.sync="DataTransferDialogVisible"
+        width="600px">
+        <data-transfer @handleClick="handleDataTransferDialog"></data-transfer>
+      </el-dialog>
+
+      <el-dialog
+        title="数据更新"
+        :visible.sync="DataUpdateDialogVisible"
+        width="600px">
+        <data-update @handleClick="handleDataUpdateDialog"></data-update>
+      </el-dialog>
+
+      <el-dialog
+        title="重置密码"
+        :visible.sync="resetPwdDialogVisible"
+        width="400px">
+
+        <el-form :model="resetPwdForm" :rules="resetPwdRules" ref="resetPwdForm" label-width="100px" class="demo-form">
+          <el-form-item label="员工姓名" prop="name">
+            <el-input disabled v-model="form.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="新密码" prop="password">
+            <el-input type="password" v-model="form.password"></el-input>
+          </el-form-item>
+
+          <el-form-item label="确认密码" prop="confirmPassword">
+            <el-input type="password" v-model="form.confirmPassword"></el-input>
+          </el-form-item>
+
+          <div class="btn-group">
+            <el-button type="primary" @click="handleResetPwdSubmit">确认</el-button>
+            <el-button @click="handleResetPwdCancel">取消</el-button>
+          </div>
+
+        </el-form>
+
+      </el-dialog>
+    </template>
+
+  </div>
+</template>
+
+<script>
+import UserEdit from './components/UserEdit'
+import UserPermission from '../components/ThePermissionManage'
+import DataTransfer from './components/DataTransfer'
+import DataUpdate from './components/DataUpdate'
+export default {
+  name: 'userManage',
+  components: {UserEdit, UserPermission, DataTransfer, DataUpdate},
+  data () {
+    return {
+      form: {
+        deptName: '',
+        userName: '',
+        userNo: '',
+        userMobile: '',
+        status: ''
+      },
+      tableData: [
+        {
+          userName: '张三',
+          createDate: '2018-07-21',
+          address: 1,
+          deptName: '业务部',
+          status: 1,
+          gender: 1,
+          birthdate: '1991-05-24',
+          mobile: 15587098269,
+          role: '经纪人',
+          userNo: '134534'
+        }
+      ],
+      resetPwdForm: {
+        name: '',
+        password: '',
+        confirmPassword: ''
+      },
+      resetPwdRules: {
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ],
+        confirmPassword: [
+          { required: true, message: '请输入确认密码', trigger: 'blur' }
+        ]
+      },
+      editRoleDialogVisible: false,
+      permissionDialogVisible: false,
+      resetPwdDialogVisible: false,
+      DataTransferDialogVisible: false,
+      DataUpdateDialogVisible: false
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.editRoleDialogVisible = true
+    },
+    handleEdit () {
+      this.editRoleDialogVisible = true
+    },
+    handleDelete () {
+      this.$confirm('确定删除该部门？, 是否继续?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    handlePermission () {
+      this.permissionDialogVisible = true
+    },
+    handleEditRoleDialog (action) {
+      if (action && action === 1) {
+        this.editRoleDialogVisible = false
+      } else if (action && action === 2) {
+        this.editRoleDialogVisible = false
+      }
+    },
+    handlePermissionDialog (action) {
+      if (action && action === 1) {
+        this.permissionDialogVisible = false
+      } else if (action && action === 2) {
+        this.permissionDialogVisible = false
+      }
+    },
+    handleResetPassword () {
+      this.resetPwdDialogVisible = true
+    },
+    handleResetPwdSubmit () {
+      this.resetPwdDialogVisible = false
+    },
+    handleResetPwdCancel () {
+      this.resetPwdDialogVisible = false
+    },
+    handleDataTransfer () {
+      this.DataTransferDialogVisible = true
+    },
+    handleDataTransferDialog (action) {
+      if (action && action === 1) {
+        this.DataTransferDialogVisible = false
+      } else if (action && action === 2) {
+        this.DataTransferDialogVisible = false
+      }
+    },
+    handleDataUpdate () {
+      this.DataUpdateDialogVisible = true
+    },
+    handleDataUpdateDialog (action) {
+      if (action && action === 1) {
+        this.DataUpdateDialogVisible = false
+      } else if (action && action === 2) {
+        this.DataUpdateDialogVisible = false
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+</style>

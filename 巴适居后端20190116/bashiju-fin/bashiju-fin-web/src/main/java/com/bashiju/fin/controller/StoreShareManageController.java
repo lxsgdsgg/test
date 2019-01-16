@@ -1,0 +1,169 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  StoreShareManageController.java   
+ * @Package com.bashiju.fin.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年12月5日 上午9:22:38   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.fin.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.bashiju.fin.service.IStoreShareManageService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 门店分摊管理控制器
+ * @ClassName:StoreShareManageController
+ * @Description:门店分摊管理控制器
+ * @author:zuoyuntao
+ * @date:2018年12月5日 上午9:22:38
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@RequestMapping(value="storeShare")
+@Controller
+public class StoreShareManageController extends BaseController{
+	/**
+	 * 门店分摊服务接口
+	 */
+	@Autowired
+	private IStoreShareManageService mIStoreShareManageService;
+	/**
+	 * 查询页面数据列表
+	 * @Title: queryStoreSharePageList
+	 * @author: zuoyuntao  
+	 * @Description:查询页面数据列表
+	 * @param page 当前页
+	 * @param limit 每页最大条数
+	 * @param jsonData 参数对象
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryStoreSharePageList")
+	@ResponseBody
+	public Object queryStoreSharePageList(int page,int limit,String jsonData) {
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			paraMap = JSON.parseObject(jsonData);
+		}
+		return this.getPageResult(mIStoreShareManageService.queryStoreSharePageList(page, limit, paraMap));
+	}
+	
+	/**
+	 * 保存添加或修改的门店分摊数据
+	 * @Title: saveOrUpdateStoreShareData
+	 * @author: zuoyuntao  
+	 * @Description:保存添加或修改的门店分摊数据
+	 * @param jsonData 表单提交数据
+	 * @return      
+	 * BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateStoreShareData")
+	@ResponseBody
+	public BashijuResult saveOrUpdateStoreShareData(String jsonData) {
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("传入参数为空！");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap = (Map<String,Object>) JSON.parse(jsonData);
+		mIStoreShareManageService.saveOrUpdateStoreShareData(paraMap);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 保存门店分摊详细
+	 * @Title: saveStoreShareDetailData
+	 * @author: zuoyuntao  
+	 * @Description:保存门店分摊详细
+	 * @param shareId 主配置ID
+	 * @param jsonData 参数对象
+	 * @return      
+	 * BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveStoreShareDetailData")
+	@ResponseBody
+	public BashijuResult saveStoreShareDetailData(String shareId,String jsonData) {
+		List<Map<String,Object>> saveList = new ArrayList<Map<String,Object>>();
+		if(StringUtil.isEmpty(jsonData)) {
+			throw new BusinessException("传入参数为空！");
+		}
+		saveList = (List<Map<String, Object>>) JSONArray.parse(jsonData);
+		mIStoreShareManageService.saveStoreShareDetailData(shareId,saveList);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 根据ID删除门店分摊数据
+	 * @Title: deleteStoreShareDataById
+	 * @author: zuoyuntao  
+	 * @Description:根据ID删除门店分摊数据
+	 * @param id 配置ID
+	 * @return      
+	 * BashijuResult
+	 */
+	@RequestMapping(value="deleteStoreShareDataById")
+	@ResponseBody
+	public BashijuResult deleteStoreShareDataById(String id) {
+		if(StringUtil.isEmpty(id)) {
+			throw new BusinessException("传入参数为空");
+		}
+		mIStoreShareManageService.deleteStoreShareDataById(id);
+		return BashijuResult.ok();
+	}
+	
+	/**
+	 * 根据配置ID查询下属门店分摊详细
+	 * @Title: queryStoreShareDetailByShareId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param shareId 主配置ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	@RequestMapping(value="queryStoreShareDetailByShareId")
+	@ResponseBody
+	public List<Map<String,Object>> queryStoreShareDetailByShareId(String shareId){
+		if(StringUtil.isEmpty(shareId)) {
+			throw new BusinessException("传入配置ID为空");
+		}
+		return mIStoreShareManageService.queryStoreShareDetailByShareId(shareId);
+	}
+	/**
+	 * 根据部门ID查询下属门店
+	 * @Title: querySubordinateStoreDataByDeptId
+	 * @author: zuoyuntao  
+	 * @Description:根据部门ID查询下属门店
+	 * @param deptId 部门ID
+	 * @return      
+	 * List<Map<String,Object>> 
+	 */
+	@RequestMapping(value="querySubordinateStoreDataByDeptId")
+	@ResponseBody
+	public List<Map<String,Object>> querySubordinateStoreDataByDeptId(String deptId){
+		if(StringUtil.isEmpty(deptId)) {
+			throw new BusinessException("传入部门ID为空");
+		}
+		return mIStoreShareManageService.querySubordinateStoreDataByDeptId(deptId);
+	}
+
+}

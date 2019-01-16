@@ -1,0 +1,98 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DecisionConfigurateServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月6日 上午9:47:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.DecisionConfigurateMapper;
+import com.bashiju.manage.service.DecisionConfigurateService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**   
+ * @ClassName:  DecisionConfigurateServiceImpl   
+ * @Description:决策配置服务  
+ * @author: yangz
+ * @date:   2018年7月6日 上午9:47:49   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="决策配置")
+@Service
+public class DecisionConfigurateServiceImpl extends CommonSqlServie implements DecisionConfigurateService {
+	
+	@Autowired
+	private DecisionConfigurateMapper decisionConfigurateMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+
+	/**     
+	 * @Description: 条件查询决策配置信息   
+	 * @param cityCode 城市编码
+	 * @param type 决策类型
+	 * @param name 决策名称
+	 * @param pageNum 当前页
+	 * @param pageSize 每页显示的条数
+	 * @return: Page<Map<String,Object>> 
+	 * @see com.bashiju.manage.service.DecisionConfigurateService#queryDecisisionConfigurate(java.lang.String,java.lang.String, java.lang.String, int, int)   
+	 */
+	@Override
+	public Page<Map<String, Object>> queryDecisisionConfigurate(String cityCode,String type, String name, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum, pageSize);
+		dataAuthHelper.auth(MenusEnum.MENU_297.getCode(), UserThreadLocal.get().get("id").toString());
+		List<Map<String,Object>> list = this.decisionConfigurateMapper.queryDecisisionConfigurate(cityCode,type,name);
+		Page<Map<String,Object>> page = (Page<Map<String, Object>>) list;
+		return page;
+	}
+
+	/**     
+	 * @Description: 保存决策配置明细信息   
+	 * @param map 待保存的决策配置明细信息
+	 * @return: boolean   
+	 * @see com.bashiju.manage.service.DecisionConfigurateService#saveDecisisionCOnfigurate(java.util.Map)   
+	 */
+	@Override
+	public boolean saveDecisisionCOnfigurateDetail(Map<Object, Object> map) {
+		if(map== null || map.size()<=0)
+			throw new BusinessException("没有要保存的决策配置信息");
+		if(map.containsKey("decisionId") || map.get("decisionId")==null || StringUtils.isEmpty(map.get("decisionId").toString()))
+			throw new BusinessException("决策配置编号不允许为空");
+		if(map.containsKey("cityCode") || map.get("cityCode")==null || StringUtils.isEmpty(map.get("cityCode").toString()))
+			throw new BusinessException("决策配置城市编码不允许为空");
+		//将该城市下的原有决策配置信息删除；
+		this.decisionConfigurateMapper.deleteDecistionConfigurate(map.get("decisionId").toString(), map.get("cityCode").toString());
+		if(!map.containsKey("id") && map.get("id")!=null && !StringUtils.isEmpty(map.get("id").toString())) {
+			//修改
+			this.commonOperationDatabase(map, "sys_decision_configurate_detail", "id", false);
+		}else {//新增
+			map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			map.put("operatorId", UserThreadLocal.get().get("id"));
+			if(map.containsKey("id"))
+				map.remove("id");
+			this.commonOperationDatabase(map, "sys_decision_configurate_detail", false);
+		}
+		return true;
+	}
+
+}

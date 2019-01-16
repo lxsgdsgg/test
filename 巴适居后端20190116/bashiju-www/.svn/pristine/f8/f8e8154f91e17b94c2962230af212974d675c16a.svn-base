@@ -1,0 +1,73 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerStarCommentsEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 上午10:54:00   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.usercentral;
+
+import lombok.Data;
+
+/**
+ * 客户对经纪人的星级评价实体类
+ * @ClassName:CustomerStarCommentsEntity
+ * @Description:客户对经纪人的星级评价实体类
+ * @author:zuoyuntao
+ * @date:2018年7月26日 上午10:54:00
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@Data
+public class CustomerStarCommentsEntity {
+	/**主键ID**/
+	private int id;
+	/**评价类型0：经纪人评价 1房源评价**/
+	private String type;
+	/**经纪人ID**/
+	private int userId;
+	/**经纪人详情ID**/
+	private int agentId;
+	/**评价星级**/
+	private int star;
+	/**评价内容**/
+	private String content;
+	/**登陆用户ID**/
+	private int custId;
+	/**登陆用户名称**/
+	private String custName;
+	/**评价经纪人标签Id--多个标签用逗号隔开**/
+	private String labelIds;
+	/**评价经纪人标签--多个标签用逗号隔开**/
+	private String labels;
+	/**评价二级标签ID--多个二级标签用逗号隔开**/
+	private String secondLabelIds;
+	/**评价二级标签--多个二级标签用逗号隔开**/
+	private String secondLabels;
+	/**评价审核状态**/
+	private int examineStatus;
+	/**评价审核人**/
+	private int auditorId;
+	/**评价审核人**/
+	private String auditor;
+	/**评价审核时间**/
+	private String auditTime;
+	/**评价驳回原因**/
+	private String reason;
+	/**经纪人权限域**/
+	private String permissionArea;
+	/**添加经纪人操作人ID**/
+	private String operatorId;
+	/**添加经纪人操作人**/
+	private String operator;
+	/**评价时间**/
+	private String addTime;
+	/**评价更新时间**/
+	private String updateTime;
+	/**是否可用**/
+	private int isValid;
+}

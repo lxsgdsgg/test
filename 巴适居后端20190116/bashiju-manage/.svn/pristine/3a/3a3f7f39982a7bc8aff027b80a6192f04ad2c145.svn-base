@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.UserMapper">
+	<select id="queryUser" resultType="map">
+		select a.id,a.realName,a.mobile,a.wxNum,a.telPhone,b.name as companyName,a.companyId,c.name as deptName,a.deptId,
+		d.name as roleName,a.roleId,a.password,a.solt,a.sex,a.employee_num,a.birthDate,a.entryDate,a.idCode,a.email,
+		e.name as postName,a.postId,a.refereeId,a.syncFlag,a.sortNo,a.hotAgentFlag,a.birthWindowFlag,a.status,a.permissionArea,
+		a.operatorId,a.operator,a.addTime,a.updateTime,a.userType,a.loginStatus,a.parentMobile,a.isPCLogin,a.isMobileLogin,
+		a.lastLoginSuccessTime,a.passwordErrorCount,a.areaCode,a.isValid
+		from sys_user a 
+		left join sys_company b on a.companyId = b.id
+		left join sys_dept c on a.deptId = c.id
+		left join sys_role d on a.roleId = d.id 
+		left join sys_post e on a.postId = e.id 
+		where a.isvalid=1 
+		<if test="realName != null and realName != '' "> and a.realName like '%${realName}%' </if> 
+		<if test="mobile != null and mobile != '' "> and a.mobile = #{mobile} </if>
+		<if test="wxNum != null and wxNum != '' "> and a.wxNum = #{wxNum} </if>
+		<if test="telPhone != null and telPhone != '' "> and a.telPhone = #{telPhone} </if>
+		<if test="companyId != null and companyId != '' "> and a.companyId = #{companyId} </if>
+		<if test="deptId != null and deptId != '' "> and a.deptId = #{deptId} </if>
+		<if test="roleId != null and roleId != '' "> and a.roleId = #{roleId} </if>
+		<if test="sex != null and sex != '' "> and a.sex = #{sex} </if>
+		<if test="employee_num != null and employee_num != '' "> and a.employee_num = #{employee_num} </if>
+		<if test="email != null and email != '' "> and a.email = #{email} </if>
+		<if test="postId != null and postId != '' "> and a.postId = #{postId} </if>
+		order by a.sortNo
+	</select>
+	
+	<select id="getUserById" resultType="map">
+		select * from sys_user where id = #{id}
+	</select>
+	
+	<select id="getUserByMobile" resultType="map">
+		select * from sys_user where mobile = #{mobile}
+	</select>
+	
+</mapper>

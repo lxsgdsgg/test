@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.ManageActionLogQueryMapper">
+	<select id="auxSystemActionLogPageList" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.sourceTypeId,a.sourceTypeName,a.cityCode
+		,a.companyId,a.companyName,a.departmentId,a.departmentName,a.operatTypeId,a.operatTypeName
+		,a.logContent,a.path,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime
+		,a.isvalid from sys_system_log as a where a.isValid = 1  
+		<if test="null != actionType and actionType != ''">
+			and a.sourceTypeId = #{actionType}
+		</if>
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and a.operatorId = ${operatorId}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and a.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by a.id desc
+	</select>
+	<select id="auxManageActionLogPageList" resultType="map">
+		select b.id,b.sourceId,b.sourceCode,b.sourceTypeId,b.sourceTypeName,b.cityCode,b.companyId,b.companyName
+		,b.departmentId,b.departmentName,b.operatTypeId,b.operatTypeName,b.logContent,b.path,b.permissionArea
+		,b.operatorId,b.operator,b.addTime,b.updateTime,b.isvalid from sys_platform_log b 
+		WHERE b.isValid = 1        
+		<if test="null != actionType and actionType != ''">
+			and b.sourceTypeId = #{actionType}
+		</if>
+		<if test="null != minTime and minTime != ''">
+			and substring(a.addTime,1,10) &gt;= #{minTime}
+		</if>
+		<if test="null != maxTime and maxTime != ''">
+			and substring(a.addTime,1,10) &lt;= #{maxTime}
+		</if>
+		<if test="operatorId != null and operatorId != ''">
+			and b.operatorId = ${operatorId}
+		</if>
+		<if test="logContent != null and logContent.trim != ''">
+			and b.logContent like concat('%',#{logContent},'%') 
+		</if>
+		order by b.id desc
+	</select>
+		
+	<select id="auxManageActionLogByManageId" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 4
+		<if test="null != id and id != '' ">
+			and a.sourceId = #{id}
+		</if>
+		order by a.id desc
+	</select>
+	
+	<select id="auxManageActionLogByManageType" resultType="map">
+		select a.id,a.sourceId,a.sourceCode,a.businessTypeId,a.businessTypeName,a.sourceTypeId,
+		a.sourceTypeName,a.cityCode,a.companyId,a.companyName,a.departmentId,a.departmentName,
+		a.operatTypeId,a.operatTypeName,a.logContent,a.path,a.dealCode,a.newHouseId,a.newHouseCode,
+		a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid from
+		sys_business_log AS a where a.isValid = 1 and a.businessTypeId = 4
+		<if test="null != type and type != '' ">
+			and a.sourceTypeId = ${type}
+		</if>
+		order by a.id desc
+	</select>
+</mapper>

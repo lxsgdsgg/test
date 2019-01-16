@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.manage.mapper.DataacquMapper">
+  
+  	<select id="queryAnalysisTemplet" resultType="map">
+  		select * from hs_houseCrawlerTemplate where isvalid = 1
+  	</select>
+
+  	<select id="queryTempletName" resultType="map">
+  		select id,templateName from hs_houseCrawlerTemplate where isvalid = 1
+  	</select>
+  	
+  	<select id="queryAddressConf" resultType="map">
+  		select * from hs_houseCrawlerConfigure where isvalid = 1
+  	</select>
+	
+	<select id="queryJobConf" resultType="map">
+  		select * from job where isvalid = 1
+  	</select>
+  </mapper>
+  
+   

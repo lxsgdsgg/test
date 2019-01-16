@@ -1,0 +1,53 @@
+package com.bashiju.www.service.user;
+
+import java.util.Map;
+/**
+ * 
+ * @ClassName:  UserRegisterService   
+ * @Description:用户注册接口  
+ * @author: wangpeng
+ * @date:   2018年7月16日 下午2:52:46   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface UserRegisterService {
+	/**
+	 * 
+	 * @Title: userRegister   
+	 * @Description: TODO(用户注册)   
+	 * @param map
+	 * @return      
+	 * @return: boolean
+	 */
+	public boolean userRegister(Map<Object,Object> map);	
+	
+	/**
+	 * 
+	 * @Title: queryIsExistMobile   
+	 * @Description: TODO(查询手机号码是否已存在)   
+	 * @param mobile 手机号码
+	 * @return      
+	 * @return: boolean
+	 */
+	public boolean queryIsExistMobile(String mobile);
+	
+	
+	/**
+	 * 
+	 * @Title: getRandomNum   
+	 * @Description: TODO(生成数据随机数)   
+	 * @return      
+	 * @return: String
+	 */
+	public String getRandomNum();
+	/**
+	 * 
+	 * @Title: sendMessage   
+	 * @Description: TODO(根据手机号码发送验证码)   
+	 * @param mobile
+	 * @return      
+	 * @return: String
+	 */
+	public String sendMessage(String mobile);
+}

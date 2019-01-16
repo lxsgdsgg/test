@@ -1,0 +1,38 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bashiju.quartz</groupId>
+    <artifactId>bashiju-quartz</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>bashiju-quartz-service</artifactId>
+<dependencies>
+  	<dependency>
+  		<groupId>com.bashiju.quartz</groupId>
+    	<artifactId>bashiju-quartz-mapper</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+
+  		<!-- Jackson Json处理工具包 -->
+			<dependency>
+			    <groupId>com.fasterxml.jackson.core</groupId>
+			    <artifactId>jackson-databind</artifactId>
+			</dependency>
+	<!--String-MVC-->
+  		<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-webmvc</artifactId>
+	</dependency>
+	<!-- 加密用 -->
+	<dependency>
+	    <groupId>commons-codec</groupId>
+	    <artifactId>commons-codec</artifactId>
+	</dependency>
+	<!-- 爬网用 -->	
+	<dependency>
+      <groupId>cn.edu.hfut.dmic.webcollector</groupId>
+      <artifactId>WebCollector</artifactId>
+      <version>2.71</version>
+    </dependency>
+  </dependencies>
+</project>

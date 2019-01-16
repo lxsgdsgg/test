@@ -1,0 +1,41 @@
+package com.bashiju.manage.service;
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  BlackListService   
+ * @Description:中介黑名单接口
+ * @author: wangpeng
+ * @date:   2018年6月12日 下午2:43:45   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface BlackListService {
+	/**
+	 * @Title: queryBlackList   
+	 * @Description: 查询中介黑名单
+	 * @param pageNum 当前页
+	 * @param pageSize 每页总条数
+	 * @return: Page<Map<String,Object>>
+	 */
+	Page<Map<String,Object>>queryBlackList(int pageNum,int pageSize,String keyword);
+	
+	/**
+	 * @Title: saveOrUpdateBlackList   
+	 * @Description: 新增或修改中介黑名单
+	 * @param map 保存参数
+	 * @return: boolean
+	 */
+	boolean saveOrUpdateBlackList(Map<String,Object>map);
+	
+	/**
+	 * 逻辑删除中介黑名单
+	 * @Title: delBlackList   
+	 * @Description: 逻辑删除中介黑名单
+	 * @param id
+	 * @return: boolean
+	 */
+	boolean delBlackList (String id);
+}

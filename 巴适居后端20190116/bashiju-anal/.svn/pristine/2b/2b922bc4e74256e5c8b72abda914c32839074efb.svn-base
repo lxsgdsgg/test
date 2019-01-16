@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DeptAchievementMapper">
+		
+	<!-- 查业绩 -->
+	<select id="queryAchievement" resultType="map">
+	select id,deptName,sellAchievement,rentAchievement,newHouseAchievement,financeAchievement,(ifnull(sellAchievement,0)+ifnull(rentAchievement,0)+ifnull(newHouseAchievement,0)+ifnull(financeAchievement,0)) as achievementSum from 
+	(select a.id,a.name deptName 
+		 ,(select sum(floor(dd.actualProfit/100))
+	   from sys_user b left join deal_dividenInfo dd on dd.dividerId=b.id and DATE_FORMAT(dd.updateTime,'%Y-%m')='2018-11'
+		 and dd.isValid=1 left join deal_transactionInfo dt on dd.dealId = dt.id  
+     where b.deptId=a.id and dt.dealType ='00') as sellAchievement
+		 ,(select sum(floor(dd.actualProfit/100))
+	   from sys_user b left join deal_dividenInfo dd on dd.dividerId=b.id and DATE_FORMAT(dd.updateTime,'%Y-%m')='2018-11'
+		 and dd.isValid=1 left join deal_transactionInfo dt on dd.dealId = dt.id  
+     where b.deptId=a.id and dt.dealType ='01') as rentAchievement
+		 ,(select sum(floor(dd.actualProfit/100))
+	   from sys_user b left join deal_dividenInfo dd on dd.dividerId=b.id and DATE_FORMAT(dd.updateTime,'%Y-%m')='2018-11'
+		 and dd.isValid=1 left join deal_transactionInfo dt on dd.dealId = dt.id  
+     where b.deptId=a.id and dt.dealType ='02') as newHouseAchievement
+		,(select sum(floor(df.actualProfit/100)) from sys_user b left join deal_financeDividenInfo df on df.dividerId = b.id  
+   			and DATE_FORMAT(df.updateTime,'%Y-%m')='2018-11' and df.isValid=1 where b.deptId=a.id) as financeAchievement
+		 from sys_dept a where a.isvalid=1 and a.deptTypeId in(4,5)
+     group by a.id order by a.id) aa order by achievementSum desc
+	</select>	
+	
+		
+	
+	
+</mapper>

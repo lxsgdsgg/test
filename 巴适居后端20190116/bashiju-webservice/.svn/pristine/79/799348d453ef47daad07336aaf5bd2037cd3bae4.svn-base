@@ -1,0 +1,61 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerMyAppointmentPageServiceApiImpl.java   
+ * @Package com.bashiju.www.service.api.impl.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 下午1:52:18   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.api.impl.usercentral;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wapi.usercentral.ICustomerMyAppointmentPageServiceApi;
+import com.bashiju.www.service.user.ICustomerPersonalCentralService;
+
+/**
+ * 个人中心----我的预约页面服务接口
+ * @ClassName:CustomerMyAppointmentPageServiceApiImpl
+ * @Description:个人中心----我的预约页面服务接口
+ * @author:zuoyuntao
+ * @date:2018年8月15日 下午1:52:18
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerMyAppointmentPageServiceApiImpl
+	extends CustomerPersonalCentralBaseServiceApi implements ICustomerMyAppointmentPageServiceApi {
+	/**
+	 * 个人中心服务接口
+	 */
+	@Autowired
+	private ICustomerPersonalCentralService mICustomerPersonalCentralService;
+	/**   
+	 * <p>Title: queryMyAppointmentList</p>   
+	 * <p>Description:查询我的预约数据 </p>   
+	 * @param key 用户登陆标记
+	 * @return   
+	 * @see com.bashiju.wapi.usercentral.ICustomerMyAppointmentPageServiceApi#queryMyAppointmentList()   
+	 */
+	@Override
+	public List<?> queryMyAppointmentList(String key) {
+		String custId = getUserIdByRedisKey(key);
+		return mICustomerPersonalCentralService.queryMyselfAppointmentList(custId);
+	}
+	/**
+	 * <p>Title: cancelAppointment</p>   
+	 * <p>Description: 取消预约</p>   
+	 * @param id  预约id
+	 * @see com.bashiju.wapi.usercentral.ICustomerMyAppointmentPageServiceApi#cancelAppointment(java.lang.String)
+	 */
+	@Override
+	public void cancelAppointment(String id) {
+		mICustomerPersonalCentralService.concelMyselfAppointment(id);
+	}
+
+}

@@ -1,0 +1,85 @@
+package com.bashiju.www.service.user;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.bashiju.www.pojo.service.user.CustCustomerParam;
+
+public interface CustCustomerService  {
+//	
+//	public List<CustCustomer> queryAllCustomer();
+//	public Long doReg(CustCustomer custCustomer);
+
+	
+	
+	
+	/**
+	 * 
+	 * @Title: userRegister   
+	 * @Description: TODO(用户注册)   
+	 * @param map
+	 * @return      
+	 * @return: boolean
+	 */
+	public boolean userRegister(Map<Object,Object> map);	
+	
+	/**
+	 * 
+	 * @Title: queryIsExistMobile   
+	 * @Description: TODO(查询手机号码是否已存在)   
+	 * @param mobile 手机号码
+	 * @return      
+	 * @return: boolean
+	 */
+	public boolean queryIsExistMobile(String mobile);
+	
+	/**
+	 * 
+	 * @Title: sendMessage   
+	 * @Description: 根据手机号码发送验证码  
+	 * @param mobile
+	 * @return      
+	 * @return: String
+	 */
+	public String sendMessage(String mobile);
+	
+	/**
+	 * @Title: saveCustCustomer   
+	 * @Description: 保存用户在注册时输入信息 
+	 * @param CustCustomerParam 用户输入参数
+	 * @return: long
+	 */
+	public boolean  saveCustCustomer(CustCustomerParam CustCustomerParam);
+	
+	/**
+	 * @Title: userMobileCheck   
+	 * @Description: 验证手机号码
+	 * @param mobile 手机号码
+	 * @param solt 盐值
+	 * @return: boolean
+	 */
+	public boolean userMobileCheck(String mobile,String solt);
+	
+	  /**
+     * @Title: updateCustCustomer   
+     * @Description: 修改用户信息
+     * @param paramMap 要修改的参数
+     * @return: long
+     */
+    public boolean updateCustCustomer(Map<Object,Object> paramMap);
+    
+    
+    
+    /**
+     * @Title: customerLogin   
+     * @Description: 用户登录
+     * @param mobile 电话号码
+     * @param password 密码
+     * @return: boolean
+     */
+    public boolean customerLogin(HttpServletRequest request,HttpServletResponse response,String mobile,String password,String validateCode);
+	
+    public String check(HttpServletRequest request,HttpServletResponse response);
+}

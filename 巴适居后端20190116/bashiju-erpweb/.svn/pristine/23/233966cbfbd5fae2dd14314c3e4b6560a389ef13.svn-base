@@ -1,0 +1,143 @@
+<template>
+  <!--@mouseover="hideMenuPanel1"-->
+  <section class="wrapper" @mouseover="hideMenuPanel1" @mouseout="hideMenuPanel2">
+    <v-header
+      :menuData="menuData"
+      :menuPanelShow="menuPanelShow"
+      :userName="userName"
+    >
+    </v-header>
+
+    <div class="aside" id="aside" :class="{ asideShow: asideShow }" width="auto">
+      <v-slideBar-panel :data="menuData" :asideShow="asideShow"></v-slideBar-panel>
+    </div>
+
+    <div class="content">
+      <transition name="fade-transform" mode="out-in">
+        <keep-alive :include="cachedViews">
+          <router-view></router-view>
+        </keep-alive>
+      </transition>
+    </div>
+
+    <v-footer></v-footer>
+  </section>
+</template>
+
+<script>
+import VHeader from './Header'
+import VFooter from './Footer'
+import VSlideBarPanel from './components/SidebarPanel'
+import {addClass, removeClass, setCookie} from '../../common/js/utils'
+import {getMenuData} from '../../request/app'
+// import TagsView from './components/TagsView'
+
+export default {
+  name: 'layout',
+  components: {VHeader, VFooter, VSlideBarPanel},
+  data () {
+    return {
+      menuPanelShow: true,
+      asideShow: false,
+      menuData: [],
+      userName: ' '
+    }
+  },
+  methods: {
+    hideMenuPanel1 (e) {
+      const menuPanel = document.getElementById('menuPanel')
+      const bsjTopBar = document.getElementById('bsjTopBar')
+      const triangle = document.getElementById('triangle')
+      // 如果当前鼠标没在目标元素上
+      if (menuPanel && (!menuPanel.contains(e.target) && !bsjTopBar.contains(e.target))) {
+        this.menuPanelShow = false
+        triangle.style.display = 'none'
+      } else {
+        this.menuPanelShow = true
+        triangle.style.display = 'block'
+      }
+
+      this.handleSideBar1(e)
+    },
+    hideMenuPanel2 (e) {
+      const triangle = document.getElementById('triangle')
+      // 没有目标元素  鼠标离开当前窗口
+      if (!e.relatedTarget) {
+        this.menuPanelShow = false
+        triangle.style.display = 'none'
+      }
+    },
+    handleSideBar1 (e) {
+      const foldIcon = document.getElementById('foldIcon')
+      const aside = document.getElementById('aside')
+      const body = document.querySelectorAll('body')[0]
+
+      // 网页可见区域高
+      const clientHeight = document.body.clientHeight
+      // 网页正文全文高
+      const scrollHeight = document.body.scrollHeight
+
+      if (!foldIcon.contains(e.target) && !aside.contains(e.target)) {
+        this.asideShow = false
+        removeClass(body, 'no-scroll')
+      } else {
+        this.asideShow = true
+
+        // 如果鼠标当前在侧边栏菜单上禁止浏览器滚动
+        // 如果网页正文高度大于窗口高度 禁止浏览器滚动 但不消失滚动条
+        if (scrollHeight > clientHeight) {
+          addClass(body, 'no-scroll')
+        }
+      }
+    },
+    _getMenuData () {
+      getMenuData().then(res => {
+        if (res.data) {
+          this.menuData = res.data
+        }
+      })
+    },
+    _setLoginCookie () {
+      if (this.$route.query.param) {
+        const params = JSON.parse(this.$route.query.param)
+        for (let item in params) {
+          setCookie(item, params[item])
+        }
+      }
+    }
+  },
+  computed: {
+    cachedViews () {
+      return this.$store.state.tagsView.cachedViews
+    }
+  },
+  mounted () {
+    this._setLoginCookie()
+    this.$store.dispatch('getUserInfo').then(() => {
+      this.userName = this.$store.getters['userName']
+    })
+    this._getMenuData()
+  }
+}
+</script>
+
+<style scoped lang="scss">
+  .content {
+    min-height: calc(100vh - 165px);
+    overflow: hidden;
+  }
+
+  .aside {
+    position: fixed;
+    top: 60px;
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    height: 100%;
+    background: #303133;
+
+    &.asideShow {
+      transform: translateX(0);
+    }
+  }
+</style>

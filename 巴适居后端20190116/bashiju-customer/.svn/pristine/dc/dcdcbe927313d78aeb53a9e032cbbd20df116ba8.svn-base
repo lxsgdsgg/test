@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.customer.mapper.FormMapper">
+  
+  	<!-- ****查询开始 *******-->
+  	
+  	<select id="queryRequiredType" resultType="map">
+  		select DISTINCT useType,useTypeTitle from dynamicform_common_field where useType is not null
+  	</select>
+  	
+  	<select id="queryFieldRequired" resultType="map">
+  		select a.tableChinaName,b.id,b.field,b.title,b.fieldRequired,b.useType from dynamicform_table_record a,dynamicform_common_field b where a.tableDbName = b.tableName and a.cityCode=#{cityCode} and a.isValid=1 and b.isValid=1 ORDER BY b.useType
+  	</select>
+  	
+  	
+  	
+  	<select id="queryWidgetByCode" resultType="int">
+  		select count(0) from dynamicform_widget where widgetCode=#{widgetCode}
+  	</select>
+  	
+  	<select id="queryWidgetByCodeAndCity" resultType="int">
+  		select count(0) from dynamicform_widget where widgetCode=#{widgetCode} and cityCode = #{cityCode}
+  	</select>
+  	
+  	<select id="queryRegionType" resultType="map">
+  		select widgetCode,type,typeName,name from dynamicform_widget where cityCode=#{cityCode} and isValid=1 and type=#{type}
+  	</select>
+  	
+  	<select id="querySelectType" resultType="map">
+  		select widgetCode,type,typeName,name from dynamicform_widget where isValid=1 and type in("1","2") order by type
+  	</select>
+  	
+  	<select id="queryWidgetType" resultType="map">
+  		select widgetCode,type,typeName,name from dynamicform_widget where isValid=1 and type=#{type}
+  	</select>
+  	
+  	<select id="queryWidgetValue" resultType="map">
+  		select id,fieldValue,maxRegionValue,sorting from ${tablename} where widgetCode=#{widgetCode}
+  	</select>
+  	
+  	<select id="querySqlValue" resultType="map">
+  		${sql}
+  	</select>
+  	
+  	<delete id="delWidgetValue" >  
+        DELETE FROM dynamicform_field_value WHERE widgetCode=#{widgetCode}
+	</delete> 
+  	
+  	
+  	
+  	<select id="queryDynamicFormList" resultType="map" >
+		SELECT dtr.id,dtr.tableChinaName,dtr.tableDbName FROM dynamicform_table_record AS dtr WHERE dtr.cityCode = #{cityCode}
+	</select>
+  	
+  	<select id="queryDynamicFormFieldList" resultType="map" >
+		SELECT dcf.id,dcf.title,dcf.fieldUnit,dcf.sort,dcf.fieldType,dcf.value,dcf.isDynamic,dcf.fieldRequired  FROM dynamicform_common_city_field AS dcf
+		 WHERE dcf.isValid=1 and parentId IS Null and dcf.formId =  #{formId} and dcf.cityCode=#{cityCode}
+	</select>
+	
+	<select id="queryCustomFieldCount" resultType="int" >
+		SELECT dtr.customFieldCount FROM dynamicform_table_record AS dtr WHERE dtr.id = #{id}
+	</select>
+	
+	<update id="addcolumn" >  
+        alter table ${table} add column ${column} varchar(255)   
+    </update> 
+    
+	<select id="queryCompanyDynamicFormList" resultType="map" >
+		SELECT dtr.id,dtr.tableChinaName,dtr.tableDbName,dtr.customTableName FROM dynamicform_table_record AS dtr WHERE dtr.tableType=2 and dtr.cityCode = #{cityCode}
+	</select>
+	
+	<select id="queryCompanyDynamicFormFieldList" resultType="map" >
+		SELECT dcf.id,dcf.title,dcf.fieldUnit,dcf.sort,dcf.fieldType,dcf.value,dcf.fieldRequired  FROM dynamicform_custom_field AS dcf
+		 WHERE  dcf.formId =  #{formId} and dcf.companyId= #{companyId}
+	</select>
+	
+	<select id="queryCompanyDynamicFormFieldSelect" resultType="map" >
+		SELECT dcf.id,dcf.title,dcf.field,dcf.fieldUnit,dcf.sort,dcf.fieldType,dcf.value  FROM dynamicform_custom_field AS dcf
+		 where dcf.field not IN(SELECT field FROM dynamicform_custom_field WHERE formId = #{formId} and companyId = #{companyId}) 
+		 AND  dcf.formId = #{formId} and dcf.companyId != #{companyId}
+		 group by dcf.field
+	</select>
+	
+	<select id="queryCityDynamicFormFieldSelect" resultType="map" >
+		SELECT dcf.id,dcf.title,dcf.field,dcf.fieldUnit,dcf.sort,dcf.fieldType,dcf.value  FROM dynamicform_common_city_field AS dcf
+		 where dcf.field not IN(SELECT field FROM dynamicform_common_city_field WHERE formId = #{formId} and cityCode = #{cityCode}) 
+		 AND  dcf.formId = #{formId} and dcf.cityCode != #{cityCode}
+		 group by dcf.field
+	</select>
+	
+	<!-- 调用接口 -->
+	
+	<select id="queryTableInfo" resultType="Map">
+  		select id,tableType,tableDbName from dynamicform_table_record where formName=#{formName}
+  	</select>
+	
+	<select id="queryCityCustomField" resultType="map">
+  		select field,title,value,fileldVerify,fieldRequired,fieldType,fieldUnit from dynamicform_common_city_field where formId=#{formId} and cityCode=#{cityCode} and isValid=1
+  		 
+  	</select>
+  	<select id="queryCustomField" resultType="map">
+  		select 'city', field,title,value,fileldVerify,fieldRequired,fieldType,fieldUnit from dynamicform_common_city_field where formId=#{formId} and cityCode=#{cityCode} and isValid=1 union select 'company', field,title,value,fileldVerify,fieldRequired,fieldType,fieldUnit from dynamicform_custom_field where formId=#{formId} and companyId=#{companyId} and isValid=1
+  		 
+  	</select>
+  	 <select id="queryWidgetCode"   resultType="map">
+        select DISTINCT b.value,b.field from dynamicform_table_record a INNER JOIN dynamicform_common_field b on a.formName=#{formName} and a.id = b.formId and b.isDynamic=2 and b.fieldType in
+        <foreach collection="fieldtypes" index="index" item="item" open="(" separator="," close=")">
+           #{item}
+        </foreach>
+	 </select>
+	 
+ 	<select id="querySelectValue" resultType="Map">
+  		 SELECT a.type,b.id,b.fieldValue from dynamicform_widget a INNER JOIN dynamicform_field_value b on a.widgetCode=#{widgetCode} and a.widgetCode = b.widgetCode
+  	</select>
+  	
+  	<select id="queryFormValue" resultType="Map">
+  		select * from ${tableName} where sourceId=#{sourceId} and isValid = 1
+  	</select>
+  	
+  	<select id="queryRegionValue" resultType="Map">
+  		select fieldValue min,maxRegionValue max from dynamicform_field_value where widgetCode=#{widgetCode}
+  	</select>
+  	
+  	<!-- 获取动态表格字段 -->
+  	<select id="queryTableFieldInfo" resultType="Map">
+  		SELECT df.field FROM dynamicform_table_record AS dr 
+		INNER JOIN dynamicform_common_field AS df 
+		ON dr.formName=#{formName} AND df.formId=dr.id AND df.isValid=1 AND((df.fieldType IN (1,2,3,7)) OR (df.fieldType IN (4,5,6) AND df.isDynamic=2))
+		<if test="hiddenField!=null">
+			and df.hiddenField=1
+		</if>
+  	</select>
+  	
+  	<!-- 获取动态表格数据 -->
+  	<select id="queryTableDatas" resultType="Map">
+  		SELECT ${columns} FROM ${tableName} 
+		<where> 
+		<if test="conditions!=null">
+			<foreach item="item" index="index" collection="conditions"   open=" " separator="and" close=" ">
+				<if test="item.symbol=='like'">
+				#{item.key} like concat('%',concat(#{item.value},'%'))
+				</if>
+		        <if test="item.symbol=='between'">
+				#{item.key} between #{item.value1} and #{item.value2}
+				</if>
+				 <if test="item.symbol!='between' and item.symbol!='like'">
+				#{item.key}  #{item.symbol}  #{item.value}
+				</if>
+		  </foreach>
+		 </if>
+		</where>
+  	</select>
+  	
+  	<select id="queryTableHiddenFields" resultType="Map">
+  	SELECT id,`columns` FROM dynamicform_table_hidden_field WHERE isValid=1 AND userId=#{userId} AND formName=#{formName}  
+  	</select>
+  	<!--查询部门用户 -->
+  	<select id="queryDept" resultType="map">
+		select (select max(FORMAT((length(id)-length(companyId))/2,0)+1) as maxLevel from sys_dept where isvalid = 1) 
+			as maxLevel,id as code,name,parentId as parentCode,FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept  WHERE isValid = 1
+			<if test="areaCode!=null">
+			and CONCAT(LEFT(areaCode,4),'00') IN (${areaCode}) 
+			</if>
+			<if test="companyId!=null">
+			AND companyId=#{companyId}
+			</if>			
+			union all
+			select (select max(FORMAT((length(id)-length(companyId))/2,0) +1)  from sys_dept where isvalid=1) as maxLevel,
+			a.id as code,a.realName as name,b.id as parentCode,(select max(FORMAT((length(id)-length(companyId))/2,0)+1)  
+			from sys_dept where isvalid=1) as level from sys_user a left join sys_dept b on 
+			a.deptId = b.id where a.isValid = 1 and b.isvalid = 1 
+			<if test="areaCode!=null">
+			and CONCAT(LEFT(a.areaCode,4),'00') IN (${areaCode}) 
+			</if>
+			<if test="companyId!=null">
+			AND a.companyId=#{companyId}
+			</if>
+	</select>
+	
+	<select id="searchCommunity" resultType="map">
+		SELECT `code`,`name`,parentCode,1 AS`level`  FROM sys_area  WHERE parentCode = '${cityCode}00'
+		UNION
+		SELECT id AS code,`name`,areaCode AS parentCode,2 AS level FROM sys_region  WHERE isValid=1 AND areaCode LIKE '${cityCode}%'
+		UNION
+		SELECT id AS code,`name`,regionId AS parentCode,3 AS level FROM sys_community WHERE isValid=1 AND areaCode LIKE '${cityCode}%'
+	</select>
+  </mapper>
+  
+   

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.RegionMapper">
+
+	<select id="queryArea" resultType="map" >
+		SELECT * from sys_area WHERE isValid=1 and level &gt; 1 and code like '${code}%'
+	</select>
+	
+	<select id="queryAreaSelect" resultType="map" >
+		<![CDATA[SELECT code,name,parentCode,level from sys_area WHERE level<3]]>
+	</select>
+	
+	<select id="queryRegion" resultType="map" >
+		SELECT * from sys_region WHERE areaCode =#{code} and isValid=1 order by id desc
+	</select>
+	
+	<select id="queryRegionByName" resultType="map" >
+		SELECT * from sys_region WHERE name like '%${name}%' and isValid=1 order by id desc
+	</select>
+	
+	<select id="countRegionByName" resultType="long" >
+		SELECT count(*) from sys_region WHERE name =#{name} and areaCode =#{code} and isValid=1
+	</select>
+	<select id="queryRegionsByCity" resultType="map">
+		SELECT id,`name`,longitude,latitude,areaCode FROM sys_region where isValid=1 AND CONCAT(LEFT(areaCode,4),'00')=#{cityCode} order by id desc
+	</select>
+	
+	<select id="queryCommunityCount" resultType="int">
+		SELECT COUNT(*) FROM sys_community WHERE regionId=#{regionId}
+	</select>
+</mapper>

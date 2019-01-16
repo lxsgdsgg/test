@@ -1,0 +1,168 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealComprehensiveAnalysisController.java   
+ * @Package com.bashiju.anal.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年11月27日 上午10:11:03   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.anal.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.anal.mapper.AnalCommonMapper;
+import com.bashiju.anal.pojo.Cell;
+import com.bashiju.anal.pojo.IncomeTransverseParamsEnum;
+import com.bashiju.anal.pojo.Row;
+import com.bashiju.anal.pojo.Thead;
+import com.bashiju.anal.service.IDealComprehensiveAnalysisService;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+/**
+ * 决策分析--成交综合分析--控制器
+ * @ClassName:DealComprehensiveAnalysisController
+ * @Description:决策分析--成交综合分析--控制器
+ * @author:zuoyuntao
+ * @date:2018年11月27日 上午10:11:03
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@RequestMapping(value="dealComprehensiveAnalysis")
+@Controller
+public class DealComprehensiveAnalysisController {
+	/**
+	 * 公用的持久层对象
+	 */
+	@Autowired
+	private AnalCommonMapper commonMapper;
+	/**
+	 * 成交综合分析持久层对象
+	 */
+	@Autowired
+	private IDealComprehensiveAnalysisService mIDealComprehensiveAnalysisService;
+	/**
+	 * 组装【成交综合分析】报表表头 
+	 * @Title: buildReportHeader
+	 * @author: zuoyuntao  
+	 * @Description:组装【成交综合分析】报表表头 
+	 * Thead
+	 */
+	private Thead buildReportHeader() {
+		//封装表头
+		Thead thead = new Thead();//定义表头对象
+		List<Row> rows = new ArrayList<Row>(0);//定义表头行数
+			
+		//第一行
+		List<Cell> cells1 = new ArrayList<Cell>(0);//定义表头列数
+		List<List<Cell>> cells = new ArrayList<List<Cell>>(0);
+//		cells1.add(new Cell.Builder().setTitle("成交分析").setColspan(4).setAlign("center").build());
+//		cells1.add(new Cell.Builder().setField("dian").setTitle("区").setTotalRowText("合计").setRowspan(2).build());
+//		cells1.add(new Cell.Builder().setField("deptName").setTitle("门店").setRowspan(2).build());
+
+		cells1.add(new Cell.Builder().setField("areaName").setTitle("一维").build());
+		cells1.add(new Cell.Builder().setField("deptName").setTitle("二维").build());
+		cells1.add(new Cell.Builder().setField("dealBussinessCnt").setTitle("买卖成交单数").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealContractValue").setTitle("买卖合同值").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealBussinessConmmision").setTitle("买卖应收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealBussinessActualConmmision").setTitle("买卖实收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealBussinessUnreceiveConmmision").setTitle("买卖未收佣金").setTotalRow(true).build());
+		
+		cells1.add(new Cell.Builder().setField("dealRentCnt").setTitle("租赁成交单数").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealRentContractValue").setTitle("租赁合同值").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealRentCommision").setTitle("租赁应收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealRentActualCommision").setTitle("租赁实收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealRentUnreceiveCommision").setTitle("租赁未收佣金").setTotalRow(true).build());
+		
+		cells1.add(new Cell.Builder().setField("dealOneHandCnt").setTitle("一手成交单数").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealOneHandContractValue").setTitle("一手合同值").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealOneHandCommision").setTitle("一手应收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealOneHandActualCommision").setTitle("租赁实收佣金").setTotalRow(true).build());
+		cells1.add(new Cell.Builder().setField("dealOneHandUnreceiveCommision").setTitle("一手未收佣金").setTotalRow(true).build());
+		
+		cells.add(cells1);
+		rows.add(new Row.Builder().cells(cells).build());
+		thead.setRows(rows);
+		return thead;
+	}
+	/**
+	 * @Description: 进入【成交综合分析】页面   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="pageMain")
+	public ModelAndView statisticsComprehensive(HttpServletRequest request,HttpServletResponse response) {
+		// 页面建模
+		ModelAndView mv = new ModelAndView("dealComprehensiveAnalysis/dealComprehensiveAnalysis");
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = commonMapper.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString());
+		// 门店信息
+		mv.addObject("deptInfo", JSONObject.toJSONString(deptList));
+		// 获取城市信息
+		mv.addObject("cityInfo", commonMapper.queryCompanyCityInfo(UserThreadLocal.get().get("companyId").toString()));
+		// 部门类型
+		mv.addObject("deptType", IncomeTransverseParamsEnum.enumMap);
+		// 组装表头信息
+		mv.addObject("thead", JSONObject.toJSON(buildReportHeader()));
+		return mv;
+	}
+	/**
+	 * 查询页面数据
+	 * @Title: queryReportData
+	 * @author: zuoyuntao  
+	 * @Description:查询页面数据
+	 * @param request
+	 * @param response
+	 * @return      
+	 * Object
+	 */
+	@RequestMapping(value="queryReportData")
+	@ResponseBody
+	public Object queryReportData(HttpServletRequest request,HttpServletResponse response) {
+		String begin = request.getParameter("beginDate");
+		String end = request.getParameter("endDate");
+		String deptId = request.getParameter("deptId");
+		String deptType = request.getParameter("deptType");
+		String contractStatus = request.getParameter("contractStatus");
+		if(StringUtils.isEmpty(begin))
+			begin = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		if(StringUtils.isEmpty("end"))
+			end = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		
+		Map<String,Object> paramMap = new HashMap<String,Object>();
+		paramMap.put("endDate", end);
+		paramMap.put("beginDate", begin);
+		paramMap.put("deptId", deptId);
+		paramMap.put("deptTypeId", deptType);
+		paramMap.put("contractStatus", contractStatus);
+		paramMap.put("companyId", UserThreadLocal.get().get("companyId").toString());
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		list = mIDealComprehensiveAnalysisService.queryComprehensiveAnalysisPageDataList(paramMap);
+		
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("code", 0);
+		map.put("msg", "");
+		map.put("count", list.size());
+		map.put("data", list);
+		return map;
+	}
+}

@@ -1,0 +1,377 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerPersonalCentralServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年8月2日 下午3:04:38   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.webservice.mapper.CustCustomerMapper;
+import com.bashiju.webservice.mapper.CustomerPersonalCentralMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.out.usercentral.AdministrativeDivisionEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity;
+import com.bashiju.www.pojo.service.reservation.ReservationEntity;
+import com.bashiju.www.pojo.service.reservation.ReservationParam;
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+import com.bashiju.www.service.user.ICustomerConcernedHouseService;
+import com.bashiju.www.service.user.ICustomerHouseTransitScheduleService;
+import com.bashiju.www.service.user.ICustomerOwnerHouseService;
+import com.bashiju.www.service.user.ICustomerPersonalCentralService;
+import com.bashiju.www.tools.WebCommonTools;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心服务
+ * @ClassName:CustomerPersonalCentralServiceImpl
+ * @Description:个人中心服务
+ * @author:zuoyuntao
+ * @date:2018年8月2日 下午3:04:38
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerPersonalCentralServiceImpl implements ICustomerPersonalCentralService{
+	/**
+	 * 个人中心持久层接口
+	 */
+	@Autowired
+	private CustomerPersonalCentralMapper mCustomerPersonalCentralMapper;
+	/**
+	 * 获取手机验证码服务接口
+	 */
+	@Autowired
+	private RedisGetIdServiceApi mRedisGetIdServiceApi;
+	
+	@Autowired
+	private ICacheService CacheService;
+	/**
+	 * 过户进度服务接口
+	 */
+	@Autowired
+	private ICustomerHouseTransitScheduleService mICustomerHouseTransitScheduleService;
+	/**
+	 * 我的房子服务接口
+	 */
+	@Autowired
+	private ICustomerOwnerHouseService mICustomerOwnerHouseService;
+	/**
+	 * 我的关注服务接口
+	 */
+	@Autowired
+	private ICustomerConcernedHouseService mICustomerConcernedHouseService;
+	/**
+	 * 用户注册管理持久层接口
+	 */
+	@Autowired
+	private CustCustomerMapper mCustCustomerMapper;
+	/**
+	 * <p>Title: queryPersonalInfo</p>   
+	 * <p>Description: 查询客户个人详细信息</p>   
+	 * @param custId 客户ID
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#queryPersonalInfo(java.lang.String)
+	 */
+	@Override
+	public CustCustomerEntity queryPersonalInfo(String custId) {
+		
+		return mCustomerPersonalCentralMapper.queryPersonalInfo(custId);
+	}
+	/**
+	 * <p>Title: queryPersonalDetailInfo</p>   
+	 * <p>Description:查询个人详细信息 ---包含过户进度、房源详细、我的关注</p>   
+	 * @param custId 客户ID
+	 * @return CustCustomerEntity
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#queryPersonalDetailInfo(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public CustCustomerEntity queryPersonalDetailInfo(String custId) {
+		CustCustomerEntity custEntity = mCustomerPersonalCentralMapper.queryPersonalDetailInfo(custId);
+		List<CustomerHouseTransitScheduleEntity> transitList 
+				= queryTransitScheduleHouseDetail(custId);
+		List<CustomerConcernedHouseEntity> concernedList 
+				= (List<CustomerConcernedHouseEntity>) mICustomerConcernedHouseService
+						.queryAllConcernedHouseList(custId, "0", 0, 0);
+		long reservateCount = mCustomerPersonalCentralMapper.countMyReservateCount(custId);
+		custEntity.setConcernedHouseList(concernedList);
+		custEntity.setTransitScheduleList(transitList);
+		custEntity.setReservationCount(reservateCount);
+		return custEntity;
+	}
+	/**
+	 * <p>Title: queryTransitScheduleHouseDetail</p>   
+	 * <p>Description:查询房源过户进度信息 </p>   
+	 * @param custId 客户ID
+	 * @param houseId 房源ID
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#queryTransitScheduleHouseDetail(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public List<CustomerHouseTransitScheduleEntity> queryTransitScheduleHouseDetail(String custId) {
+		List<CustomerHouseTransitScheduleEntity> transitScheduleList
+				= mICustomerHouseTransitScheduleService.queryHouseTransitScheculeDataList(custId,0,0).getResult();
+		List<CustomerOwnerHouseEntity> houseList
+			= mICustomerOwnerHouseService.queryCustOwnerHouseList(custId, "0", 0, 0).getResult();
+		if(null != transitScheduleList && transitScheduleList.size() != 0) {
+			for(CustomerHouseTransitScheduleEntity entity : transitScheduleList) {
+				if(null != houseList && houseList.size() != 0) {
+					for(CustomerOwnerHouseEntity house : houseList) {
+						if(entity.getHouseSequence().equals(house.getHouseSequence())) {
+							entity.setHouseEntity(house);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return transitScheduleList;
+	}
+	/**
+	 * <p>Title: getMobileVerfyCode</p>   
+	 * <p>Description: 发送手机验证码</p>   
+	 * @param mobile   手机号码
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#sendMobileVerfyCode(java.lang.String)
+	 */
+	@Override
+	public void sendMobileVerfyCode(String mobile) {
+		String authCode = mRedisGetIdServiceApi.getMsgAuthCode(mobile);
+		if(null == authCode) {
+			throw new BusinessException("请勿频繁操作!");
+		}
+	}
+	/**
+	 * <p>Title: modifyCustomerPassword</p>   
+	 * <p>Description: 客户修改密码</p>   
+	 * @param custId 客户ID
+	 * @param oriPassword 原密码
+	 * @param finalPassword 最终密码   
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#modifyCustomerPassword(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void modifyCustomerPassword(String custId,String oriPassword, String finalPassword) {
+		CustCustomerEntity user = this.queryPersonalInfo(custId);
+		if(null == user) {
+			throw new BusinessException("该用户不存在");
+		}
+		if(!oriPassword.equals(user.getPassword())) {
+			throw new BusinessException("原密码不正确");
+		}
+		
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("custId", custId);
+		paraMap.put("updateTime", new Date());
+		paraMap.put("finalPassword", finalPassword);
+		mCustomerPersonalCentralMapper.modifyCustomerPassword(paraMap);
+	}
+	/**
+	 * <p>Title: queryMyselfAgentList</p>   
+	 * <p>Description: 查询我的经纪人信息</p>   
+	 * @param custId：客户ID
+	 * @param agentType 经纪人类型（0：咨询过的经纪人 1：带看过的经纪人）
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#queryMyselfAgentList(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public List<Agent> queryMyselfAgentList(String custId, String agentType) {
+		return mCustomerPersonalCentralMapper.queryMyselfAgentList(custId, agentType);
+	}
+	/**
+	 * <p>Title: queryMyselfAppointmentList</p>   
+	 * <p>Description:查询我的预约 </p>
+	 * @param custId
+	 * @return   
+	 * @see com.bashiju.www.service.user.ICustomerPersonalCentralService#queryMyselfAppointmentList(java.lang.String)
+	 */
+	@Override
+	public List<?> queryMyselfAppointmentList(String custId) {
+		
+		return mCustomerPersonalCentralMapper.queryMyselfAppointmentList(custId);
+	}
+	/**
+	 * 取消预约
+	 * @Title: concelMyselfAppointment
+	 * @author: zuoyuntao  
+	 * @Description:取消预约
+	 * @param id 预约ID
+	 * void 
+	 */
+	@Override
+	public void concelMyselfAppointment(String id) {
+		mCustomerPersonalCentralMapper.concelMyselfAppointment(id
+				,WebCommonTools.formatDate("yyyy-mm-dd HH:mm:ss"));
+	}
+	/**
+	 * 更新用户个人信息
+	 * @Title: saveCustCustomerInfo
+	 * @author: zuoyuntao  
+	 * @Description:更新用户个人信息 
+	 * @param custEntity      
+	 * void JSON 格式为：
+	 */
+	@Override
+	public void updateCustCustomerInfo(CustCustomerEntity custEntity) {
+		checkCustomerInfo(custEntity);
+		custEntity.setIsValid("1");
+		custEntity.setUpdateTime(new Date());
+		mCustCustomerMapper.updateCustCustomer(custEntity);
+	}
+	
+	/**
+	 * 个人信息修改数据校验
+	 * @Title: checkCustomerInfo
+	 * @author: zuoyuntao  
+	 * @Description:个人信息修改数据校验 
+	 * @param custEntity      
+	 * void 
+	 */
+	private void checkCustomerInfo(CustCustomerEntity custEntity) {
+		if(StringUtil.isEmpty(custEntity.getProviceCode())) {
+			throw new BusinessException("省级区域不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getCityCode())) {
+			throw new BusinessException("城市代码不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getAreaCode())) {
+			throw new BusinessException("区域代码不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getMobile())) {
+			throw new BusinessException("手机号码不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getAddress())) {
+			throw new BusinessException("详细地址不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getName())) {
+			throw new BusinessException("昵称不可为空");
+		}
+		if(StringUtil.isEmpty(custEntity.getSex())) {
+			throw new BusinessException("性别不可为空");
+		}
+		if(null == custEntity.getBirthday()) {
+			throw new BusinessException("生日不可为空");
+		}
+	}
+	
+	/**
+	 * 新增预约
+	 * @Title: saveReservationWatchHouse
+	 * @author: wangpeng  
+	 * @Description:新增预约看房
+	 * @param reservationParam 用输入参数
+	 */
+	@Override
+	public boolean saveReservationWatchHouse(ReservationParam reservationParam) {
+		if(StringUtils.isEmpty(reservationParam.toString()))
+			throw new BusinessException("预约内容输入有误");
+		//判断前台输入短信验证码是否为null
+		if(StringUtils.isEmpty(reservationParam.getMsg()))
+			throw new BusinessException("短信验证码不能为空");
+		//从redis获取短信验证码
+		String code =	CacheService.getCache(reservationParam.getMobile());
+		//验证短信验证码是否正确
+		if(reservationParam.getMsg().equals(code)) {
+			//判断是否已存在预约
+			boolean isExist = this.queryIsExistReservationWatchHouseByCustIdAndShhId(reservationParam.getCustId(), reservationParam.getShhId());
+				if(isExist) {
+					throw new BusinessException("正在预约中，无需重复预约");
+				}else {
+					//根据房源编号，查询房源维护人信息
+					Map<String, Object> maintainInfo = this.queryMaintainInfoByShhId(reservationParam.getShhId());
+					ReservationEntity reservationEntity = new ReservationEntity();
+					reservationEntity.setReservationDate(reservationParam.getReservationDate());
+					reservationEntity.setReservationTime(reservationParam.getReservationTime());
+					reservationEntity.setName(reservationParam.getName());
+					reservationEntity.setMobile(reservationParam.getMobile());
+					reservationEntity.setRemark(reservationParam.getRemark());
+					reservationEntity.setShhId(reservationParam.getShhId());
+					reservationEntity.setCustId(reservationParam.getCustId());
+					reservationEntity.setStatus("0");
+					reservationEntity.setHandelResult("");
+					reservationEntity.setHandelerId(String.valueOf(maintainInfo.get("maintainId")));
+					reservationEntity.setPermissionArea(String.valueOf(maintainInfo.get("mainterDeptId")));
+					reservationEntity.setCompanyName(String.valueOf(maintainInfo.get("companyName")));
+					reservationEntity.setOperator(String.valueOf(maintainInfo.get("maintainer")));
+					reservationEntity.setOperatorId(String.valueOf(maintainInfo.get("maintainId")));
+					reservationEntity.setMaintainId(String.valueOf(maintainInfo.get("maintainId")));
+					reservationEntity.setHandelTime(new Date());
+					reservationEntity.setIsvalid("1");
+					reservationEntity.setAddTime(new Date());
+					reservationEntity.setUpdateTime(new Date());
+					long result = mCustomerPersonalCentralMapper.saveReservationWatchHouse(reservationEntity);
+					if(result>0)
+						return true;
+					throw new BusinessException("预约失败");
+				}	
+		}else{
+			throw new BusinessException("输入的验证码有误");
+		}	
+			
+	}
+	
+	
+	/**
+	 * @Title: queryMaintainInfoByShhId
+	 * @author: wangpeng  
+	 * @Description:条件查询房源维护人
+	 * @param shhId 房源编号
+	 */
+	
+	@Override
+	public Map<String, Object> queryMaintainInfoByShhId(String shhId) {
+		if(StringUtils.isEmpty(shhId))
+			throw new BusinessException("房源编号不能为空");
+		Map<String,Object> maintainInfo = mCustomerPersonalCentralMapper.queryMaintainInfoByShhId(shhId);
+		return maintainInfo;
+	}
+	
+	/**
+	 * @Title: queryIsExistReservationWatchHouseByCustIdAndShhId
+	 * @author: wangpeng  
+	 * @Description:条件查询预约是否已存在
+	 * @param shhId 房源编号
+     * @param custId 客户id
+	 */
+	
+	@Override
+	public boolean queryIsExistReservationWatchHouseByCustIdAndShhId(String custId, String shhId) {
+	if(StringUtils.isEmpty(custId) && StringUtils.isEmpty(shhId))
+		throw new BusinessException("客户编号和房源编号不能为空");
+	long result =  mCustomerPersonalCentralMapper.queryIsExistReservationWatchHouseByCustIdAndShhId(custId, shhId);
+	if(result>0)
+		return true;
+	return false;
+	}
+	
+	/**
+	 * 根据上级编码查询行政区划
+	 * @Title: queryCountryAreaListByCityCode
+	 * @author: zuoyuntao  
+	 * @Description:根据上级编码查询行政区划
+	 * @param parentCode 上级行政区划编码
+	 * @param level 级次
+	 * @return      
+	 * List<AdministrativeDivisionEntity> JSON 格式为：
+	 */
+	@Override
+	public List<AdministrativeDivisionEntity> queryAreaListByPro(String parentCode,String level){
+		return mCustomerPersonalCentralMapper.queryAreaListByPro(parentCode,level);
+	}
+}

@@ -1,0 +1,51 @@
+/**
+ * Created by gzy on 2017/11/20 15:22.
+ */
+
+public class ClusterTest {
+/*
+
+    @SuppressWarnings("resource")
+	public String ss() {
+    	HashSet<HostAndPort> nodes=new HashSet<HostAndPort>();
+		  //这里的ip和后面的端口是，在linux系统的ip和配置的不同的redis的端口
+		  nodes.add(new HostAndPort("192.168.2.122",7000));
+		  nodes.add(new HostAndPort("192.168.2.122",7001));
+		  nodes.add(new HostAndPort("192.168.2.122",7002));
+		  nodes.add(new HostAndPort("192.168.2.122",7003));
+		  nodes.add(new HostAndPort("192.168.2.123",7004));
+		  nodes.add(new HostAndPort("192.168.2.123",7005));
+		  nodes.add(new HostAndPort("192.168.2.123",7006));
+		  nodes.add(new HostAndPort("192.168.2.123",7007));
+		  GenericObjectPoolConfig jedisPoolConfig=new GenericObjectPoolConfig();
+		  jedisPoolConfig.setMaxTotal(1000);
+		  JedisCluster jedisClient=new JedisCluster(nodes,2000,2000,3,"123456",jedisPoolConfig);
+		  
+    	long d=jedisClient.incr("houseBindCode");
+		if(d>990) {
+			jedisClient.set("houseBindCode", "0");
+		}
+		String res=String.format("%03d", d);
+		String random="";	
+			random=String.valueOf((int)(Math.random()*900)+100);
+		String code=random+res;
+		jedisClient.set(code,"123");
+		jedisClient.expire(code, 60);
+			  return code;
+    }
+    
+    
+  public static void main(String[] args) {
+	  long start =System.currentTimeMillis();
+		ExecutorService executorService=Executors.newCachedThreadPool();
+		final CountDownLatch latch=new CountDownLatch(2);
+		RedisGetIdImpl st=new RedisGetIdImpl();
+	   for(int i=0;i<300;i++) {
+		   	executorService.submit(new Task(latch, st));
+		   }
+	   	executorService.shutdown();
+	   	System.out.println("耗时=====>"+(System.currentTimeMillis()-start));  
+   	}
+  	*/
+   
+}

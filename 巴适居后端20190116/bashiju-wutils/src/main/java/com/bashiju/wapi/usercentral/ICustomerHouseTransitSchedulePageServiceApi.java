@@ -1,0 +1,54 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerHouseSchedulePageServiceApi.java   
+ * @Package com.bashiju.wapi.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 下午3:01:54   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.wapi.usercentral;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerTransactionScheduleEntity;
+
+/**
+ * 个人中心----房源过户进度
+ * @ClassName:ICustomerHouseSchedulePageServiceApi
+ * @Description:个人中心----房源过户进度
+ * @author:zuoyuntao
+ * @date:2018年8月15日 下午3:01:54
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerHouseTransitSchedulePageServiceApi {
+	/**
+	 * 读取过户进度数据
+	 * @Title: queryHouseTransitScheculeDataList
+	 * @author: zuoyuntao  
+	 * @Description:读取过户进度数据
+	 * @param key 登陆用户key
+	 * @param page  每页显示最少条数
+	 * @param limit 每页显示最大条数
+	 * @return      
+	 * List<CustomerHouseTransitScheduleEntity> 
+	 */
+	public WebPage<CustomerHouseTransitScheduleEntity> 
+			queryHouseTransitScheculeDataList(String key,int page,int limit);
+	
+	/**
+	 * 查询房源的过户流程信息
+	 * @Title: queryTransitScheculeDataList
+	 * @author: zuoyuntao  
+	 * @Description:查询房源的过户流程信息  
+	 * @param dealId 成交编号
+	 * @return      
+	 * List<CustomerTransactionScheduleEntity>
+	 */
+	public List<CustomerTransactionScheduleEntity> queryTransitScheculeDataList(String dealId);
+}

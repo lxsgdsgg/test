@@ -1,0 +1,8 @@
+com\bashiju\deal\mapper\DealMapper.class
+com\bashiju\deal\mapper\DealFinanceDividenInfoMapper.class
+com\bashiju\deal\mapper\DealTransitScheduleMapper.class
+com\bashiju\deal\mapper\ContractMapper.class
+com\bashiju\deal\mapper\DealCommissionRecordMapper.class
+com\bashiju\deal\mapper\ContractInfoMapper.class
+com\bashiju\deal\mapper\DealDividenInfoMapper.class
+com\bashiju\deal\mapper\DealActionLogQueryMapper.class

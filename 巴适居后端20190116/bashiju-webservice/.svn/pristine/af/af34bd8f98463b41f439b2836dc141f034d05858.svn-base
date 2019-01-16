@@ -1,0 +1,36 @@
+package com.bashiju.www.test.usercentraltest;
+
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.wapi.usercentral.ICustomerConcernedPageServiceApi;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerConcernedHouseEntity;
+import com.bashiju.www.service.user.ICustomerConcernedHouseService;
+import com.bashiju.www.test.BaseServiceTest;
+
+public class CustomerConcernedHouseTest extends BaseServiceTest{
+	@Autowired
+	private ICustomerConcernedHouseService mICustomerConcernedHouseService;
+	@Autowired
+	private ICustomerConcernedPageServiceApi mICustomerConcernedPageServiceApi;
+	
+//	@Test
+	public void cancelConcernedHouseTest() {
+		mICustomerConcernedHouseService.cancelConcernedHouse("1", "1", "1");
+		System.out.println("取消成功！");
+	}
+	
+	@Test
+	public void queryAllConcernedHouseListTest() {
+//		WebPage<CustomerConcernedHouseEntity> retList = mICustomerConcernedHouseService
+//				.queryAllConcernedHouseList("19",0,0,null);
+		WebPage<CustomerConcernedHouseEntity> retList 
+				= mICustomerConcernedPageServiceApi.queryMyConcernedListPage("de614075507f4ef9d16f36d331670db4", 1, 1, "1");
+//				.queryAllConcernedHouseList("19",0,0,null);
+		System.out.println(retList.toString());
+		assertNotNull(retList);
+	}
+}

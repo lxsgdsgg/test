@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.NavigationBarMapper">
+
+	<select id="queryNavigationBarData" resultType="map">
+		SELECT sng.id,sng.type,sng.`level`,sng.`name`,sng.parentId,sng.url,sng.operatorId,sng.operator,
+		sng.addTime,sng.updateTime,sng.isvalid FROM sys_navigationbar AS sng where sng.isvalid=1
+		<if test="name!=null and name!='' ">
+			and sng.name like concat('%',#{name},'%')
+		</if>
+		
+		<if test="type!=null and type!='' ">
+			and sng.type = #{type}
+		</if>
+		
+		<if test="level!=null and level!='' ">
+			and sng.level = #{level}
+		</if>
+	</select>
+	
+	<select id="queryNavigationBarById" resultType="map">
+		SELECT sng.id,sng.type,sng.`level`,sng.`name`,sng.parentId,sng.url,sn.name as parentName,sng.operatorId,sng.operator,
+		sng.addTime,sng.updateTime,sng.isvalid FROM sys_navigationbar AS sng 
+		left join sys_navigationbar sn on sng.parentId = sn.id
+		 where sng.isvalid=1 and sng.id=#{navigationBarId}
+	</select>
+	
+	<select id="queryNavigationBarTrees" resultType="map">
+		select id,type,level,name,parentId,url from sys_navigationBar where isValid=1
+	</select>
+	
+	<select id="queryAllNavigationNameByLevel" resultType="map">
+		SELECT sng.id, sng.`level`,sng.`name`,sng.isvalid
+		FROM sys_navigationbar AS sng where level =#{level}
+	</select>
+</mapper>

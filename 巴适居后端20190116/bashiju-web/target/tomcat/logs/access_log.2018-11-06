@@ -1,0 +1,2 @@
+0:0:0:0:0:0:0:1 - - [06/Nov/2018:09:19:00 +0800] "GET /web/queryFootPrintByCustId HTTP/1.1" 500 21425 http-bio-8088-exec-1 10324
+0:0:0:0:0:0:0:1 - - [06/Nov/2018:09:19:18 +0800] "GET /web/queryFootPrintByCustId HTTP/1.1" 500 21425 http-bio-8088-exec-3 7452

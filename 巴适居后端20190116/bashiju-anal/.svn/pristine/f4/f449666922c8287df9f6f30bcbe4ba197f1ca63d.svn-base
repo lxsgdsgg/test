@@ -1,0 +1,38 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealConversionRateAnalysisMapper.java   
+ * @Package com.bashiju.anal.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年11月24日 上午10:37:32   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.anal.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 决策分析--成交指数分析--持久层接口
+ * 
+ * @ClassName:DealConversionRateAnalysisMapper
+ * @Description:决策分析--成交指数分析--持久层接口
+ * @author:zuoyuntao
+ * @date:2018年11月24日 上午10:37:32
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ *             本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface DealIndexAnalysisMapper {
+	/**
+	 * 成交指数分析--报表统计
+	 * @Title: queryPageDataList
+	 * @author: zuoyuntao
+	 * @Description:成交指数分析--报表统计
+	 * @param paramMap 参数对象
+	 * @return List<Map<String,Object>>
+	 */
+	public List<Map<String, Object>> queryIndexAnalysisPageDataList(Map<String,Object> paramMap);
+
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.PrintTemplateMapper">
+	
+	<!-- 查询打印模板列表 -->
+	<select id="queryTemplateList" resultType="map">
+		SELECT id,companyId,templateName,typeId,typeName,permissionArea,operatorId,operator FROM hs_house_printtemplate WHERE isValid=1 AND companyId=#{companyId} order by id desc
+	</select>
+	<select id="queryTemplateSelectData" resultType="map">
+		SELECT id,templateName FROM hs_house_printtemplate WHERE isValid=1 AND companyId=#{companyId}
+	</select>	
+	<select id="queryDetailed" resultType="map">
+		SELECT t.id,t.templateName,t.typeId,t.typeName,t.permissionArea,t.operatorId,t.operator,ti.color,ti.css,ti.dataColumn,
+		ti.fontfamily,ti.fontsize,ti.fontstyle,ti.height,ti.linethrough,ti.strong,ti.tag,ti.text,ti.underline,ti.url,ti.width,ti.x,ti.y,ti.id AS itemId
+		FROM hs_house_printtemplate AS t
+		INNER JOIN hs_house_printtemplateitem AS ti ON t.id=ti.templateId AND ti.isValid=1 AND t.id=#{id}
+	</select>
+	
+	<select id="queryBackground" resultType="map">
+		SELECT id as name,url FROM hs_house_templatepicture WHERE isValid=1 AND companyId=#{companyId}
+	</select>
+	
+	<delete id="deleteTemplateItem">
+		DELETE FROM hs_house_printtemplateitem WHERE templateId=#{id}
+	</delete>
+	<select id="queryHousePrintInfo" resultType="map">
+		SELECT houseId,c.address,CONCAT(room,'室',hall,'厅',toilet,'卫') room,propertyType,CONCAT(buildSpace,'㎡') buildSpace,CONCAT(floorDes,' / 共',totalLayers,'层') floorDes,
+		(SELECT description FROM hs_house_description WHERE shhId=sh.id AND typeId=284 AND isValid=1 ORDER BY id DESC LIMIT 1) as decoration ,
+		buildDates,orientation,CONCAT(elevatorCount,'梯',householdCount,'户') elevatorCount,structure,CONCAT(FLOOR(sellingPrice/1000000),'万') AS sellingPrice,
+		CONCAT(FLOOR(sellingPrice/buildSpace/100),'元/m²') AS averagePrice,FLOOR(rentPrice/100) AS rentPrice,rentPriceTypeName,maintainer,
+		(SELECT mobile FROM sys_user WHERE id=sh.maintainId) AS maintainerPhone,
+		(SELECT path FROM hs_houseAttachment AS a WHERE a.shhId=sh.id AND pictureType=1 AND isvalid=1 AND attachType='01' ORDER BY id DESC LIMIT 1) AS houseTypePic,
+		(SELECT path FROM hs_houseAttachment AS a WHERE  a.shhId=sh.id AND pictureType=3 AND isvalid=1 AND attachType='01' ORDER BY id DESC LIMIT 1) AS indoorPic,
+		(SELECT path FROM hs_houseAttachment AS a WHERE  a.shhId=sh.id AND isCover=1 AND isvalid=1 AND attachType='01' LIMIT 1) AS coverPic
+		 FROM hs_housebaseinfo AS hb INNER JOIN hs_secondhandhouse AS sh ON hb.id=sh.houseId AND sh.id=#{id} INNER JOIN sys_community AS c ON c.id=hb.communityId 				
+	</select>
+</mapper>

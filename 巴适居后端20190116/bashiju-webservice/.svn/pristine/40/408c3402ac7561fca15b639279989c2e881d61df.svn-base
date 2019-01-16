@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.bashiju.webservice.mapper.CustomerEntrustmentsMapper">
+	 <resultMap id="houseEntrust" type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseEntrustmentEntity">
+	   <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="transactionType" property="transactionType" />
+	    <result column="leaseType" property="leaseType" />
+	    <result column="joinRentStyle" property="joinRentStyle" />
+	    <result column="cityCode" property="cityCode" />
+	    <result column="areaCode" property="areaCode" />
+	    <result column="areaName" property="areaName" />
+	    <result column="regionId" property="regionId" />
+	    <result column="regionName" property="regionName" />
+	    <result column="communityId" property="communityId" />
+	    <result column="communityName" property="communityName" />
+	    <result column="buildingsId" property="buildingsId" />
+	    <result column="payTypeId" property="payTypeId" />
+	    <result column="payType" property="payType" />
+	    <result column="buildingsName" property="buildingsName" />
+	    <result column="bulidingUnitId" property="bulidingUnitId" />
+	    <result column="buildingsUnitName" property="buildingsUnitName" />
+	    <result column="buildingHouseId" property="buildingHouseId" />
+	    <result column="buildingHouseName" property="buildingHouseName" />
+	    <result column="room" property="room" />
+	    <result column="hall" property="hall" />
+	    <result column="toilet" property="toilet" />
+	    <result column="buildSpace" property="buildSpace" />
+	    <result column="floorDesc" property="floorDesc" />
+	    <result column="decorationId" property="decorationId" />
+	    <result column="decoration" property="decoration" />
+	    <result column="orientationId" property="orientationId" />
+	    <result column="orientation" property="orientation" />
+	    <result column="sellingPrice" property="sellingPrice" />
+	    <result column="rentPrice" property="rentPrice" />
+	    <result column="mobile" property="mobile" />
+	    <result column="clienteleName" property="clienteleName" />
+	    <result column="clienteleSex" property="clienteleSex" />
+	    <result column="addTime" property="addTime" />
+	    <result column="title" property="title" />
+	    <result column="descs" property="descs" />
+	    <result column="handleFlag" property="handleFlag" />
+	    <result column="transactionTypeName" property="transactionTypeName" />
+	    <result column="status" property="status" />
+	    <result column="statusName" property="statusName" />
+	    <result column="agentMobile" property="agentMobile" />
+	    <result column="agentName" property="agentName" />
+	    <result column="agentLabel" property="agentLabel" />
+	    <result column="companyName" property="companyName" />
+	    <result column="shhId" property="shhId" />
+	  </resultMap>
+	  
+	 <resultMap id="demandEntrust" type="com.bashiju.www.pojo.service.out.usercentral.CustomerDemandEntrustmentEntity">
+	    <id column="id" property="id" />
+	    <result column="custId" property="custId" />
+	    <result column="transactionType" property="transactionType" />
+	    <result column="leaseType" property="leaseType" />
+	    <result column="joinRentStyle" property="joinRentStyle" />
+	    <result column="cityCode" property="cityCode" />
+	    <result column="areaCode" property="areaCode" />
+	    <result column="areaName" property="areaName" />
+	    <result column="regionId" property="regionId" />
+	    <result column="regionName" property="regionName" />
+	    <result column="communityId" property="communityId" />
+	    <result column="communityName" property="communityName" />
+	    <result column="room" property="room" />
+	    <result column="hall" property="hall" />
+	    <result column="toilet" property="toilet" />
+	    <result column="buildSpace" property="buildSpace" />
+	    <result column="floorDesc" property="floorDesc" />
+	    <result column="minBuyPrice" property="minBuyPrice" />
+	    <result column="maxBuyPrice" property="maxBuyPrice" />
+	    <result column="minRentPrice" property="minRentPrice" />
+	    <result column="MaxRentPrice" property="MaxRentPrice" />
+	    <result column="mobile" property="mobile" />
+	    <result column="clienteleName" property="clienteleName" />
+	    <result column="clienteleSex" property="clienteleSex" />
+	    <result column="addTime" property="addTime" />
+	    <result column="descs" property="descs" />
+	    <result column="handleFlag" property="handleFlag" />
+	  </resultMap>
+	  
+	 <resultMap id="community" type="com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralCommunityEntity">
+	    <id column="id" property="id" />
+	    <result column="code" property="code" />
+	    <result column="name" property="name" />
+	    <result column="parentCode" property="parentCode" />
+	    <result column="longitude" property="longitude" />
+	    <result column="latitude" property="latitude" />
+	  </resultMap>
+	  
+	 <resultMap id="building" type="com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingEntity">
+	    <id column="id" property="id" />
+	    <result column="buildingName" property="buildingName" />
+	    <result column="communityId" property="communityId" />
+	    <result column="areaCode" property="areaCode" />
+	    <result column="areaName" property="areaName" />
+	    <result column="areaName" property="areaName" />
+	  </resultMap>
+	  
+	 <resultMap id="unitHouse" type="com.bashiju.www.pojo.service.out.usercentral.CustomerUserCentralBuildingHouseEntity">
+	    <id column="id" property="id" />
+	    <result column="name" property="name" />
+	    <result column="buildingUnitId" property="buildingUnitId" />
+	    <result column="buildingId" property="buildingId" />
+	    <result column="floor" property="floor" />
+	    <result column="parentId" property="parentId" />
+	  </resultMap>
+	
+	<!-- 查询房源委托数据信息 -->
+	<select id="queryHouseEntrustData" resultMap="houseEntrust">
+		select a.id,(case when a.transactionType=1 then '房源出售' else '房源出租' end) as transactionTypeName,
+		a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,a.transactionType,
+		a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.payTypeId,a.payType,
+		a.buildingsId,a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,
+		a.buildingHouseId,a.buildingHouseName,a.room,a.hall,a.toilet,a.kitchen,a.buildSpace,
+		a.floorDesc,FLOOR(a.sellingPrice/100000) as sellingPrice
+		,FLOOR(a.rentPrice/100) as rentPrice,a.custId,a.mobile,a.clienteleName,a.clienteleSex,
+		a.addTime,a.descs,a.handleFlag,if(a.isvalid=1,(case when b.status = 0 then '受理中' 
+		when b.`status` = 2 then '已失效' when b.status = 1 
+		then ( case when f.id is null then if(a.transactionType=1,'出售中','招租中') else if(a.transactionType=1,'已出售','已出租') end) end),
+		'已取消') as statusName,f.id as shhId,
+		if(a.isvalid=1,(case when b.status = 0 then '0' 
+		when b.status = 1 	then ( case when f.id is null then if(a.transactionType=1,'1','2') else if(a.transactionType=1
+		,'3','4') end) end),'5') as status,CONCAT(ff.virtualNum,'-',ff.virtualExtensionNum) as agentMobile,c.realName as agentName,
+		e.name as agentLabel,d.name as companyName
+		from cust_houseEntrust a 
+		left join sys_agentacceptance b on a.id = b.sourceId
+		left join sys_user c on b.userId = c.id 
+		inner join sys_agent_details detail on c.id = detail.userId
+		left join sys_company d on c.companyId = d.id
+		left join sys_post e on c.postId = e.id
+		LEFT JOIN sys_phonesecuritymanage ff on detail.id = ff.agentId
+		left join (select id from hs_secondhandhouse where isValid = 1) f on b.sourceId = f.id
+		where  b.entrustType=0 and b.status != 2 and custId = #{custId}
+	</select>
+	
+	<!-- 查询需求委托数据信息 -->
+	<select id="queryDemandEntrustData" resultMap="demandEntrust">
+		SELECT a.id,a.transactionType,a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,
+		a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.room,a.hall,
+		a.toilet,a.buildSpace,a.floorDesc,a.minBuyPrice,a.maxBuyPrice,a.minRentPrice
+		,a.MaxRentPrice,a.custId,a.mobile,a.clienteleName,a.clienteleSex,a.addTime
+		,a.descs,a.handleFlag from cust_demandEntrust a where custId = #{custId}
+	</select>
+	
+	<select id="queryEntrustDataByCustIdAndEntrustId" resultMap="houseEntrust">
+		select a.id,
+		(case when a.transactionType=1 then '房源出售' else '房源出租' end) as transactionTypeName,
+		a.leaseType,a.joinRentStyle,a.cityCode,a.areaCode,a.transactionType,
+		a.areaName,a.regionId,a.regionName,a.communityId,a.communityName,a.payTypeId,a.payType,
+		a.buildingsId,a.buildingsName,a.bulidingUnitId,a.buildingsUnitName,
+		a.buildingHouseId,a.buildingHouseName,a.room,a.hall,a.toilet,a.kitchen,a.buildSpace,
+		a.floorDesc,FLOOR(a.sellingPrice/100000) as sellingPrice
+		,FLOOR(a.rentPrice/100) as rentPrice,a.custId,a.mobile,a.clienteleName,a.clienteleSex,
+		a.addTime,a.descs,a.handleFlag,if(a.isvalid=1,(case when b.status = 0 then '受理中' 
+		when b.`status` = 2 then '已失效' when b.status = 1 
+		then ( case when f.id is null then if(a.transactionType=1,'出售中','招租中') else if(a.transactionType=1
+		,'已出售','已出租') end) end),'已取消') as statusName,
+		if(a.isvalid=1,(case when b.status = 0 then '0' 
+		when b.status = 1 	then ( case when f.id is null then if(a.transactionType=1,'1','2') else if(a.transactionType=1
+		,'3','4') end) end),'5') as status,CONCAT(ff.virtualNum,'-',ff.virtualExtensionNum) as agentMobile,
+		c.realName as agentName,e.name as agentLabel,d.name as companyName
+		from cust_houseEntrust a left join sys_agentacceptance b on a.id = b.sourceId
+		left join sys_user c on b.userId = c.id left join sys_company d on c.companyId = d.id
+		inner join sys_agent_details detail on c.id = detail.userId
+		left join sys_post e on c.postId = e.id
+		LEFT JOIN sys_phonesecuritymanage ff on detail.id = ff.agentId
+		left join (select id from hs_secondhandhouse where statusId in(2,3,4,5) and isValid = 1) f on b.sourceId = f.id
+		where b.entrustType=0 and b.status != 2
+		and a.custId=${custId} and a.id=${entrustId} and b.sourceId=${entrustId}
+	</select>
+	<!-- 重新委托 -->
+	<update id="updateCustomerEntrust">
+		update cust_houseEntrust set sellingPrice=${sellingPrice},rentPrice=${rentPrice},custId=${custId},
+		mobile=#{mobile},descs=#{descs},isValid = 1 where id = ${id}
+	</update>
+	
+	<!-- 根据客户需求匹配房源信息 -->
+	<select id="queryHouseSourceDataByMatchingCondition" resultMap="houseEntrust">
+	
+	</select>
+	
+	<!-- 保存客户需求信息 -->
+	<insert id="saveDemandEntrustmentData" useGeneratedKeys="true" keyProperty="id" parameterType="java.util.Map">
+	 	insert into cust_demandEntrust
+ 		<foreach collection="saveMap.entrySet()" index="key" open="(" separator=","  close=")">
+			${key}
+		</foreach> 
+		values			
+		<foreach collection="saveMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			#{item} 					
+		</foreach>
+	</insert>
+	
+	<!-- 保存房源需求信息 -->
+	<insert id="saveHouseEntrustmentData" useGeneratedKeys="true" keyProperty="id" parameterType="java.util.Map" >
+		insert into cust_houseEntrust
+ 		<foreach collection="saveMap.entrySet()" index="key" open="(" separator=","  close=")">
+				${key}
+		</foreach> 
+		values			
+		<foreach collection="saveMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+				#{item} 					
+		</foreach>
+	</insert>
+	<!-- 保存受理数据信息 -->
+	<insert id="saveAgentAcceptDataList" useGeneratedKeys="true" keyProperty="id" parameterType="java.util.Map">
+		insert into sys_agentAcceptance
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+				${key}
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+				#{item} 					
+		</foreach>
+	</insert>
+	<update id="concelEntrust">
+		update cust_houseEntrust set isValid = 0 where id = #{entrustId};
+		update sys_agentacceptance set isValid = 0 where sourceId = #{entrustId}
+	</update>
+	
+	<select id="queryCommunityList" resultMap="community" >
+		<![CDATA[select code,name,parentCode,longitude,latitude from sys_area where parentCode = #{rgCode} and isvalid = 1 
+		union all select CONCAT('region',id) as code,name as name,areacode as parentCode,longitude,latitude from sys_region 
+		where areacode in(select code from sys_area where parentCode = #{rgCode} and isvalid = 1)
+		union all select id as code,name,CONCAT('region',regionId) as parentCode,longitude,latitude from sys_community where isValid =1 
+		and regionId in(select id from sys_region where areacode in(select code from sys_area where parentCode = #{rgCode}
+		and isvalid = 1))]]>
+	</select>
+	
+	<select id="queryBuildingsData" resultMap="building">
+		select a.id,CONCAT(a.`name`,a.buildUnitAlias) as buildingName,a.communityId,
+		a.areaCode,a.areaName,a.isValid from sys_buildings AS a where a.isValid = 1 and a.communityId = #{communityId}
+	</select>
+	
+	<select id="queryBuildingUnityAndHouse" resultMap="unitHouse">
+		select id,CONCAT(name,unitAlias) as name,id as buildingUnitId, buildingId,'' as floor,'' as parentId 
+		from sys_bulidingunit where isValid = 1 and buildingId = #{buildingId} 
+		union all
+		select id,houseNumber as name,buildingUnitId,buildingId,floor,buildingUnitId as parentId 
+		from sys_buildinghouse where isValid = 1 and buildingId = #{buildingId}
+
+	</select>
+	
+	<update id="cancelOurHouseById">
+		<!-- 将房源置为失效（6：未知，参照HouseStatusEnum.java）状态 -->
+		update hs_secondhandhouse set status = 6 where id = ${houseId}
+	</update>
+</mapper>

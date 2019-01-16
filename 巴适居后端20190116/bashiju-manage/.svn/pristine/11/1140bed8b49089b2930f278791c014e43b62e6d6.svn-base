@@ -1,0 +1,789 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+    
+   <%response.setHeader("Access-Control-Allow-Origin", "*"); %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>小区管理</title>
+
+<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/common/css/animate.css" media="all">
+<style>
+.lableBlock{
+    color: #666;
+    text-align: left; 
+    float: right;
+    display: block;
+    padding: 9px 15px;
+    min-width: 100px;
+    font-weight: 500;
+    line-height: 20px;
+}
+.layui-form-span {
+    float: left;
+    display: block;
+    padding: 9px 5px;
+    min-width: 80px;
+    width:auto;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: right;
+}
+
+.layui-input, .layui-textarea {
+    width:70px !important;
+    height: 30px !important;
+}
+
+.layui-select-title .layui-input{
+width:100% !important;
+}
+#imageUl {
+list-style:none;margin:0px;
+} 
+#imageUl li {
+float:left;
+} 
+.communityImage{
+	height:200px;
+	margin: 5px;
+	z-index: 100;
+	 cursor: pointer;
+}
+.delImage{
+	float: right;
+    position: relative;
+    top: 10px;
+    right: 30px;
+    z-index: 10000;
+    border: 1px solid #ccc;
+    color: wheat;
+    padding: 2px 4px;
+    cursor: pointer;
+    background-color: #FF5722;
+}
+.maxImg{
+	text-align: center;
+	padding:2px;
+}
+</style>
+</head>
+<body>
+	<div class="">  
+		<div>
+			<span class="layui-breadcrumb" lay-separator="-">
+			  <a href="http://manage.bashiju.com/manage/community/list">小区管理</a>
+			  <a href="#" id="commnuityName"></a>
+			</span>
+		</div>
+		<div class="layui-row" style="margin-top:20px;">
+			<div class="layui-tab" lay-filter="demo">
+			  <ul class="layui-tab-title">
+			    <li class="layui-this" lay-id="base">基本信息</li>
+			    <li lay-id="build">座栋信息</li>
+			    <li lay-id="image">图片</li>
+			    <li lay-id="map">地图</li>
+			  </ul>
+			  <div class="layui-tab-content">
+			    <div id="detailInfo" class="layui-tab-item layui-show">
+			    	<div class="layui-col-md9">
+				    	<div class="layui-row">
+				    		<div class="layui-col-md5">
+				    			<div class="layui-input-inline">
+				    			<span class="layui-form-span">小区名称：</span>
+				    			<span data-name="name" class="lableBlock"></span>
+				    			</div>
+				    		</div>
+				    		<div class="layui-col-md5">
+				    			<div class="layui-input-inline">
+				    			<span class="layui-form-span">所属片区：</span>
+				    			<span data-name="reginName" class="lableBlock"></span>
+				    			</div>
+				    		</div>
+				    	</div>
+				    	<div class="layui-row">
+				    		<div class="layui-col-md10">
+				    			<div class="layui-input-inline">
+				    			<span class="layui-form-span">地址：</span>
+				    			<span data-name="address" class="lableBlock"></span>
+				    			</div>
+				    		</div>
+				    	</div>
+			    	</div>
+			    	<div class="layui-col-md3">
+			    		<div class="layui-input-inline">
+				    		<button onClick="goMap()" class="layui-btn">调整坐标</button>
+				    		<button onClick="showAdd()" class="layui-btn">修改详细</button>	
+				    	</div>
+			    	</div>
+			     <hr>
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">房屋总套数:</span>				    
+					     <span class="lableBlock"><span data-name="houseCount">10000</span>套</span>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">容积率:</span>				    
+					     <span data-name="capacityRatio" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">燃气:</span>				    
+					     <span data-name="gas" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位数量:</span>				    
+					     <span  class="lableBlock"><span data-name="groundParkingCount">500</span>个</span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位数量:</span>				    
+					     <span class="lableBlock"><span data-name="underGroundParkingCount">1000</span>个</span>
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">楼栋总数:</span>				    
+					     <span  class="lableBlock"><span data-name="buildingCount">100</span>栋</span>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">绿化率:</span>				    
+					     <span data-name="greenRate" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">电梯服务:</span>				    
+					     <span data-name="elevatorService" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位租赁:</span>				    
+					     <span  class="lableBlock"><span data-name="groundParkingLeasePrice">1000</span>元/月</span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位租赁:</span>				    
+					     <span  class="lableBlock"><span data-name="underGroundParkingLeasePrice">1000</span>元/月</span>
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业类型:</span>				    
+					     <span data-name="estateType" class="lableBlock"></span>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">建筑类型:</span>				    
+					     <span data-name="residence" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供水:</span>				    
+					     <span data-name="waterSupply" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位销售:</span>				    
+					     <span  class="lableBlock"><span data-name="groundParkingSalePrice">1000</span>万</span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位销售:</span>				    
+					     <span  class="lableBlock"><span data-name="underGroundParkingSalePrice">1000</span>万</span>
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">建造年代:</span>				    
+					     <span  class="lableBlock"><span data-name="buildYear">97</span>年</span>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">占地面积:</span>				    
+					     <span data-name="floorArea" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供暖:</span>				    
+					     <span data-name="heatSupply" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业费:</span>				    
+					     <span data-name="propertyFees" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">均价:</span>				    
+					     <span  class="lableBlock"><span data-name="salePrice">8000</span>元</span>
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">产权:</span>				    
+					     <span  class="lableBlock"><span data-name="propertyLimit">70</span>年</span>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">建筑面积:</span>				    
+					     <span data-name="buildingArea" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供电:</span>				    
+					     <span data-name="powerSupply" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业电话:</span>				    
+					     <span data-name="propertyPhone" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业名称:</span>				    
+					     <span data-name="propertyName" class="lableBlock"></span>
+					  </div>
+			     </div>
+			     <hr>
+			     <div class="layui-col-md10">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">街道:</span>				    
+					     <span data-name="street" class="lableBlock"></span>
+					  </div>
+					  <div class="layui-input-inline">
+					  	<span class="layui-form-span">开发商:</span>
+					  	<span data-name="developers" class="lableBlock"></span>
+					  </div>
+					  
+					  <div style="clear:both;"></div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">物业地址:</span>				    
+					     <span data-name="propertyAddress" class="lableBlock"></span>
+					  </div>
+				 </div>	  
+			     <hr>
+			     <div class="layui-col-md10">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">小区简介:</span>				    
+					     <span data-name="communityProfile" class="lableBlock"></span>
+					  </div>
+				 </div>	
+			     
+			    </div>
+			    <div class="layui-tab-item">
+					<div id="builditem"></div>
+				</div>
+			    <div class="layui-tab-item">
+					<div class="yayun-div"   >
+						<button type="button" class="layui-btn" id="imageFile">上传图片</button>
+						 <div>
+						 	<ul id="imageUl">
+						 		
+						 	</ul>
+						 </div>
+					</div>
+				</div>
+			    <div class="layui-tab-item">
+					<div id="container1" style="height:600px;width:100%;"></div>
+				</div>
+			  </div>
+			</div>
+		    
+		</div>
+		
+	</div>
+	 	
+<form class="layui-form layui-hide" id="updateCommunity" style="margin:30px;">
+<input type="hidden" name="id">
+ <div class="layui-row">
+ 	 <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">房屋总套数:</span>				    
+					     <input type="text" name="houseCount" lay-verify="number" placeholder="套" class="layui-input">
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">容积率:</span>				    
+					     <input type="text" name="capacityRatio" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">燃气:</span>				    
+					     <input type="text" name="gas" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位数量:</span>				    
+					      <input type="text" name="groundParkingCount" placeholder="个" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位数量:</span>				    
+					     <input type="text" name="underGroundParkingCount" placeholder="个" lay-verify="number" class="layui-input">
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">楼栋总数:</span>				    
+					     <input type="text" name="buildingCount" placeholder="栋" lay-verify="number" class="layui-input">
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">绿化率:</span>				    
+					     <input type="text" name="greenRate" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">电梯服务:</span>				    
+					     <input type="text" name="elevatorService" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位租赁:</span>				    
+					     <input type="text" name="groundParkingLeasePrice" placeholder="元/月" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位租赁:</span>				    
+					     <input type="text" name="underGroundParkingLeasePrice" placeholder="元/月" lay-verify="number" class="layui-input">
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业类型:</span>				    
+					     <input type="text" name="estateType" lay-verify="text" class="layui-input">
+					  </div>
+					 <div class="layui-input-inline">
+					 <div class="layui-col-md6">
+					    <span class="layui-form-span">建筑类型:</span>
+					    </div>		
+					    <div class="layui-col-md5">		    
+					     <select name="residence" id="residence" style="width:70px;">
+				          <option value=""></option>
+				          <option value="低层住宅">低层住宅</option>
+				          <option value="多层住宅">多层住宅</option>
+				          <option value="中高层住宅">中高层住宅</option>
+				          <option value="高层住宅">高层住宅</option>
+				          <option value="其他形式住宅">其他形式住宅</option>
+				        </select>
+				        </div>
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供水:</span>				    
+					     <input type="text" name="waterSupply" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地上车位销售:</span>				    
+					      <input type="text" name="groundParkingSalePrice" placeholder="万" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">地下车位销售:</span>				    
+					     <input type="text" name="underGroundParkingSalePrice" placeholder="万" lay-verify="number" class="layui-input">
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					    <span class="layui-form-span">建造年代:</span>				    
+					     <input type="text" name="buildYear" placeholder="年" lay-verify="number" class="layui-input">
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">占地面积:</span>				    
+					     <input type="text" name="floorArea"  lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供暖:</span>				    
+					     <input type="text" name="heatSupply" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业费:</span>				    
+					     <input type="text" name="propertyFees"  placeholder="元/m2" lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">均价:</span>				    
+					     <input type="text" name="salePrice"  placeholder="元" lay-verify="number" class="layui-input">
+					  </div>
+			     </div>
+			     
+			     <div class="layui-col-md2">
+			     	  <div class="layui-input-inline">
+					     <div class="layui-col-md6">
+					    <span class="layui-form-span">产权年限:</span>
+					    </div>		
+					    <div class="layui-col-md5">		    
+					     <select name="propertyLimit" id="propertyLimit" lay-verify="number">
+				          <option value="0"></option>
+				          <option value="70">70年</option>
+				          <option value="50">50年</option>
+				          <option value="40">40年</option>
+				        </select>
+				        </div>
+					  </div>
+					 <div class="layui-input-inline">
+					    <span class="layui-form-span">建筑面积:</span>				    
+					     <input type="text" name="buildingArea"  lay-verify="number" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">供电:</span>				    
+					     <input type="text" name="powerSupply" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业电话:</span>				    
+					     <input type="text" name="propertyPhone" lay-verify="text" class="layui-input">
+					  </div>
+					  <div class="layui-input-inline">
+					    <span class="layui-form-span">物业名称:</span>				    
+					     <input type="text" name="propertyName" lay-verify="text" class="layui-input">
+					  </div>
+			     </div>
+ </div>
+  <div class="layui-row">
+  <div class="layui-col-md5">
+			     	  <div class="layui-input-inline">			     	  
+					    <span class="layui-form-span">街道:</span>	
+					    <input type="text" name="street" lay-verify="address" style="width:300px !important;" class="layui-input">			    					     
+					  </div>
+</div>
+	<div class="layui-col-md6">
+		<div class="layui-input-inline">
+			<span class="layui-form-span">开发商:</span>
+			<input type="text" name="developers" lay-verify="address" style="width:300px !important;" class="layui-input">
+		</div>
+	</div>			 
+  </div>
+  <div class="layui-row">
+  	<div class="layui-col-md12">
+		<div class="layui-input-inline">
+			<span class="layui-form-span">物业地址:</span>
+			<input type="text" name="propertyAddress" lay-verify="address" style="width:800px !important;" class="layui-input">
+		</div>
+	</div>
+  </div>
+  <div class="layui-row">
+  	<div class="layui-input-inline">
+			<span class="layui-form-span">小区简介:</span>				    
+			<input type="textarea" name="communityProfile" lay-verify="textarea" style="width:800px !important;height:100px !important;" class="layui-textarea">
+	</div>
+  </div>
+  <div class="layui-row" style="margin-top:30px;">
+	<div class="layui-input-inline">
+	<span class="layui-form-span"></span>
+    <span class="layui-btn" lay-submit lay-filter="communityAdd">保存</span>
+	</div>
+  </div>
+</form>					  
+					  
+ 
+ <%@include file="/common/common.jsp" %>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=Tg1lQwb6XKbE8wgAflqsNimxI3myaCzD"></script>
+<script>
+var layerId;
+var community=JSON.parse('${community}');
+
+$("#commnuityName").html(community.name);
+//alert('${community}');
+$("#detailInfo span[data-name]").each(function (index, domEle) { 
+	$(this).html("");
+  if($(this).attr("data-name")=="reginName"){
+	  $(this).html(community.areaName + "-" + community.reginName);
+  }else{
+	  var attr=$(this).attr("data-name");
+	  if(community[attr]!=null){		  
+		  $(this).html(community[attr]);
+	  }
+  }
+ 
+});
+function showAdd(){
+	layerId=layer.open({
+		  title:'修改小区详细',
+		  type:1,
+		  area:'1200px',
+		  content: $('#updateCommunity')
+		}); 
+	$('#updateCommunity').removeClass("layui-hide");
+	
+	 form.on('submit(communityAdd)', function(data){
+		 $.ajax({
+	            type: "POST",//方法类型
+	            dataType: "json",//预期服务器返回的数据类型
+	            //contentType: 'application/json',
+	            data:{dataJson: JSON.stringify(data.field)},
+	            url: "<%=request.getContextPath()%>/manage/community/updateDetail" ,	                
+	            //data:data,
+	            success: function (result) {
+	            	if(result.success){
+						//table.reload("communityTable");
+	            		layer.close(layerId);
+	            		window.location.reload();
+	            	}else{
+	            		layer.alert(result.msg);
+	            	}
+	            },
+	            error : function() {	            	
+	                layer.alert("异常！");
+	            }
+	        });
+		  
+		  
+		  return false;
+	 });
+	 //设置表单内容值
+	 $("#updateCommunity input").each(function (index, domEle) { 
+		 	$(this).val("");
+			if($(this).attr("lay-verify")!=null&&"number"==$(this).attr("lay-verify")){
+				$(this).val("0");
+		 	}			
+			var attr=$(this).attr("name");
+			  if(community[attr]!=null){		  
+				  $(this).val(community[attr]);
+			  }
+		 
+		});
+	 $("#updateCommunity select").each(function (index, domEle) { 
+			$(this).val("");
+			if($(this).attr("lay-verify")!=null&&"number"==$(this).attr("lay-verify")){
+				$(this).val("0");
+		 	}
+			var attr=$(this).attr("name");
+			  if(community[attr]!=null){		  
+				  $(this).val(community[attr]);
+				  form.render();
+			  }
+		 
+		});
+	 
+	 $("#updateCommunity textarea").each(function (index, domEle) { 
+			$(this).val("");
+			var attr=$(this).attr("name");
+			  if(community[attr]!=null){		  
+				  $(this).val(community[attr]);
+			  }
+		 
+		});
+}
+
+ var layer;
+ var form;
+
+ layui.use(['element','layer','form','upload'], function(){
+  element = layui.element;
+  layer=layui.layer;
+  form=layui.form;
+  var upload = layui.upload;
+  
+  var uploadInst = upload.render({
+	    elem: '#imageFile' //绑定元素
+	    ,url: '<%=request.getContextPath()%>/manage/community/uploadImage' //上传接口
+	    ,data:{communityId:community.id}
+  		,accept:'images'
+  		,acceptMime:'image/*'
+  		,size:1000
+	    ,done: function(res){
+	    	layer.msg("图片上传成功");
+	    	showImageList(community.id);
+	    }
+	    ,error: function(){
+	      //请求异常回调
+	    }
+	  });
+
+  form.verify({
+		text:function(value, item){
+			if(value.length>20){
+				return "长度不能大于20";
+			}
+		}
+	  ,address:function(value, item){
+			if(value.length>100){
+				return "长度不能大于100";
+			}
+		}
+	  ,textarea:function(value, item){
+			if(value.length>500){
+				return "长度不能大于500";
+			}
+		}
+	});
+  var tid=location.hash.replace(/^#tab=/, '');
+  if(tid==null||tid==""){
+	  tid="base";
+  }
+  element.tabChange('demo', tid);
+  if(tid=="build"){
+	  $("#builditem").load("<%=request.getContextPath()%>/manage/community/buildings");
+  }
+  if(tid=="map"){
+	  showMap(community.longitude,community.latitude,community.areaName);
+  }
+  if(tid=="image"){
+	  showImageList(community.id);
+  }
+  
+  
+  element.on('tab(demo)', function(data){
+	  location.hash="tab="+this.getAttribute('lay-id');	  
+	  if($(this).attr("lay-id")=="build"){
+		  $("#builditem").load("<%=request.getContextPath()%>/manage/community/buildings");
+	  }
+	  if($(this).attr("lay-id")=="map"){
+		//地图显示配置
+		showMap("container1",community.longitude,community.latitude,community.areaName);
+	  }
+	  if($(this).attr("lay-id")=="image"){
+		  showImageList(community.id);
+	  }
+	}); 
+  
+
+}); 
+  
+ function goMap(){
+	 setMap(community.longitude,community.latitude,community.areaName);
+ }
+ function showImageList(cid){
+	  $("#imageUl").empty();
+	  $.ajax({
+	         type: "POST",//方法类型
+	         dataType: "json",//预期服务器返回的数据类型
+	         //contentType: 'application/json',
+	         data: {communityId:cid},
+	         url: "<%=request.getContextPath()%>/manage/community/showImageList" ,//url	                
+	         //data:data,
+	         success: function (result) {
+	         	if(result.success){
+	         		if(result.data!=null&&result.data.length>0){
+	         			for(var i=0;i<result.data.length;i++){
+	         				var item=result.data[i];
+	         				$("#imageUl").append('<li><image onClick="showMaxImage(this.src)" class="communityImage" src="<%=request.getContextPath()%>/manage/community/showImage?imageCode='+item.code+'"><i onClick="delImage(\''+item.code+'\')" class="delImage">x</i></li>')
+	         			}
+	         		}else{
+	         			//$("#imageUl").append('<li>无数据</li>');
+	         		}
+	         		
+	         	}else{
+	         		layer.alert(result.msg);
+	         	}
+	         },
+	         error : function() {	            	
+	             layer.alert("异常！");
+	         }
+	     });
+ }
+ function showMaxImage(src){
+	 var img='<div class="maxImg"><image src="'+src+'"></div>';
+	 layer.open({
+		  title:'小区图片',
+		  type:1,
+		  area:'1024px',
+		  content: img
+		});
+ }
+ function delImage(code){
+	 layer.confirm('您确定要删除图片吗?', {icon: 3, title:'提示'}, function(index){
+		  $.ajax({
+	         type: "POST",//方法类型
+	         dataType: "json",//预期服务器返回的数据类型
+	         //contentType: 'application/json',
+	         data: {code:code},
+	         url: "<%=request.getContextPath()%>/manage/community/deleteImage" ,//url	                
+	         //data:data,
+	         success: function (result) {
+	         	if(result.success){
+	         		showImageList(community.id);
+	         		layer.close(index);
+	         		layer.msg("删除成功");
+	         	}else{
+	         		layer.alert(result.msg);
+	         	}
+	         },
+	         error : function() {	            	
+	             layer.alert("异常！");
+	         }
+	     }); 
+		  
+	});
+ }
+ 
+ function setMap(longitude,latitude,name){
+		var contentMap='<div style="margin-left:5px;">'	
+		+'<div class="layui-row">'
+		+'<div id="container2" style="height:500px;width:590px;"></div>'
+		+'</div>'
+		+'<div class="layui-row">'
+		+'<div class="layui-col-md2">'
+		+'<button id="savePointBtn" onClick="saveCommnuityPoint()" class="layui-btn">保存</button>'
+		+'</div>'
+		+'</div>'
+		+'</div>';
+		//打开地图窗体
+		layerId=layer.open({
+		  title:'坐标设置',
+		  type:1,
+		  area:['600px','600px'],
+		  content: contentMap
+		}); 
+		//地图显示配置
+		showMap("container2",longitude,latitude,name,true);
+	}
+</script>
+
+
+<!-- 百度地图相关js -->
+<script type="text/javascript"> 
+function showMap(conDiv,jd,wd,name,isClick){
+	//地图工具
+	var top_left_control = new BMap.ScaleControl({anchor: BMAP_ANCHOR_TOP_LEFT});// 左上角，添加比例尺
+	var top_left_navigation = new BMap.NavigationControl();  //左上角，添加默认缩放平移控件
+	var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}); //右上角，仅包含平移和缩放按钮
+	
+	var map = new BMap.Map(conDiv);// 创建地图实例  
+	if(jd&&wd&&jd!='undefined'&&wd!='undefined'){
+		var point = new BMap.Point(jd, wd);// 创建点坐标  	
+		map.centerAndZoom(point, 15);// 初始化地图，设置中心点坐标和地图级别  
+		var marker = new BMap.Marker(point); // 创建点
+		map.addOverlay(marker); //添加点
+	}else{
+		map.centerAndZoom(name,14); 
+	}
+	
+	map.addControl(top_left_control);        
+	map.addControl(top_left_navigation);     
+	map.addControl(top_right_navigation); 
+
+	map.enableScrollWheelZoom(true);  //开启鼠标滚轮缩放
+
+	
+	if(isClick){
+		//单击获取点击的经纬度
+		map.addEventListener("click",function(e){
+			//alert("经度："+e.point.lng+",纬度："+e.point.lat);
+			if(marker){
+				map.removeOverlay(marker); 
+			}		
+			lng=e.point.lng;
+			lat=e.point.lat;
+			marker = new BMap.Marker(e.point);
+			map.addOverlay(marker); //添加点
+		});
+	}
+	
+}
+
+
+var lng,lat;
+
+
+//修改小区坐标
+function saveCommnuityPoint(){
+	//alert("经度："+lng+",纬度："+lat+",id:"+layerId);
+	 $.ajax({
+         type: "POST",//方法类型
+         dataType: "json",//预期服务器返回的数据类型
+         //contentType: 'application/json',
+         data: {dataJson:'{"id":'+community.id+',"longitude":\"'+lng+'\","latitude":\"'+lat+'\"}'},
+         url: "<%=request.getContextPath()%>/manage/community/updateDetail" ,//url	                
+         //data:data,
+         success: function (result) {
+         	if(result.success){
+         		community.longitude=lng;
+         		community.latitude=lat;
+         		$("#mapBtn").addClass("layui-disabled");
+         		layer.msg("保存成功");        		
+         	}else{
+         		layer.alert(result.msg);
+         	}
+         },
+         error : function() {	            	
+             layer.alert("异常！");
+         }
+     });
+}
+
+</script> 
+</body>
+</html>			  
+

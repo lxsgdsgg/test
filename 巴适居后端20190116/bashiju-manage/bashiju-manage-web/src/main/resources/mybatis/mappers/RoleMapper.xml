@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.RoleMapper">
+	<select id="queryRoles" resultType="map">
+		select a.id,a.name,a.companyId,a.operator,a.operatorId,a.permissionArea,b.realName,
+		a.addTime,a.updateTime,a.sortNo,a.isvalid,a.groups from sys_role a
+		left join sys_user b on a.operator = b.id where 1=1 and a.isvalid=1
+		<if test="companyId != null and companyId != '' "> and a.companyId = #{companyId} </if>
+		<if test="groups != null and groups != '' "> and a.groups = #{groups} </if>
+		<if test="roleName != null and roleName != '' "> and a.name like '%${roleName}%' </if> 
+		order by a.id
+	</select>
+	
+	<select id="getRole" resultType="java.util.LinkedHashMap">
+		select a.id,a.name,a.companyId,a.operator,a.operatorId,a.permissionArea,b.realName,
+		a.addTime,a.updateTime,a.sortNo,a.isvalid,a.groups from sys_role a
+		left join sys_user b on a.operator = b.id where a.id=#{roleId} and a.isvalid=1
+	</select>
+	
+	<select id="isRelation" resultType="long">
+		select sum(id) from (select count(id)id from sys_user where roleId =#{roleId}
+		union all select count(id)id from sys_permission where roleId=#{roleId})aa
+	</select>
+	
+</mapper>

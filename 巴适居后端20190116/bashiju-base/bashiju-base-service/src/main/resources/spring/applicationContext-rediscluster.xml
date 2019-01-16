@@ -1,0 +1,90 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+  <context:property-placeholder ignore-unresolvable="true" location="classpath:properties/redis.properties"/>
+
+	<!-- 连接池的配置 -->
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<!-- 最大连接数 -->
+		<property name="maxTotal" value="${maxTotal}"/>
+		<!-- 最大空闲连接数 -->
+		<property name="maxIdle" value="${maxIdle}"/>
+		<!-- 设置最小空闲数 -->
+		<property name="minIdle" value="${minIdle}"/>
+		<!-- 每次释放连接的最大数目 -->
+		<property name="numTestsPerEvictionRun" value="${numTestsPerEvictionRun}"/>
+		<!-- 释放连接的扫描间隔（毫秒） -->
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
+		<!-- 连接最小空闲时间-->
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
+		<!-- 连接空闲多久后释放, 当空闲时间>该值 且空闲连接>最大空闲连接数 时直接释放 -->
+		<property name="softMinEvictableIdleTimeMillis" value="${softMinEvictableIdleTimeMillis}"/>
+		<!-- 获取连接时的最大等待毫秒数,小于零:阻塞不确定的时间,默认-1 -->
+		<property name="maxWaitMillis" value="${maxWaitMillis}"/>
+		<!-- 在获取连接的时候检查有效性, 默认false -->
+		<property name="testOnBorrow" value="${testOnBorrow}"/>
+		<!-- 在空闲时检查有效性, 默认false -->
+		<property name="testWhileIdle" value="${testWhileIdle}"/>
+		<!-- 连接耗尽时是否阻塞, false报异常,ture阻塞直到超时, 默认true-->
+		<property name="blockWhenExhausted" value="${blockWhenExhausted}"/>
+	</bean>
+
+	<!-- 分片式集群连接池 -->
+ <!-- jedis集群版配置 -->
+    <bean id="hostport1" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host1}"/>
+        <constructor-arg name="port" value="${port1}"/>
+    </bean>
+ 
+    <bean id="hostport2" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host1}"/>
+        <constructor-arg name="port" value="${port2}"/>
+    </bean>
+ 
+    <bean id="hostport3" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host2}"/>
+        <constructor-arg name="port" value="${port3}"/>
+    </bean>
+ 
+    <bean id="hostport4" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host2}"/>
+        <constructor-arg name="port" value="${port4}"/>
+    </bean>
+ 
+    <bean id="hostport5" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host3}"/>
+        <constructor-arg name="port" value="${port5}"/>
+    </bean>
+ 
+    <bean id="hostport6" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="${host3}"/>
+        <constructor-arg name="port" value="${port6}"/>
+    </bean>
+ 
+    <bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+        <constructor-arg  name="jedisClusterNode">
+            <set>
+                <ref bean="hostport1"/>
+            	<ref bean="hostport2"/>
+                <ref bean="hostport3"/>
+                <ref bean="hostport4"/>
+                <ref bean="hostport5"/>
+                <ref bean="hostport6"/>
+            </set>
+        </constructor-arg>
+        <constructor-arg name="connectionTimeout" value="2000"/>
+        <constructor-arg name="soTimeout" value="2000"/>
+        <constructor-arg name="maxAttempts" value="3"/>
+        <constructor-arg name="password" value="${password}"/>
+        <constructor-arg name="poolConfig">
+            <ref bean="jedisPoolConfig"/>
+        </constructor-arg>
+	</bean>
+	<bean id="jedisClientCluster" class="com.bashiju.base.service.redisservice.RedisGetIdImpl"></bean>
+</beans>

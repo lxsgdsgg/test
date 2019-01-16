@@ -1,0 +1,21 @@
+package com.bashiju.web.test;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.wapi.IZiXunPageServiceApi;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+
+public class Btest extends BaseServiceTest {
+	@Autowired
+	IZiXunPageServiceApi izx;
+	
+	@Test
+	public void test() {
+		List<ArticleTypeResult> ss=izx.queryZiXunType("530100");
+		System.out.println(ss);
+	}
+
+}

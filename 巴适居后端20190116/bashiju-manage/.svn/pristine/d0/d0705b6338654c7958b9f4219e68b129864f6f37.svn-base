@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.PermissionMapper">
+	<select id="queryUserPermissions" resultType="java.util.LinkedHashMap">
+		<choose>
+			<when test=" userId != null and userId != '' ">
+				select b.id,b.name,b.btnName,b.functionType,queryMenuBtnParentIds(b.id)as parentId,
+				ifnull(a.dataPermission,'on') as dataPermission,b.permissionArea,b.operatorId,
+				a.combiPermission,b.level,b.roleGroup as groups   
+				from sys_permission a 
+				left join sys_menu b on a.menuPermission = b.id 
+				left join (select count(id) total from sys_permission where roleId=#{roleId} and userId=#{userId}) c on 1=1 
+				where a.roleId=#{roleId} and if(c.total>0,a.userId=#{userId},true) and b.level in(3,4)
+			</when>
+			<otherwise>
+				select b.id,b.name,b.btnName,b.functionType,queryMenuBtnParentIds(b.id)as parentId,
+				ifnull(a.dataPermission,'on') as dataPermission,b.permissionArea,b.operatorId,
+				a.combiPermission,b.level,b.roleGroup as groups   
+				from sys_permission a 
+				left join sys_menu b on a.menuPermission = b.id 
+				where b.level in(3,4) and a.roleId=#{roleId} and length(a.userId)&lt;=0
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryMenuTrees" resultType="java.util.LinkedHashMap">
+<!-- 		select a.id,a.name,a.parentId,a.btnName,a.functionType,a.level from sys_menu a left join sys_role b on   -->
+<!-- 		if(length(a.roleGroup)&lt;=0,true,find_in_set(b.groups ,a.roleGroup)) -->
+<!-- 		where a.isvalid=1 and b.id=#{roleId} -->
+		select a.id,a.name,a.parentId,a.btnName,a.functionType,a.level 
+		from sys_menu a 
+		left join sys_role b on 1=1 
+		where a.isvalid=1 and if(length(a.roleGroup)&lt;=0,true,find_in_set(b.groups ,a.roleGroup)) and b.id=#{roleId}
+	</select>
+	
+	<select id="queryPermissionCombinations" resultType="java.util.LinkedHashMap">
+		select id,name,relationBtn,menuId from sys_permission_combination where isValid=1
+	</select>
+	
+	<delete id="deletePermissionByUserId" parameterType = "String">
+		delete from sys_permission where userId=#{userId}
+	</delete>
+	<delete id="deletePermissionByRoleId" parameterType = "String">
+		delete from sys_permission where roleId=#{roleId}
+	</delete>
+	
+	<delete id="deletePermissionByMenuViewGroups" parameterType = "String">
+		delete a from sys_permission a 
+		left join sys_role b on a.roleId = b.id
+		left join (select id,name,parentId,roleGroup from sys_menu where id=#{menuId}
+		union
+		select b.id,b.name,b.parentId,a.roleGroup from sys_menu a 
+		left join sys_menu b on a.id = b.parentId 
+		where a.id = #{menuId}) c on a.menuPermission= c.id 
+		where (c.id=#{menuId} or c.parentId=#{menuId}) and find_in_set(b.groups,c.roleGroup)=0;
+	</delete>
+	
+	<insert id="savePermissions" parameterType="java.util.Map">
+		insert into sys_permission(roleId,userId,menuPermission,dataPermission,permissionArea,operatorId,operator,addTime,combiPermission)values
+		 <foreach collection="list" item="item" index="index" separator="," >  
+			(#{item.roleId},#{item.userId},#{item.menuPermission},#{item.dataPermission},#{item.permissionArea},#{item.operatorId},#{item.operator},now(),#{item.combiPermission})
+	    </foreach>
+	</insert>
+	
+</mapper>

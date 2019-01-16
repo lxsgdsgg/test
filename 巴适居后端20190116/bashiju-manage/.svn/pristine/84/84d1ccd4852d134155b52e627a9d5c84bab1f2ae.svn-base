@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ResHouseLevelConditionMapper">
+	<select id="queryResHouseLevelCondition" resultType="map">
+	select id,companyId,cityName,cityCode,name,transactionType,levelType,area,areaCode,conditions,
+	propertyType,decoratingType,minPrice,maxPrice,minSpace,maxSpace,houseUses,
+	permissionArea,operatorId,operator,addTime,updateTime,remark,payTypeId,matching,matchingId
+	from res_house_level_condition 
+	where  isvalid=1
+	<if test="transactionType!=null and transactionType!='' "> and transactionType like  concat('%',#{transactionType},'%')</if>
+	<if test="levelType!=null and levelType!='' ">and levelType=#{levelType}</if>
+	<if test="cityCode!=null and cityCode!='' "> and cityCode=#{cityCode}</if>
+	</select>
+	<select id="queryResHouseLevelConditionById" resultType="map">
+			select id,companyId,cityName,cityCode,name,transactionType,levelType,area,areaCode,conditions,
+			propertyType,decoratingType,minPrice,maxPrice,minSpace,maxSpace,houseUses,
+			permissionArea,operatorId,operator,addTime,updateTime,remark,payTypeId,matching,matchingId 
+			from res_house_level_condition
+			where id=#{id}
+	</select>
+
+</mapper>

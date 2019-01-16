@@ -1,0 +1,382 @@
+package com.bashiju.customer.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.customer.mapper.CustomerMapper;
+import com.bashiju.customer.pojo.BusinessExamineType;
+import com.bashiju.customer.pojo.CustomerFindHouseEntity;
+import com.bashiju.customer.service.CustomerService;
+import com.bashiju.enums.AgentTypeEnum;
+import com.bashiju.enums.HouseDiscStatusEnum;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.enums.TaoBaoStatusEnum;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+@SystemServiceLog(sourceType="客源") 
+@Service
+public class CustomerServiceImpl implements CustomerService{
+	
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	@Autowired
+	CustomerMapper customerMapper;
+	@Autowired
+	DataAuthHelper dataAuthHelper;
+	
+	/*@SystemServiceLog(operationType="查询客源详细信息")
+	@Override
+	public Map<String,Object> queryCustomerInfo(String custId,String formName){
+		Map<String,Object> res = new HashMap<>();
+		Map<Object, Object> user=UserThreadLocal.get();
+		Long userid = Long.parseLong(user.get("id").toString());
+		
+		//dataAuthHelper.auth(MenusEnum.MENU_21.getValue(),UserThreadLocal.get().get("id").toString());
+		Map houseInfo = erHousingMapper.queryHouseInfo(custId,userid);
+		LinkedList<Map> followInfo= customerMapper.queryFollowInfo(custId);
+		LinkedList<Map> relateagentInfo = customerMapper.queryRelateagentInfo(custId);
+		List fields = formservice.queryCustomField(formName);
+		
+		if (fields!=null&&fields.size()>0) {
+			Map<String,Object> customInfo = new HashMap<>();
+			customInfo.put("customField", fields);//返回自定义的字段
+			Map customField = new HashMap<>();
+			for(int i=0;i<fields.size();i++) {
+				Map m = (Map)fields.get(i);
+				customField.put(m.get("field").toString(), m.get("title").toString());
+			}
+			Map customValue = erHousingMapper.queryCustomValue(customField,formName,HouseId);
+			if(customValue!=null && customValue.size()>0)
+				customInfo.put("customValue", customValue);//返回自定义字段的值
+			
+			res.put("customInfo", customInfo);
+		}
+		
+		if(houseInfo!=null && houseInfo.size()>0)
+			res.put("houseInfo", houseInfo);//返回房源基本信息
+		if(followInfo.size()>0)
+			res.put("followInfo", followInfo);//返回房源跟进信息
+		if(ownerInfo.size()>0)
+			res.put("ownerInfo", ownerInfo);	//返回业主电话
+	if(relateagentInfo.size()>0)
+			res.put("relateagentInfo", relateagentInfo);//返回经纪人信息
+		
+		ExecutionResult.descFormat("房源id："+houseInfo.get("id").toString(), "查询房源详细信息");
+		return res;
+	}*/
+	
+	@SystemServiceLog(operationType="查询带看")
+	@Override
+	public Page<Map<String, Object>> queryLookHouse(String custId,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo = customerMapper.queryLookHouse(custId);
+		
+		ExecutionResult.descFormat("客源id："+custId+"", "查询带看信息");
+		return pageInfo;
+	}
+	
+	@SystemServiceLog(operationType="查询跟进")
+	@Override
+	public Page<Map<String, Object>> queryFollowRecord(String custId,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> pageInfo = customerMapper.queryFollowRecord(custId);
+		
+		ExecutionResult.descFormat("客源id："+custId+"", "查询客源跟进信息");
+		return pageInfo;
+	}
+	
+	@SystemServiceLog(operationType="提交审核")
+	@Override
+	public Long changeExamine(Map<String,Object> data) {
+		String type = "";
+		Map<Object,Object> examineInfo = new HashMap<>();
+		if(data.containsKey("type")) {
+			type = data.get("type").toString();
+		}
+		if(data.containsKey("examineInfo")) {
+			examineInfo = (Map)data.get("examineInfo");
+		}
+		
+		Map<Object, Object> user=UserThreadLocal.get();
+		Long userid = Long.parseLong(user.get("id").toString());
+		String username = user.get("realName").toString();
+		Map dept = customerMapper.queryDeptName(userid);
+		String deptId = dept.get("deptId").toString();
+		
+		examineInfo.put("operatorId", userid);
+		examineInfo.put("operator", username);
+		//申请人
+		examineInfo.put("permissionArea", deptId);
+		examineInfo.put("applyerId", userid);
+		examineInfo.put("applyer", username);
+		examineInfo.put("apppyTime", new Date());
+		
+		if(type.equals("changestatus")) {//更改客源状态
+			//取审核类型
+			examineInfo.put("examineTypeId",BusinessExamineType.UPDATESTATUS.getValue());
+			Map<String,Object> remark = (Map)examineInfo.get("remark");
+			examineInfo.put("remark", JSONObject.toJSONString(remark));
+		} 
+		
+		if(type.equals("customerclose")) {//封盘申请
+			//取审核类型
+			examineInfo.put("examineTypeId",BusinessExamineType.CLOSEDISC.getValue());
+			Map<String,Object> remark = (Map)examineInfo.get("remark");
+			examineInfo.put("remark", JSONObject.toJSONString(remark));
+		} 
+		
+		
+		if(type.equals("fromtaobao")){//从淘宝淘出
+			//取审核类型
+			examineInfo.put("examineTypeId",BusinessExamineType.TAOBAO.getValue());
+			Map<String,Object> remark = (Map)examineInfo.get("remark");
+			examineInfo.put("remark", JSONObject.toJSONString(remark));
+		}
+		
+		//Long res = businessExamineService.saveBusinessExamine(examineInfo);
+		
+		if(type.equals("changestatus")) {
+			ExecutionResult.descFormat("", "更改房源状态提交审核");
+		}else if(type.equals("houseclose")){
+			ExecutionResult.descFormat("", "申请封盘提交审核");
+		}else if(type.equals("fromtaobao")){
+			ExecutionResult.descFormat("", "从淘宝淘出提交审核");
+		}
+		return 1l;
+	}
+	
+	//收为私客、放入公客、放入淘宝
+	@SystemServiceLog(operationType="更改一些状态")
+	@Override
+	public Long changeSomeStatus(Map<String,Object> data) {
+		Long res = 0l;
+		String type = "";
+		Map<Object,Object> statusInfo = new HashMap<>();
+		if(data.containsKey("type")) {
+			type = data.get("type").toString();
+		}
+		if(data.containsKey("statusInfo")) {
+			statusInfo = (Map)data.get("statusInfo");
+		}
+		
+		if(type.equals("toPublicdisc")) {//放入公客
+			//盘状态
+			statusInfo.put("discStatusId", HouseDiscStatusEnum.PRIVATEDISC.getCode());
+			statusInfo.put("discStatus", HouseDiscStatusEnum.PRIVATEDISC.getDesc());
+		}
+		
+		if(type.equals("setPrivatedisc")) {//收为私客，要变更维护人
+			Map<Object, Object> user=UserThreadLocal.get();
+			Long userid = Long.parseLong(user.get("id").toString());
+			String username = user.get("realName").toString();
+			Map dept = customerMapper.queryDeptName(userid);
+			String deptId = dept.get("deptId").toString();
+			String deptname = dept.get("deptName").toString();
+			//维护人
+			statusInfo.put("maintainer", username);
+			statusInfo.put("maintainId", userid);
+			statusInfo.put("mainterDeptId", deptId);
+			statusInfo.put("mainterDept",deptname);
+			statusInfo.put("permissionArea",deptId);
+			//盘状态
+			statusInfo.put("discStatusId", HouseDiscStatusEnum.PRIVATEDISC.getCode());
+			statusInfo.put("discStatus", HouseDiscStatusEnum.PRIVATEDISC.getDesc());
+			//经纪人表的维护人
+			Long recordid = 0l;
+			if(!"".equals(statusInfo.get("recordid").toString()))
+				recordid = Long.parseLong(statusInfo.get("recordid").toString());//有没有原维护人记录
+			updateMyAgent(Long.parseLong(statusInfo.get("id").toString()),recordid,userid,AgentTypeEnum.MANAGE_PERSON.getCode(),AgentTypeEnum.MANAGE_PERSON.getDesc());
+		}
+		
+		if(type.equals("toTaobao")) {//设置为放入淘宝池
+			statusInfo.put("taobaoStatusId", TaoBaoStatusEnum.TAOBAO.getCode());
+			statusInfo.put("taobaoStatus", TaoBaoStatusEnum.TAOBAO.getDesc());
+		}
+		res = commonSqlServie.commonOperationDatabase(statusInfo, "hs_secondhandhouse", "id", false);
+		
+		if(type.equals("toPublicdisc")) {
+			ExecutionResult.descFormat("", "放入公客");
+		}else if(type.equals("setPrivatedisc")){
+			ExecutionResult.descFormat("", "收为私客");
+		}else if(type.equals("toTaobao")){
+			ExecutionResult.descFormat("", "客源放入淘宝");
+		}
+		return res;
+	}
+	//保存定金
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public int saveDeposit(String depositInfo) {
+		JSONObject jasonObject = JSONObject.parseObject(depositInfo);
+		Map map = (Map)jasonObject;
+		return 1;
+	}
+	//保存跟进、提醒
+	@SystemServiceLog(operationType="保存")
+	@Override
+	public Long saveCustomerFollow(Map<String,Object> data) {
+		Long res = 0l;
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		String companyName=user.get("comName").toString();
+		Long userid = Long.parseLong(user.get("id").toString());
+		String username = user.get("realName").toString();
+		Map dept = customerMapper.queryDeptName(userid);
+		String deptid = dept.get("deptId").toString();
+		String custId = "";
+		if(data.containsKey("followInfo")) {//写跟进
+			Map<Object,Object> followInfo = (Map)data.get("followInfo");
+			custId = followInfo.get("shhId").toString();
+			followInfo.put("companyId", companyId);
+			followInfo.put("companyName", companyName);
+			followInfo.put("operatorId", userid);
+			followInfo.put("operator", username);
+			followInfo.put("deptId", deptid);
+			followInfo.put("followerId",userid);
+			followInfo.put("follower",username);
+			followInfo.put("permissionArea",deptid);
+			followInfo.put("followTime",new Date());
+			res = commonSqlServie.commonOperationDatabase(followInfo, "cust_followrecord", false);
+			//客源表跟进时间
+			Map<Object,Object> mm = new HashMap<>();
+			mm.put("id",custId);
+			Map mainter =customerMapper.queryMainter(custId) ;
+			Long mainterId = Long.parseLong(mainter.get("maintainId").toString());
+			if(mainterId==userid) {//维护人跟进时间
+				mm.put("mainterFllowTime", new Date());
+				res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			}else {//其他人员跟进时间
+				mm.put("allFollowTime", new Date());
+				res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			}
+			ExecutionResult.descFormat("", "保存房源跟进信息");
+		}
+		if(data.containsKey("remindInfo")) {//写提醒
+			Map<Object,Object> remindInfo = (Map)data.get("remindInfo");
+			String receivePeopleName = remindInfo.get("receivePeopleName").toString();
+			if(!"".equals(receivePeopleName)) {
+				remindInfo.put("sendPeopleId", userid);
+				remindInfo.put("sendPeopleName", username);
+				remindInfo.put("status", 0);
+				remindInfo.put("operator", username);
+				res = commonSqlServie.commonOperationDatabase(remindInfo, "sys_remind", false);
+				ExecutionResult.descFormat("", "保存提醒");
+			}
+			
+		}
+		if(data.containsKey("cancelOrder")) {//通知撤单
+			Map mainter =customerMapper.queryMainter(custId) ;
+			Map<Object,Object> mm = new HashMap<>();
+			mm.put("sendPeopleId", userid);
+			mm.put("sendPeopleName", username);
+			mm.put("receivePeopleId", mainter.get("maintainId"));
+			mm.put("receivePeopleName", mainter.get("maintainer"));
+			mm.put("remindTime",new Date());
+			mm.put("status", 0);
+			mm.put("operator", username);
+			mm.put("remindContent", "通知撤单");
+			res = commonSqlServie.commonOperationDatabase(mm, "sys_remind", false);
+			//二手房源表撤单标志
+			mm = new HashMap<>();
+			mm.put("id", data.get("shhId"));
+			mm.put("cancelNoticeFlg", 1);
+			res = commonSqlServie.commonOperationDatabase(mm, "cust_customerBusinessInfo","id", false);
+			ExecutionResult.descFormat("", "通知维护人撤单");
+		}
+		
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="保存业主电话")
+	@Override
+	public Long saveCustomerPhone(Map<String,Object> data) {
+		Map<Object,Object> mm = (Map)data;
+		Long res = commonSqlServie.commonOperationDatabase(mm, "hs_houseownerrelate", false);
+		ExecutionResult.descFormat("房源id："+mm.get("shhId").toString(), "新增业主电话");
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="修改业主电话")
+	@Override
+	public Long updateCustomerPhone(Map<String,Object> data) {
+		Map<Object,Object> mm = (Map)data;
+		Long res = commonSqlServie.commonOperationDatabase(mm, "hs_houseownerrelate","id", false);
+		ExecutionResult.descFormat("电话记录id："+mm.get("id").toString(), "修改业主电话");
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="删除业主电话")
+	@Override
+	public boolean delCustomerPhone(Long id) {
+		boolean res = commonSqlServie.delData("hs_houseownerrelate","id",id+"", false);
+		ExecutionResult.descFormat("电话记录id："+id, "删除业主电话");
+		return res;
+	}
+	
+	//变更经纪人
+	public Long updateMyAgent(Long custId,Long recordid,Long agentId,String agentType,String agentTypeName) {
+		Long res = 0l;
+		Map<Object, Object> user=UserThreadLocal.get();
+		String companyId=user.get("companyId").toString();
+		String companyName=user.get("comName").toString();
+		Long userid = Long.parseLong(user.get("id").toString());//操作人id
+		String username = user.get("realName").toString();//操作人
+		Map dept = customerMapper.queryDeptName(agentId);//经纪人部门
+		String deptid = dept.get("deptId").toString();
+		String deptname = dept.get("deptName").toString();
+		String agentName = dept.get("realName").toString();
+		//经纪人信息
+		Map<Object,Object> m = new HashMap<>();
+		m.put("custId", custId);
+		m.put("agentType", agentType);
+		m.put("agentTypeName", agentTypeName);
+		m.put("agentId", agentId);
+		m.put("agentName", agentName);
+		m.put("companyId", companyId);
+		m.put("companyName", companyName);
+		m.put("departmentId", deptid);
+		m.put("departmentName", deptname);
+		m.put("operatorId", userid);
+		m.put("operator", username);
+		if(recordid!=0) {//修改
+			m.put("id", recordid);
+			res= commonSqlServie.commonOperationDatabase(m,"cust_custRelateAgent", "id",false);
+		}else {//新增
+			res = commonSqlServie.commonOperationDatabase(m, "cust_custRelateAgent", false);
+		}
+		return res;
+	}
+	
+	@SystemServiceLog(operationType="客源查询二手房源表格信息")
+	@Override
+	public Page<Map<String, Object>> customerFindHouseList(String conditions, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		
+		CustomerFindHouseEntity query=null;
+		if (StringUtils.isEmpty(conditions)) {
+			query=new CustomerFindHouseEntity();
+		}else {
+			query=JSON.parseObject(conditions, CustomerFindHouseEntity.class);
+		}	
+		dataAuthHelper.auth(MenusEnum.MENU_21.getValue(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String, Object>> result=customerMapper.customerFindHouseList(query.toSql());
+		ExecutionResult.descFormat(UserThreadLocal.get().get("id").toString(), "客源查询二手房源表格信息");
+		return result;
+	}
+}

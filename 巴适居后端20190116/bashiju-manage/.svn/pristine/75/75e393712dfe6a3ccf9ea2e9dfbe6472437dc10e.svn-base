@@ -1,0 +1,242 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ProposalSetServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:提成方案配置服务   
+ * @author: zuoyuntao     
+ * @date:   2018年6月22日 上午11:01:52   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.IProposalSetMapper;
+import com.bashiju.manage.mapper.PerformanaceTypeMapper;
+import com.bashiju.manage.service.IProposalSetService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 提成方案配置服务
+ * @ClassName:ProposalSetServiceImpl
+ * @Description:提成方案配置服务
+ * @author:zuoyuntao
+ * @date:2018年6月22日 上午11:01:52
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="提成方案配置")
+public class ProposalSetServiceImpl extends CommonSqlServie implements IProposalSetService {
+	/**
+	 * 权限接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	/**
+	 * 提成方案配置映射接口
+	 */
+	@Autowired
+	private IProposalSetMapper mIProposalSetMapper;
+	/**
+	 * 业绩类型接口
+	 */
+	@Autowired
+	private PerformanaceTypeMapper mPerformanaceTypeMapper;
+	/**   
+	 * <p>Title: queryProposalSetAllDataList</p>   
+	 * <p>Description: 查询所有提成方案数据信息</p>   
+	 * @param paraMap 参数对象
+	 * @return   
+	 * @see com.bashiju.manage.service.IProposalSetService#queryProposalSetAllDataList(java.util.Map, int, int)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询提成方案")
+	public List<Map<String, Object>> queryProposalSetAllDataList(Map<String, Object> paraMap) {
+		mDataAuthHelper.auth(MenuEnum.MENU_127.getCode()
+				, String.valueOf(UserThreadLocal.get().get("id")));
+		return mIProposalSetMapper.queryProposalSetAllDataList(paraMap);
+	}
+
+	/**   
+	 * <p>Title: queryProposalSetAllDataListPage</p>   
+	 * <p>Description: 查询提成方案-带分页</p>   
+	 * @param paraMap 参数对象
+	 * @param page 最少条数
+	 * @param limit 最大条数
+	 * @return   
+	 * @see com.bashiju.manage.service.IProposalSetService#queryProposalSetAllDataListPage(java.util.Map, int, int)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询提成方案")
+	public Page<Map<String, Object>> queryProposalSetAllDataListPage(Map<String, Object> paraMap, int page, int limit) {
+		PageHelper.startPage(page,limit);
+		List<Map<String,Object>> retList = queryProposalSetAllDataList(paraMap);
+		return (Page<Map<String, Object>>) retList;
+	}
+
+	/**   
+	 * <p>Title: saveOrUpdateProposalInfo</p>   
+	 * <p>Description: 添加或修改提成方案信息</p>   
+	 * @param paraMap   
+	 * @see com.bashiju.manage.service.IProposalSetService#saveOrUpdateProposalInfo(java.util.Map)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="编辑提成方案")
+	public void saveOrUpdateProposalInfo(Map<String,Object> paraMap) {
+		//修改数据
+		if(paraMap.containsKey(ManageGlobal.PRI_FIELD)) {//设置更新用户
+			paraMap.put("updateOperator", UserThreadLocal.get().get("id"));
+			commonOperationDatabase(paraMap
+					, ManageGlobal.T_SYS_EXTRACT, ManageGlobal.PRI_FIELD, false);
+			ExecutionResult.descFormat(String.valueOf(
+					paraMap.get(ManageGlobal.PRI_FIELD)), "修改提成方案");
+		}else {//新增提成方案
+			String companyId = String.valueOf(UserThreadLocal.get().get("companyId"));
+			Map<String,Object> temp = new HashMap<String,Object>();
+			temp.put("companyId", companyId);
+			temp.put("areaCode", paraMap.get("areaCode"));
+			mIProposalSetMapper.queryProposalSetDataCountByCondition(
+					buildCondition(temp,"sys_extract"));
+			paraMap.put("companyId", companyId);
+			paraMap.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			paraMap.put("operatorId", UserThreadLocal.get().get("id"));
+			long id = commonOperationDatabase(paraMap, ManageGlobal.T_SYS_EXTRACT, false);
+			ExecutionResult.descFormat(String.valueOf(id), "新增提成方案");
+		}
+	}
+	/**
+	 * 判断数据是否存在 
+	 * @Title: isDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap 参数集合
+	 * @return      
+	 * boolean true/false     
+	 * @throws
+	 */
+	@Override
+	public boolean isDataExists(Map<String,Object> paraMap) {
+		long count = mIProposalSetMapper.queryProposalSetDataCountByCondition(
+				buildCondition(paraMap,"sys_extract"));
+		if(count > 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**   
+	 * <p>Title: deleteProposalInfoById</p>   
+	 * <p>Description: </p>   
+	 * @param proposalId   
+	 * @see com.bashiju.manage.service.IProposalSetService#deleteProposalInfoById(java.lang.String)   
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除提成方案")
+	public void deleteProposalInfoById(String proposalId) {
+		//删除明细表配置
+		delData(ManageGlobal.T_SYS_EXTRACT_DETAIL,"confId", proposalId, false);
+		ExecutionResult.descFormat(proposalId, "删除提成方案");
+		//删除主表配置
+		delData(ManageGlobal.T_SYS_EXTRACT,ManageGlobal.PRI_FIELD, proposalId, false);
+		ExecutionResult.descFormat(proposalId, "删除提成方案明细");
+	}
+	/**
+	 * <p>Title: saveProposalSetDetail</p>   
+	 * <p>Description: 保存提成方案配置明细</p>   
+	 * @param saveList  保存的数据集合
+	 * @param confId  提成方案ID
+	 * @param pfmTypeId 业绩类型ID
+	 * @param areaCode 区划编码
+	 * @see com.bashiju.manage.service.IProposalSetService#saveProposalSetDetail(java.util.List)
+	 */
+	@Override
+	public void saveProposalSetDetail(List<Map<String, Object>> saveList
+			,String confId,String pfmTypeId,String areaCode) {
+		//删除明细表配置
+		clearData(ManageGlobal.T_SYS_EXTRACT_DETAIL, " confId = " + confId 
+				+ " and pfmTypeId = " + pfmTypeId
+				+ " and areaCode = '" + areaCode+"'");
+		ExecutionResult.descFormat(confId, "删除提成方案");
+		//批量保存提成方案配置明细
+		batchCommonOperationDatabase(saveList, ManageGlobal.T_SYS_EXTRACT_DETAIL, false);
+	}
+	/**
+	 * <p>Title: queryPfmTypePageObjForProposal</p>   
+	 * <p>Description: 获取业绩类型数据信息</p>   
+	 * @param paraMap
+	 * @return   
+	 * @see com.bashiju.manage.service.IProposalSetService#queryPfmTypePageObjForProposal(java.util.Map)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询业绩类型")
+	public Page<Map<String, Object>> queryPfmTypePageObjForProposal(
+			Map<String,Object> paraMap,int page,int limit) {
+		//查询业绩类型数据信息
+		String condition = buildCondition(paraMap,"performance_type_config");
+		ExecutionResult.descFormat("", "查询业绩类型");
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenuEnum.MENU_127.getCode()
+				,UserThreadLocal.get().get("id").toString());
+		return mPerformanaceTypeMapper
+							.queryPfmTypeDataListByCondition(condition);
+	}
+	/**
+	 * 组装查询条件
+	 * @Title: buildCondition
+	 * @author: zuoyuntao  
+	 * @Description:组装查询条件 
+	 * @param paraMap
+	 * @return      
+	 * String    
+	 * @throws
+	 */
+	private String buildCondition(Map<String,Object> paraMap,String alias) {
+		StringBuilder condition = new StringBuilder();
+		Iterator<String> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			String value = String.valueOf(paraMap.get(key));
+			if(key.equals("confId") && alias.equals("performance_type_config") 
+					&& StringUtil.isNotEmpty(value) && !"null".equals(value)) {
+				condition.append(" and ").append("sys_extract.id")
+				 .append(" = '").append(value).append("'");
+				continue;
+			}
+			if(StringUtil.isNotEmpty(value) && !"null".equals(value)) {
+				condition.append(" and ").append(alias).append(".").append(key)
+						 .append(" = '").append(value).append("'");
+			}
+		}
+		return condition.toString();
+	}
+	/**
+	 * <p>Title: queryAllProposalDetail</p>   
+	 * <p>Description:根据业绩类型、提成方案、城市等条件查询提成方案详细配置 </p>   
+	 * @param paraMap
+	 * @return   
+	 * @see com.bashiju.manage.service.IProposalSetService#queryAllProposalDetail(java.util.Map)
+	 */
+	@Override
+	public List<Map<String, Object>> queryAllProposalDetail(Map<String, Object> paraMap) {
+		String condition = this.buildCondition(paraMap, "sys_extract_detail");
+		return mIProposalSetMapper.queryAllProposalDetailByCondition(condition);
+	}
+}

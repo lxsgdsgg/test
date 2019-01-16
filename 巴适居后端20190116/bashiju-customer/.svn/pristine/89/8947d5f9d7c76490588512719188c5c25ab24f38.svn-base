@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.AgentLeavingMsgAndCommentsMapper">
+	<select id="queryAllAgentInfo" resultType="map">
+		SELECT sys_agent_details.id,sys_agent_details.userId,sys_agent_details.syncFlag
+		,sys_agent_details.hotAgentFlag,sys_agent_details.mainRegions,sys_agent_details.mainCommunity
+		,sys_agent_details.showedRdCnt,sys_agent_details.histShowedRdCnt,sys_agent_details.dealCnt
+		,sys_agent_details.histDealCnt,sys_agent_details.StarRating,sys_agent_details.commentCnt
+		,sys_agent_details.seniority,sys_agent_details.permissionArea,sys_agent_details.operatorId
+		,sys_agent_details.operator,sys_agent_details.addTime,sys_agent_details.updateTime
+	  	,IF(sys_agent_details.syncFlag=1,'是','否')as syncFlagName
+	  	,IF(sys_agent_details.hotAgentFlag=1,'是','否')as hotAgentFlagName
+		,sys_agent_details.isvalid from sys_agent_details where isvalid = 1
+		<if test="null != syncFlag and syncFlag != ''">
+			and sys_agent_details.syncFlag = #{syncFlag}
+		</if>
+		<if test="null != hotAgentFlag and hotAgentFlag != ''">
+			and sys_agent_details.hotAgentFlag = #{hotAgentFlag}
+		</if>
+		<if test="null != showedRdCnt and showedRdCnt != ''">
+			and sys_agent_details.showedRdCnt like '%${showedRdCnt}%'
+		</if>
+	</select>
+	
+	<select id="queryAllAgentLeavingMsgInfo" resultType="map">
+		SELECT sys_guestmessage.id,sys_guestmessage.userId,sys_guestmessage.agentId
+		,sys_guestmessage.messageTypeId,sys_guestmessage.messageType,sys_guestmessage.realName
+		,sys_guestmessage.mobile,sys_guestmessage.content,sys_guestmessage.isRead
+		,if(sys_guestmessage.isRead = '1','已读','未读') as isReadName
+		,sys_guestmessage.permissionArea,sys_guestmessage.operatorId,sys_guestmessage.operator
+		,sys_guestmessage.addTime,sys_guestmessage.updateTime,sys_guestmessage.isvalid
+		from sys_guestMessage where isvalid = 1
+		<if test="null != messageTypeId and messageTypeId != ''">
+			and sys_guestmessage.messageTypeId = #{messageTypeId}
+		</if>
+		<if test="null != isRead and isRead != ''">
+			and sys_guestmessage.isRead = #{isRead}
+		</if>
+		<if test="null != mobile and mobile != ''">
+			and sys_guestmessage.mobile like '%${messageType}%'
+		</if>
+	</select>
+	
+	<select id="queryAllAgentCommentsInfo" resultType="map">
+		SELECT sys_cust_starrating.id,sys_cust_starrating.userId,sys_cust_starrating.agentId
+		,sys_cust_starrating.star,sys_cust_starrating.custId,sys_cust_starrating.custName
+		,sys_cust_starrating.labelIds,sys_cust_starrating.labels,sys_cust_starrating.secondLabelIds
+		,sys_cust_starrating.secondLabels,sys_cust_starrating.examineStatus,sys_cust_starrating.auditorId
+		,sys_cust_starrating.auditor,sys_cust_starrating.auditTime,sys_cust_starrating.reason
+		,sys_cust_starrating.permissionArea,sys_cust_starrating.operatorId,sys_cust_starrating.operator
+		,sys_cust_starrating.addTime,sys_cust_starrating.updateTime,sys_cust_starrating.isValid
+		,if(sys_cust_starrating.examineStatus='1','已审核','未审核') as checkName
+		from sys_cust_starRating where isValid = 1
+		<if test="null != custName and custName != ''">
+			and sys_cust_starRating.custName like '%${custName}%'
+		</if>
+		<if test="null != examineStatus and examineStatus != ''">
+			and sys_cust_starRating.examineStatus = #{examineStatus}
+		</if>
+	</select>
+</mapper>

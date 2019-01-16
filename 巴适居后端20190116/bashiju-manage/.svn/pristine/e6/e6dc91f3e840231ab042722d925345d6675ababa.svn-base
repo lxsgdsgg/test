@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.PerformanaceTypeMapper">
+	<select id="queryPfmTypeList" resultType="map">
+		SELECT a.id,a.pfmTypeName,a.usePfmTypeValue,a.usePfmTypeName,a.caculateMethod,a.cityId,
+		a.cityName,a.operator,a.addTime,a.updateOperator,a.updateTime,a.operatorId,
+		a.permissionArea,a.isValid,a.companyId,a.customField_1,b.fieldValue as caculateMethodName
+		FROM performance_type_config a LEFT JOIN dynamicform_field_value b ON a.caculateMethod = b.id
+		where 1 = 1 and a.isValid=1 
+		<if test="pfmTypeName != null and pfmTypeName != ''">
+			and a.pfmTypeName like '%${pfmTypeName}%'
+		</if>
+		<if test="areaCode != null and areaCode != ''">
+			and a.cityId = #{areaCode}
+		</if>
+	</select>
+	
+	<select id ="queryPfmTypeDataById" resultType="map">
+		SELECT a.id,a.pfmTypeName,a.usePfmTypeValue,a.usePfmTypeName,a.caculateMethod,a.cityId,
+		a.cityName,a.operator,a.addTime,a.updateOperator,a.updateTime,a.operatorId,
+		a.permissionArea,a.isValid,a.companyId,a.customField_1,b.fieldValue as caculateMethodName
+		FROM performance_type_config a LEFT JOIN dynamicform_field_value b ON a.caculateMethod = b.id
+		where 1 = 1 and a.isValid=1  
+		<if test="null != pfmTypeId">
+			and a.id like '%${pfmTypeId}%'
+		</if>
+	</select>
+	
+	<select id ="queryPfmTypeDataByName" resultType="map">
+		SELECT a.id,a.pfmTypeName,a.usePfmTypeValue,a.usePfmTypeName,a.caculateMethod,a.cityId,
+		a.cityName,a.operator,a.addTime,a.updateOperator,a.updateTime,a.operatorId,
+		a.permissionArea,a.isValid,a.companyId,a.customField_1,b.fieldValue as caculateMethodName
+		FROM performance_type_config a LEFT JOIN dynamicform_field_value b ON a.caculateMethod = b.id
+		where 1 = 1 and a.isValid=1  
+		<if test="null != pfmTypeName">
+			and a.pfmTypeName like '%${pfmTypeName}%'
+		</if>
+	</select>
+	
+	<select id="queryPfmTypeDataByCondition" resultType="map">
+		SELECT a.id,a.pfmTypeName,a.usePfmTypeValue,a.usePfmTypeName,a.caculateMethod,a.cityId,
+		a.cityName,a.operator,a.addTime,a.updateOperator,a.updateTime,a.operatorId,
+		a.permissionArea,a.isValid,a.companyId,a.customField_1,b.fieldValue as caculateMethodName
+		FROM performance_type_config a LEFT JOIN dynamicform_field_value b ON a.caculateMethod = b.id
+		where 1 = 1 and a.isValid=1 
+		<if test="condition != null ">
+			and #{condition}
+		</if>
+	</select>
+	<select id="queryPfmTypeDataListByCondition" resultType="map">
+		SELECT (case when sys_extract_detail.isSetted = 1 then '已设置' else '未设置' end) as isSetted,
+		sys_extract.id as confId,performance_type_config.id,sys_extract.areaCode,
+		sys_extract.areaName,performance_type_config.pfmTypeName,performance_type_config.usePfmTypeName,
+		performance_type_config.usePfmTypeValue,performance_type_config.caculateMethod,
+		performance_type_config.operatorId,performance_type_config.permissionArea,
+		performance_type_config.companyId,performance_type_config.isValid,performance_type_config.cityId,
+		dynamicform_field_value.fieldValue as caculateMethodName FROM sys_extract
+		LEFT JOIN performance_type_config ON sys_extract.areaCode = performance_type_config.cityId
+		LEFT JOIN sys_extract_detail ON performance_type_config.id = sys_extract_detail.pfmTypeId 
+		and sys_extract.id=sys_extract_detail.confId LEFT JOIN dynamicform_field_value ON 
+		performance_type_config.caculateMethod = dynamicform_field_value.id where 
+		performance_type_config.isValid = 1 and sys_extract.isValid = 1 
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+		group by performance_type_config.cityId,sys_extract.id,performance_type_config.pfmTypeName
+		order by pfmTypeName,areaCode
+	</select>
+	
+	<select id="queryPfmTypeDetailByCompanyId" resultType="map">
+		select * from performance_type_config_detail where 1 = 1 and isValid = 1 
+		<if test="null != companyId">
+			and companyId = #{companyId}
+		</if>
+		order by id
+	</select>
+	
+	<select id="queryPfmTypeDetailByCondition" resultType="map">
+		select * from performance_type_config_detail where 1 = 1 and isValid = 1 
+		<if test="null != condition">
+			${condition}
+		</if>
+		order by id
+	</select>
+</mapper>

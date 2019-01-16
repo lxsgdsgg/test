@@ -1,0 +1,160 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  StatisticsSaleHouseController.java   
+ * @Package com.bashiju.anal.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年11月17日 下午2:18:46   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.anal.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.utils.StringUtils;
+import com.bashiju.anal.mapper.AnalCommonMapper;
+import com.bashiju.anal.mapper.IncomeTrendMapper;
+import com.bashiju.anal.mapper.StatisticsSaleHouseMapper;
+import com.bashiju.anal.pojo.Cell;
+import com.bashiju.anal.pojo.HouseStatisticsLongitudinalParamsEnum;
+import com.bashiju.anal.pojo.HouseStatisticsTransverseParamsEnum;
+import com.bashiju.anal.pojo.IncomeTransverseParamsEnum;
+import com.bashiju.anal.pojo.Row;
+import com.bashiju.anal.pojo.Thead;
+import com.bashiju.enums.DeptTypeEnum;
+import com.bashiju.enums.HouseLevelEnum;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.HouseUsesEnum;
+import com.bashiju.enums.pc.BuildAreaEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+/**   
+ * @ClassName:  IncomeTrendController   
+ * @Description:收入走势分析   
+ * @author: liwen
+ * @date:   2018年11月27日 上午10:18:46   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="incomeTrend")
+public class IncomeTrendController {
+	
+	@Autowired
+	private IncomeTrendMapper incomeTrendMapper;
+	
+	@Autowired
+	private AnalCommonMapper commonMapper;
+
+	/**
+	 * 
+	 * @Description: 进入收入走势分析页面   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="incomeTrend")
+	public ModelAndView statisticsSaleHouse(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("incomeTrend/incomeTrend");
+		
+		//获取部门数据信息
+		List<Map<String, Object>> deptList = commonMapper.queryDeptTrees(UserThreadLocal.get().get("roleGroup").toString());
+		mv.addObject("deptInfo", JSONObject.toJSONString(deptList));
+		mv.addObject("transverse", IncomeTransverseParamsEnum.enumMap);
+		mv.addObject("cityInfo", commonMapper.queryCompanyCityInfo(UserThreadLocal.get().get("companyId").toString()));
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取数据信息  
+	 * @param request
+	 * @param response
+	 * @return: Object
+	 */
+	@RequestMapping(value="getReportDetailInfo")
+	public ModelAndView getData(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = new ModelAndView("incomeTrend/reportDetailInfo");
+		String deptId = request.getParameter("deptId");
+		String moneyType = request.getParameter("moneyType");
+		if(request.getParameter("moneyType")==null || StringUtils.isEmpty(moneyType))
+			moneyType = "0"; //业绩
+		String deptTypeId = request.getParameter("deptTypeId");
+		if(request.getParameter("deptTypeId")==null || StringUtils.isEmpty(deptTypeId))
+			deptTypeId = DeptTypeEnum.DEPT_AREA.getCode();//默认为区
+		String year = request.getParameter("year");
+		if(request.getParameter("year")==null || StringUtils.isEmpty(year))
+			year = new SimpleDateFormat("yyyy").format(new Date());
+		
+		//封装表头
+		Thead thead = new Thead();//定义表头对象
+		List<Row> rows = new ArrayList<Row>(0);//定义表头行数
+			
+		List<List<Cell>> cells = new ArrayList<List<Cell>>(0);
+		//第一行
+		List<Cell> cells2 = new ArrayList<Cell>(0);//定义表头列数
+		cells2.add(new Cell.Builder().setField("门店").setTitle("").setTotalRowText("合计").setRowspan(2).build());
+		cells2.add(new Cell.Builder().setField("deptName").setTitle("门店").setRowspan(2).build());
+		cells2.add(new Cell.Builder().setField("income1").setTitle(year+"-01").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income2").setTitle(year+"-02").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income3").setTitle(year+"-03").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income4").setTitle(year+"-04").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income5").setTitle(year+"-05").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income6").setTitle(year+"-06").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income7").setTitle(year+"-07").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income8").setTitle(year+"-08").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income9").setTitle(year+"-09").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income10").setTitle(year+"-10").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income11").setTitle(year+"-11").setTotalRow(true).build());
+		cells2.add(new Cell.Builder().setField("income12").setTitle(year+"-12").setTotalRow(true).build());
+		cells.add(cells2);
+		rows.add(new Row.Builder().cells(cells).build());
+		thead.setRows(rows);
+		
+		List<Map<String,Object>> list = this.incomeTrendMapper.queryIncomeTrendRecord(moneyType,year,deptId,deptTypeId,UserThreadLocal.get().get("companyId").toString());
+		if(list.size()>0) {
+			if("0".equals(moneyType)) {//业绩
+				for(Map<String,Object> o : list) {
+					Map<String,Object> m = this.incomeTrendMapper.queryAchievement(year,o.get("id").toString(),deptTypeId);
+					if(m!=null)
+						o.putAll(m);
+				}
+			}else {//实收
+				for(Map<String,Object> o : list) {
+					Map<String,Object> m = this.incomeTrendMapper.queryIncome(year,o.get("id").toString(),deptTypeId);
+					if(m!=null)
+						o.putAll(m);
+				}
+			}
+		}
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("code", 0);
+		map.put("msg", "");
+		//map.put("count", list.size());
+		//map.put("data", list);
+		
+		mv.addObject("thead", JSONObject.toJSON(thead));
+		mv.addObject("data", JSONArray.toJSON(list));
+		mv.addObject("titles", "收入走势分析");
+		return mv;
+	}
+
+}

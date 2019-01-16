@@ -1,0 +1,10 @@
+com\bashiju\fin\controller\CommissionsConfigController.class
+com\bashiju\fin\controller\EmployeeCommissionsInfoController.class
+com\bashiju\fin\controller\EmployeeWagesConfigurateController.class
+com\bashiju\fin\controller\BusinessTypeController.class
+com\bashiju\fin\controller\WelfareConfigurateController.class
+com\bashiju\fin\controller\UserDesertsInfoController.class
+com\bashiju\fin\controller\CompanyComConfigController.class
+com\bashiju\fin\controller\FinController.class
+com\bashiju\fin\controller\EmployeeWagesInfoController.class
+com\bashiju\fin\controller\SsfConfigurateController.class

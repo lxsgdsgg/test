@@ -1,0 +1,30 @@
+package com.bashiju.www.test.usercentraltest;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.service.user.ICustomerConcernedHouseService;
+import com.bashiju.www.test.BaseServiceTest;
+
+public class CustomerConcernedHouseTest extends BaseServiceTest{
+	@Autowired
+	private ICustomerConcernedHouseService mICustomerConcernedHouseService;
+	
+	@Test
+	public void cancelConcernedHouseTest() {
+		mICustomerConcernedHouseService.cancelConcernedHouse("1", "1", "1");
+		System.out.println("取消成功！");
+	}
+	
+	@Test
+	public void queryAllConcernedHouseListTest() {
+		List<?> retList = mICustomerConcernedHouseService
+				.queryAllConcernedHouseList("1", "4",0,20);
+		System.out.println(retList.toString());
+		assertNotNull(retList);
+	}
+}

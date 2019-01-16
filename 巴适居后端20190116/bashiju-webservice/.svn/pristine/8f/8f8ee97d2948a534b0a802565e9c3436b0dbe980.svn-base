@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CommunityMapper">
+	
+	<resultMap type="com.bashiju.www.pojo.service.community.Community" id="resultMap">
+		<id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="buildYear" column="buildYear"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="regionCode" column="regionCode"/>
+        <result property="regionName" column="regionName"/>
+        <result property="imageUrl" column="imageUrl"/>
+        <result property="address" column="address"/>
+        <result property="salePrice" column="salePrice"/>
+        <result property="onSaleCnt" column="onSaleCnt"/>
+        <result property="leaseCnt" column="leaseCnt"/>
+        <result property="dealCnt" column="dealCnt"/>
+        <result property="subwayLabel" column="subwayLabel"/>
+        <result property="schoolLabel" column="schoolLabel"/>
+     </resultMap>
+	
+	<select id="queryCommunitys" parameterType="com.bashiju.www.pojo.service.community.CommunityQueryParams" resultMap="resultMap">
+		select a.id,a.name,buildYear,areaCode,areaName,regionCode,regionName,imageUrl,address,format(salePrice/100,2)as salePrice ,onSaleCnt,
+		leaseCnt,dealCnt,subwayLabel,schoolLabel from sys_client_communityqueryinfos a 
+		left join sys_station_block_community b on a.id = b.communityId 
+		left join sys_metro_station c on b.stationId = c.id
+		left join sys_community_property d on a.id = d.communityId and d.type=0
+		where 1=1 and a.cityCode = #{cityCode}
+		<if test="areaCode != null and areaCode != '' "> and a.areaCode = #{areaCode} </if>
+		<if test="regionCode != null and regionCode != '' "> and a.regionCode = #{regionCode} </if>
+		<if test="metroCode != null and metroCode != '' "> and c.metroId = #{metroCode} </if>
+		<if test="stationCode != null and stationCode != '' "> and c.id = #{stationCode} </if>
+		<if test="avgPrice != null"> and a.priceQueryParam in(select crc32(concat(#{cityCode},
+			(replace(substring(substring_index(#{avgPrice},',',id),
+			char_length(substring_index(#{avgPrice},',',id - 1)) + 1),',','')))) as str
+			from sys_seq  where id &lt;= length(#{avgPrice}) - length(replace(#{avgPrice}, ',', '') )+1) 
+		</if>
+		<if test="type != null"> and d.code in(select replace(substring(substring_index(#{type},',',id),
+			char_length(substring_index(#{type},',',id - 1)) + 1),',','') as str
+			from sys_seq  where id &lt;= length(#{type}) - length(replace(#{type}, ',', '') )+1) 
+		</if>
+		<if test="buildAge != null"> and a.ageQueryParam in(select crc32(concat(#{cityCode},
+			(replace(substring(substring_index(#{buildAge},',',id),
+			char_length(substring_index(#{buildAge},',',id - 1)) + 1),',','')))) as str
+			from sys_seq  where id &lt;= length(#{buildAge}) - length(replace(#{buildAge}, ',', '') )+1) 
+		</if>
+		<if test="minPrice != null"> and a.salePrice &gt;= #{minPrice} </if>
+		<if test="maxPrice != null"> and a.salePrice &lt;= #{maxPrice} </if>
+		group by a.id 
+		<if test="sort==1">
+			order by salePrice 
+		</if>
+		<if test="sort==2">
+			order by dealCnt 
+		</if>
+		<if test="!asc">
+			desc
+		</if>
+	</select>
+	
+	<select id="queryHotCommunitys" resultType="com.bashiju.www.pojo.service.community.HotCommunity">
+		select a.id,a.name,format(a.salePrice/100,2)as salePrice ,a.onSaleCnt from sys_client_communityQueryInfos a 
+		where a.cityCode=#{cityCode} order by dealCnt desc limit 0,#{size}
+	</select>
+	
+	
+	<select id="getCommunityDetail"  resultType="com.bashiju.www.pojo.service.community.CommunityDetail" parameterType="com.bashiju.www.pojo.service.community.CommunityDetail">
+		select a.id ,a.name,d.salePrice,a.address,a.capacityRatio,a.houseCount,a.greenRate,d.groundParkingCount
+		,d.buildYear,d.propertyFees,group_concat(distinct e.name) estateType,d.propertyName,a.developers,a.buildingCount
+		,group_concat(distinct f.name) structure,a.buildingArea,g.subwayLabel,g.schoolLabel
+		,a.communityProfile communityDescribe,b.onSaleCnt,b.leaseCnt,b.saleRoom1,b.saleRoom2,b.saleRoom3,
+		b.saleRoom4,b.saleRoom5,b.leaseRoom1,b.leaseRoom2,b.leaseRoom3,b.leaseRoom4,b.leaseRoom5,a.longitude,a.latitude
+		from sys_community AS a
+		left join sys_community_statistics b on b.communityId=a.id 
+		left join sys_community_second d on d.communityId = a.id 
+		left join sys_community_property e on a.id = e.communityId and e.type=0
+		left join sys_community_property f on a.id = f.communityId and f.type=2
+		left join sys_client_communityQueryInfos g on a.id = g.id 
+		where a.id=#{communityId}
+	</select>
+	
+	<select id="queryCommunityImages" resultType="String">
+		select path from sys_community_attachment where communityId=#{communityId}
+	</select>
+	
+	<select id="querySealHousingByCommunityId" parameterType="string" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult">
+		select a.id, a.room,a.hall,a.toilet,a.buildSpace,c.floorDes,a.orientation,
+		a.labeld,a.sellingPrice,
+		c.totalLayers as totalFloor,ifnull(b.path,(select min(path) from hs_houseattachment where shhId = a.id)) as imageUrl,a.sellingPrice/a.buildSpace/100 as averagePrice  from hs_secondhandhouse a
+		left join hs_houseattachment b on b.shhId = a.id and b.isCover=1  and b.attachType =01
+		left join hs_housebaseinfo c on c.id = a.houseId
+		where c.communityId =#{communityId} and a.isValid =1 and  a.transactionTypeId in(1,3) and  a.statusId=1   
+		and a.examineStatus=1 and a.isSynchron=1  and a.isPriority=1
+
+	</select>
+
+	<select id="queryLeaseHousingByCommunityId" resultType="com.bashiju.www.pojo.service.out.house.HouseListResult" parameterType="string">
+			select a.id, a.room,a.hall,a.toilet,a.buildSpace,c.floorDes,a.orientation,
+		a.labeld,a.sellingPrice,
+		c.totalLayers as totalFloor,ifnull(b.path,(select min(path) from hs_houseattachment where shhId = a.id)) as imageUrl,a.sellingPrice/a.buildSpace/100 as averagePrice  from hs_secondhandhouse a
+		left join hs_houseattachment b on b.shhId = a.id and b.isCover=1  and b.attachType =01
+		left join hs_housebaseinfo c on c.id = a.houseId
+		where c.communityId =#{communityId} and a.isValid =1 and  a.transactionTypeId in(1,3) and  a.statusId=1   
+		and a.examineStatus=1 and a.isSynchron=1  and a.isPriority=1
+	</select>
+	
+	<select id="queryNearbyCommunity" resultType="com.bashiju.www.pojo.service.community.Community" parameterType="string">
+		select a.id,a.name,buildYear,areaCode,areaName,a.regionCode,regionName,imageUrl,address,format(salePrice/100,2)as salePrice ,onSaleCnt,
+		leaseCnt,dealCnt,subwayLabel,schoolLabel from sys_client_communityQueryInfos a 
+		left join (select regionCode from sys_client_communityQueryInfos where id =#{communityId})b on b.regionCode = a.regionCode
+		where a.id &lt;&gt; #{communityId} LIMIT 4 
+	</select>
+	
+	<select id="queryCommunityPriceTrend" resultType="com.bashiju.www.pojo.service.community.CommunityPriceTrend" parameterType="string">
+		select months,saleDealCnt,saleDealAvgPrice,saleAvgPrice from sys_community_priceTrend where communityId=#{communityId}
+	</select>
+	
+	<select id="queryFirstPageHotCommunitys"  resultMap="resultMap">
+		select a.id,a.name,buildYear,areaCode,areaName,regionCode,regionName,imageUrl,address,format(salePrice/100,2)as salePrice ,onSaleCnt,
+		leaseCnt,dealCnt,subwayLabel,schoolLabel from sys_client_communityQueryInfos a 
+		where a.cityCode=#{cityCode} order by dealCnt desc limit 0,#{size}
+	</select>
+	
+	<select id="queryCommunityByFullText"  resultMap="resultMap">
+		select a.id,a.name,buildYear,areaCode,areaName,regionCode,regionName,imageUrl,address,format(salePrice/100,2)as salePrice ,onSaleCnt,
+		leaseCnt,dealCnt,subwayLabel,schoolLabel from sys_client_communityQueryInfos a 
+		where match(queryCityCode, name, areaName, regionName) 
+		against(concat('+城市编码',#{cityCode},' +',#{params}) in boolean mode)
+	</select>
+</mapper>

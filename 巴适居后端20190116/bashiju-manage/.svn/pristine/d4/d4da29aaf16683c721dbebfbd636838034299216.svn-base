@@ -1,0 +1,134 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.PostMapper;
+import com.bashiju.manage.service.PostService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  PostServiceImpl   
+ * @Description:职位管理服务   
+ * @author: wangpeng
+ * @date:   2018年4月24日 下午3:19:22   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="职位管理")
+public class PostServiceImpl extends CommonSqlServie  implements PostService{
+	
+	@Autowired
+	private PostMapper postMaper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	/**
+	 * 
+	 * @Title: isRelation   
+	 * @Description: 更具职位id查询是否有关联数据
+	 * @param postId 职位id
+	 * @return      
+	 * @return: boolean true表示有关联数据，talse表示无数据关联
+	 */
+	@Override
+	public boolean isRelation(String postId) {
+		if(postMaper.isRelation(postId)>0)
+			return true;
+		else
+			return false;
+	}
+
+	/**
+	 * 
+	 * <p>Title: queryPost</p>   
+	 * <p>Description: 根据职位id查询职位信息</p>   
+	 * @param postId 职位id
+	 * @param postName 职位名称
+	 * @param pageNum 当前页
+	 * @param pageSize 每一页条数
+	 * @return   
+	 * @see com.bashiju.manage.service.PostService#queryPost(java.lang.String, java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询职位信息")
+	public Page<Map<String, Object>> queryPost(String postName, int pageNum, int pageSize) {
+		PageHelper.startPage(pageNum,pageSize);
+		dataAuthHelper.auth(MenusEnum.MENU_26.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> page=postMaper.queryPostList(postName);
+		return page;
+	}
+	
+	/**
+	 * 
+	 * <p>Title: saveOrUpdatePost</p>   
+	 * <p>Description:编辑或者修改职位信息 </p>   
+	 * @param map 
+	 * @return   
+	 * @see com.bashiju.manage.service.PostService#saveOrUpdatePost(java.util.Map)
+	 */
+	
+	@Override
+	@SystemServiceLog(operationType="保存职位信息")
+	public boolean saveOrUpdatePost(Map<Object, Object> map) {
+		long result=0;
+		//id为空就是添加，不为空就是编辑
+		if(map.containsKey("id") && map.get("id")!=null && !StringUtils.isEmpty(map.get("id").toString())) {//修改
+			result=this.commonOperationDatabase(map, "sys_post", "id", false);
+			if(result>0)
+				ExecutionResult.descFormat(Long.toString(result),"编辑职位");
+			else
+				return false;
+		}else {
+			result=this.commonOperationDatabase(map, "sys_post", false);
+			if(result>0)
+				ExecutionResult.descFormat(Long.toString(result),"新增职位");
+			else
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 
+	 * <p>Title: delPost</p>   
+	 * <p>Description:通过职位id逻辑删除职位 </p>   
+	 * @param postId 职位id
+	 * @return   
+	 * @see com.bashiju.manage.service.PostService#delPost(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除职位")
+	public boolean delPost(String postId) {
+		if(StringUtils.isEmpty(postId))
+			throw new BusinessException("请选这要删除的职位信息");
+		if(this.isRelation(postId))
+			throw new BusinessException("存在关联数据，不允许删除");
+		Map<Object, Object> fields=new HashMap<Object,Object>();
+		
+		boolean result=this.delData("sys_post", "id", postId, false);
+		if(result) {
+			ExecutionResult.descFormat(postId, "删除职位");
+		    return true;
+		}else
+			return false;
+	}
+	
+	
+
+}

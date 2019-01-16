@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.StatisticsBuyDemandMapper">
+	
+	<select id="queryCityArea" resultType="map">
+		select code as value,name from sys_area 
+		where parentCode=#{cityCode} and isvalid=1
+	</select>
+	
+	<select id="queryResourceType" resultType="map">
+		SELECT fieldCode value,fieldValue name FROM dynamicform_field_value 
+		WHERE isValid=1 AND widgetCode ='resourceType'
+	</select>
+	
+	<select id="queryCityavgpricelabel" resultType="map">
+		select cast(id as char) value,name,cast(minPrice as char) min,cast(maxPrice as char) max from sys_cityavgpricelabel where cityCode=#{cityCode} and type=0
+	</select>
+	
+	<select id="getData" resultType="map">
+		select 
+		<if test="transverse=='01' or transverse=='02' or transverse=='03' or transverse=='04'">
+			a.name dimension 
+		</if>
+		<if test="transverse =='05' ">
+			d.realName dimension 
+		</if>
+		<if test="transverse =='07' ">
+			e.name dimension
+		</if>
+		<if test="transverse =='08' ">
+			c.houseUse dimension 
+		</if>
+		<if test="transverse =='09' ">
+			b.status dimension 
+		</if>
+		<if test="transverse =='10' ">
+			b.sourceType dimension 
+		</if>
+		${cell_sql} 
+		from 
+		demand_customerBusinessInfo b 
+		<if test="transverse=='01' or transverse=='02' or transverse=='03' or transverse=='04' or transverse=='05'">
+			right join sys_dept a on b.permissionArea like concat(a.id,'%') and b.companyId = a.companyId   
+		</if>
+		<if test="transverse =='05' ">
+			right join sys_user d on d.deptId = a.id
+		</if>
+		<if test="longitudinal=='02' or transverse =='07' ">
+			left join sys_area e on e.parentCode =b.cityCodes and find_in_set(e.code,b.areaCodes)       
+		</if>
+		<if test="transverse =='08' ">
+			left join (select replace(substring(substring_index(#{houseUseId},',',id),
+			char_length(substring_index(#{houseUseId},',',id - 1)) + 1),',','') as houseUseId,
+			replace(substring(substring_index(#{houseUse},',',id),
+			char_length(substring_index(#{houseUse},',',id - 1)) + 1),',','') as houseUse
+			from sys_seq  where id &lt;= length(#{houseUseId}) - length(replace(#{houseUseId}, ',', '') )+1)c on find_in_set(c.houseUseId,b.houseUsesIds)
+		</if>
+		where b.isvalid=1 and b.transactionTypeId = 4 and b.isvalid=1 and b.companyId=#{companyId}
+		<if test="deptId!=null and deptId!='' ">
+			and a.id=#{deptId}
+		</if>
+		<if test="beginRecordTime !=null and beginRecordTime !='' ">
+			and b.recordTime &gt;=#{beginRecordTime}
+		</if>
+		<if test="endRecordTime !=null and endRecordTime !='' ">
+			and b.recordTime &lt;=#{endRecordTime}
+		</if>
+		<if test="beginMainterFllowTime !=null and beginMainterFllowTime !='' ">
+			and b.mainterFllowTime &gt;=#{beginMainterFllowTime}
+		</if>
+		<if test="endMainterFllowTime !=null and endMainterFllowTime !='' ">
+			and b.mainterFllowTime &lt;=#{endMainterFllowTime}
+		</if>
+		<if test="transverse=='01'">
+			and a.deptTypeId=2 
+		</if>
+		<if test="transverse=='02'">
+			and a.deptTypeId=3 
+		</if>
+		<if test="transverse=='03'">
+			and a.deptTypeId=4 
+		</if>
+		<if test="transverse=='04'">
+			and a.deptTypeId=5 
+		</if>
+		group by 
+		<if test="transverse=='01' or transverse=='02' or transverse=='03' or transverse=='04'">
+			a.id
+		</if>
+		<if test="transverse=='05'">
+			d.id
+		</if>
+		<if test="transverse =='07' ">
+			e.code 
+		</if>
+		<if test="transverse =='08' ">
+			c.houseUseId  
+		</if>
+		<if test="transverse =='09' ">
+			b.statusId  
+		</if>
+		<if test="transverse =='10' ">
+			b.sourceTypeId  
+		</if>
+	</select>
+	
+</mapper>

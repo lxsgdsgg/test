@@ -1,0 +1,11 @@
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\ExtCloudServiceApi.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\impl\ExtCloudServiceImpl.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogCustomerConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogHouseConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogSystemConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\global\ExtGlobal.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogNewHouseConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogDealConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\LogManageConsumerMq.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\service\mq\RabbitExcute.java
+C:\Users\YNBSJ-003\eclipse-workspace\bashiju-external\bashiju-ext-service\src\main\java\com\bashiju\ext\interceptors\SsoHandlerInterceptor.java

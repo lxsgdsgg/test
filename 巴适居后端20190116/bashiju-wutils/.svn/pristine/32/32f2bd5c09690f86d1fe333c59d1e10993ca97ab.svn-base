@@ -1,0 +1,36 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerPersonCentralPageServiceApi.java   
+ * @Package com.bashiju.wapi.usercentral      
+ * @author: zuoyuntao     
+ * @date:   2018年8月15日 上午11:15:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.wapi.usercentral;
+
+import com.bashiju.www.pojo.service.user.CustCustomerEntity;
+
+/**
+ * 个人中心页面API接口
+ * @ClassName:ICustomerPersonCentralPageServiceApi
+ * @Description:个人中心页面API接口
+ * @author:zuoyuntao
+ * @date:2018年8月15日 上午11:15:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerPersonCentralPageServiceApi {
+	/**
+	 * 获取个人信息 
+	 * @Title: queryPersonalInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取个人信息（包含：关注房源、过户进度、过户房源信息信息、预约统计、足迹统计）
+	 * @param key 用户登陆标记
+	 * @return      
+	 * CustCustomerEntity
+	 */
+	public CustCustomerEntity queryPersonalDetailInfo(String key);
+}

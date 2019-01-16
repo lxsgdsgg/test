@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.DealComprehensiveAnalysisMapper">
+	
+	<select id="queryComprehensiveAnalysisPageDataList" resultType="map">
+		select a.areaCode,a.name as areaName
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			,b.name deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;= 5 ">
+			,b.realName deptName
+		</if>
+		,count(distinct case when c.isValid=1 and c.dealType='00' then c.id end) as dealBussinessCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='00' then c.price/100 end),2) as dealContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='00' then d.actualProfit/100 end),2) as dealBussinessConmmision,
+		sum(distinct case when e.isValid=1 and c.dealType='00' then e.amount/100 end) as dealBussinessActualConmmision,
+		sum(distinct case when c.isValid=1 and c.dealType='00' then (d.actualProfit - e.amount)/100 end) as dealBussinessUnreceiveConmmision,
+
+		count(distinct case when c.isValid=1 and c.dealType='01' then c.id end) as dealRentCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='01' then c.price/100 end),2) as dealRentContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='01' then d.actualProfit/100 end),2) as dealRentCommision,
+		sum(distinct case when c.isValid=1 and c.dealType='01' then e.amount/100 end) as dealRentActualCommision,
+		sum(distinct case when c.isValid=1 and c.dealType='01' then (d.actualProfit - e.amount)/100 end) as dealRentUnreceiveCommision,
+
+		count(distinct case when c.isValid=1 and c.dealType='02' then c.id end) as dealOneHandCnt,
+		truncate(sum(distinct case when c.isValid=1 and c.dealType='02' then c.price/100 end),2) as dealOneHandContractValue,
+		truncate(sum(distinct case when d.isValid=1 and c.dealType='02' then d.actualProfit/100 end),2) as dealOneHandCommision,
+		sum(distinct case when c.isValid=1 and c.dealType='02' then e.amount/100 end) as dealOneHandActualCommision,
+		sum(distinct case when c.isValid=1 and c.dealType='02' then (d.actualProfit - e.amount)/100 end) as dealOneHandUnreceiveCommision
+		from sys_dept a 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			right join sys_dept b on a.id = b.parentId and b.isvalid=1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			right join sys_user b on a.id = b.deptId and b.isvalid=1
+		</if>
+		
+		inner join deal_transactioninfo c on
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			c.permissionArea like concat(b.id,'%') 
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			c.operatorId=b.id and c.isValid = 1
+		</if>
+		
+		left join deal_divideninfo d on c.id = d.dealId and d.isValid = 1
+		left join finance_employeecommissions e on 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			e.permissionArea like concat(b.id,'%') and e.isValid = 1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			e.userId = b.id and e.isValid = 1
+		</if>
+		where a.isvalid=1 and c.dealTime &gt;=#{beginDate} and c.dealTime &lt;= #{endDate}
+		and a.companyId = #{companyId} 
+		and a.deptTypeId= #{deptTypeId}
+		
+		<!-- 1:有效 -->
+		<if test="contractStatus !=null and contractStatus !='' and contractStatus == 1 ">
+			and c.isValid = 1
+		</if>
+		
+		<!-- 违约 -->
+		<if test="contractStatus !=null and contractStatus !='' and contractStatus == 2  ">
+			and c.isBreach = 1
+		</if>
+		
+		<!-- 结案 -->
+		<if test="contractStatus !=null and contractStatus !='' and contractStatus == 3  ">
+			and c.isFinishCase = 1
+		</if>
+		
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		group by a.id order by a.id
+	</select>
+	
+</mapper>

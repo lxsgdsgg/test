@@ -1,0 +1,130 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/src/manage-platform/css/AreaSelect.css" media="all">
+<body>
+<div class="layui-container">
+	<form class="layui-form"  id="Form" style="margin-top: 20px;">
+	
+			    <div class="layui-form-item"  id="area_select">
+				    <label class="layui-form-label"><span style="color:red;">*</span>所属城市</label>
+				    <div class="layui-input-inline">
+				     	<input type="text" id="cityName" lay-verify="required"  class="layui-input" placeholder="请选择">
+					</div>
+					<!--提交的区域代码  -->
+					 <input name="cityCode" type="hidden" id="cityCode">
+	 	  		</div>
+	
+	  <div class="layui-form-item">
+	  	   <label class="layui-form-label"><span style="color:red;">*</span>等级</label>
+		    <div class="layui-input-inline">
+					<select  name="level"  id = "level" lay-filter="level_select">
+			    		<c:forEach var="level" items="${level}">
+			    			<option value="${level.name}">${level.value}</option>
+			    		</c:forEach>
+			    	</select>
+		    </div>
+	  </div>
+	    <div class="layui-form-item">
+		    <label class="layui-form-label"><span style="color:red;">*</span>类别名称</label>
+		    <div class="layui-input-inline">
+		         <input type="text" name="name" required lay-verify="required" placeholder="名称"  autocomplete="off" class="layui-input"  onchange="query.queryMobile(this.value)">
+   		    	 <div style="color:red;" id="ValidateMsg"></div>
+		    </div>
+	  </div>
+  	  <div class="layui-form-item">
+		    <label class="layui-form-label">上级类别</label>
+		    <div class="layui-input-inline">
+		        <select name="parentId" id="parentId">
+		        
+			    </select>
+		    </div>
+	  </div>
+	    
+	  <div class="layui-form-item">
+		    <label class="layui-form-label">类型</label>
+		    <div class="layui-input-inline">
+		    	<select id="type" name="type">
+			    		<option value="0">房产百科</option>
+			    		<option value="1">房产资讯</option>
+			    </select>
+		    </div>
+	  </div>
+	  <div class="layui-form-item">
+	    <div class="layui-input-block">
+	      <button class="layui-btn" lay-submit lay-filter="housePropertyArticleClassesAdd">立即提交</button>
+	      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+	    </div>
+	  </div>
+	</form>
+</div>
+<%@include file="/common/common.jsp" %>
+<script type="text/javascript" charset="utf-8" src="${request.getContextPath()}/src/manage-platform/js/AreaSelect.js"></script> 
+<script type="text/javascript">
+var areaList=JSON.parse('${areaList}');
+var a= new AreaObject(areaList,selectArea,2,$("#area_select"));
+function selectArea(code,name){
+		$("#cityName").val(name);
+		$("#cityCode").val(code);
+}
+layui.use('form', function(){
+	  var form = layui.form;
+	  var $ = layui.$ //重点处
+	  ,layer = layui.layer;
+	  //监听提交
+	  form.on('submit(housePropertyArticleClassesAdd)', function(data){
+// 		  alert(JSON.stringify(data.field))
+//   		  return false;
+		  var parentId=  $("#parentId").val();
+		  if(parentId==null)
+			  data.field.parentId=0
+	    $.ajax({
+	    	type:"post",
+	    	url:"saveHousePropertyArticleClasses",
+	    	dataType:"json",
+	    	data:{jsonData:JSON.stringify(data.field)},
+	    	success:function(data){
+	    		if(data.success){
+	    			layer.alert(data.msg,function(){
+	    				parent.location.reload();
+		     			parent.layer.closeAll();
+	     			});
+	    		}else{
+	    			layer.alert(data.msg);
+	    		}
+	    	},
+	    	error:function(a,b,c){
+	    		layer.alert("操作异常，请稍后重试");
+	    	}
+	    });
+	    return false;
+	  })
+	  	//选着等级时触发上级类别下拉框
+	   	form.on('select(level_select)', function(data){
+	   		if(data.value!=1){
+	   			var value = data.value-1//当前等级减一 ，3  3-1=2
+	   			var level = ${LEVEL};//等级
+		   		var parentLevel_select = "";
+		   		for(var i=1;i<=value;i++){
+	   					parentLevel_select+='<option value="'+i+'">'+level[i]+'</option>';
+		   		}
+	   		}else{//等級為一的是時候
+	   			parentLevel_select="";
+	   		}
+	   		$("#parentId").html(parentLevel_select);
+			form.render('select');//渲染
+		}); 
+	});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+// 数据模拟
+import {request} from '../request/main'
+import Adapter from 'axios-mock-adapter'
+import * as mockData from './data'
+
+export default {
+  init () {
+    // 创建Adapter 实例
+    const mock = new Adapter(request, { delayResponse: 100 })
+
+    // 模拟获取菜单
+    mock.onGet(/getMenuData/).reply(() => {
+      return new Promise((resolve) => {
+        resolve([200, {code: 0, msg: 'success', data: mockData.menuData}])
+      })
+    })
+
+    mock.onAny().passThrough()
+  }
+}

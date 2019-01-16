@@ -1,0 +1,173 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FileTypeEnum.java   
+ * @Package com.bashiju.enums      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 下午5:48:21   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.enums;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * 日志操作类型 枚举类
+ * @ClassName:LogOperateTypeEnum
+ * @Description:文件类型 枚举类
+ * @author:wangkaifa
+ * @date:2018年8月7日 下午5:48:21
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public enum LogHouseOperateTypeEnum {
+	/**ADD_PHONE("1","新增电话")**/
+	ADD_PHONE("1","新增电话"),
+	/**ADD_PICTURE("2","新增照片")**/
+	ADD_PICTURE("2","新增照片"),
+	/**ADD_HOUSE("3","新增")**/
+	ADD_HOUSE("3","新增"),
+	/**UPDATE_HOUSE("4","修改")**/
+	UPDATE_HOUSE("4","修改"),
+	/**DEL_HOUSE("5","房源删除")**/
+	DEL_HOUSE("5","房源删除"),
+	/**DEPOSIT("6","下定")**/
+	DEPOSIT("6","下定"),
+	/**DEAL("7","成交")**/
+	DEAL("7","成交"),
+	/**UPDATE_STATUS("8","修改状态")**/
+	UPDATE_STATUS("8","修改状态"),
+	/**EXAMINE_UPDATE_STATUS("9","处理修改状态")**/
+	EXAMINE_UPDATE_STATUS("9","处理修改状态"),
+	/**OPENPLATE("10","开盘")**/
+	OPENPLATE("10","开盘"),
+	/**SET_PERSONAL("11","设置私盘")**/
+	SET_PERSONAL("11","设置私盘"),
+	/**CLOSEDISC("12","封盘")**/
+	CLOSEDISC("12","封盘"),
+	/**TIPOFF("13","举报")**/
+	TIPOFF("13","举报"),
+	/**MAINER_TRANSFER("14","信息转移")**/
+	MAINER_TRANSFER("14","信息转移"),
+	/**MAINER_CHANGE("15","变更维护人")**/
+	MAINER_CHANGE("15","变更维护人"),
+	/**UPDATE_DESCRIBE("16","修改房源描述")**/
+	UPDATE_DESCRIBE("16","修改房源描述"),
+	/**DEL_PICTURE("17","删除图片")**/
+	DEL_PICTURE("17","删除图片"),
+	/**ENTRUST_CHANGE("18","变更委托")**/
+	ENTRUST_CHANGE("18","变更委托"),
+	/**OWER_CHANGE("19","变更业主")**/
+	OWER_CHANGE("19","变更业主"),
+	/**SET_PUBLICK("20","设置公盘")**/
+	SET_PUBLICK("20","设置公盘"),
+	/**ADD_KEY("21","新增钥匙")**/
+	ADD_KEY("21","新增钥匙"),
+	/**RETURN_KEY("22","钥匙退还")**/
+	RETURN_KEY("22","钥匙退还"),
+	/**DEL_PHONE("23","删除电话")**/
+	DEL_PHONE("23","删除电话"),
+	/**TAOBAO("24","淘宝")**/
+	TAOBAO("24","淘宝"),
+	/**KEEP_KEY("25","钥匙封存")**/
+	KEEP_KEY("25","钥匙封存"),
+	/**UPDATE_PHONE("26","修改电话")**/
+	UPDATE_PHONE("26","修改电话"),
+	/**CANCEL_ORDER("27","通知撤单")**/
+	CANCEL_ORDER("27","通知撤单"),
+	/**ADD_RELEVANT_PICTURE("28","新增相关照片")**/
+	ADD_RELEVANT_PICTURE("28","新增相关照片"),
+	/**EXPIRATION_EXECUTION("29","到期执行")**/
+	EXPIRATION_EXECUTION("29","到期执行"),
+	/**TIMING_EXECUTION("30","定时执行")**/
+	TIMING_EXECUTION("30","定时执行"),
+	/**DEL_FOLLOW("31","删除跟进")**/
+	DEL_FOLLOW("31","删除跟进"),
+	/**UPDATE_VRURL("32","修改VR看房地址")**/
+	UPDATE_VRURL("32","修改VR看房地址"),
+	/**UPLOAD_VIDEO("33","上传视频")**/
+	UPLOAD_VIDEO("33","上传视频"),
+	/**SET_UNIQUE("34","设置独家")**/
+	SET_UNIQUE("34","设置独家"),
+	/**SET_PICTURE_PEOPLE("35","设置图片人")**/
+	SET_PICTURE_PEOPLE("35","设置图片人"),
+	/**ADD_FEEDBACK("36","写带看反馈")**/
+	ADD_FEEDBACK("36","写带看反馈");
+	
+	/**
+	 * 编码
+	 */
+	private String code;
+	/**
+	 * 描述
+	 */
+	private String desc;
+	/**
+	 * 枚举map对象
+	 */
+	public static Map<String , String> enumMap;
+	/**
+	 * 枚举list对象
+	 */
+	public static List<Map<String , String>> enumList;
+	/**
+	 * @Title:  TransferProcessEnum   
+	 * @Description: 构造器（外部塞入枚举值）  
+	 * @param:  @param code
+	 * @param:  @param desc  
+	 * @throws
+	 */
+	LogHouseOperateTypeEnum(String code,String desc){
+		this.code = code;
+		this.desc = desc;
+	}
+	
+	static {
+        enumMap = new TreeMap<String, String>();
+        
+        enumList=new ArrayList<>();
+        
+        for (LogHouseOperateTypeEnum item : LogHouseOperateTypeEnum.values()) {
+        	//将枚举值放入Map对象中
+            enumMap.put(item.getCode(), item.getDesc());
+            
+            Map<String,String> map = new HashMap<String,String>();
+            
+            map.put("value", item.getCode());
+            map.put("name", item.getDesc());
+            //将枚举值放入List集合中
+            enumList.add(map);
+        }
+    }
+	 /**
+     * 枚举转换
+     */
+    public static LogHouseOperateTypeEnum parseOf(String value){
+        for(LogHouseOperateTypeEnum item : values())
+            if(item.getCode().equals(value))
+                return item;
+        
+        throw new IllegalArgumentException("异常错误代码["+value+"]不匹配!");
+    }
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+}

@@ -1,0 +1,334 @@
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.pc.BulidTypeEnum;
+import com.bashiju.enums.pc.CommunityUseTypeEnum;
+import com.bashiju.enums.pc.HouseTypeEnum;
+import com.bashiju.manage.pojo.controller.CommunityEntity;
+import com.bashiju.manage.pojo.controller.CommunityQueryEntity;
+import com.bashiju.manage.service.FormService;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  CommunityController   
+ * @Description:TODO(小区管理)   
+ * @author: wangkaifa
+ * @date:   2018年4月20日 下午2:57:27   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping("community")
+public class CommunityController extends BaseController{
+	@Autowired	
+	private ICommunityService communityService;
+	@Autowired
+	FormService formService;
+	/**
+	 * 具体的跳转逻辑
+	 * @param pageName
+	 * @return 视图
+	 */
+	@RequestMapping(value="{pageName}",method=RequestMethod.GET)
+	public ModelAndView toPage(@PathVariable("pageName") String pageName,HttpServletRequest request,HttpServletResponse response)
+	{
+		ModelAndView mv = getModelAndView(request, response, "/community/"+pageName);
+		return mv;
+	}
+	
+	@RequestMapping(value="list",method=RequestMethod.GET)
+	public ModelAndView showList(HttpServletRequest request,HttpServletResponse response)
+	{
+		ModelAndView mv = getModelAndView(request, response, "/community/list");
+		List<Map<String, Object>> list = communityService.queryAreaSelect();
+		//mv.addObject("areaList", list);
+		mv.addObject("areaListJson", JSON.toJSONString(list));
+		return mv;
+	}
+	
+	@RequestMapping(value="detail")
+	public String showDetail(Long id,Model model)
+	{
+		Map<String, Object> map = communityService.queryCommunityById(id);
+		model.addAttribute("community",JSON.toJSONString(map));
+		model.addAttribute("houseUses",CommunityUseTypeEnum.enumList);
+		return "/community/detail";
+	}
+	/**
+	 * 
+		 * 小区详细信息
+		 * @Description:小区详细信息
+		 * @param id 小区id
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryCommunityDetail")
+	@ResponseBody
+	public BashijuResult queryCommunityDetail(Long id) {
+		Map<String, Object> map = communityService.queryCommunityById(id);
+		return BashijuResult.ok(map);
+	}
+	/**
+	 * 
+		 * 查询小区建筑类型、建筑结构、物业类型下拉
+		 * @Description: 查询小区建筑类型、建筑结构、物业类型下拉 
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryCommunitySelectProperty")
+	@ResponseBody
+	public BashijuResult queryCommunitySelectProperty() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("houseUses", CommunityUseTypeEnum.enumList);//物业类型
+		map.put("bulidTypes", BulidTypeEnum.enumList);//建筑结构
+		map.put("HouseTypes", HouseTypeEnum.enumList);//建筑类型
+		return BashijuResult.ok(map);
+	}
+	/**
+	 * 
+		 * 查询小区图片类型
+		 * @Description: 查询小区图片类型
+		 * @return 
+		 * {"success":true,"msg":"操作成功","data":[{"fieldCode":"","sorting":1,"id":311,"fieldValue":"小区实景图"},
+		 * {"fieldCode":"","sorting":2,"id":312,"fieldValue":"摆位图"},
+		 * {"fieldCode":"","sorting":3,"id":313,"fieldValue":"外立面"},
+		 * {"fieldCode":"","sorting":4,"id":314,"fieldValue":"样板间"},
+		 * {"fieldCode":"","sorting":5,"id":315,"fieldValue":"小区效果图"},
+		 * {"fieldCode":"","sorting":6,"id":316,"fieldValue":"区位规划"}]}
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryCommunityPicTypes")
+	@ResponseBody
+	public BashijuResult queryCommunityPicTypes() {
+		List list = formService.querySelectValue("one","commPicType");
+		return BashijuResult.ok(list);
+	}
+	/**
+	 * 
+		 * 查询片城市、区域、区列表
+		 * @Description: 查询片城市、区域、区列表
+		 * @return [{code:530100 ,name:昆明市,parentCode:""}]
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryRegionList")
+	@ResponseBody
+	public BashijuResult queryRegionList() {
+		List<Map<String, Object>> map = communityService.queryRegionList();
+		return BashijuResult.ok(map);
+	}
+	/**
+	 * 
+	 * @Title: add   
+	 * @Description: TODO(添加小区)   
+	 * @param: @param community
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws
+	 */
+	@RequestMapping(value="add")
+	@ResponseBody
+	public BashijuResult add(CommunityEntity community) {
+		if (community!=null&&StringUtils.isNotEmpty(community.getName())
+				&&StringUtils.isNotEmpty(community.getAreaCode())&&community.getRegionId()!=null) {
+			if (community.getIsHot()==null) {
+				community.setIsHot(0);
+			}
+			if (community.getId()!=null&&community.getId()>0) {
+				String json=JSON.toJSONString(community);
+				Map<String,Object> map=JSON.parseObject(json, Map.class);
+				communityService.updateCommunity(map);
+			}else {
+				communityService.addCommunity(community.getName(),community.getRecordName(),community.getPinyin(), community.getAreaCode(), community.getRegionId(),
+						community.getAddress(), community.getSalePrice(), community.getIsHot());
+			}
+			
+			return BashijuResult.ok();
+		}
+		throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+				
+	}
+	/**
+	 * 
+		 * 根据id删除小区
+		 * @Description: 根据id删除小区
+		 * @param id 小区id
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="deleteInfo")
+	@ResponseBody
+	public BashijuResult delete(long id) {
+		communityService.delete(id);
+		return BashijuResult.ok();
+	}
+	/**
+	 * @throws Exception 
+	 * 
+	 * @Title: searchCommunityList   
+	 * @Description: TODO(查询小区列表)   
+	 * @param: @param query
+	 * @param: @param page
+	 * @param: @param limit
+	 * @param: @return      
+	 * @return: Map<String,Object>      
+	 * @throws
+	 */
+	@RequestMapping(value="searchCommunityList")
+	@ResponseBody
+	public Map<String,Object> searchCommunityList(CommunityQueryEntity query,int page,int limit) throws Exception{
+		Page<Map<String, Object>> pageInfo = communityService.queryCommunityList(query, page, limit);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	
+	@RequestMapping(value="searchCommunityListDemo")
+	@ResponseBody
+	public Map<String,Object> searchCommunityListDemo(String name,int start,int length,int draw) throws Exception{
+		int page=1;
+		if (start>0) {
+			start++;
+			page=start/length;
+			if (page>0&&(start%length)>0) {
+				page++;
+			}
+		}
+		CommunityQueryEntity query=new CommunityQueryEntity();
+		query.setPinyin(name);
+		query.setRegionId(null);
+		Page<Map<String, Object>> pageInfo = communityService.queryCommunityList(query, page, length);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("recordsTotal", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("draw", draw);
+		map.put("recordsFiltered", pageInfo.getTotal());
+		return map;
+	}
+	@RequestMapping(value="getRegionList")
+	@ResponseBody
+	public BashijuResult getRegionList(String code){
+		List<Map<String, Object>> list = communityService.queryRegionSelect(code);
+		
+		return BashijuResult.build(true, "success", list);
+	}
+	
+	@RequestMapping(value="update")
+	@ResponseBody
+	public BashijuResult update(String pinyin,Long id){
+		if (pinyin==null) {
+			pinyin="";
+		}
+		Map<String,Object> map=new HashMap<>();
+		map.put("pinyin", pinyin);
+		map.put("id", id);
+		communityService.updateCommunity(map);
+		
+		return BashijuResult.ok();
+	}
+	
+	@RequestMapping(value="updateDetail")
+	@ResponseBody
+	public BashijuResult updateDetail(String dataJson){
+		if (StringUtils.isNotEmpty(dataJson)) {
+			Map<String,Object> map = JSON.parseObject(dataJson, Map.class);
+			communityService.updateCommunity(map);
+			return BashijuResult.ok();
+		}
+			
+		throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);
+	}
+	
+	/**
+	 * 
+	 * @Title: uploadFile （小区图片上传）  
+	 * @Description: TODO(上传小区的一些图片)   
+	 * @param: @param request（服务端上传文件用到，里面包含参数：(图片类型ID:pictureType,图片类型名称：pictureTypeName)是个动态下拉，上传类型：attachType（1为图片，2为视频），小区ID:communityId）
+	 * @param: @return res (服务返回一个Long型,0为异常，>0为正常)     
+	 * @return: BashijuResult (返回执行情况)     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="uploadImage")
+	@ResponseBody
+	public BashijuResult uploadImage(HttpServletRequest request) {
+			Long res = communityService.saveImage(request);
+			if(res>0) {
+				return BashijuResult.ok();
+			}else {
+				throw new BusinessException("上传错误");
+			}
+	}
+	
+	/**
+	 * 
+	 * @Title: getFile  (获取小区图片) 
+	 * @Description: TODO(查询小区图片)   
+	 * @param: @param attachType（请求传来的参数1：附件类型（图片：1，视频：2））
+	 * @param: @param communityId（请求传来的参数2：小区id）
+	 * @param: @return imgs（服务返回符合条件的文件信息集合）     
+	 * @return: BashijuResult （返回信息集合）     
+	 * @throws liwen
+	 */
+	@RequestMapping(value="showImage")
+	@ResponseBody
+	private BashijuResult getImage(String attachType,int communityId){
+		List imgs = communityService.queryImage(communityId,attachType);
+		return BashijuResult.ok(imgs);
+	}
+	
+	@RequestMapping(value="updateImage")
+	@ResponseBody
+	private BashijuResult updateImage(@RequestBody Map<String,Object> data){
+		Long imgs = communityService.updateImage(data);
+		return BashijuResult.ok(imgs);
+	}
+	//作废
+	@RequestMapping(value="showImageList")
+	@ResponseBody
+	public BashijuResult showImageList(Long communityId) {
+		List<Map<String, Object>> list=communityService.queryImageList(communityId);
+		return BashijuResult.ok(list);
+	}
+	/**
+	 * 
+	 * @Title: deleteImage   
+	 * @Description: TODO(删除小区图片)   
+	 * @param: @param id
+	 * @param: @return      
+	 * @return: BashijuResult      
+	 * @throws liwen
+	 */
+	@RequestMapping(value="deleteImage")
+	@ResponseBody
+	public BashijuResult deleteImage(String ids) {
+		communityService.deleteImage(ids);
+		return BashijuResult.ok();
+	}
+}

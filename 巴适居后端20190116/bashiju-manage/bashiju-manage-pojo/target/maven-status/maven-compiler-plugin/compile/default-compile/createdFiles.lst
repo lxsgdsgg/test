@@ -1,0 +1,16 @@
+com\bashiju\manage\pojo\DynamicformTableField.class
+com\bashiju\manage\pojo\DecisionConfigurateTypeEnum.class
+com\bashiju\manage\pojo\LegdoctypeEnum.class
+com\bashiju\manage\ExportModelBean\TempCommunity.class
+com\bashiju\manage\pojo\DynamicformCompany.class
+com\bashiju\manage\pojo\DeptTypeLevelEnum.class
+com\bashiju\manage\pojo\controller\CommunityQueryEntity.class
+com\bashiju\manage\pojo\ElementUiResult.class
+com\bashiju\manage\pojo\controller\CommunityEntity.class
+com\bashiju\manage\pojo\DoctypeEnum.class
+com\bashiju\manage\pojo\BeanAnnotation.class
+com\bashiju\manage\pojo\BeanValidation.class
+com\bashiju\manage\pojo\DynamicformTableDynamicfield.class
+com\bashiju\manage\pojo\DictionaryContent.class
+com\bashiju\manage\pojo\DynamicformTableRecord.class
+com\bashiju\manage\pojo\FieldReg.class

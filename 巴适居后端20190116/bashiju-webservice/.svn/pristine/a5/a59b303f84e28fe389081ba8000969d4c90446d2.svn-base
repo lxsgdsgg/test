@@ -1,0 +1,405 @@
+package com.bashiju.www.service.comm.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.bashiju.enums.BottomContentEnum;
+import com.bashiju.enums.HouseArticleTypeEnum;
+import com.bashiju.enums.HousePropertyArticleClasses;
+import com.bashiju.enums.LabelTypeEnum;
+import com.bashiju.enums.pc.ConditionTypeEnum;
+import com.bashiju.webservice.mapper.CommMapper;
+import com.bashiju.webservice.mapper.HouseMapper;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.redis.ICacheService;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.pojo.comm.HouseTypeEnum;
+import com.bashiju.www.pojo.comm.QueryCondition;
+import com.bashiju.www.pojo.comm.QueryCondition.QueryConditionDetail;
+import com.bashiju.www.pojo.service.agent.Agent;
+import com.bashiju.www.pojo.service.input.comm.FeedbackParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.out.comm.BusinessRateResult;
+import com.bashiju.www.pojo.service.out.comm.ContactUsResult;
+import com.bashiju.www.pojo.service.out.comm.DeedTaxResult;
+import com.bashiju.www.pojo.service.out.comm.HousePropertyResult;
+import com.bashiju.www.pojo.service.out.comm.LabelResult;
+import com.bashiju.www.pojo.service.out.comm.LoanRateItem;
+import com.bashiju.www.pojo.service.out.comm.LoanRateResult;
+import com.bashiju.www.pojo.service.out.comm.NavigationBar;
+import com.bashiju.www.pojo.service.out.comm.ThemeResult;
+import com.bashiju.www.pojo.service.out.comm.WebMapList;
+import com.bashiju.www.pojo.service.out.comm.WebMapOnelevelType;
+import com.bashiju.www.pojo.service.out.comm.WebMapSecondlevelType;
+import com.bashiju.www.pojo.service.out.comm.WebProtocolResult;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.navigationbar.NavigationBarService;
+/**
+ * 
+ *   公共服务类
+ * @ClassName:  CommServiceImpl   
+ * @Description:  公共服务类
+ * @author: wangkaifa
+ * @date:   2018年7月27日 下午4:33:35       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CommServiceImpl implements ICommService {
+	@Autowired
+	CommMapper commMapper;
+	@Autowired
+	NavigationBarService navigationBarService;
+	@Autowired
+	ICacheService cacheService;
+	@Autowired
+	HouseMapper houseMapper;
+	
+	@Override
+	public boolean addAttention(int custId, String sourceId, int type) {
+		int res = commMapper.saveAttention(custId,sourceId,type);
+		if (HouseTypeEnum.SECONDHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.addAttentionCount(houseId);
+			commMapper.addSellAttentionCount(houseId);
+		}
+		if (HouseTypeEnum.RENTHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.addAttentionCount(houseId);
+			commMapper.addRentAttentionCount(houseId);
+		}
+		if (HouseTypeEnum.NEWHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.addNewHouseAttentionCount(houseId);
+			commMapper.addNewHouseQueryAttentionCount(houseId);
+		}
+		if(res==1) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean cancelAttention(int custId, String sourceId, int type) {
+		boolean res = commMapper.delAttention(custId, sourceId, type);
+		if (HouseTypeEnum.SECONDHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.minusAttentionCount(houseId);
+			commMapper.minusSellAttentionCount(houseId);
+		}
+		if (HouseTypeEnum.RENTHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.minusAttentionCount(houseId);
+			commMapper.minusRentAttentionCount(houseId);
+		}
+		if (HouseTypeEnum.NEWHOUSE.getCode().equals(type+"")) {
+			long houseId=Long.parseLong(sourceId);
+			commMapper.minusNewHouseAttentionCount(houseId);
+			commMapper.minusNewHouseQueryAttentionCount(houseId);
+		}
+		return res;
+	}
+
+	@Override
+	public boolean isAttention(int custId, String sourceId, int type) {
+		int res = commMapper.isAttention(custId, sourceId, type);
+		if(res>0) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean addFeedback(FeedbackParam param) {
+		int res = commMapper.addFeedback(param);
+		if(res==1) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean addHouseTipOff(HouseTipOffParam param) {
+		int res = houseMapper.saveHouseTipOff(param);
+		if(res==1) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	 * @Description:根据小区编号查询出小区中最优的4个经纪人  
+	 * @param communityCode 小区编号    
+	 * @return: List<Agent>
+	 * @see com.bashiju.www.service.comm.ICommService#queryCommunityBestAgent(java.lang.String)   
+	 */
+	@Override
+	public List<Agent> queryCommunityBestAgent(String communityCode) {
+		if(StringUtils.isEmpty(communityCode))
+			throw new BusinessException("小区编号不允许为空");
+		return this.commMapper.queryCommunityBestAgent(communityCode);
+	}
+
+	@Override
+	public WebProtocolResult queryWebProtocol(BottomContentEnum bottomContentEnum) {
+		WebProtocolResult info = null;	
+		List<WebProtocolResult> infoList = commMapper.queryWebProtocol(Integer.parseInt(bottomContentEnum.getCode()));
+		if(infoList.size()>0) {
+			info = infoList.get(0);
+		}
+			
+		return info;
+	}
+
+	@Override
+	public List<ContactUsResult> queryContactUs() {
+		String key = WebGlobal.CONTACTUS;
+		String res = cacheService.getCache(key);
+		List<ContactUsResult> resList = null;
+		if(StringUtils.isEmpty(res)) {
+			resList = commMapper.queryContactUs();
+			cacheService.saveCache(key, resList, WebGlobal.OTHER_EXPTIME);
+		}else {
+			resList = JSON.parseArray(res,ContactUsResult.class);
+		}
+		return resList;
+	}
+	
+	@Override
+	public List<WebMapList> queryWebMap(String cityCode) {
+		String key = WebGlobal.WEBMAP_INFO_REDIS_PREFIX+cityCode;
+		String WebMapStr = cacheService.getCache(key);
+		List<WebMapList> webMapList = new ArrayList<>();
+		WebMapStr=null;
+		if(StringUtils.isEmpty(WebMapStr)) {
+			List<WebMapOnelevelType> onelevelType = commMapper.queryAreas(cityCode);
+			List<WebMapSecondlevelType> secondlevelType = commMapper.queryRegions(cityCode); 
+			//资讯
+			List<WebMapOnelevelType> articleOnelevelType1 = commMapper.queryArticleOneTypes(cityCode,HouseArticleTypeEnum.PROPERTYINFORMATION.getCode(),HousePropertyArticleClasses.Level1.getCode());
+			//List<WebMapSecondlevelType> articleSecondlevelType1 = commMapper.queryArticleLastTypes(cityCode,HouseArticleTypeEnum.PROPERTYINFORMATION.getCode(),HousePropertyArticleClasses.Level2.getCode());
+			//百科
+			List<WebMapOnelevelType> articleOnelevelType2 = commMapper.queryArticleOneTypes(cityCode,HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode(),HousePropertyArticleClasses.Level1.getCode());
+			List<WebMapSecondlevelType> articleSecondlevelType2 = commMapper.queryArticleLastTypes(cityCode,HouseArticleTypeEnum.PROPERTYENCYCLOPEDIA.getCode(),HousePropertyArticleClasses.Level3.getCode());
+			
+			List<NavigationBar> navigationBar = navigationBarService.queryHeadNavigationBar(cityCode);
+			for(NavigationBar nav : navigationBar) {
+				int navigateCode = nav.getId();
+				if(StringUtils.isEmpty(nav.getUrl().trim()) || "index".equals(nav.getCode())||navigateCode==WebGlobal.PROPERTYRENT) {
+					continue;
+				}
+				String name = nav.getName();
+				String url = nav.getUrl();
+				WebMapList webMap = new WebMapList();
+				if(navigateCode==WebGlobal.PROPERTYENCYCLOPEDIA) {//百科
+					webMap.setUrl(url);
+					webMap.setName(name);
+					webMap.setOnelevelType(articleOnelevelType2);
+					webMap.setSecondlevelType(articleSecondlevelType2);
+					webMapList.add(webMap);
+				}else if(navigateCode==WebGlobal.PROPERTYINFORMATION) {//资讯
+					webMap.setUrl(url);
+					webMap.setName(name);
+					webMap.setOnelevelType(articleOnelevelType1); 
+					webMap.setSecondlevelType(null);//资讯只有一级类
+					webMapList.add(webMap);
+				}else {
+					webMap.setUrl(url);
+					webMap.setName(name);
+					webMap.setOnelevelType(onelevelType);
+					webMap.setSecondlevelType(secondlevelType);
+					webMapList.add(webMap);
+				}
+			}
+			
+			cacheService.saveCache(key, webMapList,WebGlobal.OTHER_EXPTIME);
+		}else {
+			webMapList = JSON.parseArray(WebMapStr, WebMapList.class);
+		}
+		
+		return webMapList;
+	}
+
+	@Override
+	public List<LabelResult> queryLabel(LabelTypeEnum labelTypeEnum){
+		
+		List<LabelResult> res = commMapper.queryLabel(labelTypeEnum.getCode());
+		return res;
+	}
+
+	/**
+	 * 查询条件列表 
+	 * @Description: 查询条件列表    
+	 * @param cityCode 城市代码
+	 * @param conditionType 条件类型
+	 * @return: List<QueryCondition>
+	 * @see com.bashiju.www.service.comm.ICommService#queryQueryConditions(java.lang.String, java.lang.String)   
+	 */
+	@Override
+	public List<QueryCondition> queryQueryConditions(String cityCode, ConditionTypeEnum conditionType) {
+		if(StringUtils.isEmpty(cityCode))
+			throw new BusinessException("城市代码不允许为空");
+		String key = Md5EncryptUtils.md5Encrypt("queryQueryConditions"+cityCode+conditionType.getCode());//这里的主键因为可能存在重复，所以加了个前缀
+		String jsonData = cacheService.getCache(key);
+		List<Map<String, String>> list = new ArrayList<Map<String,String>>(0);
+		if(!StringUtils.isEmpty(jsonData)) {
+			list = JSON.parseObject(jsonData, new TypeReference<List<Map<String,String>>>(){});
+		}else {
+			list = commMapper.queryQueryConditions(cityCode,conditionType.getCode());
+			if(list!=null && list.size()>0)
+				cacheService.saveCache(key, list, WebGlobal.LIST_EXPTIME);
+		}
+		List<QueryCondition> conditions = new ArrayList<QueryCondition>(0);
+		for(Map<String,String> map : list) {
+			if(!StringUtils.isEmpty(map.get("valueCodes"))) {
+				QueryCondition qc = new QueryCondition();
+				qc.setConditionCode(map.get("conditionCode"));
+				qc.setConditionName(map.get("conditionName"));
+				String str[] = map.get("valueCodes").split(",");
+				List<QueryConditionDetail> datas = new ArrayList<QueryConditionDetail>(0);
+				for(int i=0;i<str.length;i++) {
+					QueryConditionDetail data = new QueryCondition().new QueryConditionDetail();
+					data.setCode(str[i]);
+					data.setName(map.get("valueNames").split(",")[i]);
+					datas.add(data);
+				}
+				qc.setDatas(datas);
+				conditions.add(qc);
+			}
+		}
+		return conditions;
+	}
+
+	@Override
+	public List<ThemeResult> queryThemes(String cityCode,ConditionTypeEnum type) {
+		if (StringUtils.isEmpty(cityCode)) {
+			return null;
+		}
+		String key="queryThemes"+type.getCode();
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String jsonRedis=cacheService.getCache(key);
+		if (StringUtils.isEmpty(jsonRedis)) {
+			List<Map<String, Object>> list=commMapper.queryThemeList(cityCode, Integer.parseInt(type.getCode()));
+			List<ThemeResult> results=new ArrayList<>();
+			for (Map<String, Object> map : list) {
+				ThemeResult item=new ThemeResult();
+				item.setCode(Integer.parseInt(map.get("code").toString()));
+				item.setCoverUrl(map.get("coverUrl").toString());
+				item.setSummary(map.get("summary").toString());
+				item.setTitle(map.get("title").toString());
+				List<QueryCondition> conditionData=JSON.parseArray(map.get("conditionData").toString(), QueryCondition.class);
+				item.setConditionData(conditionData);
+				results.add(item);
+			}
+			cacheService.saveCache(key, results, WebGlobal.LIST_EXPTIME);
+			return results;
+		}
+		List<ThemeResult> result=JSON.parseArray(jsonRedis, ThemeResult.class);
+		return result;
+		
+	}
+
+	@Override
+	public LoanRateResult queryLoanRate(String cityCode) {
+		LoanRateResult result=new LoanRateResult();
+		String businessRate="[";
+		businessRate+="{\"value\":\"4.9\",\"name\":\"最新基准利率 4.9\"}";
+/*		businessRate+="{\"value\":\"5.15\",\"name\":\"15/08/26基准利率 5.15%\"},";
+		businessRate+="{\"value\":\"5.4\",\"name\":\"15/06/28基准利率 5.4%\"},";
+		businessRate+="{\"value\":\"5.65\",\"name\":\"15/05/10基准利率 5.65%\"},";
+		businessRate+="{\"value\":\"5.9\",\"name\":\"15/03/01基准利率5.9%\"},";
+		businessRate+="{\"value\":\"6.15\",\"name\":\"14/11/22基准利率 6.15%\"},";
+		businessRate+="{\"value\":\"6.55\",\"name\":\"12/07/06基准利率 6.55%\"},";
+		businessRate+="{\"value\":\"6.8\",\"name\":\"12/06/08基准利率 6.8%\"},";
+		businessRate+="{\"value\":\"7.05\",\"name\":\"11/07/07基准利率 7.05%\"},";
+		businessRate+="{\"value\":\"6.8\",\"name\":\"11/04/06基准利率 6.8%\"},";
+		businessRate+="{\"value\":\"6.6\",\"name\":\"11/02/09基准利率 6.6%\"},";
+		businessRate+="{\"value\":\"6.4\",\"name\":\"10/12/26基准利率 6.4%\"},";
+		businessRate+="{\"value\":\"6.14\",\"name\":\"10/10/20基准利率 6.14%\"}";*/
+		businessRate+="]";
+		String publicFundRate="[";
+		publicFundRate+="{\"value\":\"3.25\",\"name\":\"最新基准利率3.25\"}";
+		/*publicFundRate+="{\"value\":\"3.5\",\"name\":\"15/06/28基准利率 3.5%\"},";
+		publicFundRate+="{\"value\":\"3.75\",\"name\":\"15/05/10基准利率 3.75%\"},";
+		publicFundRate+="{\"value\":\"4\",\"name\":\"15/03/01基准利率4%\"},";
+		publicFundRate+="{\"value\":\"4.5\",\"name\":\"12/07/06基准利率4.5\"},";
+		publicFundRate+="{\"value\":\"4.7\",\"name\":\"12/06/08基准利率4.7%\"},";
+		publicFundRate+="{\"value\":\"4.9\",\"name\":\"11/07/07基准利率4.9%\"},";
+		publicFundRate+="{\"value\":\"4.7\",\"name\":\"11/04/06基准利率4.7%\"},";
+		publicFundRate+="{\"value\":\"4.5\",\"name\":\"11/02/09基准利率4.5%\"},";
+		publicFundRate+="{\"value\":\"4.3\",\"name\":\"10/12/26基准利率4.3%\"},";
+		publicFundRate+="{\"value\":\"4.05\",\"name\":\"10/10/20基准利率4.05%\"}";*/
+		publicFundRate+="]";
+		String rebates="[";
+		//rebates+="{\"value\":\"1\",\"name\":\"无折扣\"},";
+		rebates+="{\"value\":\"0.95\",\"name\":\"95折\"},";
+		rebates+="{\"value\":\"0.9\",\"name\":\"9折\"},";
+		rebates+="{\"value\":\"0.88\",\"name\":\"88折\"},";
+		rebates+="{\"value\":\"0.87\",\"name\":\"87折\"},";
+		rebates+="{\"value\":\"0.86\",\"name\":\"86折\"},";
+		rebates+="{\"value\":\"0.85\",\"name\":\"85折\"},";
+		rebates+="{\"value\":\"0.82\",\"name\":\"82折\"},";
+		rebates+="{\"value\":\"0.8\",\"name\":\"8折\"},";
+		rebates+="{\"value\":\"0.75\",\"name\":\"75折\"},";
+		rebates+="{\"value\":\"0.7\",\"name\":\"7折\"},";
+		rebates+="{\"value\":\"1.1\",\"name\":\"1.1倍\"},";
+		rebates+="{\"value\":\"1.2\",\"name\":\"1.2倍\"},";
+		rebates+="{\"value\":\"1.3\",\"name\":\"1.3倍\"},";
+		rebates+="{\"value\":\"1.4\",\"name\":\"1.4倍\"},";
+		rebates+="{\"value\":\"1.5\",\"name\":\"1.5倍\"}";
+		rebates+="]";
+		result.setBusinessRates(JSON.parseArray(businessRate, LoanRateItem.class));
+		result.setPublicFundRates(JSON.parseArray(publicFundRate, LoanRateItem.class));
+		result.setRebates(JSON.parseArray(rebates, LoanRateItem.class));
+		Map<String, Object> map=commMapper.queryLoanCeiling(cityCode);
+		result.setPublicLoanCeiling(Integer.parseInt(map.get("publicLoanCeiling").toString()));
+		result.setLoanRatioCeiling(Integer.parseInt(map.get("LoanRatioCeiling").toString()));
+		return result;
+	}
+
+	@Override
+	public List<HousePropertyResult> queryHousePropertyList(String cityCode) {
+		List<HousePropertyResult> results=commMapper.queryHousePropertyList(cityCode);	
+		if (results!=null&&results.size()>0) {
+			for (HousePropertyResult housePropertyResult : results) {
+				if (housePropertyResult.getType()>0) {
+					List<DeedTaxResult> deedTaxResults=commMapper.queryDeedTaxResult(housePropertyResult.getId());
+					housePropertyResult.setDeedTaxs(deedTaxResults);	
+				}else {
+					BusinessRateResult businessRateResult= queryBusinessRateResult();
+					housePropertyResult.setBusinessDeedTax(businessRateResult.getDeedTax());
+					housePropertyResult.setAddedValueTax(businessRateResult.getAddedValueTax());
+					housePropertyResult.setIncomeTax(businessRateResult.getIncomeTax());
+				}		
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public BusinessRateResult queryBusinessRateResult() {
+		List<Map<String, Object>> list=commMapper.queryBusinessRateResult();
+		BusinessRateResult result=new BusinessRateResult();
+		if (list!=null&&list.size()>0) {
+			for (Map<String, Object> map : list) {
+				if ("deedTax".equals(map.get("code").toString())) {
+					result.setDeedTax(Float.parseFloat(map.get("value").toString()));
+				}
+				if ("addedValueTax".equals(map.get("code").toString())) {
+					result.setAddedValueTax(Float.parseFloat(map.get("value").toString()));
+				}
+				if ("incomeTax".equals(map.get("code").toString())) {
+					result.setIncomeTax(Float.parseFloat(map.get("value").toString()));
+				}
+			}
+		}	
+		return result;
+	}
+
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustomerSeeHouseRecordMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerSeeHouseRecordEntity" 
+			id="seeHouseEntity">
+		<id property="id" column="id"/>
+        <result property="houseId" column="shhId"/>
+        <result property="demandId" column="demandId"/>
+        <result property="agentId" column="leaderId"/>
+        <result property="agentName" column="leader"/>
+        <result property="seeHouseTime" column="leadTime"/>
+        <result property="transactionTypeId" column="transactionTypeId"/>
+        <result property="transactionType" column="transactionType"/>
+        <result property="custName" column="custName"/>
+        <result property="custCallType" column="custCallType"/>
+        <result property="isValid" column="isValid"/>
+        <result property="houseCount" column="houseCount"/>
+        <result property="companyId" column="companyId"/>
+        <result property="companyName" column="companyName"/>
+        <result property="houseSequence" column="houseId"/>
+        <result property="content" column="content"/>
+        <result property="custId" column="custId"/>
+        <result property="matching" column="matching"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="cityCode" column="cityCode"/>
+        <result property="regionId" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="communityId" column="communityId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="buildingsId" column="buildingsId"/>
+        <result property="buildingsName" column="buildingsName"/>
+        <result property="bulidingUnitId" column="bulidingUnitId"/>
+        <result property="buildingsUnitName" column="buildingsUnitName"/>
+        <result property="buildingHouseName" column="buildingHouseName"/>
+        <result property="buildingHouseId" column="buildingHouseId"/>
+     </resultMap>
+     
+	<select id="queryAllCustomerSeeHouseRecord" resultMap="seeHouseEntity">
+		SELECT a.id,a.shhId,b.sourcesId,a.leaderId,a.leader,a.leadTime,a.transactionTypeId,a.transactionType,
+		a.custName,a.custCallType,a.isValid,a.houseCount,a.companyId,a.houseId,a.content,b.custId,
+		c.matching,c.companyName,d.areaCode,d.cityCode,d.areaName,d.regionId,d.regionName,
+		d.communityId,d.communityName,d.buildingsId,d.buildingsName,d.bulidingUnitId,
+		d.buildingsUnitName,d.buildingHouseName,d.buildingHouseId FROM
+		demand_showedrecord a INNER JOIN sys_custbindinfo b ON a.shhId = b.sourcesId 
+		INNER JOIN hs_secondhandhouse c ON a.shhId = c.id INNER JOIN hs_housebaseinfo
+		d ON c.houseId = d.id WHERE a.isValid = 1 and b.type = 0 and b.custId = #{custId}
+	</select>
+</mapper>

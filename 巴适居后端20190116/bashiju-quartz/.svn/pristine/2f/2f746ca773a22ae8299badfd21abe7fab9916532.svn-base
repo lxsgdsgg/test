@@ -1,0 +1,76 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.bashiju.quartz</groupId>
+  <artifactId>bashiju-quartz</artifactId>
+  <packaging>pom</packaging>
+  <parent>
+  	 <groupId>com.bashiju</groupId>
+  	<artifactId>bashiju-parent</artifactId>
+  	<version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <modules>
+  	<module>bashiju-quartz-pojo</module>
+  	<module>bashiju-quartz-mapper</module>
+  	<module>bashiju-quartz-service</module>
+  	<module>bashiju-quartz-web</module>
+  </modules>
+  <dependencies>
+		<dependency>
+			<groupId>com.bashiju.utils</groupId>
+			<artifactId>bashiju-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+			<!-- quartz -->
+			 <dependency>
+			    <groupId>org.quartz-scheduler</groupId>
+			    <artifactId>quartz</artifactId>
+			</dependency>
+			<dependency>
+    			<groupId>org.springframework</groupId>
+   		 		<artifactId>spring-context-support</artifactId>
+			</dependency>
+ 		<!-- log4j2,连接日志数据库的数据库连接池 -->		
+		<dependency>
+			   <groupId>commons-dbcp</groupId>
+			   <artifactId>commons-dbcp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<dependency>
+			 <groupId>javax.servlet</groupId>
+			 <artifactId>javax.servlet-api</artifactId>
+		<scope>provided</scope>
+		</dependency>
+	  <!-- 单元测试 -->
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+		</dependency>
+	</dependencies>
+	 <build>
+  	<pluginManagement>
+  		<plugins>
+  			<!-- 配置Tomcat插件 -->
+  			<plugin>
+  				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<configuration>
+					<port>8881</port>
+					<path>/</path>
+					<update>true</update>
+					<url>http://119.23.15.201:8881/manager/text</url>
+                    <username>bashiju</username>
+                    <password>123456</password>
+				</configuration>
+  			</plugin>
+  		</plugins>
+  	</pluginManagement>
+  </build>
+</project>

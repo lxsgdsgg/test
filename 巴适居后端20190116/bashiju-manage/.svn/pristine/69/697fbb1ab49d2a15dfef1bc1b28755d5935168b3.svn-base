@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CommunityMapper">
+
+	<select id="queryCommunityList" resultType="map">
+		SELECT c.id,c.`name`,c.recordName,c.pinyin,c.address,floor(cs.salePrice/100) as salePrice,cs.isHot
+		,c.longitude,c.latitude,c.permissionArea,c.operatorId,c.regionId,r.`name`AS reginName,c.areaCode
+		,a.`name` AS areaName
+		 FROM sys_community AS c
+		INNER  JOIN sys_community_second AS cs ON cs.communityId=c.id and cs.isUse=1
+		INNER JOIN sys_region AS r ON c.regionId=r.id and c.isValid=1
+		INNER JOIN sys_area AS a ON c.areaCode=a.`code`
+		where 1=1
+		<if test="regionId != null and regionId != '' ">
+		AND r.id = #{regionId}
+		</if>
+		<if test="pinyin != null and pinyin != '' ">
+		AND (c.pinyin LIKE '%${pinyin}%' OR c.name LIKE '%${pinyin}%')
+		</if>
+		<if test="hot != null">
+		AND cs.isHot =#{hot}
+		</if>
+		<if test="areaCode != null">
+		AND c.areaCode=#{areaCode}
+		</if>
+		<if test="biaozhu == 1">
+		AND c.longitude IS NOT NULL
+		AND c.longitude!=''
+		</if>
+		<if test="biaozhu == 2 ">
+		AND (c.longitude IS NULL or c.longitude='')	
+		</if> 
+		order by id desc
+	</select>
+	
+	<select id="queryCommunityById" resultType="map" >	    
+		SELECT c.*,r.`name`AS reginName,a.`name` AS areaName,cs.matchingIds,cs.matching,
+		salePrice,isHot,buildYear,gas,elevatorService,waterSupply,heatSupply,powerSupply,groundParkingCount,
+   		underGroundParkingCount,groundParkingLeasePrice,underGroundParkingLeasePrice,groundParkingSalePrice,
+   		underGroundParkingSalePrice,propertyPhone,propertyFees,propertyName,propertyAddress,street
+   		,r.longitude as regionLongitude,r.latitude as regionLatitude
+		,a.longitude as areaLongitude,a.latitude as areaLatitude  FROM sys_community AS c
+   		INNER  JOIN sys_community_second AS cs ON cs.communityId=c.id 
+		INNER JOIN sys_region AS r ON c.regionId=r.id 
+		INNER JOIN sys_area AS a ON c.areaCode=a.`code`
+		where c.id=#{id}
+	</select>
+	<select id="queryCommunityPropertys" resultType="map">
+		SELECT id,type,`code`,`name` FROM sys_community_property WHERE isValid=1 AND communityId=#{communityId}
+	</select>
+	<select id="countCommunityByName" resultType="long" >
+		SELECT count(*) FROM sys_community WHERE isValid=1 AND areaCode=#{areaCode} AND  ( `name` IN ('${name}','${recordName}') OR recordName IN ('${name}','${recordName}'))
+	</select>
+	
+	<select id="queryAreaList" resultType="map" >
+		SELECT `code`,`name`,parentCode,level FROM sys_area 
+	</select>
+	
+	<select id="queryRegionsByArea" resultType="map" >
+		SELECT id,`name` FROM sys_region WHERE areaCode=#{code} and isValid=1
+	</select>
+	
+	<select id="queryImagesByCommunity" resultType="map" >			
+		SELECT code,url FROM sys_communityImage WHERE communityId=#{communityId} order by id desc
+	</select>
+	
+	<select id="queryImageBycode" resultType="map" >			
+		SELECT image FROM sys_communityImage WHERE code=#{code} 
+	</select>
+	
+	<select id="queryImage" resultType="map">
+		SELECT id,pictureType,pictureTypeName,path,isCover,updateTime,operator FROM sys_community_attachment where communityId = #{communityId} and attachType= #{attachType} and isValid=1 
+		order by id desc
+	</select>
+	<select id="queryPathByIds" resultType="map">
+		SELECT communityId,path from sys_community_attachment WHERE id IN
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+	</select>
+	<delete id="deleteImage">
+		delete from sys_community_attachment where id=#{id}
+	</delete>
+	<select id="queryRegionList" resultType="map">
+		SELECT code ,name,'' AS parentCode FROM sys_area AS a INNER JOIN sys_cityOpenInfo AS c ON c.cityCode=a.code
+		UNION
+		SELECT code ,name,parentCode FROM sys_area AS a INNER JOIN sys_cityOpenInfo AS c ON c.cityCode=a.parentCode
+		UNION
+		SELECT id AS code,name,areaCode AS parentCode FROM sys_region WHERE isValid=1 AND areaCode IS NOT NULL
+	</select>
+	<insert id="communitySynchron" parameterType="String">
+  		call statices_communitySynchron(#{communityIds})
+  	</insert>
+  	<insert id="newHouseSynchron" parameterType="String">
+  		call statices_communityProjectSynchron(#{houseIds})
+  	</insert>
+  	<select id="queryProjectId" resultType="map">
+  		SELECT  id FROM sys_community_project WHERE isvalid=1 AND communityId=#{communityId}
+  	</select>
+</mapper>

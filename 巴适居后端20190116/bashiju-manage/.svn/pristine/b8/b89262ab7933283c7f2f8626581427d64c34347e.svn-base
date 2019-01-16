@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.DecisionConfigurateMapper">
+	<select id="queryDecisisionConfigurate" resultType="map">
+		select b.id, a.id as decisionId,ifnull(b.cityCode,#{cityCode}) as cityCode,a.type,a.name,a.descs,ifnull(b.val,a.initVal)as val,a.jsonSelect,a.permissionArea,a.operatorId,a.operator,
+		a.addTime,a.updateTime,a.isvalid from sys_decision_configurate a  
+		left join sys_decision_configurate_detail b on a.id = b.decisionId
+		<if test="cityCode != null and cityCode != '' "> and b.cityCode = #{cityCode} </if> 
+		where a.isvalid=1
+		<if test="type != null and type != '' "> and a.type = #{type} </if> 
+		<if test="name != null and name != '' "> and a.name like concat('\'%',#{name},'\'%') </if>
+	</select>
+</mapper>

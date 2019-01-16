@@ -1,0 +1,130 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  DealActionLogQueryController.java   
+ * @Package com.bashiju.deal.controller      
+ * @author: zuoyuntao     
+ * @date:   2018年11月30日 下午4:04:19   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.deal.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.deal.service.IDealActionLogQueryService;
+import com.bashiju.enums.LogBusinessOperateTypeEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 成交日志查询控制器
+ * @ClassName:DealActionLogQueryController
+ * @Description:成交日志查询控制器
+ * @author:zuoyuntao
+ * @date:2018年11月30日 下午4:04:19
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+@RequestMapping(value="dealLogQuery")
+@Controller
+public class DealActionLogQueryController extends BaseController{
+
+	/**
+	 * 成交操作日志查询服务接口
+	 */
+	@Autowired
+	private IDealActionLogQueryService mIDealActionLogQueryService;
+	
+	/**
+	 * 查询成交日志--带分页
+	 * @Title: queryDealActionLogPageList
+	 * @author: zuoyuntao  
+	 * @Description:查询成交日志--带分页
+	 * @param page 当前页 
+	 * @param limit 每页最大数
+	 * @param dealType 成交类型
+	 * @param paramMap 参数对象
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	@RequestMapping(value="queryDealActionLogPageList")
+	@ResponseBody
+	public Object queryDealActionLogPageList(
+			int page,int limit,String dealType,String jsonData) {
+		Map<String,Object> paramMap = new HashMap<String,Object>();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			paramMap = JSONObject.parseObject(jsonData);
+		}
+		paramMap.put("dealType", dealType);
+		Page<Map<String,Object>> pageObj = 
+				mIDealActionLogQueryService.auxDealActionLogPageList(page, limit,paramMap);
+		return this.getPageResult(pageObj);
+	}
+	/**
+	 * 根据成交编号查询成交操作日志 --带分页
+	 * @Title: queryDealActionLogByDealId
+	 * @author: zuoyuntao  
+	 * @Description:根据成交编号查询成交操作日志
+	 * @param page 当前页
+	 * @param limit 每页最大条数
+	 * @param dealId 成交编号
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	@RequestMapping(value="queryDealActionLogByDealId")
+	@ResponseBody
+	public Object queryDealActionLogByDealId(int page,int limit,String dealId) {
+		if(StringUtil.isEmpty(dealId)) {
+			throw new BusinessException("成交编号为空!");
+		}
+		return this.getPageResult(
+				mIDealActionLogQueryService.auxDealActionLogByDealId(page, limit, dealId));
+	}
+	/**
+	 * 根据成交类型查询成交操作日志--带分页
+	 * @Title: queryDealActionLogByDealType
+	 * @author: zuoyuntao  
+	 * @Description:根据成交编号查询成交操作日志
+	 * @param page 当前页
+	 * @param limit 每页最大条数
+	 * @param dealType 成交类型
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	@RequestMapping(value="queryDealActionLogByDealType")
+	@ResponseBody
+	public Object queryDealActionLogByDealType(int page,int limit,String dealType) {
+		if(StringUtil.isEmpty(dealType)) {
+			throw new BusinessException("成交类型为空!");
+		}
+		return this.getPageResult(
+				mIDealActionLogQueryService.auxDealActionLogByDealType(page, limit, dealType));
+	}
+	/**
+	 * 根据类型获取枚举对象
+	 * @Title: returnOperatorTypeObj
+	 * @author: zuoyuntao  
+	 * @Description:根据类型获取枚举对象
+	 * @param type 业务类型（参照LogBusinessOperateTypeEnum类中的值传递）
+	 * @return      
+	 * Object 
+	 */
+	@RequestMapping(value="returnOperatorTypeObj")
+	@ResponseBody
+	public Object returnOperatorTypeObj(String type) {
+		List<Map<String , String>> retList = LogBusinessOperateTypeEnum.queryEnumByType(type);
+		return retList;
+	}
+}

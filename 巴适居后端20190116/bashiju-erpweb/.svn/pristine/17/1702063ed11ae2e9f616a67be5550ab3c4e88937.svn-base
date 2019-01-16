@@ -1,0 +1,31 @@
+@charset "utf-8";
+// 覆盖element ui 默认样式
+.el-header, .el-main, .el-footer{
+  padding: 0;
+}
+
+// element tree
+.el-tree-node__expand-icon ~ span.custom-tree-node::before {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-bottom: -3px;
+  margin-left: 5px;
+  width: 20px;
+  height: 20px;
+}
+.el-tree-node__content{
+  .el-tree-node__expand-icon ~ span.custom-tree-node::before {
+    margin-right: 5px;
+    content: '';
+    background: url("../images/Floder1.png") no-repeat;
+    background-size: 100%;
+  }
+}
+.el-tree-node__children{
+  .el-tree-node__expand-icon ~ span.custom-tree-node::before {
+    margin-right: 5px;
+    content: '';
+    background: url("../images/file1.png") no-repeat;
+    background-size: 100%;
+  }
+}

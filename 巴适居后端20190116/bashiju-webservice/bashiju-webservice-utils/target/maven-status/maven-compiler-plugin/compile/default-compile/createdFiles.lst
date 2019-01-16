@@ -1,0 +1,16 @@
+com\bashiju\wutils\log\LogAopAction.class
+com\bashiju\wutils\datasource\DataSourceAspect.class
+com\bashiju\wutils\exception\BashijuExceptionResolver.class
+com\bashiju\wutils\datasource\DynamicDataSourceHolder.class
+com\bashiju\wutils\util\BashijuResult.class
+com\bashiju\wutils\util\Md5EncryptUtils.class
+com\bashiju\wutils\util\SQLFilter.class
+com\bashiju\wutils\spring\exetend\converter\json\CallbackMappingJackson2HttpMessageConverter.class
+com\bashiju\wutils\exception\ErrorCodeEnum.class
+com\bashiju\wutils\datasource\DynamicDataSource.class
+com\bashiju\wutils\log\ExecutionResult.class
+com\bashiju\wutils\util\EmailUtil.class
+com\bashiju\wutils\log\CustomLog.class
+com\bashiju\wutils\log\SystemServiceLog.class
+com\bashiju\wutils\exception\BusinessException.class
+com\bashiju\wutils\util\SpringContextHolder.class

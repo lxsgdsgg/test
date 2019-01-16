@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.BusinessExamineMapper">
+	<select id="queryBusinessExamine" resultType="map">
+	<!-- 	select a.id,b.transactionTypeId,b.transactionType,b.formName,a.examineTypeId,a.status,a.applyerId,a.applyer,a.applyTime,
+		a.content,a.demandId,a.auditor, a.auditTime,a.rejectReason,a.permissionArea,a.operatorId,
+		a.updateTime,a.remark,d.name as deptName,e.realName as auditorName
+		from demand_businessexamine a 
+		left join demand_customerbusinessinfo b on a.demandId = b.id 
+		left join sys_user c on a.applyerId = c.id
+		left join sys_dept d on c.deptId = d.id 
+		left join sys_user e on a.auditor = e.id 
+		where a.isvalid=1 -->
+		
+		<!--2018-11-24修改-->
+		select a.id,b.transactionTypeId,b.transactionType,c.areaCode as cityCode ,b.formName,a.examineTypeId,a.status,a.applyerId,a.applyer,a.applyTime,
+		a.content,a.demandId,a.auditor, a.auditTime,a.rejectReason,a.permissionArea,a.operatorId,
+		a.updateTime,a.remark,d.name as deptName,d.id as deptId ,f.name as companyName,f.id as companyId,e.realName as auditorName
+		from demand_businessexamine a 
+		left join demand_customerbusinessinfo b on a.demandId = b.id 
+		left join sys_user c on a.applyerId = c.id
+		left join sys_dept d on c.deptId = d.id 
+		left join sys_user e on a.auditor = e.id 
+		left join sys_company f on c.companyId = f.id
+		where a.isvalid=1
+		<if test="transactionTypeId != null and transactionTypeId != '' "> and b.transactionTypeId = #{transactionTypeId} </if>
+		<if test="examineTypeId != null and examineTypeId != '' "> and a.examineTypeId = #{examineTypeId} </if>
+		<if test="status != null and status != '' "> and a.status = #{status} </if>
+		<if test="applyerId != null and applyerId != '' "> and a.applyerId = #{applyerId} </if>
+		<if test="beginApplyTime != null and beginApplyTime != '' "> and a.applyTime &gt;= #{beginApplyTime} </if>
+		<if test="endApplyTime != null and endApplyTime != '' "> and a.applyTime &lt;= #{endApplyTime} </if>
+		<if test="auditor != null and auditor != '' "> and a.auditor = #{auditor} </if>
+		<if test="beginAuditTime != null and beginAuditTime != '' "> and a.auditTime &gt;= #{beginAuditTime} </if>
+		<if test="endAuditTime != null and endAuditTime != '' "> and a.auditTime &lt;= #{endAuditTime} </if>
+		<if test="content != null and content != '' "> and a.content like '%${content}%' </if> 
+	</select>
+	
+	<select id="queryBusinessExamineById" resultType="map">
+		select * from demand_businessexamine where isvalid=1 and id = #{id}
+	</select>
+</mapper>

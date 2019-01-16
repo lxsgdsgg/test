@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.IProposalSetMapper">
+	<select id="queryProposalSetAllDataList" resultType="map">
+		SELECT sys_extract.id,sys_extract.extractName,sys_extract.extractRemark,sys_extract.areaCode,
+		sys_extract.operator,sys_extract.companyId,sys_extract.addTime,sys_extract.updateOperator,
+		sys_extract.updateTime,sys_extract.operatorId,sys_extract.permissionArea,sys_extract.isValid,
+		sys_extract.areaName
+		from sys_extract where isValid = 1
+
+		<if test="null != areaCode and areaCode != ''">
+			and areaCode = #{areaCode}			
+		</if>
+		<if test="null != extractName and extractName != ''">
+			and extractName like '%${extractName}%'			
+		</if>
+	</select>
+	
+	<select id="queryProposalSetDataCountByCondition" resultType="long">
+		select count(1) from sys_extract where isValid = 1  
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+	</select>
+	<select id="queryAllProposalDetailByCondition" resultType="map">
+		SELECT sys_extract_detail.id,sys_extract_detail.confId,sys_extract_detail.contractRate,
+		sys_extract_detail.extractRate,sys_extract_detail.sortNo,sys_extract_detail.areaCode,
+		sys_extract_detail.isSetted,sys_extract_detail.pfmTypeId,sys_extract_detail.addTime,
+		sys_extract_detail.updateTime,sys_extract_detail.companyId,sys_extract_detail.operator,
+		sys_extract_detail.operatorId,sys_extract_detail.permissionArea,sys_extract_detail.isValid
+		FROM sys_extract_detail where sys_extract_detail.isValid = 1
+		<if test="condition != null and condition != ''">
+			${condition}
+		</if>
+		order by sortNo
+	</select>
+</mapper>

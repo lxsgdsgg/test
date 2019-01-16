@@ -1,0 +1,78 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+    <parent>
+    <groupId>com.bashiju</groupId>
+    <artifactId>bashiju-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <groupId>com.bashiju.sso</groupId>
+  <artifactId>bashiju-sso</artifactId>
+  <packaging>pom</packaging>
+  <modules>
+  	<module>bashiju-sso-web</module>
+  	<module>bashiju-sso-service</module>
+  	<module>bashiju-sso-mapper</module>
+  	<module>bashiju-sso-pojo</module>
+  </modules>
+   <dependencies>
+		<dependency>
+			<groupId>com.bashiju.utils</groupId>
+			<artifactId>bashiju-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bashiju.cert</groupId>
+			<artifactId>bashiju-cert</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
+	  <!-- 单元测试 -->
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+		</dependency>
+	<!-- Apache工具组件 -->			
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-lang3</artifactId>
+	</dependency>
+	<dependency>
+    	<groupId>commons-io</groupId>
+    	<artifactId>commons-io</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>commons-lang</groupId>
+		<artifactId>commons-lang</artifactId>
+		</dependency>
+	<dependency>
+		<groupId>org.jsoup</groupId>
+		<artifactId>jsoup</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>commons-net</groupId>
+		<artifactId>commons-net</artifactId>
+	</dependency>
+	</dependencies>
+	 <build>
+  	<pluginManagement>
+  		<plugins> 		
+  			<!-- 配置Tomcat插件 -->
+  			<plugin>
+  				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<port>8080</port>
+					<path>/</path>
+					<update>true</update>
+                    <url>http://119.23.15.201:8080/manager/text</url>
+                    <username>bashiju</username>
+                    <password>123456</password>
+                    
+				</configuration>
+  			</plugin>
+  		</plugins>
+  	</pluginManagement>
+  </build>
+</project>

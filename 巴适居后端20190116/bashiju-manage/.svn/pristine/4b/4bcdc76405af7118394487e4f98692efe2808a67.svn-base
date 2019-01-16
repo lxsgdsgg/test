@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.AgentAbilityidentifyMapper">
+	<select id="queryAgentAbilityidentify" resultType="map">
+		select id,name,agentId,userId,userName,achievement,introduction,operator,
+		operatorId,addTime,updateTime from sys_agent_abilityidentify where isvalid =1
+		<if test="userName!=null and userName!='' "> and userName like concat('%',#{userName},'%')</if>
+		<if test="name!=null and name!='' "> and name like concat('%',#{name},'%')</if>
+	</select>
+
+	<select id="queryAgentNameUserIdAndAgentId" resultType="map">
+		select a.id as agentId, b.realName as userName,b.id as userId from sys_agent_details a 
+		left join sys_user b on b.id =a.userId
+	</select>
+	
+	
+	<select id="queryAgentAbilityidentifyById" resultType="map">
+			select id,name,agentId,userId,userName,achievement,introduction,operator,
+			operatorId,addTime,updateTime from sys_agent_abilityidentify where id=#{id}
+	</select>
+</mapper>

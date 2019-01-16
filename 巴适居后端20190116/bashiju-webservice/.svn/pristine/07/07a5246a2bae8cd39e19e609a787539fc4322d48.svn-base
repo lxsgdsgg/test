@@ -1,0 +1,156 @@
+package com.bashiju.www.test;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.ImgManageEnum;
+import com.bashiju.enums.pc.ConditionTypeEnum;
+import com.bashiju.www.pojo.comm.HouseTypeEnum;
+import com.bashiju.www.pojo.comm.QueryCondition;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.input.house.RentHouseParam;
+import com.bashiju.www.pojo.service.out.comm.ThemeResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.service.comm.ICommService;
+import com.bashiju.www.service.house.IRentHouseService;
+
+/**
+ * 
+ *  租房接口测试
+ * @ClassName:  RentHouseServiceTest   
+ * @Description:   租房接口测试
+ * @author: wangkaifa
+ * @date:   2018年8月13日 下午3:11:31       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class RentHouseServiceTest extends BaseServiceTest {
+	@Autowired
+	IRentHouseService rentHouseService;
+	@Autowired
+	ICommService commService;
+	
+	@Test
+	public void isAttention() {
+		Integer type=Integer.parseInt(HouseTypeEnum.RENTHOUSE.getCode());
+		boolean result=commService.isAttention(1, 6+"", type);
+		System.out.println(result);
+	}
+    
+	@Test
+	public void queryRentHouseByArea() {
+		RentHouseParam param=new RentHouseParam();
+		param.setCityCode("530100");
+		List<Integer> prices=new ArrayList<>();
+		prices.add(1);
+		prices.add(0);
+		param.setRentType(prices);
+		WebPage<HouseListResult> result=rentHouseService.queryRentHouseByArea(param,1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentHouseByMetro() {
+		RentHouseParam param=new RentHouseParam();
+		param.setCityCode("530100");
+		param.setMetroId(1);
+		WebPage<HouseListResult> result=rentHouseService.queryRentHouseByMetro(param,1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentMapHouseArea() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseArea(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+	@Test
+	public void queryRentMapHouseRegion() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseRegion(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+	@Test
+	public void queryRentMapHouseCommunity() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseCommunity(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+	@Test
+	public void queryRentHouseMapList() {
+		HouseMapListParam param=new HouseMapListParam();
+		param.setCityCode("530100");
+		WebPage<HouseMapListResult> result=rentHouseService.queryRentHouseMapList(param,0,0);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentMapHouseMetro() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		param.setMetroId(1);
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseMetro(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+	@Test
+	public void queryRentMapHouseCommunityMetro() {
+		HouseMapParam param=new HouseMapParam();
+		param.setCityCode("530100");
+		param.setMetroId(1);
+		List<HouseMapPointResult> results=rentHouseService.queryRentMapHouseCommunityMetro(param);
+		System.out.println(results.toString());
+		assertNotNull(results);
+	}
+	@Test
+	public void queryRentHouseMapMetroList() {
+		HouseMapListParam param=new HouseMapListParam();
+		param.setCityCode("530100");
+		param.setMetroId(3);
+		WebPage<HouseMapListResult> result=rentHouseService.queryRentHouseMapMetroList(param,1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryRentGoodHouses() {
+		HouseMapListParam param=new HouseMapListParam();
+		param.setCityCode("530100");
+		WebPage<GoodHouseListResult> result=rentHouseService.queryRentGoodHouses("530100",1,10);
+		System.out.println(result.toString());
+		assertNotNull(result);
+	}
+	@Test
+	public void queryQueryConditions() {
+
+		List<QueryCondition> result=commService.queryQueryConditions("530100", ConditionTypeEnum.SELLHOUSE);
+		System.out.println(result.toString());
+		System.out.println(JSON.toJSONString(result));
+		assertNotNull(result);
+	}
+	@Test
+	public void queryThemes() {
+
+		List<ThemeResult> result=commService.queryThemes("530100", ImgManageEnum.ERMAINIMG);
+		System.out.println(result.get(0).getConditionData().get(0).getConditionName().toString());
+		System.out.println(JSON.toJSONString(result));
+		assertNotNull(result);
+	}
+	
+}

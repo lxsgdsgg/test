@@ -1,0 +1,68 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  FootPrintEntity.java   
+ * @Package com.bashiju.www.pojo.service.FootPrint   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月11日 下午4:02:19   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.FootPrint;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**   
+ * @ClassName:  FootPrintEntity   
+ * @Description:查询我的足迹实体
+ * @author: wangpeng
+ * @date:   2018年8月11日 下午4:02:19   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class FootPrintToQueryEntity implements Serializable {
+	private static final long serialVersionUID = -2092363663133064112L;
+	/**用户id**/
+	private String custId;
+	/**房源标题**/
+	private String titles;
+	/**卧室**/
+	private String room;
+	/**客厅**/
+	private String hall;
+	/**卫生间**/
+	private String toilet;
+	/**朝向**/
+	private String orientation;
+	/**建筑面积**/
+	private String buildSpace;
+	/**使用面积**/
+	private String useSpace;
+	/**装修**/
+	private String decoration;
+	/**楼层描述(中、高、低层)**/
+	private String floorDes;
+	/**区域**/
+	private String areaName;
+	/**片区**/
+	private String regionName;
+	/**售价**/
+	private String sellingPrice;
+	/**单价**/
+	private String univalence;
+	/**总层数**/
+	private String totalLayers;
+	/**建筑年代**/
+	private String buildDates;
+	/**小区名称**/
+	private String communityName;
+	/**地铁标签**/
+	private String metroLabel;
+	/**我的足迹条数**/
+	private  String fooPrintCount;
+
+}

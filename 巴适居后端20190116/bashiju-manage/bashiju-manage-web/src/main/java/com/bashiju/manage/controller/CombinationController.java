@@ -1,0 +1,214 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CombinationController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年5月9日 上午11:16:43   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.MenuFunctionTypeEnum;
+import com.bashiju.enums.MenuLevelEnum;
+import com.bashiju.manage.service.CombinationService;
+import com.bashiju.manage.service.MenuService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+
+/**   
+ * @ClassName:  CombinationController   
+ * @Description:数据权限条件组合管理控制器  
+ * @author: yangz
+ * @date:   2018年5月9日 上午11:16:43   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@RequestMapping(value="combination")
+@Controller
+public class CombinationController extends BaseController {
+	
+	@Autowired
+	private MenuService menuService;
+	@Autowired
+	private CombinationService combinationService;
+	
+	/**
+	 * 
+	 * @Description: 查看菜单下的所有组合条件信息   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="combinationPage")
+	public ModelAndView combinationPage(HttpServletRequest request, HttpServletResponse response) {
+		ModelAndView mv = this.getModelAndView(request, response,"combination/combination");
+		String menuId = request.getParameter("menuId");
+		//加载菜单id下的按钮信息
+		if(!StringUtils.isEmpty(menuId)) {
+			List<Map<String,Object>> list =  this.combinationService.queryCombinationMains(null, menuId);
+			if(list!=null && list.size()>0) {
+				mv.addObject("list", JSONArray.toJSON(list));
+			}
+		}
+		mv.addObject("menuId", menuId);
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 查询组合条件基础信息   
+	 * @return: Object
+	 */
+	@RequestMapping(value="combinationPageBaseInfo")
+	@ResponseBody
+	public Object combinationPageBaseInfo(HttpServletRequest request) {
+		String menuId = request.getParameter("menuId");
+		List<Map<String,Object>> list =  this.combinationService.queryCombinationMains(null, menuId);
+		return JSONArray.toJSON(list);
+	}
+	
+	/**
+	 * 
+	 * @Description: 加载组合条件编辑页面  信息 
+	 * @param request
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="combinationDetailData")
+	@ResponseBody
+	public Object combinationDetail(HttpServletRequest request) {
+		String combinationId = request.getParameter("combinationId");
+		String menuId = request.getParameter("menuId");
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		//加载菜单id下的按钮信息
+		if(!StringUtils.isEmpty(menuId)) {
+			List<Map<String,Object>> list =  menuService.queryMenus(null, menuId,null, MenuFunctionTypeEnum.COMBINATIONBUTTON.getCode(), MenuLevelEnum.LEVEL4.getCode(), null);
+			if(list!=null && list.size()>0) {
+				map.put("btns", list);
+				map.put("menuId", menuId);
+			}
+		}
+		//加载组合条件详情
+		if(!StringUtils.isEmpty(combinationId)) {
+			List<Map<String,Object>> list =  this.combinationService.queryCombinations(combinationId, null, null);
+			if(list!=null && list.size()>0) {
+				map.put("combination", list.get(0));
+				map.put("details", JSONArray.toJSON(list));
+			}
+		}
+		return JSONObject.toJSON(map);
+	}
+	
+	/**
+	 * 
+	 * @Description: 进入组合条件编辑页面   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="combinationDetail")
+	public ModelAndView combinationDetail(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = this.getModelAndView(request, response, "combination/combinationDetail");
+		String combinationId = request.getParameter("combinationId");
+		String menuId = request.getParameter("menuId");
+		//加载菜单id下的按钮信息
+		if(!StringUtils.isEmpty(menuId)) {
+			List<Map<String,Object>> list =  menuService.queryMenus(null, menuId,null, MenuFunctionTypeEnum.COMBINATIONBUTTON.getCode(), MenuLevelEnum.LEVEL4.getCode(), null);
+			if(list!=null && list.size()>0) {
+				mv.addObject("btns", list);
+				mv.addObject("menuId", menuId);
+			}
+		}
+		//加载组合条件详情
+		if(!StringUtils.isEmpty(combinationId)) {
+			List<Map<String,Object>> list =  this.combinationService.queryCombinations(combinationId, null, null);
+			if(list!=null && list.size()>0) {
+				mv.addObject("combination", list.get(0));
+				mv.addObject("details", JSONArray.toJSON(list));
+			}
+		}
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 保存组合条件信息   
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateCombination",method=RequestMethod.POST)
+	@ResponseBody
+	public BashijuResult saveOrUpdateCombination(HttpServletRequest request,HttpServletResponse response) {
+		String name = request.getParameter("name");
+		String menuId = request.getParameter("menuId");
+		String id = request.getParameter("id");
+		String relationBtns = request.getParameter("relationBtns");
+		String remark = request.getParameter("remark");
+		String groupInfo = request.getParameter("groupInfo");
+		Map<String,Object> main = new HashMap<String,Object>(0);
+		if(!StringUtils.isEmpty(id)) {
+			main.put("id", id);
+		}
+		main.put("name", name);
+		main.put("remark", remark);
+		main.put("relationBtn", relationBtns);
+		main.put("menuId", menuId);
+		main.put("permissionArea", UserThreadLocal.get().get("deptId"));
+		main.put("operatorId", UserThreadLocal.get().get("id"));
+		
+		List<Map<String,Object>> list = JSON.parseObject(groupInfo, List.class);
+		boolean fg = combinationService.saveOrUpdateCombination(main, list);
+		if(fg)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	
+	/**
+	 * 
+	 * @Description: 根据id删除组合条件信息 
+	 * @param request
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delCombination")
+	@ResponseBody
+	public BashijuResult delCombination(HttpServletRequest request) {
+		String combinationId = request.getParameter("combinationId");
+		if(StringUtils.isEmpty(combinationId)) 
+			throw new BusinessException("主键不允许为空");
+		boolean fg = combinationService.delCombination(combinationId);
+		if(fg)
+			return BashijuResult.ok();
+		else
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+}

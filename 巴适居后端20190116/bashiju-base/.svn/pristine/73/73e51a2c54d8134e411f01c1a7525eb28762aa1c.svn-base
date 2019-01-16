@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.base.mapper.PermissionCertMapper">
+	<select id="queryUserMenuPermission" resultType="java.util.LinkedHashMap">
+		call queryUserMenuPermission(#{userId})
+	</select>
+	<select id="queryUserMenuPermission2" resultType="java.util.LinkedHashMap">
+		call queryUserMenuPermission2(#{userId})
+	</select>
+	
+	<select id="queryFirstMenuByUser" resultType="java.util.LinkedHashMap">
+		call queryFirstMenuByUser(#{userId})
+	</select>
+	
+	<select id="queryChildMenus" resultType="java.util.LinkedHashMap">
+		call queryChildMenus(#{userId},#{menuParentId})
+	</select>
+	
+	<select id="callQueryUserMenusOnlyButton" resultType="java.util.LinkedHashMap">
+		call queryUserMenusOnlyButton(#{userId},#{menuParentId})
+	</select>
+	
+	<select id="queryFunctionMenuPermission" resultType="java.util.LinkedHashMap">
+		call queryFunctionMenuPermission(#{userId},#{menuParentId})
+	</select>
+	
+</mapper>

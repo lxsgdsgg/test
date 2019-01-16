@@ -1,0 +1,59 @@
+package com.bashiju.deal.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealCommissionRecordMapper;
+import com.bashiju.deal.service.DealCommissionRecordService;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  DealCommissionRecordServiceImpl   
+ * @Description:佣金记录查询接口
+ * @author: wangpeng
+ * @date:   2018年6月22日 下午2:46:58   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="佣金记录查询")
+public class DealCommissionRecordServiceImpl  implements DealCommissionRecordService {
+	@Autowired
+	private DealCommissionRecordMapper dealCommissionRecordMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryDealCommissionRecord</p>   
+	 * <p>Description: </p>   
+	 * @param status 收取状态
+	 * @param dealType 成交类型
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param traderId 成交人id
+	 * @param communityId 小区id
+	 * @param Keyword 关键字（模糊查询）
+ 	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return   
+	 * @see com.bashiju.deal.service.DealCommissionRecordService#queryDealCommissionRecord(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询佣金记录")
+	public Page<Map<String, Object>> queryDealCommissionRecord (String status, String dealType,String beginTime, String endTime,String traderId,String communityId,String Keyword,int page, int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_237.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> pages = dealCommissionRecordMapper.queryDealCommissionRecordData(status, dealType, beginTime, endTime, traderId, communityId, Keyword);
+		return pages;
+	}
+
+}

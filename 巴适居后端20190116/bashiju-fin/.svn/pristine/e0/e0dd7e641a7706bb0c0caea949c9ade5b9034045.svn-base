@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.StoreShareManageMapper">
+	<select id="queryStoreSharePageList" resultType="map">
+		select a.id,a.shareDeptId,a.shareDeptName,FLOOR(a.totalMoney/100) totalMoney,a.payDate,a.company,a.operatorId,a.operator,
+		a.remark,a.isValid,a.permissionArea,a.addTime,a.updateTime from finance_store_share a
+		where a.isValid = 1 
+		<if test="null != shareDeptId and shareDeptId != ''">
+			and a.shareDeptId = #{shareDeptId}
+		</if>
+		<if test="null != payDate and payDate != ''">
+			and a.payDate = #{payDate}
+		</if>
+	</select>
+	
+	<select id="querySubordinateStoreDataByDeptId" resultType="map">
+		select a.id,a.`name`,a.companyId,a.deptTypeId,a.parentId,a.sortNo,a.areaCode,
+		a.permissionArea,a.leader,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid
+		from sys_dept a where isValid = 1 and a.deptTypeId = 4 and a.id like concat(#{deptId},'%')
+	</select>
+	
+	<select id="queryStoreShareDetailByShareId" resultType="map">
+		select a.id,a.shareId,a.shareDeptId,a.shareDeptName,a.payDate,FLOOR(a.shareMoney/100) shareMoney,a.addTime,a.updateTime,
+		a.permissionArea,a.operatorId,a.operator,a.isValid,a.companyId from finance_store_share_detail a
+		where a.isValid = 1 and a.shareId = #{shareId}
+	</select>
+</mapper>

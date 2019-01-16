@@ -1,0 +1,5 @@
+com\bashiju\ext\server\AliyunMessageListener$PhoneRecordUrlMessageListener.class
+com\bashiju\ext\server\AliyunServer.class
+com\bashiju\ext\server\AliyunMessageListener$PhoneListMessageListener.class
+com\bashiju\ext\controller\TencentCloudController.class
+com\bashiju\ext\server\AliyunMessageListener.class

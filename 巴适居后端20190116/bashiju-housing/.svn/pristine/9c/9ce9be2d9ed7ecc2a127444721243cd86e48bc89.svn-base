@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.HsKeyMapper">
+	<select id="queryHsKeyData" resultType="map">
+			select hk.id,hk.status as keyStatus,shh.status as houseStatus,hb.areaName,hb.regionName,hb.communityName,hb.buildingsName,hb.buildingsId,hb.buildingsUnitName,hb.buildingHouseName,
+			hb.id as houseId,hk.reciveTime,hk.deptId ,hk.reciver,hk.reciverId,hk.borrower,hk.keyCode , hk.receipt,hk.operator,hk.operatorId from hs_key hk 
+			inner join hs_secondhandhouse shh on shh.id =hk.shhId inner join hs_housebaseinfo hb on hb.id=shh.houseId
+			inner join sys_dept sd on sd.id=hk.deptId
+		<if test="houseStatus!=null and houseStatus!='' "> and shh.status=#{houseStatus}</if>
+		<if test="reciver!=null and reciver!='' ">and hk.reciverId=#{reciver}</if>
+		<if test="keyStatus!=null and keyStatus!='' ">and hk.status=#{keyStatus}</if>
+		<if test="beginTime!=null and beginTime!='' ">and hk.reciveTime&gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' ">and hk.reciveTime&lt;=#{endTime}</if>
+		<if test="buildingsName!=null and buildingsName!='' ">and hb.buildingsId= ${buildingsName}</if>
+	</select>
+	
+	<!-- 	钥匙日志 -->
+	<select id="queryHsKeyLog" resultType="map">
+		select hkl.id,hk.status as keyStatus,b.name as deptName,hkl.keyId,hk.deptId,
+		hkl.operatType,hkl.content,hk.operator,hkl.addTime,hkl.updateTime,hkl.isValid from hs_keylog hkl inner join hs_key hk on hkl.keyId=hk.id 
+		inner join sys_dept b on hk.deptId = b.id
+		where hk.id= #{hsKeyId} and hkl.isvalid = 1
+	</select>
+	
+	
+	
+	<select id="queryUser" resultType="map">
+		select id,realName from sys_user where id=#{borrower}
+	</select>
+</mapper>

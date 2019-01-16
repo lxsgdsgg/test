@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.quartz.mapper.CommunityPriceTrendMapper">
+	<select id="queryOpenCityInfos" resultType="map">
+		select cityCode from sys_cityopeninfo where isValid=1
+	</select>
+	
+	<insert id="staticesCommunityPriceTrend" parameterType="string">
+		set @beginTime = date_format(now(),'%Y-%m-01 00:00:00');
+		set @endTime = date_format(last_day(now()),'%Y-%m-%d 23:59:59');
+		insert into sys_community_priceTrend(communityId,communityName,months,saleDealCnt,saleDealAvgPrice,rentDealCnt,rentDealAvgPrice
+		,saleAvgPrice,rentAvgPrice,addTime) select a.id communityId,a.name as communityName,date_format(@beginTime,'%Y-%m')months,ifnull(b.dealCnt,0)saleDealCnt
+		,ifnull(b.dealAvgPrice,0)saleDealAvgPrice,ifnull(e.rentDealCnt,0) rentDealCnt,ifnull(e.rentDealAvgPrice,0) rentDealAvgPrice
+		,ifnull(c.saleAvgPrice,0)saleAvgPrice,ifnull(d.rentAvgPrice,0)rentAvgPrice,now() addTime 
+		from sys_client_communityqueryinfos a
+		left join (select b2.communityId, count(b1.id) dealCnt,cast((sum(b1.price)/count(b1.id)) as signed) dealAvgPrice  
+		from deal_transactioninfo b1 
+		left join hs_houseBaseInfo b2 on b1.houseId = b2.id
+		where dealType='00' and dealTime between @beginTime and @endTime
+		group by b2.communityId) b on a.id = b.communityId
+		left join (select c2.communityId,cast((sum(sellingPrice/buildSpace)/count(c1.id)) as signed)saleAvgPrice from hs_secondhandhouse c1 
+		left join hs_houseBaseInfo c2 on c1.houseId = c2.id
+		where c1.transactionTypeId in(1,3) and recordTime between @beginTime and @endTime
+		group by c2.communityId) c on a.id= c.communityId
+		left join (select d2.communityId,cast((sum(rentPrice)/count(d1.id)) as signed) rentAvgPrice
+		from hs_secondhandhouse d1 
+		left join hs_houseBaseInfo d2 on d1.houseId = d2.id
+		where transactionTypeid in(2,3) and recordTime between @beginTime and @endTime
+		group by d2.communityId)d  on a.id= d.communityId 
+		left join (select e2.communityId, count(e1.id) rentDealCnt,cast((sum(e1.price)/count(e1.id)) as signed) rentDealAvgPrice  
+		from deal_transactioninfo e1 
+		left join hs_houseBaseInfo e2 on e1.houseId = e2.id
+		where dealType='01' and dealTime between @beginTime and @endTime
+		group by e2.communityId) e on a.id = e.communityId
+		where a.cityCode=#{cityCode}
+	</insert>
+	
+</mapper>
+	

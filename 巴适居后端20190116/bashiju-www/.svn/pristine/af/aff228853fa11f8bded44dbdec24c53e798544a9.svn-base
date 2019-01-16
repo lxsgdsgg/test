@@ -1,0 +1,38 @@
+package com.bashiju.www.service.comm;
+/**
+ * 
+ *   动态下拉、区间服务
+ * @ClassName:  IFormService   
+ * @Description:     动态下拉、区间服务
+ * @author: wangkaifa
+ * @date:   2018年7月23日 下午6:12:37       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.out.comm.RangeResult;
+import com.bashiju.www.pojo.service.out.comm.SelectItemResult;
+
+public interface IFormService {
+	/**
+	 * 
+		 * 查询城市对应的区间值
+		 * @Description: 查询城市对应的区间值
+		 * @param code 区间控件编号
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<RangeResult>
+	 */
+	List<RangeResult> queryRangeByCode(String code,String cityCode);
+	/**
+	 * 
+		 * 查询动态下拉值
+		 * @Description: 查询动态下拉值
+		 * @param code 动态下拉编号
+		 * @return 
+		 * List<SelectItemResult>
+	 */
+	List<SelectItemResult> querySelectByCode(String code);
+}

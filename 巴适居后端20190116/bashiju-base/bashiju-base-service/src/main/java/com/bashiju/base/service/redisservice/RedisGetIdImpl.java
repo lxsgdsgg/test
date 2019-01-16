@@ -1,0 +1,170 @@
+package com.bashiju.base.service.redisservice;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.base.BaseGlobal.BaseGlobal;
+import com.bashiju.base.service.smsservice.SendSMSServiceImpl;
+
+import redis.clients.jedis.JedisCluster;
+
+@Service
+public class RedisGetIdImpl extends SendSMSServiceImpl implements RedisGetIdServiceApi{
+	   
+	@Autowired
+	JedisCluster jedisCluster;
+	static final Logger logger=LoggerFactory.getLogger(RedisGetIdImpl.class);
+
+    public String getHouseBindCode(String houseId,String toPhone) {
+			String code=getSixCode("houseBindCode");
+			jedisCluster.set(code,houseId);
+			jedisCluster.expire(code, BaseGlobal.HOUSEBINDCODEEXPTIME*BaseGlobal.SECONDSTOHOURS);
+			logger.warn("给手机号码为{}的生成房源六位绑定码:{}",toPhone,code);
+			/*发送短息*/
+			Map<String,Object> map=new HashMap<>();
+			map.put("phone", toPhone);
+			map.put("code", code);
+			map.put("time", BaseGlobal.HOUSEBINDCODEEXPTIME);
+			map.put("smsType", 1);
+			this.execute(map);
+			return code;
+    }
+    
+    public String getCustomBindCode(String customId,String toPhone) {
+	    	 String code=getSixCode("customBindCode");
+	    	 jedisCluster.set(code,customId);
+	    	 jedisCluster.expire(code,BaseGlobal.CUSTOMBINDCODEEXPTIME*BaseGlobal.SECONDSTOHOURS);
+	    	 logger.warn("给手机号码为{}的生成六位客源绑定码:{}",toPhone,code);
+				/*发送短息*/
+				Map<String,Object> map=new HashMap<>();
+				map.put("phone", toPhone);
+				map.put("code", code);
+				map.put("time", BaseGlobal.CUSTOMBINDCODEEXPTIME);
+				map.put("smsType", 2);
+				this.execute(map);
+				return code;
+    }
+    
+    public String getMsgAuthCode(String toPhone) {
+    		String code=getSixCode("msgAuthCode");
+			/*短信验证码和手机号码通过set存入redis,"msgAuthCode"为短信验证码的字段*/
+			jedisCluster.set(toPhone, code);
+			jedisCluster.expire(toPhone, BaseGlobal.MSGAUTHCODEEXPTIME*60);
+			logger.warn("给手机号码为{}的生成六位短信验证码:{}",toPhone,code);
+			/*发送短息*/
+			Map<String,Object> map=new HashMap<>();
+			map.put("phone", toPhone);
+			map.put("code", code);
+			map.put("time", BaseGlobal.MSGAUTHCODEEXPTIME);
+			map.put("smsType", 999);
+			this.execute(map);
+			return code;
+
+    }
+    
+    public boolean DelCode(String key) {
+			jedisCluster.del(key);
+			logger.warn("删除主键:{}",key);
+			return true;
+
+    }
+    
+    public String getCustomId() {
+    		String res=getThreeCode("customGrowthCode");//customGrowthCode表示客源自增长code
+    		String time= LocalDateTime.now().format(new DateTimeFormatterBuilder().appendPattern("yyMMdd").toFormatter());
+    		String code="";
+    		code=BaseGlobal.KY_PERFIX+time+res;
+    		logger.warn("生成客源ID:{}",code);
+			return code;
+
+    }
+    
+    public String getDealId(boolean mmDeal) {
+    	String res=getThreeCode("dealGrowthCode");//dealGrowthCode表示成交自增长code
+    	String time= LocalDateTime.now().format(new DateTimeFormatterBuilder().appendPattern("yyMMdd").toFormatter());
+    	String code="";
+    	if(mmDeal) {
+    		code=BaseGlobal.MMCJ_PERFIX+time+res;
+    	}else {
+		 code=BaseGlobal.ZLCJ_PERFIX+time+res;
+    	}
+    	logger.warn("生成成交ID:{}",code);
+			return code;
+    }
+    
+    public String getHouseId(String areaCode) {
+    	String res=getSixGrowthCode(areaCode+"id");
+    	String code=BaseGlobal.FY_PERFIX+areaCode+res;
+    	logger.warn("生成房源ID:{}",code);
+		return code;
+
+    }
+    
+    public String getTicketId() {
+    	String time= LocalDateTime.now().format(new DateTimeFormatterBuilder().appendPattern("yyMMdd").toFormatter());
+    	String d=getThreeCode("ticketId");
+    	String code=time+d;
+    	logger.warn("生成票据ID:{}",code);
+		return code;
+
+    }
+    
+    
+
+    /**
+     * 生成六位数字
+     * @Title: getSixCode   
+     * @Description: TODO(这里用一句话描述这个方法的作用)   
+     * @param: @param key
+     * @param: @return      
+     * @return: String      
+     * @throws
+     */
+    private String getSixCode(String key) {
+		String res=getThreeCode(key);
+		String ranDom=String.valueOf((int)(Math.random()*900)+100);		
+		String code=ranDom+res;
+		return code;
+    }
+    
+    /**
+     * 从redis中获取自增长的3为数字，最大值为995.
+     * @Title: getThreeCode   
+     * @Description: TODO(这里用一句话描述这个方法的作用)   
+     * @param: @param key
+     * @param: @return      
+     * @return: String      
+     * @throws
+     */
+    private String getThreeCode(String key) {
+    	long d=jedisCluster.incr(key);
+		if(d>995) {
+			jedisCluster.set(key, "0");
+		}
+		String res=String.format("%03d", d);
+		return res;
+    }
+    
+    /**
+     * 从redis中获取自增长的6为数字，最大值为999999.
+     * @Title: getThreeCode   
+     * @Description: TODO(这里用一句话描述这个方法的作用)   
+     * @param: @param key
+     * @param: @return      
+     * @return: String      
+     * @throws
+     */
+    private String getSixGrowthCode(String key) {
+    	long d=jedisCluster.incr(key);
+		String code=String.format("%06d", d);
+		return code;
+    }
+}

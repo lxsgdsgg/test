@@ -1,0 +1,63 @@
+package com.bashiju.quartz.mapper;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+
+/**
+ * 房源客源等级定时任务Mapper
+ * @ClassName  ErTaskMapper   
+ * @DescriptionTODO(这里用一句话描述这个类的作用)   
+ * @author zhaobin
+ * @date   2018年5月31日 下午6:22:14   
+ *     
+ * @Copyright 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface HouseAndCustomerLevelTaskMapper {
+
+	
+	public List<Map<String,Object>> queryCustomerLevlConfig(@Param("companyId") String companyId,@Param("cityCode") String cityCode);
+	/**
+	 * 获取满足客源等级的客源ID
+	 * @param transactionTypeId 交易类型Id
+	 * @param statusId 客源状态Id
+	 * @param companyId 公司id
+	 * @param isRepeat 是否复看
+	 * @param isBond 是否下定
+	 * @param isUrgent 是否急切
+	 * @param isCloseDisc 是否封盘
+	 * @param isCancelNotice 是否撤单
+	 * @param taobaoStatus 是否淘宝池
+	 * @param viewingCount 带看次数
+	 * @param minPrice 最低价格
+	 * @param maxPrice 最高价格
+	 * @param minSpace 最小面积
+	 * @param maxSpace 最大面积
+	 * @return
+	 */
+	public List<Map<String,Object>> queryCustomerABLevelInfo(@Param("transactionTypeId") String transactionTypeId,@Param("statusId") String statusId,@Param("companyId") String companyId,@Param("cityCode") String cityCode,
+			@Param("isRepeat") boolean isRepeat,@Param("isBond") boolean isBond,@Param("isUrgent") boolean isUrgent,@Param("isCloseDisc") boolean isCloseDisc,
+			@Param("taobaoStatus") boolean taobaoStatus,@Param("viewingCount")String viewingCount,@Param("minPrice")String minPrice,
+			@Param("maxPrice")String maxPrice,@Param("minSpace")String minSpace,@Param("maxSpace")String maxSpace,@Param("levelType") String levelType);
+	
+	public List<Map<String,Object>> queryCustomerCLevelInfo(@Param("companyId") String companyId,@Param("cityCode")String cityCode,@Param("statusId")String statusId );
+
+	public List<Map<String,Object>> queryCustomerDLevelInfo(@Param("companyId") String companyId,@Param("cityCode")String cityCode,@Param("statusId")String statusId );
+
+	
+	public List<Map<String,Object>> queryHouseLevlConfig(@Param("companyId") String companyId,@Param("cityCode") String cityCode);
+	
+	public List<Map<String,Object>> queryHouseABLevelInfo(@Param("transactionTypeId") String transactionTypeId,@Param("statusId") String statusId,@Param("companyId") String companyId,@Param("cityCode") String cityCode,
+			@Param("areaCodeString") String areaCodeString,@Param("regionIdString") String regionIdString,@Param("taobaoStatus") boolean taobaoStatus,@Param("isPicture") boolean isPicture,@Param("isKeys") boolean isKeys,
+			@Param("isUnique") boolean isUnique,@Param("closeDiscFlg") boolean closeDiscFlg,@Param("isUrgent") boolean isUrgent,@Param("isSatisfyTwoYear") boolean isSatisfyTwoYear,@Param("isOnly") boolean isOnly,
+			@Param("propertyTypeId")String propertyTypeId,@Param("decorationId")String decorationId,@Param("houseUsesId")String houseUsesId,@Param("payTypeId")String payTypeId,@Param("sellingMinPrice")String sellingMinPrice,
+			@Param("sellingMaxPrice")String sellingMaxPrice,@Param("buildMinSpace")String buildMinSpace,@Param("buildMaxSpace")String buildMaxSpace,@Param("matchingIdString")String matchingIdString,@Param("levelType") String levelType);
+	
+	
+	public List<Map<String,Object>> queryHouseCLevelInfo(@Param("companyId") String companyId,@Param("cityCode")String cityCode,@Param("statusId")String statusId );
+
+	public List<Map<String,Object>> queryHouseDLevelInfo(@Param("companyId") String companyId,@Param("cityCode")String cityCode,@Param("statusId")String statusId );
+
+}

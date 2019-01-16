@@ -1,0 +1,37 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustReleaseRecruitEntity.java   
+ * @Package com.bashiju.www.pojo.service.out.recruit      
+ * @author: zuoyuntao     
+ * @date:   2018年8月7日 上午11:21:58   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.out.recruit;
+
+import lombok.Data;
+
+/**
+ * 招聘信息实体类
+ * @ClassName:CustReleaseRecruitEntity
+ * @Description:招聘信息实体类
+ * @author:zuoyuntao
+ * @date:2018年8月7日 上午11:21:58
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class CustReleaseRecruitEntity {
+	private int id;
+	/**职位名称**/
+	private String name;
+	/**招聘人数**/
+	private int count;
+	/**工作地点区域编码**/
+	private String workCityCode;
+	/**工作地点**/
+	private String workCityName;
+	/**发布时间**/
+	private String publishTime;
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/bashiju-deal-web" />
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/bashiju-deal-web/target/m2e-wtp/web-resources/META-INF/maven/com.bashiju.deal/bashiju-deal-web/pom.xml" />
+        <option value="$PROJECT_DIR$/bashiju-deal-web/target/m2e-wtp/web-resources/META-INF/maven/com.bashiju.deal/bashiju-deal-web/pom.properties" />
+        <option value="$PROJECT_DIR$/bashiju-deal-pojo/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-pojo/pom.xml" />
+        <option value="$PROJECT_DIR$/bashiju-deal-pojo/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-pojo/pom.properties" />
+        <option value="$PROJECT_DIR$/bashiju-deal-mapper/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-mapper/pom.xml" />
+        <option value="$PROJECT_DIR$/bashiju-deal-mapper/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-mapper/pom.properties" />
+        <option value="$PROJECT_DIR$/bashiju-deal-service/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-service/pom.xml" />
+        <option value="$PROJECT_DIR$/bashiju-deal-service/target/classes/META-INF/maven/com.bashiju.deal/bashiju-deal-service/pom.properties" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>

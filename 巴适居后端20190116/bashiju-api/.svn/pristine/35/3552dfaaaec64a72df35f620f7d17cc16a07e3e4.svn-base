@@ -1,0 +1,19 @@
+package com.bashiju.api;
+
+public interface IMSystemMessageApi {
+	/**
+	 * 内部消息发送服务
+	 * @Title: sysMsg   
+	 * @Description: TODO(这里用一句话描述这个方法的作用)   
+	 * @param: @param senderUuid  发送者的UUID
+	 * @param: @param senderPhoto 发送者头像地址
+	 * @param: @param senderName 发送者真实姓名
+	 * @param: @param msgContent 发送的消息内容
+	 * @param: @param reSessionId 接收者的UUID
+	 * @param: @return      
+	 * @return: boolean      成功-true;失败=false;
+	 * @throws
+	 */
+	public boolean sysMsg(String senderUuid,String senderPhoto,String senderName,String msgContent,String reSessionId);
+		
+}

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.oa.mapper.TaskManageMapper">
+	
+	<select id="queryTask" resultType="map">
+		select id, name,beginTime,endTime,companyId,companyId,operatorId,operator,
+		permissionArea from sys_task_main where isvalid =1 
+		<if test="taskName!=null and taskName!=''"> and taskName like concat('%',#{taskName},'%')</if>
+		order by addTime
+	</select>	
+	
+	<select id="queryUserBelongDept" resultType="map">
+		<!-- select a.id as agentId,a.realName as agentName,a.deptId,b.name as deptName from sys_user a 
+		left join sys_dept b on a.deptId = b.id
+		 where a.permissionArea like concat(#{deptId},'%') and  a.isAgent =1 and a.isvalid=1 -->
+		 select a.id as agentId,a.realName as agentName,a.deptId ,b.name as deptName from sys_user a 
+		 left join sys_dept b on a.deptId = b.id 
+		 where a.isValid and b.id like CONCAT(a.deptId,'%') and a.isAgent = 1  
+	</select>
+	
+	<select id="queryAlreadyDistributedTaskUser" resultType="map">
+		SELECT a.id,a.taskId,
+		a.agentId,a.agentName,a.deptId,a.deptName,a.sellHouseAdd,a.rentHouseAdd,
+		a.sellCustomerAdd,a.rentCustomerAdd,a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerFollow,
+		a.rentCustomerFollow,a.sellHouseFollow,a.rentlHouseFollow,a.sellHouseShowed,a.rentHouseShowed,
+		a.sellDeal,a.rentDeal,a.sellHouseRealExploration,a.rentHouseRealExploration,a.sellHouseKey,
+		a.rentHouseKey,a.permissionArea,a.operatorId,a.operator,a.addTime,a.sellDealMoney,a.rentDealMoney FROM
+		sys_task_detailed AS a WHERE a.taskId = #{taskId} AND a.deptId = #{deptId} and a.isvalid = 1
+	</select>
+	
+	<select id="queryTaskIsExist" resultType="long">
+		select count(*) from sys_task_main where  isvalid = 1 and companyId = #{companyId} and beginTime BETWEEN #{beginTime} and #{endTime}  or endTime BETWEEN #{endTime}  and #{beginTime};
+
+	</select>
+	
+	<select id="queryAllAgent" resultType="map">
+		select a.realName as agentName,a.id as agentId,b.name as deptName,b.id as deptId   from sys_user a 
+		left join sys_dept b on a.deptId = b.id 
+	    where a.isValid = 1 and  a.companyId = #{companyId} and a.isAgent = 1
+	</select>
+	
+	<select id="queryAgentIsExistTask" resultType="long">
+		select count(*) from sys_task_detailed where isvalid = 1 and  taskId = #{taskId} and agentId  = #{agentId} 
+	</select>
+	
+	<select id="queryAgentInfoById" resultType="map">
+		select a.id as agentId,a.realName as agentName,b.name as deptName,b.id as deptId from sys_user a 
+		left join sys_dept b on a.deptId = b.id
+		where a.isvalid = 1 and  a.id = #{agentId}
+	</select>
+	
+	<select id="queryTaskDetail" resultType="map">
+		select agentId,agentName,deptName from sys_task_detailed where taskId = #{taskId} and isvalid = 1	
+	</select>
+	
+	<select id="queryAgentDistributedTaskDetail" resultType="map">
+		SELECT b.name as taskName,a.id,a.taskId,a.agentId,a.agentName,a.deptId,a.deptName,a.sellHouseAdd,a.rentHouseAdd,a.sellCustomerAdd,
+		a.rentCustomerAdd,a.sellOpenDisc,a.rentOpenDisc,a.sellCustomerFollow,a.rentCustomerFollow,a.sellHouseFollow,
+		a.rentlHouseFollow,a.sellHouseShowed,a.rentHouseShowed,a.sellDeal,a.rentDeal,a.sellHouseRealExploration,
+		a.rentHouseRealExploration,a.sellHouseKey,a.rentHouseKey,a.permissionArea,a.operator,a.addTime,a.isvalid,
+		a.sellDealMoney,a.rentDealMoney
+		FROM sys_task_detailed AS a
+		left join sys_task_main b on a.taskId = b.id
+		 where  a.isvalid = 1 and a.agentId = #{agentId} and a.taskId =#{taskId}
+	</select>
+
+</mapper>

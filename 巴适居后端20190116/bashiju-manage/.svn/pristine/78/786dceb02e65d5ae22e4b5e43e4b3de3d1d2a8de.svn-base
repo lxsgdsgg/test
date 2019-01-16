@@ -1,0 +1,160 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ReservationWatchHouseController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月3日 下午5:33:56   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.controller;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.HandleStatusEnum;
+import com.bashiju.enums.ReservationTimeEnum;
+import com.bashiju.manage.service.ReservationWatchHouseService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+import javassist.expr.NewArray;
+
+/**   
+ * @ClassName:  ReservationWatchHouseController   
+ * @Description:预约看房控制层 
+ * @author: wangpeng
+ * @date:   2018年8月3日 下午5:33:56   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="reservationWatchHouse")
+public class ReservationWatchHouseController  extends BaseController{
+	@Autowired
+	private ReservationWatchHouseService reservationWatchHouseService;
+	
+	/**
+	 * @Title: enterReservationWatchHousePage   
+	 * @Description: 进入预约带看页面   
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterReservationWatchHousePage")
+	public ModelAndView enterReservationWatchHousePage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "reservationWatchHouse/reservationWatchHouse");
+//		 页面转换
+		 mv.addObject("reservationTimeEnum",JSON.toJSONString(ReservationTimeEnum.enumMap));
+		 mv.addObject("handleStatusEnum", JSON.toJSONString(HandleStatusEnum.enumMap));
+		return mv;
+	}
+	/**
+	 * @Title: enterReservationWatchHouseUpdateTimePage   
+	 * @Description: 进入修改时间页面
+	 * @param request
+	 * @param response
+	 * @param id id
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterReservationWatchHouseUpdateTimePage")
+	public ModelAndView enterReservationWatchHouseUpdateTimePage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "reservationWatchHouse/reservationWatchHouseUpdateTime");
+		 mv.addObject("reservationTimeEnum",ReservationTimeEnum.enumList);
+		 Map<String,Object > reservationWatchHouseInfo =  reservationWatchHouseService.queryReservationWatchHouseById(id);
+		 if(reservationWatchHouseInfo!=null && reservationWatchHouseInfo.size()>0)
+			 mv.addObject("reservationWatchHouseInfo", reservationWatchHouseInfo);
+		 return mv;
+	}
+	/**
+	 * @Title: enterReservationWatchHouseCancelPage   
+	 * @Description: 进入取消预约页面
+	 * @param request
+	 * @param response
+	 * @param id id
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterReservationWatchHouseCancelPage")
+	public ModelAndView enterReservationWatchHouseCancelPage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "reservationWatchHouse/reservationWatchHouseCancel");
+		mv.addObject("id", id);
+		return mv;
+	}
+	
+	/**
+	 * @Title: queryReservationWatchHouseByAgentId   
+	 * @Description: 查询经纪人预约信息  
+	 * @param agentId 经纪人id
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryReservationWatchHouseByAgentId")
+	@ResponseBody
+	public Map<String,Object> queryReservationWatchHouseByAgentId(int page,int limit){
+		Page<Map<String,Object>> pages =  reservationWatchHouseService.queryReservationWatchHouseByAgenId(page, limit);
+		Map<String, Object> map = getPageResult(pages);
+		return map;
+	}
+	
+	/***
+	 * @Title: updateReservationsInfo   
+	 * @Description: 修改预约信息   
+	 * @param reservationsId 预约id
+	 * @param handelResult 处理结果
+	 * @param status 状态
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="updateReservationsInfo")
+	@ResponseBody
+	public BashijuResult updateReservationsInfo(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存参数有误");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = reservationWatchHouseService.updateReservationsInfo(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/***
+	 * @Title: updateReservationsTime   
+	 * @Description: 修改预约时间
+	 * @param reservationsId 预约表id
+	 * @param reservationTime 预约时间
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="updateReservationsStatus")
+	@ResponseBody
+	public BashijuResult updateReservationsStatus(String handelResult,String reservationsId) {
+		Map<Object,Object> paramMap = new HashMap<Object, Object>();
+		paramMap.put("reservationsId", reservationsId);
+		paramMap.put("handelResult", handelResult);
+		paramMap.put("status", 2);
+		boolean result = reservationWatchHouseService.updateReservationsInfo(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.UPDATEFILE_ERROR);
+	}
+	
+	
+}

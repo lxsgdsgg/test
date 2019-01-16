@@ -1,0 +1,220 @@
+package com.bashiju.customer.pojo;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.bashiju.enums.CustomerTransactionEnum;
+
+public class CustomerFindHouseEntity {
+	/**客源交易类型：4、求购，5、求租**/
+	private String transactionTypeId;
+	/** 部门或用户:1、部门，2、用户**/
+	private AccurateEntity departmentOrUser;
+	/**面积**/
+	private RangeQuery buildSpace;
+	/** 1:行政区域、2:片区、3:小区**/
+	private List<AccurateEntity> areas;
+	/**座栋**/
+	private String building;
+	/** 1、房源编号，2、业主姓名，3、门牌号，4、业主电话、5小区名称，6、钥匙编号，7、委托编号，8、推荐标签，9、房源备注**/
+	private AccurateEntity vagueData;
+	
+	public String getTransactionTypeId() {
+		return transactionTypeId;
+	}
+
+	public void setTransactionTypeId(String transactionTypeId) {
+		this.transactionTypeId = transactionTypeId;
+	}
+
+	public AccurateEntity getDepartmentOrUser() {
+		return departmentOrUser;
+	}
+
+	public void setDepartmentOrUser(AccurateEntity departmentOrUser) {
+		this.departmentOrUser = departmentOrUser;
+	}
+
+	public RangeQuery getBuildSpace() {
+		return buildSpace;
+	}
+
+	public void setBuildSpace(RangeQuery buildSpace) {
+		this.buildSpace = buildSpace;
+	}
+
+	public List<AccurateEntity> getAreas() {
+		return areas;
+	}
+
+	public void setAreas(List<AccurateEntity> areas) {
+		this.areas = areas;
+	}
+
+	public String getBuilding() {
+		return building;
+	}
+
+	public void setBuilding(String building) {
+		this.building = building;
+	}
+
+	public AccurateEntity getVagueData() {
+		return vagueData;
+	}
+
+	public void setVagueData(AccurateEntity vagueData) {
+		this.vagueData = vagueData;
+	}
+
+	public String toSql() {
+		StringBuilder tableSql=new StringBuilder();
+		StringBuilder conditionSql=new StringBuilder();
+		tableSql.append("SELECT ");
+		tableSql.append(" sh.taobaoStatusId,sh.statusId,sh.transactionTypeId,sh.discStatusId,sh.permissionArea,sh.operatorId,sh.id,sh.transactionType,sh.`status`,sh.houseId,hb.communityName,hb.buildingsName,hb.buildingHouseName,sh.`owner`,sh.room,sh.hall,sh.buildSpace,sh.sellingPrice/1000000 AS sellingPrice,sh.rentPrice/100 as rentPrice,sh.maintainer,sh.entrustCode,sh.mainterDept  ");
+		tableSql.append(" FROM hs_secondhandhouse AS sh ");
+		tableSql.append(" INNER JOIN hs_housebaseinfo AS hb ON sh.houseId=hb.id AND sh.isValid=1 AND sh.statusId='1' AND sh.examineStatus='1' ");
+		
+		if (StringUtils.isNotEmpty(transactionTypeId)) {
+			if (CustomerTransactionEnum.BUY.getCode().equals(transactionTypeId)) {
+				conditionSql.append(" sh.transactionTypeId in (1,3) ");
+			}
+			if (CustomerTransactionEnum.RENT.getCode().equals(transactionTypeId)) {
+				conditionSql.append(" sh.transactionTypeId in (2,3) ");
+			}
+		}
+		if (departmentOrUser!=null) {
+			if (departmentOrUser.getType()==1) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.permissionArea LIKE '");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append("%' ");
+			}else {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.maintainId =");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append(" ");
+			}
+		}
+		if (buildSpace!=null) {
+			
+			if (buildSpace.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildSpace >= ");
+				conditionSql.append((buildSpace.getMin()));
+			}
+			
+			if (buildSpace.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" sh.buildSpace <= ");
+				conditionSql.append((buildSpace.getMax()));
+			}
+		}
+		if (areas!=null&&areas.size()>0) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append("(");
+			for (int i = 0; i < areas.size(); i++) {
+				if (i>0) {
+					conditionSql.append(" or ");
+				}
+				if (areas.get(i).getType()==1) {
+					conditionSql.append(" hb.areaCode='");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append("' ");
+				}
+				if (areas.get(i).getType()==2) {
+					conditionSql.append(" hb.regionId=");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(" ");
+				}
+				if (areas.get(i).getType()==3) {
+					conditionSql.append(" hb.communityId=");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(" ");
+				}
+			}
+			conditionSql.append(")");
+		}
+		if (StringUtils.isNotEmpty(building)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" hb.buildingsName='");
+			conditionSql.append(building);
+			conditionSql.append("' ");
+		}
+		if (vagueData!=null) {
+			if (vagueData.getType()!=null&&vagueData.getValue()!=null) {
+				if (conditionSql.length()>0&&vagueData.getType()!=4) {
+					conditionSql.append(" and ");
+				}
+				switch (vagueData.getType()) {
+				case 1:
+					conditionSql.append(" sh.houseId like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 2:
+					conditionSql.append(" sh.owner like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 3:
+					conditionSql.append(" hb.buildingHouseName like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 4:
+					tableSql.append(" INNER   JOIN hs_houseOwnerRelate AS hor ON hor.shhId=sh.id AND hor.isValid=1");
+					tableSql.append(" and hor.phone like '%");
+					tableSql.append(vagueData.getValue());
+					tableSql.append("%' ");
+					break;
+				case 5:
+					conditionSql.append(" hb.communityName like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 6:
+					conditionSql.append(" sh.keyCode like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 7:
+					conditionSql.append(" sh.entrustCode like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 8:
+					conditionSql.append(" sh.labeld like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 9:
+					conditionSql.append(" sh.remark like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				}
+			}
+		}
+		if (conditionSql.length()>0) {
+			tableSql.append(" where ");
+			tableSql.append(conditionSql);
+		}
+		
+		System.out.println(tableSql.toString());
+		return tableSql.toString();
+	}
+}

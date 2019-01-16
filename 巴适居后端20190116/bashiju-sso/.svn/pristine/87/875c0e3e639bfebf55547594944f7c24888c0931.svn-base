@@ -1,0 +1,671 @@
+package com.bashiju.sso.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.api.DecisionConfigurateServiceApi;
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.api.SsoQueryServiceApi;
+import com.bashiju.enums.DecisionConfigurateEnum;
+import com.bashiju.enums.UserTypeEnum;
+import com.bashiju.sso.global.SsoGlobal;
+import com.bashiju.sso.mapper.UserManageMapper;
+import com.bashiju.sso.service.IUserManageService;
+import com.bashiju.utils.cookie.CookieUtils;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.global.SYSGlobal;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+
+@Service
+public class UserManageServiceImpl implements IUserManageService{
+
+	@Autowired
+	private UserManageMapper userManageMapper;
+	
+	@Autowired
+	private CommonSqlServie commonSqlServie;
+	
+	@Autowired
+	private RedisServiceApi redisServiceApi;	
+	@Autowired
+	private RedisGetIdServiceApi redisGetIdServiceApi;
+	@Autowired
+	private SsoQueryServiceApi ssoQueryServiceApi;
+	@Autowired 
+	DecisionConfigurateServiceApi decisionConfigurateServiceApi;
+	
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+	private   Logger logger = LoggerFactory.getLogger(this.getClass());
+	/**
+	 * 检查用户登录的手机号码是否在数据库存在
+	 * @param phone 手机号码
+	 * @return
+	 */
+	public boolean checkUserPhone(String phone){
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("getContion", "phone="+phone);
+		map.put("id", "");
+		Integer count=this.userManageMapper.queryUserCount(map);
+		if(count!=null&&count==1) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 用户登录
+	 * @param userPhone
+	 * @param userPass
+	 * @param ip
+	 * @return
+	 * @throws Exception
+	 */
+	public String doLogin(String userPhone,String userPass,String ip,String areaCode,String areaName
+			,HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String key = SYSGlobal.USER_LOGIN_PC+1;
+		String field = SYSGlobal.MENU_userMenuPermission;
+//		String jsonStr = this.get(key);
+		String jsonStr = this.redisServiceApi.getHash(key, field);//先从内存中查找是否存在
+		System.out.println(key);
+		System.out.println(jsonStr);
+		Map<String,Object> map=new HashMap<String,Object>();
+		/*获取配置文件中值
+		propertyConfigurer.getProperty("loginUrl").toString();*/			
+
+		map.put("getCondition","mobile=\'"+userPhone +"\'");
+		map.put("page","1");
+		map.put("pagesize","1");
+		long start=System.currentTimeMillis();
+		System.out.println("登录查询用户开始："+start);
+		//根据手机号查询用户
+		Map<String, Object> usermap=this.userManageMapper.queryUserInfo(map);
+		long end=System.currentTimeMillis();
+		System.out.println("登录查询用户结束："+end);
+		System.out.println("登录查询用户耗时："+(end-start));
+		//判断用户是否存在
+		if(usermap==null||usermap.size()<1)
+		{
+			UserThreadLocal.set(null);
+			Map<String,Object> recordMap=new HashMap<>();
+			recordMap.put("phone", userPhone);
+			recordMap.put("ip", ip);
+			recordMap.put("areaCode", areaCode);
+			recordMap.put("areaName", areaName);
+			recordMap.put("status", "fail");
+			recordMap.put("remark", ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getDesc());
+			recordMap.put("operatorType", "login");
+			recordMap.put("source", "");
+			//添加登录失败记录
+			addLoginRecord(recordMap);
+			return ErrorCodeEnum. USER_LOGIN_ERROR_PHONE.getCode();
+		}
+		String status=usermap.get("status").toString();
+		if ("1".equals(status)) {
+			addRegisterCheck(usermap);
+			return "unaudited";
+		}
+		start=System.currentTimeMillis();
+		System.out.println("登录IP验证开始："+start);
+		//ip验证
+		boolean checkedIp=true; //checkIP(usermap, ip);	
+		end=System.currentTimeMillis();
+		System.out.println("登录IP验证结束："+end);
+		System.out.println("登录IP验证耗时："+(end-start));
+		if (checkedIp) {
+			
+			String userPassword=usermap.get("password").toString();
+			
+			int rules=checkLoginLimit(usermap);
+			/*验证用户是否限制登录*/
+			if (rules>0) {
+				return ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode();
+			}
+			
+			/*验证用户状态*/
+			if (!"01".equals(status)) {
+				return ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode();
+			}
+			/*验证密码*/
+			if (!userPass.equals(userPassword)) {
+				Object countObject=usermap.get("passwordErrorCount");
+				int count=1;
+				if (countObject!=null) {
+					count=Integer.parseInt(usermap.get("passwordErrorCount").toString())+1;
+				}
+				updateLoginErrorCount(Long.parseLong(usermap.get("id").toString()),count);
+				if (count>=3) {
+					CookieUtils.setCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY,SsoGlobal.USEVERFIY);
+				}
+				return ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode();
+			}
+			/**pc是否已经登录**/
+			/*if (usermap.get("isPCLogin")!=null&&"1".equals(usermap.get("isPCLogin").toString())) {
+				UserThreadLocal.set(null);
+				return ErrorCodeEnum.USER_LOGIN_ERROR_REPEATLOGIN.getCode();
+			}*/
+			/*登录成功，将用户的信息保存到Redis中*/
+			//String token= DigestUtils.md5Hex(userPhone + System.currentTimeMillis());
+			//String userType=usermap.get("userType").toString();
+			
+			start=System.currentTimeMillis();
+			System.out.println("登录存redis开始："+start);
+			usermap.remove("password");
+			Map<String, Object> decision=decisionConfigurateServiceApi.getDecisionConfigurate(DecisionConfigurateEnum.DECISION_35.getCode(), usermap.get("cityCode").toString());
+			if (decision!=null&&decision.get("val")!=null) {
+				Integer delay=Integer.parseInt(decision.get("val").toString());
+				usermap.put("delay", delay);
+			}
+			/*加上onlineUser 是为了后续业务方便在线用户统计*/
+			String data = MAPPER.writeValueAsString(usermap);
+			//用户对象存入redis
+			this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+usermap.get("id").toString(), SYSGlobal.USER_LOGIN_ONLINE_TOKEN, data);
+			String source = "分机";
+			//存主机类型账号的登录ip到redis
+			/*if ("1".equals(userType)) {
+				String ips=getRedisData(usermap.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN);
+				if (StringUtils.isEmpty(ips)) {
+					ips=ip;
+				}else {
+					if (!ips.contains(ip)) {
+						ips+=","+ip;
+					}					
+				}
+				this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+usermap.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN, ips);
+				source = "主机";
+			}*/
+			end=System.currentTimeMillis();
+			System.out.println("登录存redis结束："+end);
+			System.out.println("登录存redis耗时："+(end-start));
+			
+			UserThreadLocal.set(usermap);
+			
+			start=System.currentTimeMillis();
+			System.out.println("登录修改用户状态开始："+start);
+			//修改用户状态
+			updateLoginStatus(Long.parseLong(usermap.get("id").toString()));
+			end=System.currentTimeMillis();
+			System.out.println("登录修改用户状态结束："+end);
+			System.out.println("登录修改用户状态耗时："+(end-start));
+			
+			start=System.currentTimeMillis();
+			System.out.println("登录添加记录开始："+start);
+			//添加登录成功记录
+			Map<String,Object> recordMap=new HashMap<>();
+			recordMap.put("phone", userPhone);
+			recordMap.put("name", usermap.get("realName").toString());
+			recordMap.put("companyId", usermap.get("companyId").toString());
+			recordMap.put("companyName", usermap.get("comName").toString());
+			recordMap.put("departmentId", usermap.get("deptId").toString());
+			recordMap.put("departmentName", usermap.get("depName").toString());
+			recordMap.put("ip", ip);
+			recordMap.put("areaCode", areaCode);
+			recordMap.put("areaName", areaName);
+			recordMap.put("status", "success");
+			recordMap.put("remark", "登录成功");
+			recordMap.put("operatorType", "login");
+			recordMap.put("source", source);
+			//添加登录成功记录
+			addLoginRecord(recordMap);
+			end=System.currentTimeMillis();
+			System.out.println("登录添加记录结束："+end);
+			System.out.println("登录添加记录耗时："+(end-start));
+			return usermap.get("id").toString();
+		}
+		return ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode();
+	}
+	/**
+	 * 
+	 * @Title: addRegisterCheck   
+	 * @Description: TODO(第一次登录向用户注册审核表插入一条记录)   
+	 * @param: @param usermap
+	 * @param: @return      
+	 * @return: boolean      
+	 * @throws
+	 */
+	private boolean addRegisterCheck(Map<String,Object> usermap) {
+		long uid=Long.parseLong(usermap.get("id").toString());
+		String depId=usermap.get("deptId").toString(); 
+		Page<Map<String, Object>> page=commonSqlServie.querySingleTable("id", "user_register_check_info", "manageId="+uid+" and checkStatus=0", 1, 100);
+		if (page.getTotal()>0) {
+			return true;
+		}
+		Map<String,Object> map=new HashMap<>();
+		map.put("checkStatus", 0);
+		map.put("manageId", uid);
+		map.put("permissionArea", depId);
+		map.put("operatorId", uid);
+		long result=commonSqlServie.commonOperationDatabase(map, "user_register_check_info",true);
+		return true;
+	}
+	
+	/**
+	 * 验证用户登陆ip
+	 * @param userIp
+	 * @return
+	 */
+	private boolean checkIP(Map<String,Object> usermap,String userIp) {
+		
+		if (usermap.size()>0) {
+			String userType = usermap.get("userType").toString();			
+			//主机用户不检查ip
+			if ("1".equals(userType)) {				
+				return true;
+			} else {
+				if (usermap.get("companyId")==null) {
+					return false;
+				}
+				String companyId=usermap.get("companyId").toString();
+				//分机用户检查对应主机用户redis存储的ip与登录ip是否一致
+				String ip=getRedisData(companyId,SYSGlobal.USER_IP_ONLINE_TOKEN);
+				if (StringUtils.isNotEmpty(ip)) {
+					return ip.contains(userIp);
+				}
+			}		
+		}
+		return false;
+	}
+	
+	/**
+	 * 检查用户是否被限制登录
+	 */
+	private int checkLoginLimit(Map<String,Object> usermap) {
+		Map<String,Object> map=new HashMap<String,Object>();			
+		map.put("areaCode", usermap.get("areaCode")!=null?usermap.get("areaCode"):"");
+		map.put("comId", usermap.get("companyId")!=null?usermap.get("companyId"):"");
+		map.put("depid", usermap.get("deptId")!=null?usermap.get("deptId"):"");
+		map.put("userPhone", usermap.get("id"));
+		int result=userManageMapper.queryLoginRules(map);
+		return result;
+	}
+	
+	/**
+	 * 修改登录用户状态
+	 * @param id
+	 * @return
+	 */
+	private Long updateLoginStatus(Long id) {
+		Map<String,Object> map=new HashMap<>();
+		map.put("loginStatus", "online");
+		map.put("isPCLogin", "1");
+		map.put("id", id);
+		map.put("lastLoginSuccessTime", new Date());
+		map.put("passwordErrorCount", 0);
+		long result=commonSqlServie.commonOperationDatabase(map, "sys_user", "id",true);
+		return result;
+	}
+	/**
+	 * 
+	 * @Title: updateLoginErrorCount   
+	 * @Description: 修改用户密码错误次数 
+	 * @param: @param id
+	 * @param: @param count
+	 * @param: @return      
+	 * @return: Long      
+	 * @throws
+	 */
+	private Long updateLoginErrorCount(Long id,Integer count) {
+		Map<String,Object> map=new HashMap<>();
+		map.put("id", id);
+		map.put("passwordErrorCount", count);
+		long result=commonSqlServie.commonOperationDatabase(map, "sys_user", "id",true);
+		return result;
+	}
+	/**
+	 * 
+	 * @Title: updateLoginoutStatus   
+	 * @Description: TODO(修改注销用户状态)   
+	 * @param: @param userPhone 登录用户手机号
+	 * @param: @return      
+	 * @return: Long      修改成功条数
+	 * @throws
+	 */
+	private Long updateLoginoutStatus(String userPhone) {
+		Map<String,Object> conditionMap=new HashMap<String,Object>();
+		/*获取配置文件中值
+		propertyConfigurer.getProperty("loginUrl").toString();*/			
+
+		conditionMap.put("getCondition","mobile=\'"+userPhone +"\'");
+
+		Map<String, Object> usermap=this.userManageMapper.queryUserInfo(conditionMap);
+		Integer id=Integer.parseInt(usermap.get("id").toString());
+		Object isMobileLogin=usermap.get("isMobileLogin");
+		Map<String,Object> map=new HashMap<>();
+		if (isMobileLogin==null||"1".equals(isMobileLogin.toString())) {
+			map.put("loginStatus", "Offline");
+		}		
+		map.put("isPCLogin", "");
+		map.put("id", id);
+		long result=commonSqlServie.commonOperationDatabase(map, "sys_user", "id",true);
+		return result;
+	}
+
+	/**
+	 * 
+	 * @Title: addLoginRecord   
+	 * @Description: TODO(添加登录日志)   
+	 * @param: @param map 登录参数
+	 * @param: @return      
+	 * @return: Long      日志添加成功条数
+	 * @throws
+	 */
+	private Long addLoginRecord(Map<String,Object> map) {
+				
+		long result=commonSqlServie.commonOperationDatabase(map, "sso_login_record",true);
+		return result;
+	}
+
+	
+
+	/**
+	 * 读取redis数据
+	 * @param
+	 * @return
+	 */
+	public String getRedisData(String userPhone,String filed) {
+		return this.redisServiceApi.getHash(SYSGlobal.USER_LOGIN_PC+userPhone, filed);
+	}
+	/**
+	 * 删除redis数据
+	 * @param token
+	 * @return
+	 */
+	public void delRedisData(String token,String ip,String areaCode,String areaName) {
+		//token为登录用户手机号
+		String data1=getRedisData(token,SYSGlobal.MENU_userMenuPermission);
+		String data=getRedisData(token,SYSGlobal.USER_LOGIN_ONLINE_TOKEN);
+		Map<String, Object> map=JSON.parseObject(data);	
+		UserThreadLocal.set(map);
+		if (map!=null) {
+			String userPhone=map.get("mobile")!=null?map.get("mobile").toString():null;
+			String type=map.get("userType")!=null?map.get("userType").toString():null;
+			//String type=map.get("hardType")!=null?map.get("hardType").toString():null;
+			 String source="分机";
+			//主机账号清空redis的公网IP
+			if (StringUtils.isNoneEmpty(type)&&type.equals("1")) {
+				//this.redisServiceApi.del(SSOGlobal.USER_IP_ONLINE_TOKEN+userPhone);
+				source="主机";
+				String ips=getRedisData(map.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN);
+				if (StringUtils.isNotEmpty(ips)) {
+					ips=ips.replaceAll(ip, "");
+					this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+map.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN, ips);
+				}			
+			}  
+/*			String key = SYSGlobal.USER_LOGIN_PC+1;*/
+			//删除用户redis所有数据
+			 this.redisServiceApi.del(SYSGlobal.USER_LOGIN_PC+token);
+			 updateLoginoutStatus(userPhone);
+			 Map<String,Object> recordMap=new HashMap<>();
+				recordMap.put("phone", userPhone);
+				recordMap.put("name", map.get("realName").toString());
+				recordMap.put("companyId", map.get("companyId").toString());
+				recordMap.put("companyName", map.get("comName").toString());
+				recordMap.put("departmentId", map.get("deptId").toString());
+				recordMap.put("departmentName", map.get("depName").toString());
+				recordMap.put("ip", ip);
+				recordMap.put("areaCode", areaCode);
+				recordMap.put("areaName", areaName);
+				recordMap.put("status", "success");
+				recordMap.put("remark", "注销成功");
+				recordMap.put("operatorType", "loginout");
+				recordMap.put("source", source);
+				//添加登录成功记录
+				addLoginRecord(recordMap); 
+				logger.warn("{} 用户注销成功",map.get("realName").toString());
+		}
+		
+	}
+	//窗口登录接口
+	@Override
+	public Map<String, String>  login(String userPhone, String userPass, String ip, String areaCode, String areaName, String hardware,
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("getCondition","mobile=\'"+userPhone +"\'");
+		map.put("page","1");
+		map.put("pagesize","1");
+
+		//根据手机号查询用户
+		Map<String, Object> usermap=this.userManageMapper.queryUserInfo(map);
+		String token="";
+		Map<String, String> result=new HashMap<>();
+	
+		//判断用户是否存在
+		if(usermap==null||usermap.size()<1)
+		{
+			UserThreadLocal.set(null);
+			Map<String,Object> recordMap=new HashMap<>();
+			recordMap.put("phone", userPhone);
+			recordMap.put("ip", ip);
+			recordMap.put("areaCode", areaCode);
+			recordMap.put("areaName", areaName);
+			recordMap.put("status", "fail");
+			recordMap.put("remark", ErrorCodeEnum.USER_LOGIN_ERROR_PHONE.getDesc());
+			recordMap.put("operatorType", "login");
+			recordMap.put("source", "");
+			//添加登录失败记录
+			addLoginRecord(recordMap);
+			token=ErrorCodeEnum. USER_LOGIN_ERROR_PHONE.getCode();
+			result.put("token", token);
+			return result;
+		}
+		String companyId=usermap.get("companyId").toString();
+		Long userId=Long.parseLong(usermap.get("id").toString());
+		String userPassword=usermap.get("password").toString();
+		String roleGroup=usermap.get("roleGroup").toString();//角色组
+		//公司用户判断所在城市是否到期或关闭
+		if ("03".equals(roleGroup)) {
+			String cityCode = usermap.get("cityCode").toString();
+			int openCity=userManageMapper.queryCompanyOpenCity(companyId, cityCode);
+			//用户所在城市是否到期或关闭
+			if (openCity==0) {
+				token= "closeCity";
+				result.put("token", token);
+				return result;
+			}
+		}
+		
+		/*验证密码*/
+		if (!userPass.equals(userPassword)) {
+			Object countObject=usermap.get("passwordErrorCount");
+			int count=1;
+			if (countObject!=null) {
+				count=Integer.parseInt(usermap.get("passwordErrorCount").toString())+1;
+			}
+			updateLoginErrorCount(Long.parseLong(usermap.get("id").toString()),count);
+			if (count>=3) {
+				CookieUtils.setCookie(request, response, SsoGlobal.USER_LOGIN_ISVERFIY,SsoGlobal.USEVERFIY);
+			}
+			token= ErrorCodeEnum.USER_LOGIN_ERROR_PASSWORD.getCode();
+			result.put("token", token);
+			return result;
+		}
+		int rules=checkLoginLimit(usermap);
+		/*验证用户是否限制登录*/
+		if (rules>0) {
+			token=ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode();
+			result.put("token", token);
+			return result;
+		}
+		
+		/*验证用户状态*/
+		if (!"01".equals(usermap.get("status").toString())) {
+			token=ErrorCodeEnum.USER_LOGIN_ERROR_BANNLOGIN.getCode();
+			result.put("token", token);
+			return result;
+		}
+		String source = "分机";
+		//硬件编号不能为空
+		if (StringUtils.isEmpty(hardware)) {
+			token=ErrorCodeEnum.UNKNOWN_ERROR.getCode();
+			result.put("token", token);
+			return result;
+		}
+		//判断硬件信息是否合法
+		Map<String, Object> hardInfo=userManageMapper.queryHardware(hardware);
+		if (hardInfo!=null) {
+			/*if (companyId.equals(hardInfo.get("companyId"))) {
+				
+			}else {
+				return "companyerror";
+			}*/
+			String hardType=hardInfo.get("userType").toString();
+			Long hardUserId=Long.parseLong(hardInfo.get("userId").toString());
+			usermap.put("hardType",hardType);
+			usermap.put("userType",hardType);
+			//独立主机判断用户
+			if (UserTypeEnum.INDEPENDENT_HOST.getCode().equals(hardType)&&userId.longValue()!=hardUserId.longValue()) {
+				token="usererror";
+				result.put("token", token);
+				return result;
+			} else if (UserTypeEnum.EXTENSION.getCode().equals(hardType)) {
+				boolean checked=checkHardwraeIP(ip,companyId);
+				if (!checked) {
+					token=ErrorCodeEnum.USER_LOGIN_ERROR_IP.getCode();
+					result.put("token", token);
+					return result;
+				}
+			}else if (UserTypeEnum.HOST.getCode().equals(hardType)) {
+				//主机账户登录，将ip存入公司名下的redis
+				String ips=getRedisData(usermap.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN);
+				if (StringUtils.isEmpty(ips)) {
+					ips=ip;
+				}else {
+					if (!ips.contains(ip)) {
+						ips+=","+ip;
+					}					
+				}
+				this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+usermap.get("companyId").toString(),SYSGlobal.USER_IP_ONLINE_TOKEN, ips);
+				source = "主机";
+			}
+		}else {
+			addHardwraeChecked(usermap,ip,areaCode,areaName,hardware);
+			token= "unaudited";
+			result.put("token", token);
+			return result;
+		}
+		Map<String, Object> decision=decisionConfigurateServiceApi.getDecisionConfigurate(DecisionConfigurateEnum.DECISION_35.getCode(), usermap.get("cityCode").toString());
+		if (decision!=null&&decision.get("val")!=null) {
+			Integer delay=Integer.parseInt(decision.get("val").toString());
+			usermap.put("delay", delay);
+		}
+		/*加上onlineUser 是为了后续业务方便在线用户统计*/
+		String data = MAPPER.writeValueAsString(usermap);
+		//用户对象存入redis
+		this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+usermap.get("id").toString(), SYSGlobal.USER_LOGIN_ONLINE_TOKEN, data);
+		
+		//修改用户状态
+		updateLoginStatus(Long.parseLong(usermap.get("id").toString()));
+
+		//添加登录成功记录
+		Map<String,Object> recordMap=new HashMap<>();
+		recordMap.put("phone", userPhone);
+		recordMap.put("name", usermap.get("realName").toString());
+		recordMap.put("companyId", usermap.get("companyId").toString());
+		recordMap.put("companyName", usermap.get("comName").toString());
+		recordMap.put("departmentId", usermap.get("deptId").toString());
+		recordMap.put("departmentName", usermap.get("depName").toString());
+		recordMap.put("ip", ip);
+		recordMap.put("areaCode", areaCode);
+		recordMap.put("areaName", areaName);
+		recordMap.put("status", "success");
+		recordMap.put("remark", "登录成功");
+		recordMap.put("operatorType", "login");
+		recordMap.put("source", source);
+		//添加登录成功记录
+		addLoginRecord(recordMap);
+		token=usermap.get("id").toString();
+		result.put("token", token);
+		result.put("companyName", usermap.get("comName").toString());
+		return result;
+	}
+	/**
+	 * 
+		 * 增加未绑定硬件审核绑定信息
+		 * @Description: 增加未绑定硬件审核绑定信息
+		 * @param usermap 登录用户信息
+		 * @param ip 登录ip
+		 * @param areaCode 登录区划
+		 * @param areaName 登录区划名称
+		 * @param hardware 硬件编号
+		 * void
+	 */
+	private void addHardwraeChecked(Map<String,Object> usermap,String ip, String areaCode, String areaName, String hardware) {
+		long uid=Long.parseLong(usermap.get("id").toString());
+		Integer count=userManageMapper.queryHardCheck(hardware);
+		if (count==0) {
+			Map<String,Object> map=new HashMap<>();
+			map.put("checkStatus", 0);
+			map.put("manageId", usermap.get("id"));
+			map.put("areaCode", areaCode);
+			map.put("areaName", areaName);
+			map.put("hardSeries", hardware);
+			map.put("ipAddress", ip);
+			map.put("companyId", usermap.get("companyId"));
+			map.put("permissionArea", usermap.get("deptId"));
+			map.put("operatorId", usermap.get("id"));
+			commonSqlServie.commonOperationDatabase(map, "user_register_check_info",true);
+		}		
+	}
+	/**
+	 * 
+		 * 判断分机电脑的ip是否在允许范围
+		 * @Description: 判断分机电脑的ip是否在允许范围
+		 * @param hardwraeIp 电脑ip
+		 * @param companyId 公司id
+		 * @return 
+		 * boolean
+	 */
+	private boolean checkHardwraeIP(String hardwraeIp,String companyId) {		
+		//分机用户检查对应主机用户redis存储的ip与登录ip是否一致
+		String ip=getRedisData(companyId,SYSGlobal.USER_IP_ONLINE_TOKEN);
+		if (StringUtils.isNotEmpty(ip)) {
+			return ip.contains(hardwraeIp);
+		}
+		return false;
+	}
+
+	@Override
+	public Map<String,Object> queryUserInfo(HttpServletRequest request) throws Exception {
+		String token = CookieUtils.getCookieValue(request, SYSGlobal.USER_LOGIN_TOKEN);
+		if (StringUtils.isNotEmpty(token)) {
+			Map<String,Object> user = ssoQueryServiceApi.queryUserByToken(SYSGlobal.USER_LOGIN_PC+ token);
+			if (user!=null&&user.size()>0) {
+				return user;
+			}			
+		}
+		return null;
+	}
+
+	@Override
+	public String unlock(String userPhone, String userPass) throws JsonProcessingException {
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("getCondition","mobile=\'"+userPhone +"\'");
+		map.put("page","1");
+		map.put("pagesize","1");
+
+		//根据手机号查询用户
+		Map<String, Object> usermap=this.userManageMapper.queryUserInfo(map);
+		String userPassword=usermap.get("password").toString();
+		if (userPass.equals(userPassword)) {
+			String data = MAPPER.writeValueAsString(usermap);
+			this.redisServiceApi.setHash(SYSGlobal.USER_LOGIN_PC+usermap.get("id").toString(), SYSGlobal.USER_LOGIN_ONLINE_TOKEN, data);
+			return usermap.get("id").toString();
+		}
+		return "error";
+	}
+}

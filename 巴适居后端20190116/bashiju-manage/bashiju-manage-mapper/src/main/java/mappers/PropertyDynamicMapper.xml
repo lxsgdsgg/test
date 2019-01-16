@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.PropertyDynamicMapper">
+	<select id="queryPropertyDynamicByProjectId" resultType="map">
+		select projectId ,title,isvalid,content,operatorId,operator,addTime,
+		updateTime,permissionArea  from sys_community_project_news where projectId =#{projectId} and isvalid=1
+	</select>
+	<select id="queryNewPropertyDetail" resultType="map">
+		SELECT id,communityId,parkCnt,decoration,salesDeptAdd,channelCommissions,settlementCommissions,
+		isAgreement,beginTime,endTime,custServicerId,custServicer,custMobile,propertyFees,propertyName,
+		saleType,isSynchron,panoramaUrl,operatorId,operator,addTime,updateTime,isvalid
+		FROM sys_community_project where isvalid =1
+	</select>
+	
+	<select id="queryNewPropertyDetailById" resultType="map">
+		SELECT id,communityId,parkCnt,decoration,salesDeptAdd,channelCommissions,settlementCommissions,
+		isAgreement,beginTime,endTime,custServicerId,custServicer,custMobile,propertyFees,propertyName,
+		saleType,isSynchron,panoramaUrl,operatorId,operator,addTime,updateTime,isvalid
+		FROM sys_community_project where id =#{id}
+	</select>
+	
+	<select id="queryPresalePermitListInfoByProjectId" resultType="map">
+		select id,projectId,name,issuingDate,buildingsIds,buildings,remark,permissionArea,operator
+		,operatorId, addTime,updateTime  from sys_community_project_prePermit where  projectId =#{projectId}  and isvalid = 1
+	</select>
+	<select id="queryPresalePermitListInfoById" resultType="map">
+		select id,projectId,name,issuingDate,buildingsIds,buildings,remark,permissionArea,operator
+		,operatorId, addTime,updateTime  from sys_community_project_prePermit where  id =#{id}  and isvalid = 1
+	</select>
+	
+	
+	<select id="queryPropertyOpenDateByProjectId" resultType="map">
+			select id,projectId,openDate,buildingsIds,buildings,remark,operator,operatorId,
+			addTime,updateTime,isvalid from sys_community_project_openDate where projectId =#{projectId} and isvalid=1
+	</select>
+	
+	<select id="queryPropertyPriceTrendByProjectId" resultType="map">
+		select  price,descs,permissionArea,operator,operator,addTime,updateTime 
+		from sys_community_project_priceTrend where projectId =#{projectId} and isvalid=1
+	</select>
+	
+	<select id="queryRoomTimeByProjectId" resultType="map">
+		select projectId,deliverDate,buildings,buildingsIds,remark,operator,operatorId,permissionArea,
+		addTime,updateTime from sys_community_project_deliverdate where projectId =#{projectId} and isvalid = 1
+	</select>	
+		
+		
+</mapper>

@@ -1,0 +1,39 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  PhoneSecurityManagService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年10月18日 上午10:05:24   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service;
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**   
+ * 电话号码安全管理接口  
+ * @ClassName:  PhoneSecurityManagService   
+ * @Description:电话号码安全管理接口   
+ * @author: wangpeng
+ * @date:   2018年10月18日 上午10:05:24   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface PhoneSecurityManagService {
+	
+	/**
+	 * 查询电话安全数据
+	 * @Title: queryPhoneSecurityData   
+	 * @Description: 查询电话安全数据
+	 * @param page
+	 * @param limit
+	 * @return: Page<Map<String,Object>>
+	 */
+	public Page<Map<String,Object>> queryPhoneSecurityData(String realNum,int page,int limit);
+}

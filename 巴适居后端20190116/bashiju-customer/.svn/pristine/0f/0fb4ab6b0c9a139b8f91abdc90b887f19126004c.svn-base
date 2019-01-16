@@ -1,0 +1,1115 @@
+package com.bashiju.customer.pojo;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.CustomerStatusEnum;
+import com.bashiju.enums.DiscStatusEnum;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+
+public class CustomerQueryEntity {
+	/** 交易状态：4、求购，5、求租**/
+	private String transactionTypeId;
+	/** 0:城市,1:行政区域、2:片区、3:小区**/
+	private List<AccurateEntity> areas;
+	/** 1、需求编号，2、客户姓名，3、客户电话,4、客源备注**/
+	private AccurateEntity vagueData;
+	/**状态:0、不限，1、有效全部，2、有效公客，3、有效私客，4、我购，5、我租，6、失效，7、他购，8、暂缓，9、撤单，10、他租**/
+	private AccurateEntity status;
+	/**用途id:多个用逗号分隔**/
+	private String houseUsesIds;
+	/**我的私客**/
+	private String myPrivate;
+	/**我的客源**/
+	private String mycustomer;
+	/**我的收藏**/
+	private String myCollection;
+	/**下定**/
+	private String isBond;
+	/**淘宝池**/
+	private String hunting;
+	/**非淘宝池**/
+	private String unHunting;
+	/**7天未回访**/
+	private String unBack;
+	/**封盘电话**/
+	private String closeDiscPhone;
+	/**通知撤单**/
+	private String isCancelNotice;
+	/**30天未带看**/
+	private String unShowed;
+	/**急切**/
+	private String isUrgent;
+	/**学区房**/
+	private String isSchoolRoom;
+	/**30天租赁到期**/
+	private String contractEnd;
+	/**带看**/
+	private String viewing;
+	/**一手**/
+	private String one;
+	/**二手**/
+	private String two;
+	/**价格**/
+	private RangeQuery sellingPrice;
+	/**面积**/
+	private RangeQuery buildSpace;
+	/**部门用户类型:zr-录入人，wh-维护人,fp-封盘人**/
+	private String agentType;
+	/** 部门或用户:1、部门，2、用户**/
+	private AccurateEntity departmentOrUser;	
+	/**楼层**/
+	private RangeQuery floor;
+	/**几室**/
+	private RangeQuery room;
+	/**日期类型:1、录入日期,2、最近跟进日期,3、最近带看日期,4、租赁到期日期**/
+	private String dateType;
+	/**开始时间**/
+	private String beginDate; 
+	/**结束时间**/
+	private String endDate; 
+	/**朝向 单选**/
+	private String orientationId; 
+	/**装修 单选**/
+	private String decorationId;
+	/**来源 单选**/
+	private String resourceTypeId;
+	/**客源等级**/
+	private String levelType;
+	/**房龄**/
+	private RangeQuery buildDates;
+	/**配套 ，多选，逗号分隔**/
+	private String matchingIds;
+	/**其他公司id**/
+	private String otherCompany;
+	/**带看排序:1、升序，2、降序**/
+	private String sort;
+	
+	
+	public List<AccurateEntity> getAreas() {
+		return areas;
+	}
+
+
+	public void setAreas(List<AccurateEntity> areas) {
+		this.areas = areas;
+	}
+
+
+	public AccurateEntity getVagueData() {
+		return vagueData;
+	}
+
+
+	public void setVagueData(AccurateEntity vagueData) {
+		this.vagueData = vagueData;
+	}
+
+
+	public AccurateEntity getStatus() {
+		return status;
+	}
+
+
+	public void setStatus(AccurateEntity status) {
+		this.status = status;
+	}
+
+
+	public String getHouseUsesIds() {
+		return houseUsesIds;
+	}
+
+
+	public void setHouseUsesIds(String houseUsesIds) {
+		this.houseUsesIds = houseUsesIds;
+	}
+
+
+	public String getMyPrivate() {
+		return myPrivate;
+	}
+
+
+	public void setMyPrivate(String myPrivate) {
+		this.myPrivate = myPrivate;
+	}
+
+
+	public String getMycustomer() {
+		return mycustomer;
+	}
+
+
+	public void setMycustomer(String mycustomer) {
+		this.mycustomer = mycustomer;
+	}
+
+
+	public String getMyCollection() {
+		return myCollection;
+	}
+
+
+	public void setMyCollection(String myCollection) {
+		this.myCollection = myCollection;
+	}
+
+
+	public String getIsBond() {
+		return isBond;
+	}
+
+
+	public void setIsBond(String isBond) {
+		this.isBond = isBond;
+	}
+
+
+	public String getHunting() {
+		return hunting;
+	}
+
+
+	public void setHunting(String hunting) {
+		this.hunting = hunting;
+	}
+
+
+	public String getUnHunting() {
+		return unHunting;
+	}
+
+
+	public void setUnHunting(String unHunting) {
+		this.unHunting = unHunting;
+	}
+
+
+	public String getUnBack() {
+		return unBack;
+	}
+
+
+	public void setUnBack(String unBack) {
+		this.unBack = unBack;
+	}
+
+
+	public String getCloseDiscPhone() {
+		return closeDiscPhone;
+	}
+
+
+	public void setCloseDiscPhone(String closeDiscPhone) {
+		this.closeDiscPhone = closeDiscPhone;
+	}
+
+
+	public String getIsCancelNotice() {
+		return isCancelNotice;
+	}
+
+
+	public void setIsCancelNotice(String isCancelNotice) {
+		this.isCancelNotice = isCancelNotice;
+	}
+
+
+	public String getUnShowed() {
+		return unShowed;
+	}
+
+
+	public void setUnShowed(String unShowed) {
+		this.unShowed = unShowed;
+	}
+
+
+	public String getIsUrgent() {
+		return isUrgent;
+	}
+
+
+	public void setIsUrgent(String isUrgent) {
+		this.isUrgent = isUrgent;
+	}
+
+
+	public String getIsSchoolRoom() {
+		return isSchoolRoom;
+	}
+
+
+	public void setIsSchoolRoom(String isSchoolRoom) {
+		this.isSchoolRoom = isSchoolRoom;
+	}
+
+
+	public String getContractEnd() {
+		return contractEnd;
+	}
+
+
+	public void setContractEnd(String contractEnd) {
+		this.contractEnd = contractEnd;
+	}
+
+
+	public String getViewing() {
+		return viewing;
+	}
+
+
+	public void setViewing(String viewing) {
+		this.viewing = viewing;
+	}
+
+
+	public String getOne() {
+		return one;
+	}
+
+
+	public void setOne(String one) {
+		this.one = one;
+	}
+
+
+	public String getTwo() {
+		return two;
+	}
+
+
+	public void setTwo(String two) {
+		this.two = two;
+	}
+
+
+	public RangeQuery getSellingPrice() {
+		return sellingPrice;
+	}
+
+
+	public void setSellingPrice(RangeQuery sellingPrice) {
+		this.sellingPrice = sellingPrice;
+	}
+
+
+	public RangeQuery getBuildSpace() {
+		return buildSpace;
+	}
+
+
+	public void setBuildSpace(RangeQuery buildSpace) {
+		this.buildSpace = buildSpace;
+	}
+
+
+	public String getAgentType() {
+		return agentType;
+	}
+
+
+	public void setAgentType(String agentType) {
+		this.agentType = agentType;
+	}
+
+
+	public AccurateEntity getDepartmentOrUser() {
+		return departmentOrUser;
+	}
+
+
+	public void setDepartmentOrUser(AccurateEntity departmentOrUser) {
+		this.departmentOrUser = departmentOrUser;
+	}
+
+
+	public RangeQuery getFloor() {
+		return floor;
+	}
+
+
+	public void setFloor(RangeQuery floor) {
+		this.floor = floor;
+	}
+
+
+	public RangeQuery getRoom() {
+		return room;
+	}
+
+
+	public void setRoom(RangeQuery room) {
+		this.room = room;
+	}
+
+
+	public String getDateType() {
+		return dateType;
+	}
+
+
+	public void setDateType(String dateType) {
+		this.dateType = dateType;
+	}
+
+
+	public String getBeginDate() {
+		return beginDate;
+	}
+
+
+	public void setBeginDate(String beginDate) {
+		this.beginDate = beginDate;
+	}
+
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+
+
+	public String getOrientationId() {
+		return orientationId;
+	}
+
+
+	public void setOrientationId(String orientationId) {
+		this.orientationId = orientationId;
+	}
+
+
+	public String getDecorationId() {
+		return decorationId;
+	}
+
+
+	public void setDecorationId(String decorationId) {
+		this.decorationId = decorationId;
+	}
+
+
+	public String getResourceTypeId() {
+		return resourceTypeId;
+	}
+
+
+	public void setResourceTypeId(String resourceTypeId) {
+		this.resourceTypeId = resourceTypeId;
+	}
+
+
+	public String getLevelType() {
+		return levelType;
+	}
+
+
+	public void setLevelType(String levelType) {
+		this.levelType = levelType;
+	}
+
+
+	public RangeQuery getBuildDates() {
+		return buildDates;
+	}
+
+
+	public void setBuildDates(RangeQuery buildDates) {
+		this.buildDates = buildDates;
+	}
+
+
+	public String getMatchingIds() {
+		return matchingIds;
+	}
+
+
+	public void setMatchingIds(String matchingIds) {
+		this.matchingIds = matchingIds;
+	}
+
+
+	public String getOtherCompany() {
+		return otherCompany;
+	}
+
+
+	public void setOtherCompany(String otherCompany) {
+		this.otherCompany = otherCompany;
+	}
+
+
+
+	public String getTransactionTypeId() {
+		return transactionTypeId;
+	}
+
+
+	public void setTransactionTypeId(String transactionTypeId) {
+		this.transactionTypeId = transactionTypeId;
+	}
+
+
+	public String getSort() {
+		return sort;
+	}
+
+
+	public void setSort(String sort) {
+		this.sort = sort;
+	}
+
+
+	public String toSql() {
+		StringBuilder tableSql=new StringBuilder();
+		
+		tableSql.append("SELECT DISTINCT ");
+		tableSql.append("cbi.id,cbi.statusId,cbi.labeld,cbi.discStatus,cbi.discStatusId,cbi.houseUses,cbi.custName,cbi.sourceType,cbi.areaNames,cbi.regionNames,cbi.communityNames,cbi.minSpace,cbi.maxSpace,cbi.minPrice,cbi.maxPrice,cbi.minRoom,cbi.maxRoom,cbi.companyId,cbi.companyName");
+		tableSql.append(",cbi.communicateStage,cbi.remark,cbi.levelType,cbi.recordTime,cbi.allFollowTime,cbi.lastShowedTime,cbi.mainterFllowTime,cbi.maintainer,cbi.mainterDept,cbi.permissionArea,cbi.operatorId,cbi.taobaoStatusId,cbi.transactionTypeId,cbi.formName ");
+		tableSql.append("  FROM demand_customerBusinessInfo AS cbi ");
+		
+		StringBuilder conditionSql=new StringBuilder();
+		conditionSql.append(" cbi.isValid=1");
+		if (StringUtils.isNotEmpty(transactionTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.transactionTypeId=");
+			conditionSql.append(transactionTypeId);
+			conditionSql.append(" ");
+		}
+		if (areas!=null&&areas.size()>0) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append("(");
+			for (int i = 0; i < areas.size(); i++) {
+				if (i>0) {
+					conditionSql.append(" or ");
+				}
+				if (areas.get(i).getType()==0) {
+					conditionSql.append(" cbi.operatorCityCode='");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append("' ");
+				}
+				if (areas.get(i).getType()==1) {
+					conditionSql.append(" FIND_IN_SET (");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(", cbi.areaCodes) ");
+				}
+				if (areas.get(i).getType()==2) {
+					conditionSql.append(" FIND_IN_SET (");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(", cbi.regionIds)  ");
+				}
+				if (areas.get(i).getType()==3) {
+					conditionSql.append(" FIND_IN_SET (");
+					conditionSql.append(areas.get(i).getValue());
+					conditionSql.append(", cbi.communityIds) ");
+				}
+			}
+			conditionSql.append(")");
+		}
+		
+		
+		if (vagueData!=null) {
+			if (vagueData.getType()!=null&&vagueData.getValue()!=null) {
+				if (conditionSql.length()>0&&vagueData.getType()!=3) {
+					conditionSql.append(" and ");
+				}
+				switch (vagueData.getType()) {
+				case 1:
+					conditionSql.append(" cbi.id like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 2:
+					conditionSql.append(" cbi.custName like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				case 3:
+					tableSql.append(" INNER JOIN demand_custRelaterPhone AS crp ON cbi.id=crp.demandId");
+					tableSql.append(" and crp.phone like '%");
+					tableSql.append(vagueData.getValue());
+					tableSql.append("%' ");
+					break;
+				case 4:
+					conditionSql.append(" cbi.remark like '%");
+					conditionSql.append(vagueData.getValue());
+					conditionSql.append("%' ");
+					break;
+				}
+			}
+		}
+		if (status!=null&&status.getType()!=null&&status.getType()>0) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (status.getType()!=null&&"1".equals(status.getValue())) {
+				switch (status.getType()) {
+				case 1:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.EFFECTIVE.getCode());
+					conditionSql.append("' ");
+					break;
+				case 2:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.EFFECTIVE.getCode());
+					conditionSql.append("' ");
+					conditionSql.append(" and cbi.discStatusId=");
+					conditionSql.append(DiscStatusEnum.PUBLICDISC.getCode());
+					break;
+				case 3:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.EFFECTIVE.getCode());
+					conditionSql.append("' ");
+					conditionSql.append(" and cbi.discStatusId=");
+					conditionSql.append(DiscStatusEnum.PRIVATEDISC.getCode());				
+					break;
+				case 4:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.MY_SELL.getCode());
+					conditionSql.append("' ");
+					break;
+				case 5:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.MY_LEASE.getCode());
+					conditionSql.append("' ");
+					break;
+				case 6:
+					conditionSql.append(" cbi.statusId in ('");
+					conditionSql.append(CustomerStatusEnum.OTHER_LEASE.getCode());
+					conditionSql.append("','");
+					conditionSql.append(CustomerStatusEnum.OTHER_SELL.getCode());
+					conditionSql.append("','");
+					conditionSql.append(CustomerStatusEnum.UNKNOWN.getCode());
+					conditionSql.append("','");
+					conditionSql.append(CustomerStatusEnum.CANCEL.getCode());
+					conditionSql.append("') ");
+					break;	
+				case 7:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.OTHER_SELL.getCode());
+					conditionSql.append("' ");
+					break;
+				case 8:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.UNKNOWN.getCode());
+					conditionSql.append("' ");
+					break;
+				case 9:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.CANCEL.getCode());
+					conditionSql.append("' ");
+					break;
+				case 10:
+					conditionSql.append(" cbi.statusId='");
+					conditionSql.append(CustomerStatusEnum.OTHER_LEASE.getCode());
+					conditionSql.append("' ");
+					break;
+				}
+			}			
+		}
+
+		Map<Object, Object> user=UserThreadLocal.get();
+		 long userId=Long.parseLong(user.get("id").toString());
+		 String departmentId=user.get("deptId").toString();
+		//String departmentId="BSJ0101";
+		if (StringUtils.isNotEmpty(myPrivate)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.discStatusId = 1 ");
+			conditionSql.append(" and cbi.maintainId = ");
+			conditionSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(mycustomer)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.maintainId = ");
+			conditionSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(myCollection)) {
+			tableSql.append(" INNER JOIN hs_myCollection AS mc ON mc.shhId=cbi.houseId ");
+			tableSql.append(" and mc.operatorId =");
+			tableSql.append(userId);
+		}
+		if (StringUtils.isNotEmpty(isBond)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.isBond =1 ");
+		}
+		
+		if (StringUtils.isNotEmpty(hunting)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.taobaoStatusId = 1 ");
+		}
+		if (StringUtils.isNotEmpty(unHunting)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.taobaoStatusId = 0 ");
+		}
+		if (StringUtils.isNotEmpty(unBack)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" DATEDIFF(NOW(),cbi.lastBackTime)>7 ");
+		}
+
+		if (StringUtils.isNotEmpty(closeDiscPhone)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.isCloseDisc = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isCancelNotice)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.isCancelNotice = 1 ");
+		}
+		if (StringUtils.isNotEmpty(unShowed)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" DATEDIFF(NOW(),cbi.lastShowedTime)>=30 ");
+		}
+		if (StringUtils.isNotEmpty(isUrgent)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.isUrgent = 1 ");
+		}
+		if (StringUtils.isNotEmpty(isSchoolRoom)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.isSchoolRoom = 1 ");
+		}
+
+		if (StringUtils.isNotEmpty(contractEnd)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" DATEDIFF(NOW(),cbi.contractEndDate)<30  ");
+		}
+
+		if (StringUtils.isNotEmpty(viewing)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.viewingCount > 0 ");
+		}
+		if (StringUtils.isNotEmpty(one)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET ('01',cbi.housePropType) ");
+		}
+		if (StringUtils.isNotEmpty(two)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET ('02',cbi.housePropType) ");
+		}
+		if (sellingPrice!=null) {
+			
+			if (sellingPrice.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minPrice >= ");
+				conditionSql.append((sellingPrice.getMin()));
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxPrice >= ");
+				conditionSql.append((sellingPrice.getMin()));
+				conditionSql.append(" ) ");
+			}
+			
+			if (sellingPrice.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minPrice <= ");
+				conditionSql.append((sellingPrice.getMax()));
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxPrice <= ");
+				conditionSql.append((sellingPrice.getMax()));
+				conditionSql.append(" ) ");
+				
+			}
+		}
+		if (buildSpace!=null) {
+			
+			if (buildSpace.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minSpace >= ");
+				conditionSql.append((buildSpace.getMin()));
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxSpace >= ");
+				conditionSql.append((buildSpace.getMin()));
+				conditionSql.append(" ) ");
+			}
+			
+			if (buildSpace.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minSpace <= ");
+				conditionSql.append((buildSpace.getMax()));
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxSpace <= ");
+				conditionSql.append((buildSpace.getMax()));
+				conditionSql.append(" ) ");
+			}
+		}
+		if (StringUtils.isNotEmpty(agentType)&&departmentOrUser!=null) {
+			tableSql.append(" INNER JOIN demand_custRelateAgent AS cra ON cra.demandId=cbi.id AND cra.agentType='");
+			tableSql.append(agentType);
+			tableSql.append("' ");
+			if (departmentOrUser.getType()==1) {
+				tableSql.append("AND cra.departmentId LIKE '");
+				tableSql.append(departmentOrUser.getValue());
+				tableSql.append("%' ");
+			}else {
+				tableSql.append("AND cra.agentId =");
+				tableSql.append(departmentOrUser.getValue());
+				tableSql.append(" ");
+			}
+		}
+		if (StringUtils.isEmpty(agentType)&&departmentOrUser!=null) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (departmentOrUser.getType()==1) {
+				conditionSql.append(" cbi.permissionArea LIKE '");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append("%' ");
+			}else {
+				conditionSql.append(" cbi.operatorId =");
+				conditionSql.append(departmentOrUser.getValue());
+				conditionSql.append(" ");
+			}
+		}
+
+		if (StringUtils.isNotEmpty(houseUsesIds)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			String[] array=houseUsesIds.split(",");
+			conditionSql.append(" (");
+			for (int i = 0; i < array.length; i++) {
+				if (i>0) {
+					conditionSql.append(" OR ");
+				}
+				if (StringUtils.isNotEmpty(array[i])) {					
+					conditionSql.append(" FIND_IN_SET('");
+					conditionSql.append(array[i]);
+					conditionSql.append("',cbi.houseUsesIds) ");
+					
+				}
+			}
+			conditionSql.append(" )");
+		}
+
+		if (floor!=null) {
+			
+			if (floor.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" hb.minFloorCount>= ");
+				conditionSql.append(floor.getMin());
+				conditionSql.append(" or ");
+				conditionSql.append(" hb.maxFloorCount>= ");
+				conditionSql.append(floor.getMin());
+				conditionSql.append(" ) ");
+			}
+			
+			if (floor.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" hb.minFloorCount<= ");
+				conditionSql.append(floor.getMax());
+				conditionSql.append(" or ");
+				conditionSql.append(" hb.maxFloorCount<= ");
+				conditionSql.append(floor.getMax());
+				conditionSql.append(" ) ");
+			}
+		}
+		if (room!=null) {
+			
+			if (room.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minRoom>= ");
+				conditionSql.append(room.getMin());
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxRoom>= ");
+				conditionSql.append(room.getMin());
+				conditionSql.append(" ) ");
+			}
+			
+			if (room.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minRoom<= ");
+				conditionSql.append(room.getMax());
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxRoom<= ");
+				conditionSql.append(room.getMax());
+				conditionSql.append(" ) ");
+			}
+		}
+
+
+		if (StringUtils.isNotEmpty(dateType)&&(StringUtils.isNotEmpty(beginDate)||StringUtils.isNotEmpty(endDate))) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			switch (dateType) {
+			case "1":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.recordTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" cbi.recordTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.recordTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			
+			case "2":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.mainterFllowTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" cbi.mainterFllowTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.mainterFllowTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "3":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.lastShowedTime BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" cbi.lastShowedTime >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.lastShowedTime <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			case "4":
+				if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.contractEndDate BETWEEN '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' AND '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+					conditionSql.append(" cbi.contractEndDate >= '");
+					conditionSql.append(beginDate);
+					conditionSql.append("' ");
+				}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+					conditionSql.append(" cbi.contractEndDate <= '");
+					conditionSql.append(endDate);
+					conditionSql.append("' ");
+				}
+				break;
+			}								
+		}
+		if (StringUtils.isEmpty(dateType)&&(StringUtils.isNotEmpty(beginDate)||StringUtils.isNotEmpty(endDate))) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+				conditionSql.append(" cbi.recordTime BETWEEN '");
+				conditionSql.append(beginDate);
+				conditionSql.append("' AND '");
+				conditionSql.append(endDate);
+				conditionSql.append("' ");
+			}else if (StringUtils.isNotEmpty(beginDate)&&StringUtils.isEmpty(endDate)) {
+				conditionSql.append(" cbi.recordTime >= '");
+				conditionSql.append(beginDate);
+				conditionSql.append("' ");
+			}else if (StringUtils.isEmpty(beginDate)&&StringUtils.isNotEmpty(endDate)) {
+				conditionSql.append(" cbi.recordTime <= '");
+				conditionSql.append(endDate);
+				conditionSql.append("' ");
+			}
+		}
+		if (StringUtils.isNotEmpty(orientationId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET(");
+			conditionSql.append(orientationId);
+			conditionSql.append(",cbi.orientationId) ");
+		}
+		if (StringUtils.isNotEmpty(decorationId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" FIND_IN_SET(");
+			conditionSql.append(decorationId);
+			conditionSql.append(",cbi.decorationIds) ");
+		}
+		if (StringUtils.isNotEmpty(resourceTypeId)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.sourceTypeId=");
+			conditionSql.append(resourceTypeId);
+			conditionSql.append(" ");
+		}
+
+		if (StringUtils.isNotEmpty(levelType)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.levelType='");
+			conditionSql.append(levelType);
+			conditionSql.append("' ");
+		}
+		if (buildDates!=null) {
+			
+			if (buildDates.getMin()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minBuildDates >= '");
+				conditionSql.append(buildDates.getMin());
+				conditionSql.append("' ");
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxBuildDates >= '");
+				conditionSql.append(buildDates.getMin());
+				conditionSql.append("' ) ");
+			}
+			
+			if (buildDates.getMax()!=null) {
+				if (conditionSql.length()>0) {
+					conditionSql.append(" and ");
+				}
+				conditionSql.append(" ( ");
+				conditionSql.append(" cbi.minBuildDates <= '");
+				conditionSql.append(buildDates.getMax());
+				conditionSql.append("' ");
+				conditionSql.append(" or ");
+				conditionSql.append(" cbi.maxBuildDates <= '");
+				conditionSql.append(buildDates.getMax());
+				conditionSql.append("' ) ");
+			}
+		}
+
+		if (StringUtils.isNotEmpty(matchingIds)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			String[] array=matchingIds.split(",");
+			conditionSql.append(" (");
+			for (int i = 0; i < array.length; i++) {
+				if (i>0) {
+					conditionSql.append(" OR ");
+				}
+				if (StringUtils.isNotEmpty(array[i])) {
+					conditionSql.append(" FIND_IN_SET(");
+					conditionSql.append(array[i]);
+					conditionSql.append(",cbi.matchingIds) ");
+				}
+			}
+			conditionSql.append(" ) ");		
+		}
+
+		
+		
+	
+		
+		if (StringUtils.isNotEmpty(otherCompany)) {
+			if (conditionSql.length()>0) {
+				conditionSql.append(" and ");
+			}
+			conditionSql.append(" cbi.companyId = '");
+			conditionSql.append(otherCompany);
+			conditionSql.append("' ");
+		}
+		
+		if (conditionSql.length()>0) {
+			tableSql.append(" where ");
+			tableSql.append(conditionSql);
+		}
+		if (StringUtils.isNotEmpty(sort)) {
+			tableSql.append(" order by cbi.viewingCount ");
+			if (sort.equals("2")) {
+				tableSql.append("desc ");
+			}
+		}else {
+			tableSql.append(" order by cbi.updateTime desc ");
+		}
+		System.out.println(tableSql.toString());
+		return tableSql.toString();
+	}
+
+	
+	public static void main(String[] args) {
+		CustomerQueryEntity sb=new CustomerQueryEntity();
+		/*sb.setLevelType("A");
+		HouseStatus status=new HouseStatus();
+		status.setEffective(1);
+		sb.setStatus(status);*/
+		String json="{\"transactionTypeId\":4}";
+		sb=JSON.parseObject(json, CustomerQueryEntity.class);
+		System.out.println(sb.toSql());
+		System.out.println(JSON.toJSONString(sb));
+	}
+}

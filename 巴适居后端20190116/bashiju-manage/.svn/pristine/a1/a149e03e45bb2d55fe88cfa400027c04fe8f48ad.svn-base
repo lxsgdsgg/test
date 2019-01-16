@@ -1,0 +1,35 @@
+package com.bashiju.manage.mapper;
+
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  ContentmanageMapper   
+ * @Description:关于内容管理的mapper接口
+ * @author: liwen
+ * @date:   2018年7月3日 上午11:46:13   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ContentmanageMapper {
+	
+	public Page<Map<String, Object>> queryArticleList(Map<String,Object> conditions);
+	public Page<Map<String, Object>> queryProtocol(Map<String,Object> conditions);
+	public Page<Map<String, Object>> queryOurselvesList(Map<String,Object> conditions);
+	public Page<Map<String, Object>> queryExamineList(Map<String,Object> conditions);
+	public List<Map<String,Object>> queryCityByAdmin();
+	public List<Map<String,Object>> queryCityByUser(Long userId);
+	public List<Map<String,Object>> queryCityByRole(Long userId);
+	public String queryCityName(String cityCode);
+	public Page<Map<String, Object>> queryCustTipoffk(Map<String,Object> condition);
+	public Page<Map<String, Object>> queryCustFeedback(Map<String,Object> condition);
+}

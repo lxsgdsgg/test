@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.PhoneSecurityManageMapper">
+	
+	<select id="queryPhoneSecurityData" resultType="map">
+		select realNum,virtualNum,virtualExtensionNum,alibabaCode,companyId,companyName,
+		deptId,deptName,agentId,agentName,addTime,updateTime from sys_phonesecuritymanage where isvalid = 1
+ 		 	<if test="realNum!= '' and realNum!=null ">
+					and realNum =#{realNum}
+			</if>
+			<if test="companyId!= '' and companyId!=null ">
+					and companyId =#{companyId}
+			</if>
+			<if test="deptId!= '' and deptId!=null ">
+					and deptId =#{deptId}
+			</if>
+			<if test="agentId!= '' and agentId!=null ">
+					and agentId =#{agentId}
+			</if>
+			<if test="agentName!= '' and agentName!=null ">
+					and agentName like concat('%',#{agentName},'%')
+			</if>
+			ORDER by id desc
+		</select>
+		<select id="queryAgentInfoByUserId" resultType="map">
+				select a.realName as agentName,a.id as agentId,
+				b.id as companyId,b.name as companyName,c.id as deptId,
+				c.name as deptName  from sys_user a 
+				inner join sys_company b on a.companyId = b.id 
+				inner JOIN sys_dept c on a.deptId = c.id
+				where a.id =#{userId} and a.isvalid = 1
+		</select>
+	
+		<select id="queryIsBingding" resultType="long">
+			select count(0) from sys_phonesecuritymanage where realNum = #{realNum} and isvalid = 1
+		</select>
+</mapper>

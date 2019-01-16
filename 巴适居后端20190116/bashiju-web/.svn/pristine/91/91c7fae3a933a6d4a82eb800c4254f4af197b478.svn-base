@@ -1,0 +1,32 @@
+package com.bashiju.web.test;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.wapi.IZiXunPageServiceApi;
+import com.bashiju.wapi.usercentral.ICustomerPersonInfoPageServiceApi;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+
+public class Btest extends BaseServiceTest {
+	@Autowired
+	IZiXunPageServiceApi izx;
+	
+	@Autowired
+	private ICustomerPersonInfoPageServiceApi mICustomerPersonInfoPageServiceApi;
+	
+//	@Test
+	public void test() {
+		List<ArticleTypeResult> ss=izx.queryZiXunType("530100");
+		System.out.println(ss);
+	}
+	
+	@Test
+	public void sendMobileVerfyCode() {
+		mICustomerPersonInfoPageServiceApi.queryPhoneVerifyCode("14787468304");
+		System.out.println("=================>");
+//		mICustomerPersonInfoPageServiceApi.queryCustomerPersonalInfo("b93b0446c98bae97ccf9e4f9ea471494");
+	}
+
+}

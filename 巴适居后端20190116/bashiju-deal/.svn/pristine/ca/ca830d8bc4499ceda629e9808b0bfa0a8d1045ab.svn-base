@@ -1,0 +1,94 @@
+package com.bashiju.deal.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.customer.pojo.SettlementTypeEnum;
+import com.bashiju.deal.service.DealCommissionRecordService;
+import com.bashiju.enums.CommissionProjEnum;
+import com.bashiju.enums.CommissionStatusEnum;
+import com.bashiju.enums.DealTypeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  DealCommissionRecordController   
+ * @Description:佣金记录控制层
+ * @author: wangpeng
+ * @date:   2018年6月21日 下午3:31:11   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@RequestMapping(value="DealCommissionRecord")
+@Controller
+public class DealCommissionRecordController  extends BaseController{
+	
+	@Autowired
+	private DealCommissionRecordService dealCommissionRecordService;
+	
+	/**
+	 * 
+	 * @Title: enterDealCommissionRecordPage   
+	 * @Description: 进入佣金记录页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterDealCommissionRecordPage")
+	public ModelAndView enterDealCommissionRecordPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "dealCommissionRecord/dealCommissionRecord");
+		//收取状态(搜索下拉)
+		mv.addObject("CommissionStatus", CommissionStatusEnum.map);
+		//费用项目(页面展示数据转换)
+		mv.addObject("moneyProj",JSON.toJSON(CommissionProjEnum.enumMap));
+		//结算方式(页面展示数据转换)
+		mv.addObject("settlementType",JSON.toJSON(SettlementTypeEnum.map));
+		//收取状态(页面展示数据转换)
+		mv.addObject("status", JSON.toJSON(CommissionStatusEnum.map));
+		//成交类型(交易类型)(页面展示数据转换)
+		mv.addObject("DealTypeEnum", DealTypeEnum.enumMap);
+		return mv;
+	}
+	/**
+	 * 
+	 * @Title: queryDealCommissionRecordData   
+	 * @Description: 条件查询佣金记录
+	 * @param status 收取状态
+	 * @param dealType 成交类型（交易类型）
+	 * @param beginTime 开始时间
+	 * @param endTime 结束时间
+	 * @param traderId 成交人Id
+	 * @param communityId 小区id
+	 * @param Keyword 关键字
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryDealCommissionRecordData")
+	@ResponseBody
+	public Map<String,Object> queryDealCommissionRecordData(String status, String dealType,String beginTime, String endTime,String traderId,String communityId,String Keyword,int page,int limit){
+		Map<String,Object> paramMap = new HashMap<>();
+		paramMap.put("status", status);
+		paramMap.put("dealType", dealType);
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("traderId", traderId);
+		paramMap.put("communityId", communityId);
+		paramMap.put("Keyword", Keyword);
+		Page<Map<String,Object>> maps = dealCommissionRecordService.queryDealCommissionRecord(paramMap, page, limit);
+		Map<String,Object> map = getPageResult(maps);
+		return map;
+	}
+}

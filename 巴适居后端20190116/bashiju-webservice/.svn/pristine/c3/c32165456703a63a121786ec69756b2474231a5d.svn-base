@@ -1,0 +1,52 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerTest.java   
+ * @Package com.bashiju.www.test   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月6日 下午3:38:57   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.test;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import com.bashiju.api.RedisGetIdServiceApi;
+import com.bashiju.www.pojo.service.FootPrint.FootPrintToQueryEntity;
+import com.bashiju.www.service.FootPrint.FootPrintService;
+import com.bashiju.www.service.agent.AgentService;
+import com.bashiju.www.service.navigationbar.NavigationBarService;
+import com.bashiju.www.service.user.CustCustomerService;
+import com.github.pagehelper.Page; 
+
+public class CustomerTest extends BaseServiceTest {
+	
+    @Autowired	
+    private CustCustomerService custCustomerService;
+    
+    @Autowired
+    private  NavigationBarService navigationBarService;
+    @Autowired
+    private FootPrintService footPrintService;
+   	
+    @Autowired
+    private AgentService agentService;
+    @Autowired
+	private RedisGetIdServiceApi redisGetIdServiceApi;
+	@Autowired(required=false) 
+	MockHttpServletRequest request;
+	
+	@Autowired(required=false) 
+	MockHttpServletResponse response;
+	@Test
+	public void checkImg() {
+		FootPrintToQueryEntity  footPrintToQueryEntity = new FootPrintToQueryEntity();
+		Page<FootPrintToQueryEntity> page = footPrintService.queryFootPrintByCustId("1", "1");
+		System.out.println(page);
+	}
+
+}

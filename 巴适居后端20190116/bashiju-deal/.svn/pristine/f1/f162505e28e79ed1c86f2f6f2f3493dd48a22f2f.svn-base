@@ -1,0 +1,78 @@
+package com.bashiju.deal.service;
+
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ *   合同模板管理
+ * @ClassName:  ContractService   
+ * @Description:  合同模板管理
+ * @author: wangkaifa
+ * @date:   2018年9月20日 下午4:56:15       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ContractService {
+	/**
+	 * 
+		 * 查询合同模板列表
+		 * @Description: 查询合同模板列表 
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	Page<Map<String, Object>> queryContractList(int page,int limit);
+	/**
+	 * 
+		 * 查询模板详细
+		 * @Description: 查询模板详细
+		 * @param templateId 模板id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	Map<String, Object> queryDetailed(Long templateId);
+	/**
+	 * 
+		 * 添加模板
+		 * @Description: 添加模板
+		 * @param templateName 模板名称
+		 * @param type 模板类型
+		 * @param remark 备注
+		 * @return 
+		 * Long
+	 */
+	Long addTemplate(String templateName,Integer type,String remark);
+	/**
+	 * 
+		 * 修改模板
+		 * @Description:修改模板
+		 * @param id 模板id
+		 * @param templateName 模板名称
+		 * @param type 模板类型
+		 * @param remark 备注
+		 * @return 
+		 * int
+	 */
+	int updateTemplate(Long id,String templateName,Integer type,String remark);
+	/**
+	 * 
+		 * 保持模板
+		 * @Description: 保持模板 
+		 * @param declaration 协议描述
+		 * @param termJson 条款详细
+		 * @param id 模板id
+		 * @return 
+		 * boolean
+	 */
+	boolean saveTemplateDetailed(Long id,String companyName,String declaration,String termJson);
+	/**
+	 * 
+		 * 删除模板
+		 * @Description: 删除模板
+		 * @param templateId 模板id
+		 * @return 
+		 * int
+	 */
+	int deleteTemplate(Long templateId);
+}

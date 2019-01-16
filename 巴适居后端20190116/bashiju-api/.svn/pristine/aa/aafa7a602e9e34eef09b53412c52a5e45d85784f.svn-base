@@ -1,0 +1,27 @@
+package com.bashiju.api;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.servlet.ModelAndView;
+/**
+ * 
+ * @ClassName:  SsoHandlerInterceptorApi   
+ * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @author: zhaobin
+ * @date:   2018年4月9日 上午10:28:52   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface SsoHandlerInterceptorApi {
+
+	  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+	            throws Exception;
+	  
+	    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+	            ModelAndView modelAndView) throws Exception;
+	    
+	    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+	            Exception ex) throws Exception;
+}

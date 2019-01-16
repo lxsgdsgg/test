@@ -1,0 +1,6 @@
+com\bashiju\oa\mapper\RecruitInfoMapper.class
+com\bashiju\oa\mapper\TaskManageMapper.class
+com\bashiju\oa\mapper\ArticleMapper.class
+com\bashiju\oa\mapper\OaActionLogQueryMapper.class
+com\bashiju\oa\mapper\PersonnelMapper.class
+com\bashiju\oa\mapper\CurriculumVitaeMapper.class

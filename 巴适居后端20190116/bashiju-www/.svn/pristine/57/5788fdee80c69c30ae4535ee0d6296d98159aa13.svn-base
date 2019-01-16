@@ -1,0 +1,44 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICustomerHouseRequestService.java   
+ * @Package com.bashiju.www.service.user      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:09:50   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user;
+
+import com.bashiju.www.pojo.service.out.comm.CustomerPersonalCentralQueryParamEntity;
+
+/**
+ * 用户--我的需求--服务接口
+ * @ClassName:ICustomerHouseRequestService
+ * @Description:用户--我的需求--服务接口
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:09:50
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface ICustomerHouseRequestService {
+	/**
+	 * 查询我的房源需求列表
+	 * @Title: queryMyHouseRequestList
+	 * @author: zuoyuntao  
+	 * @Description:查询我的房源需求列表 
+	 * @param custEntity 登陆用户实体对象 【custId必填】
+	 * void JSON 格式为：
+	 */
+	public void queryMyHouseRequestList(CustomerPersonalCentralQueryParamEntity custEntity);
+	/**
+	 * 根据绑定码绑定客源信息
+	 * @Title: bindingHouseByBindCode
+	 * @author: zuoyuntao  
+	 * @Description:根据绑定码绑定客源信息 
+	 * @param custEntity 登陆用户实体对象 【custId，bindCode必填】
+	 * void JSON 格式为：
+	 */
+	public void bindingCustomerByBindCode(CustomerPersonalCentralQueryParamEntity custEntity);
+}

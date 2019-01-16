@@ -1,0 +1,106 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.ObjectUtils.Null;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.HousePropertyArticleClassesMapper;
+import com.bashiju.manage.service.HousePropertyArticleClassesService;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  HousePropertyArticleClassesServiceImpl   
+ * @Description:TODO(房产文章分类服务)   
+ * @author: wangpeng
+ * @date:   2018年7月21日 下午12:01:34   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房产文章分类")
+public class HousePropertyArticleClassesServiceImpl  extends CommonSqlServie implements HousePropertyArticleClassesService{
+	
+	@Autowired
+	private HousePropertyArticleClassesMapper housePropertyArticleClassesMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="查询房产文章分类")
+	public Page<Map<String, Object>> queryHousePropertyArticleClasses(String name,String level,String cityCode,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_303.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> map = housePropertyArticleClassesMapper.queryHousePropertyArticleClasses(name,level,cityCode);
+		return map;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="新增房产文章类型")
+	public boolean saveOrUpdateHousePropertyArticleClasses(Map<Object, Object> map) {
+		//新增
+		if(!map.containsKey("id") ||map.get("id")==null ||StringUtils.isEmpty(map.get("id").toString())) {
+			map.remove("id");
+			map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+			map.put("operatorId", UserThreadLocal.get().get("id"));
+			map.put("operator", UserThreadLocal.get().get("realName"));
+			map.put("addTime", new Date());
+			long result = this.commonOperationDatabase(map, "sys_article_classes", false);
+			ExecutionResult.descFormat(Long.toString(result),"新增房产文章类型");
+			if(result>0)
+				return true;
+			return false;
+		}else {
+			//修改
+			long result = this.commonOperationDatabase(map, "sys_article_classes", "id", false);
+			if(result>0)
+				return true;
+			return false;
+		}
+	} 
+	
+	@Override
+	@SystemServiceLog(operationType="查询房产文章分类等级")
+	public List<Map<String, Object>> queryHousePropertyArticleClassesNameByLevel(String level,String cityCode) {
+		return 	housePropertyArticleClassesMapper.queryHousePropertyArticleClassesNameByLevel(level,cityCode);
+	}
+
+	@Override
+	@SystemServiceLog(operationType="逻辑删除房产文章分类")
+	public boolean delHousePropertyArticleClasses(String houseAticleId) {
+		boolean result = this.delData("sys_article_classes", "id", houseAticleId, false);
+		if(result)
+			return true;
+		return false;
+	}
+	@Override
+	@SystemServiceLog(operationType="通过id查询房产文章分类")
+	public Map<String, Object> queryHousePropertyArticleClassesById(String houseAticleId) {
+		 Map<String, Object> map = housePropertyArticleClassesMapper.queryHousePropertyArticleClassesById(houseAticleId);
+		 if(map!=null &&map.size()>0)
+			 return map;
+		 return null;
+	}
+
+	@Override
+	@SystemServiceLog(operationType="通过类型和城市代码查询房产文章分类")
+	public List<Map<String, Object>> queryHousePropertyArticleClassesByTypeAndCityCode(String type, String cityCode) {
+		List<Map<String,Object>> articleClasses = housePropertyArticleClassesMapper.queryHousePropertyArticleClassesByTypeAndCityCode(type, cityCode);
+		if(articleClasses!=null && articleClasses.size()>0)
+			return articleClasses;
+		return null;
+	}
+		
+}

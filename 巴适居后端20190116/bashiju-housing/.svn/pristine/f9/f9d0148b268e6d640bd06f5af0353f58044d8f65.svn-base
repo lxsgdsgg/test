@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.housing.mapper.HouseSeekByMetroMapper">
+	<select id="queryMetroLineInfo" resultType="map">
+		select metroName,rgCode,operatorId,permissionArea from sys_metro_station where isValid=1 group by metroName,rgCode
+	</select>
+	<select id="queryStationInfo" resultType="map">
+		select metroName,stationName,rgCode,ukId,operatorId,permissionArea from sys_metro_station where isValid=1 
+		group by metroName,stationName,rgCode,ukId
+	</select>
+	<select id="queryHouseSourceStatisticsInfo" resultType="map">
+		select a.stationId,count(1) as count,s.metroName,s.stationName,s.ukId,s.lontitude as longitude,s.latitude,a.communityId
+		 ,a.permissionArea from sys_station_block_community a 
+		inner join sys_metro_station s on a.stationId = s.id inner join (select a.*,b.communityId from 
+		hs_secondhandhouse a inner join hs_housebaseinfo b on a.houseId = b.id where a.isValid = 1 and a.statusId =1
+		and b.isValid = 1 and a.companyId = #{companyId}) aa on a.communityId = aa.communityId where 
+		a.isValid = 1 and s.isValid = 1 
+ 		<if test="null != metroName and '' != metroName">
+ 			and s.metroName = #{metroName}
+ 		</if>
+ 		<if test="null != ukId and '' != ukId">
+ 			and s.ukId = #{ukId}
+ 		</if>
+ 		group by a.communityId,a.stationId
+	</select>
+	
+	<select id="statisticsMetroCommunityHouseInfoByConn" resultType="map">
+		SELECT Count(1) AS count,hs_secondhandhouse.houseId,hs_secondhandhouse.transactionTypeId,
+		hs_secondhandhouse.statusId,hs_secondhandhouse.houseUsesId,hs_secondhandhouse.buildSpace,
+		hs_secondhandhouse.sellingPrice,hs_secondhandhouse.rentPrice,hs_housebaseinfo.areaCode,
+		hs_housebaseinfo.areaName,sys_community.`name` AS communityName,sys_community.latitude,
+		sys_community.longitude,hs_housebaseinfo.operatorId,hs_housebaseinfo.permissionArea,
+		hs_housebaseinfo.communityId,hs_secondhandhouse.`status`,hs_secondhandhouse.houseUses,
+		hs_secondhandhouse.id,hs_housebaseinfo.buildingsName,hs_secondhandhouse.transactionType,
+		hs_housebaseinfo.buildingsUnitName,hs_secondhandhouse.houseType,hs_secondhandhouse.entrustCode,
+		hs_secondhandhouse.`owner`,hs_secondhandhouse.maintainer,hs_secondhandhouse.mainterDept,
+		metro_station_manage.metroName FROM hs_housebaseinfo
+		LEFT JOIN hs_secondhandhouse ON hs_secondhandhouse.houseId = hs_housebaseinfo.id
+		LEFT JOIN sys_community ON hs_housebaseinfo.communityId = sys_community.id
+		LEFT JOIN station_block_community ON sys_community.id = station_block_community.communityId
+		LEFT JOIN sys_metro_station ON metro_station_manage.id = station_block_community.stationId
+		where hs_housebaseinfo.communityId in(select communityId from station_block_community where isValid = 1 
+ 		<if test="null != paraMap.metroName and '' != paraMap.metroName">
+ 			and metroName = #{paraMap.metroName}
+ 		</if>
+ 		<if test="null != paraMap.ukId and '' != paraMap.ukId">
+ 			and ukId = #{paraMap.ukId}
+ 		</if>
+ 		)
+ 		<if test="null != paraMap.communityId and '' != paraMap.communityId">
+ 			and hs_housebaseinfo.communityId = #{paraMap.communityId}
+ 		</if>
+		<!-- 拼接房源状态查询条件 -->
+		<choose>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 1">
+				and ( statusId = '1'  and transactionTypeId = 1 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 2">
+				and ( statusId = '1'  and transactionTypeId = 2 )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 3">
+				and ( statusId = '2' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 4">
+				and ( statusId = '3' )
+			</when>
+			<when test="null != paraMap.statusId and paraMap.statusId != '' and paraMap.statusId == 5">
+				and ( statusId not in('1','2','3') )
+			</when>
+			<otherwise></otherwise>
+		</choose>
+		<if test="null != paraMap.houseUsesId and '' != paraMap.houseUsesId ">
+			and houseUsesId = '${paraMap.houseUsesId}'
+		</if>
+		<!--拼接面积区间查询条件 -->
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower 
+						and null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper">
+			and (buildSpace between '${paraMap.areaRangeLower}' and '${paraMap.areaRangeUpper}')
+		</if>
+		<if test="null != paraMap.areaRangeLower and '' != paraMap.areaRangeLower and null == paraMap.areaRangeUpper ">
+			and buildSpace &gt; '${paraMap.areaRangeLower}'
+		</if>
+		<if test="null != paraMap.areaRangeUpper and '' != paraMap.areaRangeUpper and null == paraMap.areaRangeLower">
+			and buildSpace &lt; '${paraMap.areaRangeUpper}'
+		</if>
+			<!--拼接价格区间查询条件 -->
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower
+					and null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper">
+			and (sellingPrice between '${paraMap.priceRangeLower}' and '${paraMap.priceRangeUpper}')
+		</if>
+		<if test="null != paraMap.priceRangeLower and '' != paraMap.priceRangeLower and null == paraMap.priceRangeUpper ">
+			and sellingPrice &gt; '${paraMap.priceRangeLower}'
+		</if>
+		<if test="null != paraMap.priceRangeUpper and '' != paraMap.priceRangeUpper and null == paraMap.priceRangeLower">
+			and sellingPrice &lt; '${paraMap.priceRangeUpper}'
+		</if>
+		<!--拼接类似域行政区划多选的条件，用IN的方式 -->
+		<if test=" null != paraMap.areaCode">
+			<foreach collection="paraMap.areaCode" index="index" item="item" open="and hs_housebaseinfo.areaCode in(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		group by operatorId,permissionArea,areaName,areaCode,longitude,latitude,transactionTypeId,
+		statusId,houseUsesId,buildSpace,sellingPrice,rentPrice,communityId
+	</select>
+</mapper>

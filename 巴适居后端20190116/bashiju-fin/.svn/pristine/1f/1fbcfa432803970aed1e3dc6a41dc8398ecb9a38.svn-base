@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.fin.mapper.EmployeeWagesInfoMapper">
+
+	<select id="queryEmployeeWagesInfos" resultType="map">
+		select a.id,a.companyId,a.companyName,a.userId,b.realName as userName,c.name as deptName,a.months,truncate(a.basePay/100,2) as basePay,truncate(a.bonusPay/100,2) as bonusPay,truncate(a.finePay/100,2) as finePay,truncate(a.commissionsPay/100,2) as commissionsPay,truncate(a.welfarePay/100,2) as welfarePay,truncate(a.ssfAmount/100,2) as ssfAmount,truncate(a.taxAmount/100,2) as taxAmount,truncate(a.hangOutAmount/100,2) as hangOutAmount
+		,a.auditorId,a.auditor,a.auditTime,a.examineStatus,rejectReason,a.permissionArea,a.operatorId,a.operator,a.addTime,a.updateTime,a.isvalid
+		,(select concat('[',group_concat(concat('{"classesName":"',classesName,'","amount":"',truncate(amount/100,2),'","desertsDate":"',desertsDate,'","reason":"',reason,'"}')),']') from finance_userDesertsInfo where userId = a.userId and isvalid=1 and type=1 and DATE_FORMAT(desertsDate,'%Y-%m') = a.months) as bonusDetail 
+		,(select concat('[',group_concat(concat('{"classesName":"',classesName,'","amount":"',truncate(amount/100,2),'","desertsDate":"',desertsDate,'","reason":"',reason,'"}')),']') from finance_userDesertsInfo where userId = a.userId and isvalid=1 and type='-1' and DATE_FORMAT(desertsDate,'%Y-%m')=a.months) as fineDetail 
+		,(select concat('[',group_concat(concat('{"id":"',id,'","type":"',type,'","projId":"',projId,'","projName":"',projName,'","companyPay":"',truncate(companyPay/100,2),'"}')),']') from finance_employee_wagesInfo_detail where wagesInfoId = a.id and isvalid=1 and type=1) as welfareDetail 
+		,(select concat('[',group_concat(concat('{"id":"',id,'","type":"',type,'","projId":"',projId,'","projName":"',projName,'","companyPay":"',truncate(companyPay/100,2),'","privatePay":"',truncate(privatePay/100,2),'"}')),']') from finance_employee_wagesInfo_detail where wagesInfoId = a.id and isvalid=1 and type=0) as ssfDetail
+		from finance_employee_wagesInfo a inner join sys_user b on a.userId = b.id inner join sys_dept c on b.deptId = c.id 
+		where a.isvalid=1 
+		<if test="companyId != null and companyId !='' ">
+			and a.companyId = #{companyId}
+		</if>
+		<if test="userId != null and userId !='' ">
+			and a.userId = #{userId}
+		</if>
+		<if test="deptId != null and deptId !='' ">
+			and b.deptId = #{deptId}
+		</if>
+		<if test="startMonth!=null and startMonth!='' ">
+			and a.months &gt;= #{startMonth}
+		</if>
+		<if test="endMonth!=null and endMonth!='' ">
+			and a.months &lt;= #{endMonth}
+		</if>
+		
+		group by a.id desc
+	</select>
+	
+	<insert id="makeEmployeeWages">
+		set @months = #{months};
+		set @companyId = #{companyId};
+		set @deptId=  #{permissionArea};
+		set @operatorId =  #{operatorId};
+		
+		delete a,b from finance_employee_wagesInfo a 
+		left join finance_employee_wagesInfo_detail b on a.id = b.wagesInfoId
+		where companyId=@companyId and months=@months
+		<if test="userIds !=null and userIds != '' ">
+			and userId in(select replace(substring(substring_index(#{userIds},',',id),
+			char_length(substring_index(#{userIds},',',id - 1)) + 1),',','') as str
+			from sys_seq  where id &lt;= length(#{userIds}) - length(replace(#{userIds}, ',', '') )+1)
+		</if>;
+		insert into finance_employee_wagesInfo(companyId,companyName,userId,months,basePay
+		,bonusPay,finePay,commissionsPay,welfarePay,ssfAmount,taxAmount,hangOutAmount
+		,permissionArea,operatorId,operator,addTime,updateTime,isvalid)
+		select a.companyId,a.companyName,a.userId,@months months,a.basePay,ifnull(b.bonusPay,0)bonusPay,ifnull(b.finePay,0)finePay 
+		,ifnull(c.amount,0) commissionsPay,ifnull(d.price,0) as welfarePay,ifnull(e.privateAmount,0) ssfAmount
+		,taxCaculate(a.basePay+ifnull(b.bonusPay,0)-ifnull(b.finePay,0)+ifnull(c.amount,0)-ifnull(e.privateAmount,0))taxAmount
+		,ifnull((a.basePay+ifnull(b.bonusPay,0)-ifnull(b.finePay,0)+ifnull(c.amount,0)+ifnull(d.price,0)-ifnull(e.privateAmount,0)
+		-taxCaculate(a.basePay+ifnull(b.bonusPay,0)-ifnull(b.finePay,0)+ifnull(c.amount,0)-ifnull(e.privateAmount,0))),0)hangOutAmount
+		,@deptId,@operatorId,'',now(),now(),1
+		from sys_employee_wagesConfigurate a 
+		left join (select b.userId,sum(ifnull(case when type='1' then (b.amount) end,0)) as bonusPay, 
+		sum(ifnull(case when type='-1' then (b.amount) end,0)) as finePay 
+		from finance_userDesertsInfo b where b.companyId=@companyId 
+		and b.desertsDate &gt;=str_to_date(concat(@months,'-01'),'%Y-%m-%d') 
+		and b.desertsDate &lt;= (select last_day(str_to_date(@months,'%Y-%m-%d'))) 
+		group by b.userId) b on a.userId = b.userId 
+		left join finance_employeeCommissions c on a.userId = c.userId and c.months = @months 
+		left join (select welfareId,sum(price)price from finance_welfareConfigurate_detail group by welfareId) d on a.welfareId = d.welfareId
+		left join (select ssfId,sum(privateAmount)privateAmount from finance_ssf_detail group by ssfId) e on a.ssfConfigId = e.ssfId 
+		where a.companyId = @companyId
+		<if test="userIds !=null and userIds != '' ">
+			and a.userId in(select replace(substring(substring_index(#{userIds},',',id),
+			char_length(substring_index(#{userIds},',',id - 1)) + 1),',','') as str
+			from sys_seq  where id &lt;= length(#{userIds}) - length(replace(#{userIds}, ',', '') )+1)
+		</if>;
+		
+		insert into finance_employee_wagesInfo_detail(wagesInfoId,type,projId,projName,companyPay,privatePay,permissionArea,operatorId
+		,operator,addTime,updateTime,isvalid)
+		select b.id wagesInfoId,type,projId,projName,companyPay,privatePay
+		,@deptId,@operatorId,'',now(),now(),1 
+		from (select a.userId, '1'as type,b.id as projId,b.name as projName,b.price as companyPay,0 privatePay
+		from sys_employee_wagesConfigurate a 
+		left join finance_welfareConfigurate_detail b on a.welfareId = b.welfareId  and b.isvalid=1
+		where a.companyId=@companyId
+		union all 
+		select a.userId,'0'as type,b.id as projId,b.name as projName,b.companyAmount as companyPay,b.privateAmount privatePay
+		from sys_employee_wagesConfigurate a 
+		left join finance_ssf_detail b on a.ssfConfigId = b.ssfId 
+		where a.companyId=@companyId and b.isvalid=1)a 
+		left join finance_employee_wagesInfo b on a.userId = b.userId
+		where b.months=@months
+		<if test="userIds !=null and userIds != '' ">
+			and a.userId in(select replace(substring(substring_index(#{userIds},',',id),
+			char_length(substring_index(#{userIds},',',id - 1)) + 1),',','') as str
+			from sys_seq  where id &lt;= length(#{userIds}) - length(replace(#{userIds}, ',', '') )+1)
+		</if>
+	</insert>
+	
+</mapper>

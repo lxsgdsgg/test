@@ -1,0 +1,15 @@
+com\bashiju\oa\service\impl\RecruitInfoServiceImpl.class
+com\bashiju\oa\service\impl\ArticleServiceImpl.class
+com\bashiju\oa\service\impl\PersonnelServiceImpl.class
+com\bashiju\oa\service\ArticleService.class
+com\bashiju\oa\service\CurriculumVitaeService.class
+com\bashiju\oa\service\RecruitInfoService.class
+com\bashiju\oa\service\impl\CurriculumVitaeServiceImpl.class
+com\bashiju\oa\global\OaGlobal.class
+com\bashiju\oa\interceptors\SsoHandlerInterceptor.class
+com\bashiju\oa\service\TaskManageService.class
+com\bashiju\oa\service\impl\OaActionLogQueryServiceImpl.class
+com\bashiju\oa\service\impl\TaskManageServiceImpl.class
+com\bashiju\oa\service\PersonnelService.class
+com\bashiju\oa\mq\RabbitExcute.class
+com\bashiju\oa\service\IOaActionLogQueryService.class

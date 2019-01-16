@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.deal.mapper.ContractMapper">
+	
+	<select id="queryContractList" resultType="map">
+		SELECT id,templateName,companyId,companyName,remark,permissionArea,operatorId,templateType as templateTypeId,(CASE WHEN templateType=1 THEN '买卖合同' ELSE '出租合同' END) AS templateType FROM contract_template_main WHERE isValid=1
+	</select>
+	<select id="queryContract" resultType="map">
+		SELECT id,templateName,templateType,remark,companyName,declaration FROM contract_template_main WHERE isValid=1 AND id=#{templateId}
+	</select>
+	<select id="queryTerms" resultType="map">
+		SELECT id,templateId,title,number FROM contract_template_term WHERE isValid=1 AND templateId=#{templateId}
+	</select>
+	<select id="queryItems" resultType="map">
+		SELECT id,templateId,termId,itemType,number,tag,css,`value`,text FROM contract_template_termitem WHERE isValid=1 AND templateId=#{templateId}
+	</select>
+	
+	<delete id="deleteItem">
+		DELETE FROM contract_template_termitem WHERE templateId=#{templateId}
+	</delete>
+	<delete id="deleteTerm">
+		DELETE FROM contract_template_term WHERE templateId=#{templateId}
+	</delete>
+</mapper>

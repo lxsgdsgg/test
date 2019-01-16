@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bashiju.oa.mapper.ArticleMapper">
+  
+  	<select id="queryNewsList" resultType="map">
+ 		select a.* ,b.name as deptName,(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId = b.id  where a.type=#{type} and a.isValid=1
+  		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+  		<if test="classes!=null and classes!='' ">
+			and a.classes =#{classes}
+		</if>
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like concat('%',#{title},'%')
+		</if>
+		
+		order by a.id desc
+  		
+  	</select>
+  	
+  	<select id="queryNoticeList" resultType="map">
+  		select c.* from (
+ 		select a.* ,b.name as deptName,(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId = b.id  where a.type=#{type} and a.isValid=1 and a.classes=0
+  		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+  		<if test="classes!=null and classes!='' ">
+			and a.classes =#{classes}
+		</if>
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like concat('%',#{title},'%')
+		</if>
+		
+		UNION ALL
+		
+		select a.* ,b.name as deptName,(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId = b.id  where a.type=#{type} and a.isValid=1 and a.classes in(1,2) and a.companyId=#{companyId}
+  		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+  		<if test="classes!=null and classes!='' ">
+			and a.classes =#{classes}
+		</if>
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like concat('%',#{title},'%')
+		</if>
+		) c
+		order by c.id desc
+  		
+  	</select>
+  	
+  	<select id="queryArticleById" resultType="map">
+  		select cover as path from sys_oa_article  where id=#{id}
+  	</select>
+  	
+  	<select id="queryExamineList" resultType="map">
+  		
+  		select a.*,b.name as deptName,(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId = b.id where a.isValid=1
+  		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+  		<if test="type!=null and type!='' ">
+			and a.type =#{type}
+		</if>
+  		<if test="classes!=null and classes!='' ">
+			and a.classes =#{classes}
+		</if>
+  		<if test="examineStatus!=null and examineStatus!='' ">
+			and a.examineStatus =#{examineStatus}
+		</if>
+  		<if test="title!=null and title!='' ">
+			and a.title like concat('%',#{title},'%')
+		</if>
+		
+		order by a.id desc
+  	</select>
+  	
+  	<select id="queryCityByAdmin" resultType="map">
+  		select cityCode,cityName from sys_cityOpenInfo where isvalid=1
+  	</select>
+  	<select id="queryCityByUser" resultType="map">
+  		select a.cityCode,b.name as cityName from sys_city_responsibility a INNER JOIN sys_area b where a.userId=#{userId} and a.cityCode = b.code and a.isvalid=1
+  	</select>
+  	<select id="queryCityByRole" resultType="map">
+  		select a.cityCode,c.name as cityName from sys_city_responsibility a INNER JOIN sys_user b INNER JOIN sys_area c where b.id =#{userId} and a.roleId=b.roleId and a.cityCode=c.`code` and a.isvalid=1
+  	</select>
+  	<select id="queryCityName" resultType="string">
+  		select name from sys_area where code = #{cityCode} and isvalid=1
+  	</select>
+  	
+  	<select id="queryNoticeInfo" resultType="map">
+  		select a.id,a.title,a.classesName,a.content,a.deptId,b.name as deptName,a.browseCnt,a.updateTime,a.permissionArea,a.operatorId,a.operator,
+  		if(a.updateTime > date_add(now(), interval -#{daynum} day),1,0) as isNew,
+  		(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId= b.id where a.type='1' and a.isValid=1
+  		 and a.examineStatus=1
+		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+		order by a.id desc limit 6
+  	</select>
+  	
+  	<select id="queryNewsInfo" resultType="map">
+  		select a.id,a.title,a.classesName,a.abstracts,a.content,a.browseCnt,a.deptId,b.name as deptName,a.updateTime,a.cover,a.permissionArea,a.operatorId,a.operator,if(a.updateTime > date_add(now(), interval -#{daynum} day),1,0) as isNew from sys_oa_article a inner join sys_dept b on a.deptId = b.id where a.type='0' and a.isValid=1
+  		and a.examineStatus = 1
+		<if test="cityCode!=null and cityCode!='' ">
+			and a.cityCode =#{cityCode}
+		</if>
+		order by a.id desc limit 5
+  	</select>
+  	
+  	<select id="queryArticleDetail" resultType="map">
+  		select a.id,a.title,a.classesName,a.abstracts,a.content,a.cover,a.deptId,b.name as deptName,a.browseCnt,a.updateTime,a.permissionArea,a.operatorId,a.operator,
+  		(select group_concat(operator) from sys_oa_articleBrowse where articleId = a.id and isValid = 1 group by operator) as browseName from sys_oa_article a inner join sys_dept b on a.deptId= b.id
+  		 where a.id=#{id} and a.isValid=1 and a.examineStatus=1
+  		
+  	</select>
+  	
+  </mapper>
+  
+   

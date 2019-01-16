@@ -1,0 +1,393 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  Community.java   
+ * @Package com.bashiju.www.pojo.service.out.comm   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年7月24日 下午2:31:49   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.www.pojo.service.community;
+
+/**   
+ * @ClassName:  Community   
+ * @Description:小区信息实体   
+ * @author: yangz
+ * @date:   2018年7月24日 下午2:31:49   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class Community {
+
+	/**
+	 * 小区编号
+	 */
+	private String id;
+	
+	/**
+	 * 小区名称
+	 */
+	private String name;
+	
+	/**
+	 * 建筑年代
+	 */
+	private String buildYear;
+	
+	/**
+	 * 小区所在行政区域编码(大区)
+	 */
+	private String areaCode;
+	
+	/**
+	 * 小区所在行政区域名称
+	 */
+	private String areaName;
+	
+	/**
+	 * 小区所在片区编号
+	 */
+	private String regionCode;
+	
+	/**
+	 * 小区所在片区名称
+	 */
+	private String regionName;
+	
+	/**
+	 * 封面图片地址
+	 */
+	private String imageUrl;
+	
+	/**
+	 * 小区地址
+	 */
+	private String address;
+	
+	/**
+	 * 平均售价
+	 */
+	private String salePrice;
+	
+	/**
+	 * 在售二手房套数
+	 */
+	private String onSaleCnt;
+	
+	/**
+	 * 在租房源套数
+	 */
+	private String leaseCnt;
+	
+	/**
+	 * 历史成交套数
+	 */
+	private String dealCnt;
+	
+	/**
+	 * 地铁标签(多个标签之间使用英文逗号隔开)
+	 */
+	private String subwayLabel;
+	
+	/**
+	 * 学校标签(多个标签之间使用英文逗号隔开)
+	 */
+	private String schoolLabel;
+
+	/**   
+	 * @Title:  Community   
+	 * @Description:    构造函数    
+	 *   
+	 */  
+	public Community() {
+		super();
+	}
+
+	/**  
+	 * @Title:  getId <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**  
+	 * @Title:  setId <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	/**  
+	 * @Title:  getName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**  
+	 * @Title:  setName <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**  
+	 * @Title:  getBuildYear <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getBuildYear() {
+		return buildYear;
+	}
+
+	/**  
+	 * @Title:  setBuildYear <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setBuildYear(String buildYear) {
+		this.buildYear = buildYear;
+	}
+
+	/**  
+	 * @Title:  getAreaCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getAreaCode() {
+		return areaCode;
+	}
+
+	/**  
+	 * @Title:  setAreaCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setAreaCode(String areaCode) {
+		this.areaCode = areaCode;
+	}
+
+	/**  
+	 * @Title:  getAreaName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getAreaName() {
+		return areaName;
+	}
+
+	/**  
+	 * @Title:  setAreaName <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setAreaName(String areaName) {
+		this.areaName = areaName;
+	}
+
+	/**  
+	 * @Title:  getRegionCode <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getRegionCode() {
+		return regionCode;
+	}
+
+	/**  
+	 * @Title:  setRegionCode <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setRegionCode(String regionCode) {
+		this.regionCode = regionCode;
+	}
+
+	/**  
+	 * @Title:  getRegionName <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getRegionName() {
+		return regionName;
+	}
+
+	/**  
+	 * @Title:  setRegionName <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setRegionName(String regionName) {
+		this.regionName = regionName;
+	}
+
+	/**  
+	 * @Title:  getImageUrl <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	/**  
+	 * @Title:  setImageUrl <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	/**  
+	 * @Title:  getAddress <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getAddress() {
+		return address;
+	}
+
+	/**  
+	 * @Title:  setAddress <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	/**  
+	 * @Title:  getSalePrice <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getSalePrice() {
+		return salePrice;
+	}
+
+	/**  
+	 * @Title:  setSalePrice <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setSalePrice(String salePrice) {
+		this.salePrice = salePrice;
+	}
+
+	/**  
+	 * @Title:  getOnSaleCnt <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getOnSaleCnt() {
+		return onSaleCnt;
+	}
+
+	/**  
+	 * @Title:  setOnSaleCnt <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setOnSaleCnt(String onSaleCnt) {
+		this.onSaleCnt = onSaleCnt;
+	}
+
+	/**  
+	 * @Title:  getLeaseCnt <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getLeaseCnt() {
+		return leaseCnt;
+	}
+
+	/**  
+	 * @Title:  setLeaseCnt <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setLeaseCnt(String leaseCnt) {
+		this.leaseCnt = leaseCnt;
+	}
+
+	/**  
+	 * @Title:  getDealCnt <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getDealCnt() {
+		return dealCnt;
+	}
+
+	/**  
+	 * @Title:  setDealCnt <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setDealCnt(String dealCnt) {
+		this.dealCnt = dealCnt;
+	}
+
+	/**  
+	 * @Title:  getSubwayLabel <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getSubwayLabel() {
+		return subwayLabel;
+	}
+
+	/**  
+	 * @Title:  setSubwayLabel <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setSubwayLabel(String subwayLabel) {
+		this.subwayLabel = subwayLabel;
+	}
+
+	/**  
+	 * @Title:  getSchoolLabel <BR>  
+	 * @Description:  <BR>  
+	 * @return: String <BR>  
+	 */
+	public String getSchoolLabel() {
+		return schoolLabel;
+	}
+
+	/**  
+	 * @Title:  setSchoolLabel <BR>  
+	 * @Description: <BR>  
+	 * @return: String <BR>  
+	 */
+	public void setSchoolLabel(String schoolLabel) {
+		this.schoolLabel = schoolLabel;
+	}
+
+	/**   
+	 * <p>Title: toString</p>   
+	 * <p>Description: </p>   
+	 * @return   
+	 * @see java.lang.Object#toString()   
+	 */
+	@Override
+	public String toString() {
+		return "Community [id=" + id + ", name=" + name + ", buildYear=" + buildYear + ", areaCode=" + areaCode
+				+ ", areaName=" + areaName + ", regionCode=" + regionCode + ", regionName=" + regionName + ", imageUrl="
+				+ imageUrl + ", address=" + address + ", salePrice=" + salePrice + ", onSaleCnt=" + onSaleCnt
+				+ ", leaseCnt=" + leaseCnt + ", dealCnt=" + dealCnt + ", subwayLabel=" + subwayLabel + ", schoolLabel="
+				+ schoolLabel + "]";
+	}
+
+}

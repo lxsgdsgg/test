@@ -1,0 +1,55 @@
+package com.bashiju.www.service.user.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.api.RedisServiceApi;
+import com.bashiju.wutils.log.SystemServiceLog;
+import com.bashiju.www.mapper.CustCustomerMapper;
+import com.bashiju.www.pojo.CustCustomer;
+import com.bashiju.www.service.user.CustCustomerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@Service
+@SystemServiceLog(sourceType="注册用户管理")
+public class CustCustomerServiceImpl  implements CustCustomerService {
+
+	 private static final ObjectMapper MAPPER = new ObjectMapper();
+	@Autowired
+	RedisServiceApi redisServiceApi;
+	@Autowired
+	CustCustomerMapper custCustomerMapper;
+	
+@SystemServiceLog(operationType="查询所有用户")
+	public List<CustCustomer> queryAllCustomer() {
+		
+		try {
+	        // 先从缓存中命中，如果命中就返回，没有命中继续执行
+	        String cacheData = this.redisServiceApi.get("queryAllCustomer");
+	        if (StringUtils.isNotEmpty(cacheData)) {
+	            // 命中
+	            return MAPPER.readValue(cacheData, List.class);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+		
+		List<CustCustomer> res= custCustomerMapper.queryAllCustomer();
+		
+		try {
+	        
+	       this.redisServiceApi.set("queryAllCustomer",MAPPER.writeValueAsString(res),60);	 
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }	
+		return res;
+
+	}
+	public Long doReg(CustCustomer custCustomer){
+		return custCustomerMapper.saveCustomer(custCustomer);
+	}
+}

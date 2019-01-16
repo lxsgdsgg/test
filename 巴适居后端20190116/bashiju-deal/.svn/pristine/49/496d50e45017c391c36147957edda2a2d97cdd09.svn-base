@@ -1,0 +1,278 @@
+package com.bashiju.deal.controller;
+
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+/**
+ * 
+ *  合同模板管理
+ * @ClassName:  ContractController   
+ * @Description:  合同模板管理
+ * @author: wangkaifa
+ * @date:   2018年9月21日 下午2:42:21       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bashiju.deal.service.ContractService;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+@Controller
+public class ContractController {
+	@Autowired
+	private ContractService contractService;
+	
+	/**
+	 * 
+		 * 查询合同模板列表
+		 * @Description: 查询合同模板列表 
+		 * @return 
+		 * Page<Map<String,Object>>
+	 */
+	@RequestMapping(value="queryContractList")
+	@ResponseBody
+	public Map<String, Object> queryContractList(int page,int limit){
+		Page<Map<String, Object>> pageInfo=contractService.queryContractList(page, limit);
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("count", pageInfo.getTotal());
+		map.put("data", pageInfo.getResult());
+		map.put("code", 0);
+		map.put("msg", "");
+		return map;
+	}
+	/**
+	 * 
+		 * 查询模板详细
+		 * @Description: 查询模板详细
+		 * @param templateId 模板id
+		 * @return 
+		 * Map<String,Object>
+	 */
+	@RequestMapping(value="queryDetailed")
+	@ResponseBody
+	public BashijuResult queryDetailed(Long templateId){
+		Map<String, Object> result= contractService.queryDetailed(templateId);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 添加模板
+		 * @Description: 添加模板
+		 * @param templateName 模板名称
+		 * @param templateType 模板类型
+		 * @param remark 备注
+		 * @return 
+		 * Long
+	 */
+	@RequestMapping(value="addTemplate")
+	@ResponseBody
+	public BashijuResult addTemplate(String templateName,String templateType,String codePrefix,String remark) {
+		contractService.addTemplate(templateName, templateType,codePrefix,remark);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 修改模板
+		 * @Description:修改模板
+		 * @param id 模板id
+		 * @param templateName 模板名称
+		 * @param templateType 模板类型
+		 * @param remark 备注
+		 * @return 
+		 * int
+	 */
+	@RequestMapping(value="updateTemplate")
+	@ResponseBody
+	public BashijuResult updateTemplate(Long id,String templateName,String templateType,String codePrefix,String remark) {
+		contractService.updateTemplate(id, templateName, templateType,codePrefix, remark);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 保持模板
+		 * @Description: 保持模板 
+		 * @param declaration 协议描述
+		 * @param termJson 条款详细
+		 * @param id 模板id
+		 * @return 
+		 * boolean
+	 */
+	@RequestMapping(value="saveTemplateDetailed")
+	@ResponseBody
+	public BashijuResult saveTemplateDetailed(Long id,String companyName,String declaration,String termJson) {
+		contractService.saveTemplateDetailed(id,companyName, declaration, termJson);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 删除模板
+		 * @Description: 删除模板
+		 * @param templateId 模板id
+		 * @return 
+		 * int
+	 */
+	@RequestMapping(value="deleteTemplate")
+	@ResponseBody
+	public BashijuResult deleteTemplate(Long templateId) {
+		contractService.deleteTemplate(templateId);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 保存合同
+		 * @Description: 保存合同
+		 * @param dataJson 合同类容
+		 * @return
+		 * @throws IOException 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="saveContract")
+	@ResponseBody
+	public BashijuResult saveContract(String dataJson) throws IOException {
+		contractService.saveContract(dataJson);
+		return BashijuResult.ok();
+	}
+	/**
+	 * 
+		 * 根据房源id查询合同信息
+		 * @Description: 根据房源id查询合同信息
+		 * @param shhId 房源id
+		 * @return
+		 * @throws IOException 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryContractByHouseId")
+	@ResponseBody
+	public BashijuResult queryContractByHouseId(Long shhId,String agreementType) throws IOException {
+		Map<String, Object> result=contractService.queryContractByHouseId(shhId,agreementType);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 根据合同编号查询合同信息
+		 * @Description: 根据合同编号查询合同信息
+		 * @param code
+		 * @return 
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryContractByCode")
+	@ResponseBody
+	public BashijuResult queryContractByCode(String code) {
+		Map<String, Object> result=contractService.queryContractByCode(code);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 显示合同图片
+		 * @Description: 显示合同图片 
+		 * @param id 房源id
+		 * @param response
+		 * @throws IOException 
+		 * void
+	 */
+	@RequestMapping(value="showContractPicture")
+	public void showImage(Long id,String code, HttpServletResponse response) throws IOException{
+		byte[] image=null;
+		if (id!=null&&id>0) {
+			image=contractService.queryContractPicture(id);	
+		}
+		if (image==null&&StringUtils.isNotEmpty(code)) {
+			image=contractService.queryContractPicture(code);
+		}
+		// 1、源图片
+		InputStream sbs = new ByteArrayInputStream(image); 
+		Image srcImg = ImageIO.read(sbs);
+		int width = srcImg.getWidth(null);
+        int heigth = srcImg.getHeight(null);
+        BufferedImage bufferImage = new BufferedImage(width, heigth, BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g = bufferImage.createGraphics();
+        g.drawImage(srcImg, 0, 0, width, heigth, null);
+        URL logoPath = new URL("http://sso.bashiju.com/src/common/images/logo2.png");
+        Image logo = ImageIO.read(logoPath);
+        int widthReal = logo.getWidth(null);
+        int heigthReal = logo.getHeight(null);
+
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.1f));
+        // 因为水印已经倾斜，所以不做画布倾斜
+         g.rotate(Math.toRadians(-30), bufferImage.getWidth() / 2,
+         bufferImage.getHeight() / 2);
+
+        int x = -width / 2;
+        int y = -heigth / 2;
+
+        while (x < width * 1.5) {
+            y = -heigth / 2;
+
+            while (y < heigth * 1.5) {
+                g.drawImage(logo, x, y, null);
+
+                y += heigthReal + 50;
+            }
+
+            x += widthReal + 50;
+        }
+
+        //输出图片
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(bufferImage, "jpg", out);
+        //ByteArrayInputStream inputStream=new ByteArrayInputStream(out.toByteArray());
+        //ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        //Thumbnails.of(inputStream).scale(1f).outputQuality(0.25f).toOutputStream(baos);
+        response.setContentType("image/jpeg");//设置相应类型,告诉浏览器输出的内容为图片
+        response.setHeader("Pragma", "No-cache");//设置响应头信息，告诉浏览器不要缓存此内容
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expire", 0);
+        response.getOutputStream().write(out.toByteArray());
+     // 9、释放资源
+        g.dispose();
+       
+    }
+	
+	/**
+	 * 
+		 * 根据合同类型查询合同下拉列表
+		 * @Description: 根据合同类型查询合同下拉列表 
+		 * @param templateType 合同类型
+		 * @return
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryContractListByType")
+	@ResponseBody
+	public BashijuResult queryContractListByType(String templateType)  {
+		List<Map<String, Object>> result=contractService.queryContractListByType(templateType);
+		return BashijuResult.ok(result);
+	}
+	/**
+	 * 
+		 * 根据合同编号查询合同签订人信息
+		 * @Description: 根据合同编号查询合同签订人信息
+		 * @param code 合同编号
+		 * @return
+		 * BashijuResult
+	 */
+	@RequestMapping(value="queryContractMan")
+	@ResponseBody
+	public BashijuResult queryContractMan(String code)  {
+		Map<String, Object> result=contractService.queryContractMan(code);
+		return BashijuResult.ok(result);
+	}
+}

@@ -1,0 +1,35 @@
+package com.bashiju.www.pojo.service.out.comm;
+/**
+ * 
+ *   片区输出对象
+ * @ClassName:  RegionResult   
+ * @Description:  片区输出对象
+ * @author: wangkaifa
+ * @date:   2018年7月23日 下午6:04:58       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class RegionResult {
+	/**片区名称**/
+	private String name;
+	/**片区id**/
+	private Long id;
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	@Override
+	public String toString() {
+		return "RegionResult [name=" + name + ", id=" + id + "]";
+	}
+	
+	
+}

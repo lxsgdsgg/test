@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="bashiju-deal-mapper (1)" />
+        <module name="bashiju-deal-mapper (2)" />
+        <module name="bashiju-deal-mapper (3)" />
+        <module name="bashiju-deal-pojo (1)" />
+        <module name="bashiju-deal-pojo (2)" />
+        <module name="bashiju-deal-pojo (3)" />
+        <module name="bashiju-deal-service (1)" />
+        <module name="bashiju-deal-service (2)" />
+        <module name="bashiju-deal-service (3)" />
+        <module name="bashiju-deal-web (1)" />
+        <module name="bashiju-deal-web (2)" />
+        <module name="bashiju-deal-web (3)" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.IncomeTrendMapper">
+	
+	<select id="queryIncomeTrendRecord" resultType="map">
+		
+		select '门店',a.id
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5 ">
+			,a.name deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;5 ">
+			,a.realName deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &lt;= 5 ">
+			from sys_dept a 
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt; 5 ">
+			from sys_user a 
+		</if>
+		
+		<if test="deptTypeId !=null and deptTypeId == 3 ">
+			left join sys_dept b on a.parentId = b.id and b.deptTypeId=#{deptTypeId}
+			
+		</if>
+		<if test="deptTypeId !=null and deptTypeId == 2 ">
+			left join sys_dept b on a.parentId = b.id left join sys_dept c on b.parentId = c.id and c.deptTypeId=#{deptTypeId}
+		</if>
+		where a.isvalid=1
+		and a.companyId = #{companyId} 
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		<if test="deptTypeId !=null and (deptTypeId == 4 or deptTypeId == 5) ">
+			and a.deptTypeId=#{deptTypeId}
+		</if>
+		group by a.id order by a.id
+	</select>
+	
+	
+	
+	<!-- 查业绩 -->
+	<select id="queryAchievement" resultType="map">
+			select 
+			sum(case when DATE_FORMAT(cc.updateTime,'%m') = '01' then floor(cc.actualProfit/100) end ) as income1
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '02' then floor(cc.actualProfit/100) end ) as income2
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '03' then floor(cc.actualProfit/100) end ) as income3
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '04' then floor(cc.actualProfit/100) end ) as income4
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '05' then floor(cc.actualProfit/100) end ) as income5
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '06' then floor(cc.actualProfit/100) end ) as income6
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '07' then floor(cc.actualProfit/100) end ) as income7
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '08' then floor(cc.actualProfit/100) end ) as income8
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '09' then floor(cc.actualProfit/100) end ) as income9
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '10' then floor(cc.actualProfit/100) end ) as income10
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '11' then floor(cc.actualProfit/100) end ) as income11
+			,sum(case when DATE_FORMAT(cc.updateTime,'%m') = '12' then floor(cc.actualProfit/100) end ) as income12
+			from sys_user b left join deal_dividenInfo cc on cc.dividerId=b.id
+			<if test="deptTypeId !=null and deptTypeId &lt;= 5 ">
+				and b.deptId = #{id}
+			</if>
+			<if test="deptTypeId !=null and deptTypeId &gt; 5 ">
+				and b.id = #{id}
+			</if>
+			and cc.isvalid=1 and DATE_FORMAT(cc.updateTime,'%Y') = #{year}
+	</select>	
+	<!-- 查实收 -->
+	<select id="queryIncome" resultType="map">	
+		    select
+			sum(case when DATE_FORMAT(dd.months,'%m') = '01' then floor(dd.amount/100) end ) as income1
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '02' then floor(dd.amount/100) end ) as income2
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '03' then floor(dd.amount/100) end ) as income3
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '04' then floor(dd.amount/100) end ) as income4
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '05' then floor(dd.amount/100) end ) as income5
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '06' then floor(dd.amount/100) end ) as income6
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '07' then floor(dd.amount/100) end ) as income7
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '08' then floor(dd.amount/100) end ) as income8
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '09' then floor(dd.amount/100) end ) as income9
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '10' then floor(dd.amount/100) end ) as income10
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '11' then floor(dd.amount/100) end ) as income11
+			,sum(case when DATE_FORMAT(dd.months,'%m') = '12' then floor(dd.amount/100) end ) as income12
+			from sys_user b left join finance_employeeCommissions dd on dd.userId=b.id
+			<if test="deptTypeId !=null and deptTypeId &lt;= 5 ">
+				and b.deptId = #{id}
+			</if>
+			<if test="deptTypeId !=null and deptTypeId &gt; 5 ">
+				and b.id = #{id}
+			</if>
+			and dd.isvalid=1 and DATE_FORMAT(dd.months,'%Y') = #{year}
+	</select>	
+		
+	
+	
+</mapper>

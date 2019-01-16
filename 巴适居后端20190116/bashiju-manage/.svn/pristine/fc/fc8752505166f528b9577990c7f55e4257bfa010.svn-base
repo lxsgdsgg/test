@@ -1,0 +1,61 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.BlackListMapper;
+import com.bashiju.manage.service.BlackListService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  BlackListServiceImpl   
+ * @Description:中介黑名单管理服务
+ * @author: wangpeng
+ * @date:   2018年6月11日 下午3:44:07   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="黑名单管理")
+public class BlackListServiceImpl extends CommonSqlServie implements BlackListService {
+	
+	@Autowired
+	private BlackListMapper blackListMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	@Override
+	@SystemServiceLog(operationType="查询黑名单")
+	public Page<Map<String, Object>> queryBlackList(int pageNum, int pageSize,String keyword) {
+		PageHelper.startPage(pageNum, pageSize);
+		dataAuthHelper.auth(MenusEnum.MENU_209.getCode(),UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>>page=blackListMapper.queryBlackListData(keyword);
+		return page;
+	}
+	/**
+	 * 
+	 * <p>Title: saveOrUpdateBlackList</p>   
+	 * <p>Description: 新增中介黑名</p>   
+	 * @param map
+	 * @return   
+	 * @see com.bashiju.manage.service.BlackListService#saveOrUpdateBlackList(java.util.Map)
+	 */
+	@Override
+	@SystemServiceLog(operationType="新增中介黑名单")
+	public boolean saveOrUpdateBlackList(Map<Object, Object> map) {
+		Long result=this.commonOperationDatabase(map, "sys_blacklist", false);
+		if(result>0)
+			return true;
+		else
+			return false;
+	}
+}

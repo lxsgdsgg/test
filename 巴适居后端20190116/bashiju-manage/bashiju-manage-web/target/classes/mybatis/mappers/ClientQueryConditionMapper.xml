@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ClientQueryConditionMapper">
+
+	<select id="queryConditionList" resultType="map">
+		SELECT * FROM sys_client_condition_mainmanage WHERE isValid=1
+		<if test="type!=null"> AND type=#{type}</if>	
+		order by id desc 
+	</select>
+	
+	<select id="queryCityConditionList" resultType="map">
+		SELECT * FROM sys_client_conditionmanage WHERE isValid=1 AND cityCode=#{cityCode} 
+		<if test="type!=null"> AND type=#{type}</if>
+	</select>
+	<select id="queryCityConditionIds" resultType="int">
+		SELECT conditionId FROM sys_client_conditionmanage WHERE isValid=1 AND cityCode=#{cityCode} 
+	</select>
+	<select id="queryCityAvgPriceList" resultType="map">
+		SELECT * FROM sys_cityavgpricelabel WHERE isValid=1 AND cityCode=#{cityCode}  
+		<if test="type!=null"> AND type=#{type}</if>
+	</select>
+
+	
+</mapper>

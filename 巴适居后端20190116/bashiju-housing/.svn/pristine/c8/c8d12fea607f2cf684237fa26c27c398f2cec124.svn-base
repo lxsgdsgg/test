@@ -1,0 +1,196 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  HouseSeekByMapServiceImpl.java   
+ * @Package com.bashiju.housing.service.impl   
+ * @Description:地图找房服务层对象  
+ * @author: zuoyuntao     
+ * @date:   2018年6月7日 下午3:02:39   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.housing.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.housing.mapper.HouseSeekByMapMapper;
+import com.bashiju.housing.pojo.HouseDetailQueryEntity;
+import com.bashiju.housing.service.IHouseSeekByMapService;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 地图找房服务层对象
+ * @ClassName:HouseSeekByMapServiceImpl
+ * @Description:地图找房服务层对象
+ * @author:zuoyuntao
+ * @date:2018年6月7日 下午3:02:39
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="地图找房")
+public class HouseSeekByMapServiceImpl extends CommonSqlServie implements IHouseSeekByMapService {
+	/**
+	 * 地图找房映射类
+	 */
+	@Autowired
+	private HouseSeekByMapMapper mHouseSeekByMapMapper;
+	/**
+	 * 权限接口
+	 */
+	@Autowired
+	private DataAuthHelper mDataAuthHelper;
+	/**
+	 * 获取小区信息
+	 * @Title: queryCommunityDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取小区信息
+	 * @param paraMap
+	 * @return      
+	 * Page<Map<String, Object>>JSON 格式为：{}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询小区")
+	public List<Map<String, Object>> queryCommunityDataList(Map<String,Object> paraMap){
+		mDataAuthHelper.auth(MenusEnum.MENU_164.getCode(), UserThreadLocal.get().get("id").toString());
+		return mHouseSeekByMapMapper.queryCommunityDataList(paraMap);
+	}
+	/**
+	 * 统计行政区划/片区级别数据集合
+	 * @Title: queryAreaDataList
+	 * @author: zuoyuntao  
+	 * @Description:统计行政区划/片区级别数据集合
+	 * @param paraMap 参数集合
+	 * @param level 查询的级次
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询片区")
+	public List<Map<String, Object>> queryStatisticsAreaHouseInfo(Map<String,Object> paraMap,String level){
+		mDataAuthHelper.auth(MenusEnum.MENU_164.getCode(), UserThreadLocal.get().get("id").toString());
+		return mHouseSeekByMapMapper.statisticsAreaHouseInfoByConn(paraMap);
+	}
+	/**
+	 * <p>Title: statisticsCommunityHouseInfo</p>   
+	 * <p>Description:统计小区级别的房源信息 </p>   
+	 * @param paraMap
+	 * @return   
+	 * @see com.bashiju.housing.service.IHouseSeekByMapService#statisticsCommunityHouseInfo(java.util.Map)
+	 */
+	@Override
+	@SystemServiceLog(operationType="根据小区统计房源")
+	public List<Map<String, Object>> queryStatisticsCommunityHouseInfo(Map<String,Object> paraMap){
+		mDataAuthHelper.auth(MenusEnum.MENU_164.getCode(), UserThreadLocal.get().get("id").toString());
+		List<Map<String, Object>> retList = mHouseSeekByMapMapper
+				.statisticsCommunityHouseInfoByConn(null,paraMap);
+		return retList;
+	}
+	/**
+	 * 获取片区层面的房源信息
+	 * @Title: queryHouseSourceDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取房源数据集合   
+	 * @param paraMap
+	 * @return Page<Map<String,Object>> 
+	 * JSON 格式为：{}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询片区房源")
+	public List<Map<String,Object>> queryStatisticsRegionHouseInfoByConn(Map<String,Object> paraMap){
+		mDataAuthHelper.auth(MenusEnum.MENU_164.getCode(), UserThreadLocal.get().get("id").toString());
+		List<Map<String,Object>> retResult = mHouseSeekByMapMapper
+				.statisticsRegionHouseInfoByConn(null,paraMap);
+		return retResult;
+	}
+	/**
+	 * 获取房源明细数据集合
+	 * @Title: queryHouseSourceDataList
+	 * @author: zuoyuntao  
+	 * @Description:获取房源数据集合   
+	 * @param paraMap
+	 * @param page 最小条数
+	 * @param limit 最大条数
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询房源")
+	public Page<Map<String,Object>> queryHouseSourceDataList(
+			Map<String,Object> paraMap,int page,int limit){
+		PageHelper.startPage(page,limit);
+		mDataAuthHelper.auth(MenusEnum.MENU_164.getCode(), UserThreadLocal.get().get("id").toString());
+		return mHouseSeekByMapMapper.queryHouseInfoByCondition(null,paraMap);
+	}
+	/**
+	 * 根据行政区划编码查询片区信息
+	 * @Title: queryOneRegionHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据行政区划编码查询片区信息
+	 * @param areaCode
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	@Override
+	public List<Map<String,Object>> queryOneRegionHouseInfoByConn(
+			Map<String,Object> paraMap,String areaCode){
+		return mHouseSeekByMapMapper.queryOneRegionHouseInfoByConn(areaCode, paraMap);
+	}
+	/**
+	 * 根据片区ID查询小区信息
+	 * @Title: queryOneCommunityHouseInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据片区ID查询小区信息
+	 * @param regionId
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>>
+	 */
+	@Override
+	public List<Map<String,Object>> queryOneCommunityHouseInfoByConn(
+			Map<String,Object> paraMap,String regionId){
+		return mHouseSeekByMapMapper.queryOneCommunityHouseInfoByConn(regionId, paraMap);
+	}
+	
+	/**
+	 * 根据条件查询房源信息
+	 * @Title: queryHouseDetailByConditions
+	 * @author: zuoyuntao  
+	 * @Description:根据条件查询房源信息
+	 * @param jsonData 参数对象
+	 * @param page 当前页
+	 * @param limit 最大条数
+	 * @return      
+	 * Page<Map<String,Object>>
+	 */
+	@Override
+	public Page<Map<String,Object>> queryHouseDetailByConditions(String jsonData
+			,int page,int limit) {
+		HouseDetailQueryEntity query = new HouseDetailQueryEntity();
+		if(StringUtil.isNotEmpty(jsonData)) {
+			query = JSONObject.parseObject(jsonData,HouseDetailQueryEntity.class);
+		}
+		query.setCompanyId(String.valueOf(UserThreadLocal.get().get("companyId")));
+		PageHelper.startPage(page,limit);
+		String findSql = query.buildQueryConditionSql();
+		return mHouseSeekByMapMapper.queryHouseDetailBySql(findSql);
+	}
+}
+

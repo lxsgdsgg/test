@@ -1,0 +1,51 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerHouseRequestMapper.java   
+ * @Package com.bashiju.webservice.mapper      
+ * @author: zuoyuntao     
+ * @date:   2018年7月28日 下午5:27:58   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.webservice.mapper;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.bashiju.www.pojo.service.out.usercentral.CustomerHouseRequestEntity;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerRequestDetailEntity;
+import com.github.pagehelper.Page;
+
+/**
+ * 个人中心--我的需求--持久层接口
+ * @ClassName:CustomerHouseRequestMapper
+ * @Description:个人中心--我的需求--持久层接口
+ * @author:zuoyuntao
+ * @date:2018年7月28日 下午5:27:58
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface CustomerHouseRequestMapper {
+	/**
+	 * 根据登陆用户Id获取客户需求数据信息
+	 * @Title: queryCustomerRequestDataList
+	 * @author: zuoyuntao  
+	 * @Description:根据登陆用户Id获取客户需求数据信息
+	 * @param custId 登陆用户ID
+	 * @param requestType 客户需求类型 (0:所有（求租求购）4:求购 5：求租 )
+	 * @return      
+	 * Page<CustomerHouseRequestEntity> JSON 格式为：
+	 */
+	public Page<CustomerHouseRequestEntity> queryCustomerRequestDataList(
+			@Param("custId") String custId,@Param("requestType") String requestType);
+	/**
+	 * 根据需求id查询需求明细信息
+	 * @Title: queryMyRequestDetailById
+	 * @author: zuoyuntao  
+	 * @Description:根据需求id查询需求明细信息
+	 * @param demandId 需求ID     
+	 * CustomerRequestDetailEntity 
+	 */
+	public CustomerRequestDetailEntity queryMyRequestDetailById(@Param("demandId")String demandId);
+}

@@ -1,0 +1,90 @@
+package com.bashiju.www.service.api;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.out.article.ArticleInfoResult;
+import com.bashiju.www.pojo.service.out.article.ArticleListResult;
+import com.bashiju.www.pojo.service.out.article.ArticleTypeResult;
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ *   资讯页面接口
+ * @ClassName:  IZiXunListPageService   
+ * @Description:   资讯列表页接口
+ * @author: wangkaifa
+ * @date:   2018年7月31日 上午10:33:59       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface IZiXunPageService {
+
+	/**
+	 * 
+		 * 根据城市查询热门资讯列表，点击率高的的最新资讯文章
+		 * @Description: 根据城市查询热门资讯列表，点击率高的的最新资讯文章 
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> queryHotZiXunList(String cityCode,int limit);
+	/**
+	 * 
+		 * 资讯快讯接口
+		 * redis的key值:WebGlobal.ARTICLE_ZIXUN_FLASH_REDIS_PREFIX+城市代码
+		 * @Description: 资讯快讯接口
+		 * @param cityCode 城市代码
+		 * @param limit 显示条数
+		 * @return 
+		 * List<ArticleListResult>
+	 */
+	List<ArticleListResult> queryNewZiXunList(String cityCode,int limit);
+	
+	/**
+	 * 
+		 * 根据城市查询资讯文章类型
+		 * @Description: 根据城市查询资讯文章类型
+		 * @param cityCode 城市代码
+		 * @return 
+		 * List<ArticleTypeResult>
+	 */
+	List<ArticleTypeResult> queryZiXunType(String cityCode);
+	
+	/**
+	 * 
+		 * 根据类型查询资讯，按时间倒序，类型为0查询全部资讯,
+		 * @Description: 根据类型查询资讯，按时间倒序，类型为0查询全部资讯
+		 * @param cityCode 城市代码
+		 * @param typeId   资讯文章类型id
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<ArticleListResult>
+	 */
+	WebPage<ArticleListResult> queryZiXunListByTypeId(String cityCode,int typeId,int page,int limit);
+	
+	/**
+	 * 
+		 * 根据关键字搜索资讯文章
+		 * @Description: 根据关键字搜索资讯文章 
+		 * @param cityCode 城市代码
+		 * @param key 搜索关键字
+		 * @param page 当前页
+		 * @param limit 每页条数
+		 * @return 
+		 * Page<ArticleListResult>
+	 */
+	WebPage<ArticleListResult> queryZiXunList(String cityCode,String key,int page,int limit);
+	
+	/**
+	 * 
+		 * 根据id查询文章详细,浏览次数加1
+		 * @Description: 根据id查询文章详细
+		 * @param id 资讯文章id
+		 * @return 
+		 * ArticleInfoResult
+	 */
+	ArticleInfoResult queryZiXunArticleInfo(int id);
+}

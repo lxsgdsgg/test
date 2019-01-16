@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.DeptMapper">
+	<select id="queryDepts" resultType="map">
+			select d.id,d.name,c.name as companyName,d.companyId as companyId,dy.name as deptTypeName,
+			d.deptTypeId as deptTypeId,if(d.isvalid=1,'有效','无效') as isvalid,dd.name as parentName,d.parentId as parentId,d.sortNo,d.areaCode,d.permissionArea,
+			d.operatorId,d.operator,d.addTime,d.updateTime,u.realName as leaderName,d.leader, FORMAT((length(d.id)-length(d.companyId))/2,0) level,  
+			cc.name as areaName from sys_dept d    
+			left join sys_dept_type dy on dy.id=d.deptTypeId 
+			left join sys_company c on c.id=d.companyId
+			left join sys_dept dd on d.parentId=dd.id
+			left join sys_area cc on d.areaCode = cc.code  
+			left join sys_user u on d.leader = u.id  where d.isvalid=1 
+			<if test="deptName!=null and deptName!=''">and  d.name like concat('%',#{deptName},'%')</if>
+			<if test="deptTypeId!=null and deptTypeId!=''">and  d.deptTypeId=#{deptTypeId}</if>
+			<if test="companyId!=null and companyId!=''">and d.companyId=#{companyId}</if>	
+			<if test="parentId !=null and parentId !=''">and d.parentId=#{parentId}</if>	
+			<if test="areaCode !=null and areaCode !=''">and d.areaCode=#{areaCode}</if>	
+			<if test="leader !=null and leader !=''">and d.leader=#{leader}</if>	
+			ORDER BY  d.id
+	</select>
+
+	<select id="getDept" resultType="map">
+		select d.id,d.name,c.name as companyName,d.companyId as companyId,dy.name as deptName,
+			d.deptTypeId as deptTypeId,d.isvalid,dd.name as parentName,d.parentId as parentId,d.sortNo,d.areaCode,area.name as oreaName,d.permissionArea,
+			d.operatorId,d.operator,d.addTime,d.updateTime,d.leader,u.realName,FORMAT((length(d.id)-length(d.companyId))/2,0) level  from sys_dept d    
+			left join sys_dept_type dy on dy.id=d.deptTypeId 
+			left join sys_company c on c.id=d.companyId
+			left join sys_dept dd on d.parentId=dd.id
+			left join sys_user u on d.leader=u.id  	
+			left join sys_area area on d.areaCode = area.code
+			where d.isvalid=1 and d.id=#{deptId} ORDER BY  d.id
+	</select>
+	
+	<!--查询部门下是否有人，是否有下级部门-->
+	<select id="isRelation" resultType="long">
+			<![CDATA[
+					select sum(total) from (
+					select count(*) total from sys_dept where id like concat(#{deptId},'%') and id<> #{deptId} and isvalid=1
+					union all 
+					select count(*) total from sys_user where deptId=#{deptId})a
+			]]>	
+	
+	</select>	
+	
+	
+	<select id="queryAreaCode" resultType="map">
+			select  * from sys_area
+	</select>
+	
+	<select id="queryUser" resultType="map">
+		select *from sys_user
+	</select>
+	
+	<insert id="saveDept" parameterType="map">
+		insert into sys_dept(id,name,companyId,deptTypeId,isvalid,parentId,sortNo,
+		areaCode,permissionArea,operatorId,operator,addTime,leader)values(
+		getDeptNewId(#{companyId},#{parentId}),#{name},#{companyId},#{deptTypeId},#{isvalid},#{parentId},#{sortNo},
+		#{areaCode},#{permissionArea},#{operatorId},#{operator},#{addTime},#{leader})
+	</insert>
+	
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryAcrossStorePermission" resultType="map">
+		SELECT sd.id AS did,sd.`name` AS deptName,sdo.deptId,sdo.overDeptId,sdo.menuId,sdo.id
+		FROM sys_dept AS sd INNER JOIN sys_dept_overdept AS sdo ON sdo.deptId = sd.id where sd.id=#{deptId}
+	</select>
+	
+	<delete id="deleteAcrossStorePermission" parameterType="String">
+		delete  from sys_dept_overdept where deptId=#{deptId}
+	</delete>
+	
+	<select id="queryDeptIdAndDeptName" resultType="map">
+		select id,name from sys_dept where isvalid=1
+	</select>
+	
+	<select id="queryDeptCityCode" resultType="map">
+		select a.id,b.areaCode from sys_dept a 
+		left join sys_dept b on a.companyId = b.companyId and a.id like concat(b.id,'%') and b.deptTypeId=1
+		where a.id=#{deptId} and b.isvalid=1
+	</select>
+	
+	<select id="queryResponsibilityDisk" resultType="map">
+		select id,areaCode,companyId,companyName,deptId,deptName,regionId,communityId,communityName from sys_dept_responsibility_community where deptId =#{deptId} and isValid =1
+	</select>
+	
+	
+</mapper>

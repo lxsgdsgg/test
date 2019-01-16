@@ -1,0 +1,349 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  PermissionController.java   
+ * @Package com.bashiju.manage.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年4月19日 下午3:30:17   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.manage.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.alibaba.dubbo.common.utils.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.enums.MenuFunctionTypeEnum;
+import com.bashiju.enums.RoleGroupEnum;
+import com.bashiju.manage.service.PermissionService;
+import com.bashiju.manage.service.RoleService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.BashijuResult;
+
+/**   
+ * @ClassName:  PermissionController   
+ * @Description:权限管理控制器   
+ * @author: yangz
+ * @date:   2018年4月19日 下午3:30:17   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="permission")
+public class PermissionController extends BaseController {
+
+	@Autowired
+	private PermissionService permissionService;
+	
+	@Autowired
+	private RoleService roleService;
+	
+	/**
+	 * 
+	 * @Description: 根据角色组进入不同的角色管理页面   
+	 * @param request
+	 * @param response
+	 * @param attr
+	 * @return      
+	 * @return: String
+	 */
+	@RequestMapping(value="permission")
+	public String permission(HttpServletRequest request, HttpServletResponse response,RedirectAttributes attr) {
+		String roleId = request.getParameter("roleId");
+		String userId = request.getParameter("userId");
+		attr.addAttribute("roleId", roleId);
+		attr.addAttribute("userId", userId);
+		attr.addAttribute("menu_id", request.getParameter("menu_id"));
+		if(!StringUtils.isEmpty(roleId)) {
+			Map<String,Object> map = roleService.getRole(roleId);
+			attr.addAttribute("roleGroup", map.get("groups"));
+			//超级管理员组授权页面
+			if(map.get("groups")!=null && RoleGroupEnum.ADMIN.getCode().equals(map.get("groups")))
+				return "redirect:../adminPermission/permissionPage";
+			//城市管理员组授权页面
+			else if(map.get("groups")!=null && RoleGroupEnum.CITY_ADMIN.getCode().equals(map.get("groups")))
+				return "redirect:../cityPermission/cityPermissionPage";
+			else//普通用户组授权页面
+				return "redirect:../permission/permissionPage";
+		}else {
+			return null;
+		}
+	}
+	/**
+	 * 
+	 * @Description: 进入授权页面
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="permissionPage")
+	public ModelAndView permissionPage(HttpServletRequest request ,HttpServletResponse response)throws Exception{
+		ModelAndView mv = getModelAndView(request, response, "permission/permission");
+		String roleId = request.getParameter("roleId");
+		String userId = request.getParameter("userId");
+		List<Map<String,Object>> userPer = this.permissionService.queryUserPermissions(roleId,userId);
+		List<Map<String,Object>> menus = this.permissionService.queryMenuTrees(roleId);
+		List<Map<String,Object>> combinationList = this.permissionService.queryPermissionCombinations();
+		if(userPer==null) 
+			throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+		Map<String,Object> per = getPermissionValue(userPer);
+		
+		Map<Integer,Object> combinationBtns = new HashMap<Integer,Object>();
+		//封装组合按钮信息
+		for(Map<String,Object> map : menus) {
+			if(map.get("functionType").equals(MenuFunctionTypeEnum.COMBINATIONBUTTON.getCode())) {
+				combinationBtns.put(Integer.parseInt(map.get("parentId").toString()), getCombinationBtnTrees(menus, map.get("parentId").toString()));
+			}
+		}
+		mv.addObject("combinationBtns", combinationBtns);
+		System.out.println(JSONObject.toJSON(combinationBtns));
+		//封装组合条件信息
+		Map<Integer,Object> combinations = new HashMap<Integer,Object>();
+		for(Map<String,Object> map : combinationList) {
+			combinations.put(Integer.parseInt(map.get("menuId").toString()), getTrees(combinationList, map.get("menuId").toString(),"menuId"));
+		}
+		mv.addObject("combinations", combinations);
+		System.out.println(JSONObject.toJSON(combinations));
+		menus = getData(menus);
+		System.out.println(JSONObject.toJSON(menus));
+		mv.addObject("list", menus);//菜单列表
+		mv.addObject("roleId", roleId);//角色id
+		mv.addObject("userId", userId);//用户id
+		mv.addObject("per",JSONObject.toJSON(per));//角色或用户的权限信息
+		System.out.println(JSONObject.toJSON(per));
+		mv.addObject("functionTypeMap", MenuFunctionTypeEnum.enumMap);//菜单功能类型
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取普通用户的权限信息   
+	 * @param request
+	 * @param response
+	 * @return: Object
+	 */
+	@RequestMapping(value="ordinaryPermission")
+	@ResponseBody
+	public Object ordinaryPermission(HttpServletRequest request,HttpServletResponse response){
+//		Date begin = new Date();
+//		System.out.println("加载普通用户权限信息开始："+begin);
+		String roleId = request.getParameter("roleId");
+		String userId = request.getParameter("userId");
+		List<Map<String,Object>> userPer = this.permissionService.queryUserPermissions(roleId,userId);
+//		System.out.println("查询权限信息："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		List<Map<String,Object>> menus = this.permissionService.queryMenuTrees(roleId);
+//		System.out.println("查询菜单树，不包含按钮 ："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		List<Map<String,Object>> combinationList = this.permissionService.queryPermissionCombinations();
+//		System.out.println("查询组合条件信息："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		if(userPer==null) 
+			throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+		Map<String,Object> per = getPermissionValue(userPer);
+//		System.out.println("封装页面能识别的角色用户权限 ："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		Map<Integer,Object> combinationBtns = new HashMap<Integer,Object>();
+		//封装组合按钮信息
+		for(Map<String,Object> map : menus) {
+			if(map.get("functionType").equals(MenuFunctionTypeEnum.COMBINATIONBUTTON.getCode())) {
+				combinationBtns.put(Integer.parseInt(map.get("parentId").toString()), getCombinationBtnTrees(menus, map.get("parentId").toString()));
+			}
+		}
+//		System.out.println("封装组合按钮信息 ："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		//封装组合条件信息
+		Map<Integer,Object> combinations = new HashMap<Integer,Object>();
+		for(Map<String,Object> map : combinationList) {
+			combinations.put(Integer.parseInt(map.get("menuId").toString()), getTrees(combinationList, map.get("menuId").toString(),"menuId"));
+		}
+//		System.out.println("封装组合条件信息 ："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		menus = getData(menus);
+//		System.out.println("将菜单转为树形结构 ："+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		Map<String,Object> map = new HashMap<String,Object>(0);
+		map.put("combinations", combinations);
+		map.put("combinationBtns", combinationBtns);
+		map.put("menus", menus);
+		map.put("per", per);
+//		System.out.println("加载普通用户权限信息结束："+new Date()+"；耗时："+((new Date()).getTime()-begin.getTime()));
+		return JSONObject.toJSON(map);
+	}
+	
+	/**
+	 * 
+	 * @Description: 保存授权信息   
+	 * @param request
+	 * @return: BashijuResult
+	 * @throws Exception      
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="savePermissionInfo")
+	@ResponseBody
+	public BashijuResult savePermissionInfo(HttpServletRequest request)throws Exception{
+		String data = request.getParameter("data");
+		String roleId = request.getParameter("roleId");
+		String userId = request.getParameter("userId");
+		System.out.println(data);
+		if(StringUtils.isEmpty(data))
+			return BashijuResult.build(false, "没有能够保存的权限信息");
+		Map<String,Object> dataMap = JSON.parseObject(data, Map.class);
+		List<Map<String,Object>> saveData = new ArrayList<Map<String,Object>>();
+		for(String key : dataMap.keySet()) {
+			String[] menuIds = key.split("_");
+			for(int i=0;i<menuIds.length;i++) {
+				Map<String,Object> map = new HashMap<String,Object>();
+				map.put("roleId", roleId);
+				map.put("userId", userId);
+				map.put("menuPermission", menuIds[i].split("@@").length>1?menuIds[i].split("@@")[0]:menuIds[i]);
+				map.put("operator", UserThreadLocal.get().get("realName"));
+				map.put("operatorId", UserThreadLocal.get().get("id"));
+				map.put("permissionArea", UserThreadLocal.get().get("deptId"));
+				if(i==(menuIds.length-1)) {
+					if(key.split("@@").length==2) {//数据组合条件
+						map.put("combiPermission", key.split("@@")[1]);
+					}
+					if(!"on".equals(dataMap.get(key).toString()) && !"".equals(dataMap.get(key).toString().trim()))
+						map.put("dataPermission", dataMap.get(key).toString().trim());
+				}
+				if(!contains(saveData, map))
+					saveData.add(map);
+			}
+		}
+		System.out.println("字符串为："+JSONArray.toJSONString(saveData));
+		boolean flag = this.permissionService.savePermissions(roleId,userId,saveData);
+		if(flag)
+			return BashijuResult.build(true, "授权成功");
+		else
+			return BashijuResult.build(false, "授权失败");
+	}
+	
+	/**
+	 * 
+	 * @Description: 比较map中的主要属性，判断map是否包含在list列表中，如果已经存在，将其余属性赋值给list中的map   
+	 * @param list
+	 * @param map
+	 * @return      
+	 * @return: boolean
+	 */
+	private boolean contains(List<Map<String,Object>> list,Map<String,Object> map) {
+		for(Map<String,Object> temp : list) {
+			if(temp.get("roleId").equals(map.get("roleId"))
+					 && temp.get("menuPermission").equals(map.get("menuPermission"))) {
+				if(temp.get("combiPermission")!=null && !temp.get("combiPermission").equals(map.get("combiPermission")))
+					return false;
+				if(map.get("userId")==null) {
+					//将数据权限赋值给list中的map
+					if(temp.get("dataPermission")==null && map.get("dataPermission")!=null) {
+						temp.put("dataPermission", map.get("dataPermission"));
+					}
+					return true;
+				}else if(temp.get("userId").equals(map.get("userId"))){
+					//将数据权限赋值给list中的map
+					if(temp.get("dataPermission")==null && map.get("dataPermission")!=null) {
+						temp.put("dataPermission", map.get("dataPermission"));
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**     
+	 * @Description: 封装页面能识别的角色用户权限   
+	 * @param userPer 权限列表
+	 * @return      
+	 * @return: Map<String,Object>       
+	 */ 
+	private Map<String, Object> getPermissionValue(List<Map<String, Object>> userPer) {
+		Map<String,Object> result = new HashMap<String,Object>();
+		for(Map<String,Object> map : userPer) {
+			if(map.get("combiPermission")!=null && !"".equals(map.get("combiPermission").toString()))
+				result.put(map.get("parentId")+"_"+map.get("id")+"@@"+map.get("combiPermission"), map.get("dataPermission"));
+			else
+				result.put(map.get("parentId")+"_"+map.get("id"), map.get("dataPermission"));
+		}
+		return result;
+	}
+
+	/**
+	 * 
+	 * @Description: 将菜单转为树形结构;     
+	 * @param list 菜单列表
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	private List<Map<String,Object>> getData(List<Map<String,Object>> list) {
+		List<Map<String,Object>> news = new LinkedList<Map<String,Object>>();
+		for(Map<String,Object> rd : list){
+			if(rd.get("parentId") ==null || StringUtils.isEmpty(rd.get("parentId").toString())){
+				Map<String,Object> parent = new HashMap<String,Object>();
+				parent.put("id", rd.get("id"));
+				parent.put("name", rd.get("name"));
+				parent.put("url", rd.get("url"));
+				parent.put("datas", getTrees(list, rd.get("id").toString(),"parentId"));
+				
+				news.add(parent);
+			}
+		}
+		return news;
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取树节点   
+	 * @param list 菜单列表
+	 * @param parentId 父级id
+	 * @param keyStr 键名
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	private List<Map<String,Object>> getTrees(List<Map<String,Object>> list,String parentId,String keyStr){
+		List<Map<String,Object>> mps = new LinkedList<Map<String,Object>>();
+		for(Map<String,Object> item : list){
+			if(item.get(keyStr).toString().equals(parentId)){
+				item.put("datas", getTrees(list, item.get("id").toString(),keyStr));
+				mps.add(item);
+			}
+		}
+		return mps;
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取树节点   
+	 * @param list 菜单列表
+	 * @param parentId 父级id
+	 * @return      
+	 * @return: List<Map<String,Object>>
+	 */
+	private List<Map<String,Object>>getCombinationBtnTrees(List<Map<String,Object>> list,String parentId){
+		List<Map<String,Object>> mps = new LinkedList<Map<String,Object>>();
+		for(Map<String,Object> item : list){
+			if(item.get("parentId").toString().equals(parentId) && 
+					item.get("functionType").equals(MenuFunctionTypeEnum.COMBINATIONBUTTON.getCode())){
+				item.put("datas", getCombinationBtnTrees(list, item.get("id").toString()));
+				mps.add(item);
+			}
+		}
+		return mps;
+	}
+}

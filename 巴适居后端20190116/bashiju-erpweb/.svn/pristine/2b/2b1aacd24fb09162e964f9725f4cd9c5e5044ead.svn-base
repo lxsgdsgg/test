@@ -1,0 +1,12 @@
+// 公共接口集合
+import {onGet} from './main'
+
+// 获取菜单列表
+export const getMenuData = params => {
+  return onGet('getMenuData', params)
+}
+
+// 获取用户信息
+export const getUserInfo = params => {
+  return onGet('queryUserInfo', params)
+}

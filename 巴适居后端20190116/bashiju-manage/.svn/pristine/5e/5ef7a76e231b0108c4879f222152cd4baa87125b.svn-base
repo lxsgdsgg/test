@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.ResCustLevelConditionMapper">
+	<select id="queryResCustLevelCondition" resultType="map">
+		select id, cityCode,cityName,companyId,name,transactionType,levelType,conditions,
+		minPrice,maxPrice,minSpace,maxSpace,lookCount,permissionArea,
+		operatorId,operator,addTime ,updateTime,remark,isValid from res_cust_level_condition 
+		where  isValid=1
+		<if test="transactionType!=null and transactionType!='' "> and transactionType=#{transactionType}</if>
+		<if test="levelType!=null and levelType!='' "> and levelType=#{levelType}</if>
+		<if test="cityCode!=null and cityCode!=''"> and cityCode=#{cityCode}</if>
+		<if test="companyId!=null and companyId!=''"> and companyId=#{companyId}</if>
+		order by id desc
+	</select>
+	
+	<select id="queryResCustLevelConditionById" resultType="map">
+		select id, cityCode,cityName,companyId,name,transactionType,levelType,conditions,
+		minPrice,maxPrice,minSpace,maxSpace,lookCount,permissionArea,
+		operatorId,operator,addTime ,updateTime,remark,isValid from res_cust_level_condition 
+		where id=#{id} 
+	</select>
+</mapper>

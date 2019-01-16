@@ -1,0 +1,406 @@
+package com.bashiju.www.service.house.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.HouseTransactionEnum;
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.exception.ErrorCodeEnum;
+import com.bashiju.wutils.log.ExecutionResult;
+import com.bashiju.wutils.log.SystemServiceLog;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.global.WebGlobal;
+import com.bashiju.www.mapper.ArticleMapper;
+import com.bashiju.www.mapper.HouseMapper;
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseSameParam;
+import com.bashiju.www.pojo.service.input.house.HouseTipOffParam;
+import com.bashiju.www.pojo.service.input.house.RentHouseParam;
+import com.bashiju.www.pojo.service.input.house.SellHouseParam;
+import com.bashiju.www.pojo.service.out.article.RentSkillLinkResult;
+import com.bashiju.www.pojo.service.out.comm.HouseTotalResult;
+import com.bashiju.www.pojo.service.out.house.AgentResult;
+import com.bashiju.www.pojo.service.out.house.CommunityResult;
+import com.bashiju.www.pojo.service.out.house.GoodHouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseCompareResult;
+import com.bashiju.www.pojo.service.out.house.HouseDescriptionResult;
+import com.bashiju.www.pojo.service.out.house.HouseFeedbackResult;
+import com.bashiju.www.pojo.service.out.house.HouseImageResult;
+import com.bashiju.www.pojo.service.out.house.HouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+import com.bashiju.www.pojo.service.out.house.HouseSameLinkResult;
+import com.bashiju.www.pojo.service.out.house.RentHouseInfoResult;
+import com.bashiju.www.pojo.service.out.house.ShowedRecordResult;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.comm.WebPageUtils;
+import com.bashiju.www.service.house.IHouseService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 
+ *  房源服务类
+ * @ClassName:  HouseServiceImpl   
+ * @Description:  房源服务类
+ * @author: wangkaifa
+ * @date:   2018年7月25日 下午3:53:21       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="房源查询服务") 
+@Service
+public class HouseServiceImpl implements IHouseService {
+	
+	@Autowired
+	HouseMapper houseMapper;
+	@Autowired
+	ArticleMapper articleMapper;
+	@Autowired
+	ICacheService cacheService;
+	final static ObjectMapper MAPPER=new ObjectMapper();
+	@SystemServiceLog(operationType="查看房源详细")
+	@Override
+	public HouseInfoResult querySellHouseInfo(long id) {
+		long custime=System.currentTimeMillis();
+		houseMapper.updateHouseBrowsingCount(id);
+		System.out.println("修改点击次数耗时："+(System.currentTimeMillis()-custime));
+		ExecutionResult.descFormat(id+"", "查看房源详细");
+		String key=WebGlobal.HOUSE_DETAILED_BASE_REDIS_PREFIX+id;
+		String json=cacheService.getCache(key);
+		System.out.println("读取redis耗时："+(System.currentTimeMillis()-custime));
+		if (StringUtils.isEmpty(json)) {
+			HouseInfoResult result=houseMapper.queryHouseInfo(id);
+			System.out.println("查询房源基础信息耗时："+(System.currentTimeMillis()-custime));
+			if (result!=null) {
+				AgentResult agent=houseMapper.queryAgentById(result.getAgentId());
+				System.out.println("查询房源维护经纪人耗时："+(System.currentTimeMillis()-custime));
+				result.setAgent(agent);
+				List<HouseDescriptionResult> desList=houseMapper.queryHouseDescriptionList(id);
+				System.out.println("查询房源描述耗时："+(System.currentTimeMillis()-custime));
+				result.setHouseDescriptions(desList);
+				List<HouseImageResult> imageList=houseMapper.queryHouseImages(id);
+				result.setHouseImages(imageList);
+				/*String labeld=houseMapper.queryMetroLabel(result.getCommunityId());
+				System.out.println("查询地铁标签耗时："+(System.currentTimeMillis()-custime));
+				result.setMetroLabel(labeld);*/
+				CommunityResult community=houseMapper.queryCommunityInfo(result.getCommunityId());
+				System.out.println("查询房源小区耗时："+(System.currentTimeMillis()-custime));
+				result.setCommunityInfo(community);
+				List<HouseSameLinkResult> links=houseMapper.queryHouseSameLinks(id);
+				result.setLinks(links);
+				cacheService.saveCache(key, result,WebGlobal.OTHER_EXPTIME);
+				System.out.println("存入redis耗时："+(System.currentTimeMillis()-custime));
+				return result;
+			}
+			throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);			
+		}
+		HouseInfoResult result=JSON.parseObject(json, HouseInfoResult.class);
+		System.out.println("方法总耗时："+(System.currentTimeMillis()-custime));
+		return result;
+	}
+	
+	@SystemServiceLog(operationType="查询租房技巧列表")
+	@Override
+	public List<RentSkillLinkResult> queryRentSkills(String cityCode,int limit){	
+		ExecutionResult.descFormat(cityCode, "查询租房技巧列表");
+		String key=WebGlobal.ARTICLE_RENTSKILL_REDIS_PREFIX+cityCode;
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			List<RentSkillLinkResult> results=articleMapper.queryRentSkills(cityCode, WebGlobal.RENT_SKILL_ID, limit);
+			if (results!=null) {
+				cacheService.saveCache(key,results,WebGlobal.OTHER_EXPTIME);
+				return results;
+			}
+			return null;
+		}
+		List<RentSkillLinkResult> results=JSON.parseArray(json, RentSkillLinkResult.class);
+		return results;		
+	}
+	@SystemServiceLog(operationType="查看房源详细带看经纪人")
+	@Override
+	public List<AgentResult> queryShowedAgents(long houseId) {
+		ExecutionResult.descFormat(houseId+"", "查看房源详细带看经纪人");
+		String key=WebGlobal.HOUSE_DETAILED_AGENT_REDIS_PREFIX+houseId;
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			List<AgentResult> result=houseMapper.queryAgentsByHouseId(houseId);
+			if (result!=null) {
+				cacheService.saveCache(key,result,WebGlobal.OTHER_EXPTIME);
+				return result;
+			}
+			return new ArrayList<AgentResult>();
+		}
+		List<AgentResult> result=JSON.parseArray(json, AgentResult.class);
+		return result;
+	}
+	@SystemServiceLog(operationType="查看房源详细带看记录")
+	@Override
+	public WebPage<ShowedRecordResult> queryShowedRecordByHouseId(long houseId,int page,int limit) {
+		ExecutionResult.descFormat(houseId+"", "查看房源详细带看记录");
+		String key="queryShowedRecordByHouseId"+houseId+page+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			PageHelper.startPage(page, limit);
+			Page<ShowedRecordResult> result=houseMapper.queryShowedRecords(houseId);			
+			System.out.println("------"+result.getResult());
+			if (result!=null) {
+				WebPage<ShowedRecordResult> value=new WebPage<>(result);
+				cacheService.saveCache(key,value,WebGlobal.OTHER_EXPTIME);
+				return value;
+			}
+			return null;
+		}
+		WebPage<ShowedRecordResult> result=WebPageUtils.parseWebPage(json, ShowedRecordResult.class);
+		return result;
+	}
+
+	@SystemServiceLog(operationType="查看房源详细相似房源")
+	@Override
+	public List<HouseListResult> querySameHouseList(HouseSameParam param) {
+		int transactionTypeId = param.getTransactionTypeId();
+		String key = WebGlobal.HOUSE_DETAILED_SAME_REDIS_PREFIX;
+		long communityId = param.getCommunityId();
+		int room = param.getRoom();
+		int sellPrice = param.getSellPrice();
+		int rentPrice = param.getRentPrice();
+		
+		String houseStr = "";
+		List<HouseListResult> houseList = new ArrayList<>();
+		if(HouseTransactionEnum.LEASE.getCode().equals(transactionTypeId+"")) {//出租
+			key = key+communityId+room+rentPrice;
+		}else if(HouseTransactionEnum.SELL.getCode().equals(transactionTypeId+"")){//出售
+			key = key+communityId+room+sellPrice;
+		}
+		houseStr =  cacheService.getCache(key);
+		if(StringUtils.isNoneEmpty(houseStr)) {
+			houseList = JSON.parseArray(houseStr, HouseListResult.class);
+		}else {
+			houseList = houseMapper.querySameHouseList(param);
+			cacheService.saveCache(key,houseList,WebGlobal.OTHER_EXPTIME);
+		}
+		return houseList;
+	}
+
+	@SystemServiceLog(operationType="查看房源比较信息")
+	@Override
+	public List<HouseCompareResult> queryHouseCompareList(List<Long> ids) {
+		if (ids!=null&&ids.size()>0) {
+			List<HouseCompareResult> results=houseMapper.queryHouseCompareList(ids);
+			return results;
+		}		
+		return null;
+	}
+	@SystemServiceLog(operationType="添加房源举报")
+	@Override
+	public boolean addHouseTipOff(HouseTipOffParam param) {
+		int res = houseMapper.saveHouseTipOff(param);
+		if(res==1) {
+			return true;
+		}
+		return false;
+	}
+	@SystemServiceLog(operationType="根据小区模糊查询房源")
+	@Override
+	public WebPage<HouseListResult> queryHouseByCoummunity(String communityName, int type,int page,int limit) {
+		PageHelper.startPage(page, limit);
+		Page<HouseListResult> houseList = houseMapper.queryHouseByCoummunity(communityName,type);
+		WebPage<HouseListResult> result=new WebPage<>(houseList);
+		return result;
+		
+	}
+
+	@Override
+	public HouseTotalResult queryHouseTotalByCityCode(String cityCode) {
+		String key = WebGlobal.HOME_SELLGOOD_REDIS_PREFIX+cityCode;
+		String totalStr = cacheService.getCache(key);
+		HouseTotalResult total = new HouseTotalResult();
+		if(StringUtils.isEmpty(totalStr)) {//redis为空
+			List<Map<String,Object>> erHouse = houseMapper.queryErHouseTotalByCityCode(cityCode);
+			int sellCount = 0;
+			int rentCount = 0;
+			int rent_sellCount = 0;
+			for(Map<String,Object> m : erHouse) {
+				if(HouseTransactionEnum.LEASE.getCode().equals(m.get("transactionTypeId").toString())){//出租
+					rentCount = Integer.parseInt(m.get("houseCount").toString());
+				}else if(HouseTransactionEnum.SELL.getCode().equals(m.get("transactionTypeId").toString())){//出售
+					sellCount = Integer.parseInt(m.get("houseCount").toString());
+				}else if(HouseTransactionEnum.LEASE_SELL.getCode().equals(m.get("transactionTypeId").toString())) {//租售
+					rent_sellCount = Integer.parseInt(m.get("houseCount").toString());
+				}
+			}
+			total.setRentHouseTotal(rentCount+rent_sellCount);
+			total.setSellHouseTotal(sellCount+rent_sellCount);
+			cacheService.saveCache(key, total,WebGlobal.OTHER_EXPTIME);//存redis
+		}else {
+			total = JSON.parseObject(totalStr, HouseTotalResult.class);
+		}
+		
+		return total;
+	}
+
+	@Override
+	public List<HouseListResult> querySellGoodHouse(String cityCode) {
+		String key = WebGlobal.HOME_SELLGOOD_REDIS_PREFIX+cityCode;
+		List<HouseListResult> goodList = null;
+		String goodStr = cacheService.getCache(key);
+		if(goodStr.isEmpty()) {
+			goodList = houseMapper.queryGoodHouse(cityCode,HouseTransactionEnum.SELL.getCode());
+			cacheService.saveCache(key, goodList, WebGlobal.OTHER_EXPTIME);
+		}else {
+			goodList = JSON.parseArray(goodStr, HouseListResult.class);
+		}
+		
+		return goodList;
+	}
+
+	@Override
+	public List<HouseListResult> queryRentGoodHouse(String cityCode) {
+		String key = WebGlobal.HOME_RENTGOOD_REDIS_PREFIX + cityCode;
+		List<HouseListResult> goodList = null;
+		String goodStr = cacheService.getCache(key);
+		if(goodStr.isEmpty()) {
+			goodList = houseMapper.queryGoodHouse(cityCode,HouseTransactionEnum.LEASE.getCode());
+			cacheService.saveCache(key, goodList,  WebGlobal.OTHER_EXPTIME);
+		}else {
+			goodList = JSON.parseArray(goodStr, HouseListResult.class);
+		}
+		
+		return goodList;
+	}
+
+
+	@SystemServiceLog(operationType="新增反馈点赞")
+	@Override
+	public boolean addFeedbackUseCount(int custId, int agentEvaluateHouseId) {
+		int n = houseMapper.queryCustEvaluate(custId,agentEvaluateHouseId);//查询该客户对该反馈是否点赞了
+		if(n<1) {//没点过
+			//新增
+			houseMapper.saveFeedbackUse(custId,agentEvaluateHouseId);
+			//修改反馈表的次数
+			houseMapper.updateFeedbackUseCount(agentEvaluateHouseId);
+			return true;
+		}
+		return false;
+	}
+	@SystemServiceLog(operationType="查询房源带看反馈")
+	@Override
+	public WebPage<HouseFeedbackResult> queryFeedback(long houseId, int page, int limit) {
+		PageHelper.startPage(page, limit);
+		String key = "queryFeedback"+houseId+page+limit;
+		key = Md5EncryptUtils.md5Encrypt(key);
+		String feedbackStr = cacheService.getCache(key);
+		WebPage<HouseFeedbackResult> feedbackList = null;
+		if(StringUtils.isEmpty(feedbackStr)) {
+			Page<HouseFeedbackResult> pageInfo=houseMapper.queryFeedback(houseId);
+			feedbackList = new WebPage<>(pageInfo);
+			cacheService.saveCache(key, feedbackList,  WebGlobal.OTHER_EXPTIME);
+		}else {
+			feedbackList = WebPageUtils.parseWebPage(feedbackStr, HouseFeedbackResult.class);
+		}
+		return feedbackList;
+	}
+	@SystemServiceLog(operationType="按区域查询二手房源列表")
+	@Override
+	public WebPage<HouseListResult> querySellHouseListByArea(SellHouseParam param, int page, int limit) {
+		if (param==null) {
+			throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+		}
+		String key="querySellHouseListByArea"+param.toString()+page+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			PageHelper.startPage(page, limit);
+			Page<HouseListResult> pageInfo=houseMapper.querySellHouseByArea(param);
+			WebPage<HouseListResult> result=new WebPage<>(pageInfo);
+			cacheService.saveCache(key, result, WebGlobal.LIST_EXPTIME);
+			return result;
+		}
+		WebPage<HouseListResult> result=WebPageUtils.parseWebPage(json,HouseListResult.class);
+		return result;
+	}
+	@SystemServiceLog(operationType="按地铁查询二手房源列表")
+	@Override
+	public WebPage<HouseListResult> querySellHouseListByMetro(SellHouseParam param, int page, int limit) {
+		if (param==null) {
+			throw new BusinessException(ErrorCodeEnum.NULL_OBJ);
+		}
+		String key="querySellHouseListByMetro"+param.toString()+page+limit;
+		key=Md5EncryptUtils.md5Encrypt(key);
+		String json=cacheService.getCache(key);
+		if (StringUtils.isEmpty(json)) {
+			PageHelper.startPage(page, limit);
+			Page<HouseListResult> pageInfo=houseMapper.querySellHouseByMetro(param);
+			WebPage<HouseListResult> result=new WebPage<>(pageInfo);
+			cacheService.saveCache(key, result, WebGlobal.LIST_EXPTIME);
+			return result;
+		}
+		WebPage<HouseListResult> result=WebPageUtils.parseWebPage(json,HouseListResult.class);
+		return result;
+	}
+	@SystemServiceLog(operationType="按区域查询租房房源列表")
+	@Override
+	public WebPage<HouseListResult> queryRentHouseListByArea(SellHouseParam param, int page, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@SystemServiceLog(operationType="按地铁查询租房房源列表")
+	@Override
+	public WebPage<HouseListResult> queryRentHouseListByMetro(RentHouseParam param, int page, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public RentHouseInfoResult queryRentHouseInfo(long id) {
+		long custime=System.currentTimeMillis();
+		houseMapper.updateHouseBrowsingCount(id);
+		System.out.println("修改点击次数耗时："+(System.currentTimeMillis()-custime));
+		ExecutionResult.descFormat(id+"", "查看房源详细");
+		String key=WebGlobal.HOUSE_DETAILED_BASE_REDIS_PREFIX+id;
+		String json=cacheService.getCache(key);
+		System.out.println("读取redis耗时："+(System.currentTimeMillis()-custime));
+		if (StringUtils.isEmpty(json)) {
+			RentHouseInfoResult result=houseMapper.queryRentHouseInfo(id);
+			System.out.println("查询房源基础信息耗时："+(System.currentTimeMillis()-custime));
+			if (result!=null) {
+				AgentResult agent=houseMapper.queryAgentById(result.getAgentId());
+				System.out.println("查询房源维护经纪人耗时："+(System.currentTimeMillis()-custime));
+				result.setAgent(agent);
+				List<HouseDescriptionResult> desList=houseMapper.queryHouseDescriptionList(id);
+				System.out.println("查询房源描述耗时："+(System.currentTimeMillis()-custime));
+				result.setHouseDescriptions(desList);
+				List<HouseImageResult> imageList=houseMapper.queryHouseImages(id);
+				result.setHouseImages(imageList);
+				/*String labeld=houseMapper.queryMetroLabel(result.getCommunityId());
+				System.out.println("查询地铁标签耗时："+(System.currentTimeMillis()-custime));
+				result.setMetroLabel(labeld);*/
+				CommunityResult community=houseMapper.queryCommunityInfo(result.getCommunityId());
+				System.out.println("查询房源小区耗时："+(System.currentTimeMillis()-custime));
+				result.setCommunityInfo(community);
+				List<HouseSameLinkResult> links=houseMapper.queryHouseSameLinks(id);
+				result.setLinks(links);
+				List<GoodHouseListResult> goodHouses=houseMapper.querySamePriceHouse(result.getCommunityId(), result.getPrice(), 2);
+				result.setSamePriceHouses(goodHouses);
+				cacheService.saveCache(key, result,WebGlobal.OTHER_EXPTIME);
+				System.out.println("存入redis耗时："+(System.currentTimeMillis()-custime));
+				return result;
+			}
+			throw new BusinessException(ErrorCodeEnum.UNKNOWN_ERROR);			
+		}
+		RentHouseInfoResult result=JSON.parseObject(json, RentHouseInfoResult.class);
+		System.out.println("方法总耗时："+(System.currentTimeMillis()-custime));
+		return result;
+	}
+	
+
+
+	
+}

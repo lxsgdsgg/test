@@ -1,0 +1,113 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.manage.mapper.ResHouseLevelConditionMapper;
+import com.bashiju.manage.service.ResHouseLevelConditionService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  ResHouseLevelConditionServiceImpl   
+ * @Description:房源条件管理服务
+ * @author: wangpeng
+ * @date:   2018年5月14日 下午2:40:33   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="房源等级条件管理")
+public class ResHouseLevelConditionServiceImpl extends CommonSqlServie implements ResHouseLevelConditionService {
+	
+	@Autowired
+	private ResHouseLevelConditionMapper resHouseLevelConditionMapper;
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	
+	@Override
+	@SystemServiceLog(operationType="查询房源等级条件")
+	public Page<Map<String, Object>> queryResHouseLevelCondition(Map<String,Object> paramMap,
+			int page, int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_104.getCode(),UserThreadLocal.get().get("id").toString());;
+		Page<Map<String,Object>> pages=resHouseLevelConditionMapper.queryResHouseLevelCondition(paramMap);
+		return pages;
+	}
+	/**
+	 * 
+	 * <p>Title: queryResHouseLevelConditionById</p>   
+	 * <p>Description: 通过id查询房源等级条件</p>   
+	 * @param id
+	 * @return   
+	 * @see com.bashiju.manage.service.ResHouseLevelConditionService#queryResHouseLevelConditionById(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="通过id查询房源等级条件")
+	public Map<String, Object> queryResHouseLevelConditionById(String id) {
+		Map<String,Object> res_cust=resHouseLevelConditionMapper.queryResHouseLevelConditionById(id);
+		if(res_cust!=null&&res_cust.size()>0)
+			return res_cust;
+		return null;
+	}
+	/**
+	 * 
+	 * <p>Title: delResHouseLevelCondition</p>   
+	 * <p>Description: 逻辑删除房源等级条件</p>   
+	 * @param id
+	 * @return   
+	 * @see com.bashiju.manage.service.ResHouseLevelConditionService#delResHouseLevelCondition(java.lang.String)
+	 */
+	@Override
+	@SystemServiceLog(operationType="逻辑删除房源等级条件")
+	public Boolean delResHouseLevelCondition(String id) {
+		if(StringUtils.isEmpty(id))
+			throw new BusinessException("请选这要删除的房源等级条件");
+		boolean result=this.delData("res_house_level_condition", "id", id, false);
+		if(result) {
+			ExecutionResult.descFormat("id", "删除房源等级条件");
+			return true;
+		}else
+			return false;
+	}
+/**
+ * 
+ * <p>Title: saveOrUpdateResHouseLevelCondition</p>   
+ * <p>Description: 编辑或保存房源登记条件</p>   
+ * @param map
+ * @return   
+ * @see com.bashiju.manage.service.ResHouseLevelConditionService#saveOrUpdateResHouseLevelCondition(java.util.Map)
+ */
+	@Override
+	@SystemServiceLog(operationType="编辑和保存房源等级条件")
+	public boolean saveOrUpdateResHouseLevelCondition(Map<Object, Object> map) {
+		if(!map.containsKey("id")||StringUtils.isEmpty(map.get("id").toString())) {
+			map.remove("id");
+			long result=this.commonOperationDatabase(map, "res_house_level_condition", false);
+			if(result>0)
+				 ExecutionResult.descFormat(Long.toString(result), "新增房源等级条件");
+			else
+				return false;
+		}else {
+			long result=this.commonOperationDatabase(map, "res_house_level_condition", "id", false);
+			if(result>0)
+				ExecutionResult.descFormat(Long.toString(result), "编辑房源等级条件");
+			else
+				return false;
+		}
+		//判断
+		return true;
+	}
+	
+}

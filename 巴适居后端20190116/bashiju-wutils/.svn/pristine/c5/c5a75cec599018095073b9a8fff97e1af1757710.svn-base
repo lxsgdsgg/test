@@ -1,0 +1,74 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  ICommunityServiceApi.java   
+ * @Package com.bashiju.wapi   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: yangz     
+ * @date:   2018年8月15日 上午9:41:09   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+package com.bashiju.wapi;
+
+import java.util.List;
+
+import com.bashiju.www.pojo.service.community.Community;
+import com.bashiju.www.pojo.service.community.CommunityDetail;
+import com.bashiju.www.pojo.service.community.CommunityPriceTrend;
+import com.bashiju.www.pojo.service.out.house.HouseListResult;
+
+/**   
+ * 小区详情页服务接口  
+ * @ClassName:  ICommunityServiceApi   
+ * @Description:小区详情页服务接口   
+ * @author: yangz
+ * @date:   2018年8月15日 上午9:41:09   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ICommunityDetailServiceApi {
+
+	/**
+	 * 根据小区编号查询小区详情信息
+	 * @Description: 根据小区编号查询小区详情信息   
+	 * @param communityId 小区编号
+	 * @return: CommunityDetail
+	 */
+	public CommunityDetail getCommunityDetail(String communityId);
+	
+	/**
+	 * 条件查询在售房源
+	 * @Title: querySealHousingByCommunityId   
+	 * @Description: 条件查询在售房源
+	 * @param communityId 小区编号
+	 * @return: List<HouseListResult>
+	 */
+	public List<HouseListResult> querySealHousingByCommunityId(String communityId);
+	
+	/**
+	 * 条件查询出租房源
+	 * @Title: queryLeaseHousingByCommunityId   
+	 * @Description: 条件查询出租房源   
+	 * @param communityId 小区编号
+	 * @return: List<HouseListResult>
+	 */
+	public List<HouseListResult> queryLeaseHousingByCommunityId(String communityId);
+	
+	
+	/**
+	 * 条件查询附近小区 
+	 * @Title: queryNearbyCommunity   
+	 * @Description: 条件查询附近小区   
+	 * @param communityId 小区编号
+	 * @return: List<Community>
+	 */
+	public List<Community> queryNearbyCommunity(String communityId);
+	
+	/**
+	 * 查询小区的价格趋势信息
+	 * @Description: 查询小区的价格趋势信息  
+	 * @param communityId 小区编号
+	 * @return: List<CommunityPriceTrend>
+	 */
+	public List<CommunityPriceTrend> queryCommunityPriceTrend(String communityId);
+}

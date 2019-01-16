@@ -1,0 +1,536 @@
+package com.bashiju.ext.service.mq;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.bashiju.enums.HouseStatusEnum;
+import com.bashiju.enums.LogBusinessOperateTypeEnum;
+import com.bashiju.enums.LogBusinessSourceTypeEnum;
+import com.bashiju.enums.LogBusinessTypeEnum;
+import com.bashiju.enums.ReportAnalysisTypeEnum;
+import com.bashiju.enums.ReportBusinessTypeEnum;
+import com.bashiju.ext.mapper.LogOperateMapper;
+import com.bashiju.utils.pojo.BusinessLogModel;
+
+
+@Service
+public class LogHouseConsumerMq {
+	@Autowired
+	LogOperateMapper logOperateMapper;
+	@Autowired
+	RabbitTemplate rabbitTemplate;
+	Logger logger=LoggerFactory.getLogger(this.getClass());
+	
+	public void auxAddLog(BusinessLogModel businessLogModel) {
+		String jsonString=null;
+		String routKey=null;
+		try {
+			routKey=businessLogModel.getRoutKey();
+			jsonString=JSON.toJSONString(businessLogModel);
+			logger.warn("【房源新增】操作日志传入的对象businessLogModel，值是：{}",jsonString);
+			Map<Object, Object> map=JSON.parseObject(jsonString,Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				if (map.get("applicant")!=null) {
+					map.remove("applicant");
+				}
+				if (map.get("newStatus")!=null) {
+					map.remove("newStatus");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				if (map.get("addTime")==null||"".equals(map.get("addTime").toString())) {
+					map.put("addTime", new Date());
+					map.put("updateTime", new Date());
+				}
+				map.put("isValid",1);
+				insertData(map);
+				addReport(businessLogModel);
+		} catch (Exception e) {
+			logger.error("【房源】消息队列添加【新增操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+			rabbitTemplate.convertAndSend("ERP-EXT-DELAY-EXCHANGE",routKey, businessLogModel);
+		}
+	}
+
+	public void auxUpdateLog(BusinessLogModel businessLogModel) {
+		String jsonString=null;
+		String routKey=null;
+		try {
+			routKey=businessLogModel.getRoutKey();
+			jsonString=JSON.toJSONString(businessLogModel);
+			logger.warn("【房源更新】操作日志传入的对象businessLogModel，值是：{}",jsonString);
+			Map<Object, Object> map=JSON.parseObject(jsonString,Map.class);
+				Map originalData=(Map) map.get("originalData");
+				Map newData=(Map) map.get("newData");
+				Map labelData=(Map) map.get("labelData");
+				int insertSign=0;
+				Set<String> keys=labelData.keySet();
+				if (keys!=null&&keys.size()>0) {
+					StringBuffer log=new StringBuffer();
+					for (String key : keys) {
+						if (originalData.get(key)==null) {
+							originalData.put(key, "");
+						}
+						if (newData.get(key)==null) {
+							newData.put(key, "");
+						}
+						if (!originalData.get(key).toString().trim().equals(newData.get(key).toString().trim())) {
+							Map label = (Map) labelData.get(key);
+							if (label.get("label")!=null&&!"".equals(label.get("label"))) {
+								log.append(label.get("label")+":");
+								log.append(originalData.get(key).toString());
+								log.append("->");
+								log.append(newData.get(key)==null?"":newData.get(key).toString());
+								log.append(";");
+							}
+							if ("sellingPrice".equals(key)||"rentPrice".equals(key)) {
+								insertSign=1;
+							}
+							if ("useSpace".equals(key)||"buildSpace".equals(key)) {
+								insertSign=2;
+							}
+						}
+						
+					}
+					map.remove("originalData");
+					map.remove("newData");
+					map.remove("labelData");
+					map.put("permissionArea", businessLogModel.getDepartmentId());
+					if (map.get("addTime")==null||"".equals(map.get("addTime").toString())) {
+						map.put("addTime", new Date());
+						map.put("updateTime", new Date());
+					}
+					map.put("isValid",1);
+					map.put("logContent", log.toString());
+					if (map.get("applicant")!=null) {
+						map.remove("applicant");
+					}
+					if (map.get("newStatus")!=null) {
+						map.remove("newStatus");
+					}
+					if (StringUtils.isNotEmpty(log.toString()) ) {
+						insertData(map);
+						if (insertSign>0) {
+							LogBusinessSourceTypeEnum sourceTypeEnum=LogBusinessSourceTypeEnum.parseOf(businessLogModel.getSourceTypeId()+"");
+							
+							if (LogBusinessSourceTypeEnum.SELLANDRENT_HOUSE.equals(sourceTypeEnum)) {
+								businessLogModel.setSourceTypeId(Integer.parseInt(LogBusinessSourceTypeEnum.SELL_HOUSE.getCode()));
+								insertUpdatePrice(businessLogModel,insertSign);
+								businessLogModel.setSourceTypeId(Integer.parseInt(LogBusinessSourceTypeEnum.RENT_HOUSE.getCode()));
+								insertUpdatePrice(businessLogModel,insertSign);
+							}else {
+								insertUpdatePrice(businessLogModel,insertSign);
+							}						
+						}
+
+					}
+				}		
+				
+		} catch (Exception e) {
+			logger.error("【房源】消息队列添加【更新操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+			rabbitTemplate.convertAndSend("ERP-EXT-DELAY-EXCHANGE",routKey, businessLogModel);
+		}
+	}
+	
+	
+	public void auxDeleteLog(BusinessLogModel businessLogModel) {
+		String jsonString=null;
+		String routKey=null;
+		try {
+			routKey=businessLogModel.getRoutKey();
+			jsonString=JSON.toJSONString(businessLogModel);
+			logger.warn("【房源删除】操作日志传入的对象businessLogModel，值是：{}",jsonString);
+			Map<Object, Object> map=JSON.parseObject(jsonString,Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				if (map.get("applicant")!=null) {
+					map.remove("applicant");
+				}
+				if (map.get("newStatus")!=null) {
+					map.remove("newStatus");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				if (map.get("addTime")==null||"".equals(map.get("addTime").toString())) {
+					map.put("addTime", new Date());
+					map.put("updateTime", new Date());
+				}
+				map.put("isValid",1);
+				insertData(map);
+				addReport(businessLogModel);
+		} catch (Exception e) {
+			logger.error("【房源】消息队列添加【删除操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+			rabbitTemplate.convertAndSend("ERP-EXT-DELAY-EXCHANGE",routKey, businessLogModel);
+		}
+	}
+	
+	public void auxQueryLog(BusinessLogModel businessLogModel) {
+		String jsonString=null;
+		String routKey=null;
+		try {
+			routKey=businessLogModel.getRoutKey();
+			jsonString=JSON.toJSONString(businessLogModel);
+			logger.warn("【房源查询】操作日志传入的对象businessLogModel，值是：{}",jsonString);
+			Map<Object, Object> map=JSON.parseObject(jsonString,Map.class);
+				if (map.get("originalData")!=null) {
+					map.remove("originalData");
+				}
+				if (map.get("newData")!=null) {
+					map.remove("newData");
+				}
+				if (map.get("labelData")!=null) {
+					map.remove("labelData");
+				}
+				if (map.get("applicant")!=null) {
+					map.remove("applicant");
+				}
+				if (map.get("newStatus")!=null) {
+					map.remove("newStatus");
+				}
+				map.put("permissionArea", businessLogModel.getDepartmentId());
+				if (map.get("addTime")==null||"".equals(map.get("addTime").toString())) {
+					map.put("addTime", new Date());
+					map.put("updateTime", new Date());
+				}
+				map.put("isValid",1);
+				insertData(map);
+				addReport(businessLogModel);
+		} catch (Exception e) {
+			logger.error("【房源】消息队列添加【查询操作】日志出错,值是{}，原因是：{}",jsonString,e.getMessage());
+			rabbitTemplate.convertAndSend("ERP-EXT-DELAY-EXCHANGE",routKey, businessLogModel);
+		}
+	}
+	/**
+	 * 插入数据库
+	 */
+	private void insertData(Map<Object, Object> map) {
+		if(map.containsKey("routKey")) {
+			map.remove("routKey");
+		}
+		Map<Object, Object> paramMap=new HashMap<>();
+		paramMap.put("tableName", "sys_business_log");
+		paramMap.put("fields", map);
+		paramMap.put("id", "");
+		try {
+			logOperateMapper.commonAdd(paramMap);
+		} catch (Exception e) {
+			logger.error("【房源】消息队列日志【添加到数据库】出错,值是{}，原因是：{}",map,e.getMessage());
+		}
+	}
+	
+	/**
+	 * 
+		 * 插入运营综合分析报表修改价格、面积数据
+		 * @Description: 插入运营综合分析报表修改价格、面积数据 
+		 * @param businessLogModel
+		 * @param insertSign 
+		 * void
+	 */
+	private void insertUpdatePrice(BusinessLogModel businessLogModel,int insertSign) {
+		LogBusinessSourceTypeEnum sourceTypeEnum=LogBusinessSourceTypeEnum.parseOf(businessLogModel.getSourceTypeId()+"");
+		
+		Map<Object, Object> param=new HashMap<>();			
+		param.put("cityCode", businessLogModel.getCityCode());
+		param.put("companyId", businessLogModel.getCompanyId());
+		param.put("companyName", businessLogModel.getCompanyName());
+		param.put("departmentId", businessLogModel.getDepartmentId());
+		param.put("departmentName", businessLogModel.getDepartmentName());
+		param.put("operatorId", businessLogModel.getOperatorId());
+		param.put("operator", businessLogModel.getOperator());
+		param.put("permissionArea", businessLogModel.getDepartmentId());
+		if (StringUtils.isNotEmpty(businessLogModel.getAddTime())) {
+			param.put("addTime", businessLogModel.getAddTime());
+			param.put("updateTime", businessLogModel.getAddTime());
+		}else {
+			param.put("addTime", new Date());
+			param.put("updateTime", new Date());
+		}		
+		param.put("isValid",1);
+		if (LogBusinessSourceTypeEnum.SELL_HOUSE.equals(sourceTypeEnum)) {
+			param.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+			param.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+			if (insertSign==1) {
+				param.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_UPDATE_PRICE.getCode()));
+				param.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_UPDATE_PRICE.getDesc());
+			}
+			if (insertSign==2) {
+				param.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_UPDATE_SPACE.getCode()));
+				param.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_UPDATE_SPACE.getDesc());
+			}
+		}else if (LogBusinessSourceTypeEnum.RENT_HOUSE.equals(sourceTypeEnum)) {
+			param.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+			param.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+			if (insertSign==1) {
+				param.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_UPDATE_PRICE.getCode()));
+				param.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_UPDATE_PRICE.getDesc());
+			}
+			if (insertSign==2) {
+				param.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_UPDATE_SPACE.getCode()));
+				param.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_UPDATE_SPACE.getDesc());
+			}
+			
+		}
+		Map<Object, Object> paramMap=new HashMap<>();
+		paramMap.put("tableName", "report_operation_analysis");
+		paramMap.put("fields", param);
+		paramMap.put("id", "");
+		try {
+			logOperateMapper.commonAdd(paramMap);
+		} catch (Exception e) {
+			logger.error("【房源】消息队列日志【添加到数据表report_operation_analysis】出错,值是{}，原因是：{}",param,e.getMessage());
+		}
+	}
+	private void addReport(BusinessLogModel model) {
+		LogBusinessSourceTypeEnum sourceTypeEnum=LogBusinessSourceTypeEnum.parseOf(model.getSourceTypeId()+"");
+		LogBusinessOperateTypeEnum operateTypeEnum=LogBusinessOperateTypeEnum.parseOf(model.getOperatTypeId()+"");
+		if (LogBusinessSourceTypeEnum.SELLANDRENT_HOUSE.equals(sourceTypeEnum)
+				&&!LogBusinessOperateTypeEnum.ADD_HOUSE_FOLLOW_RECORD.equals(operateTypeEnum)
+				&&!LogBusinessOperateTypeEnum.ADD_HOUSE_REALEXPLORATION.equals(operateTypeEnum)
+				&&!LogBusinessOperateTypeEnum.LOOK_HOUSE_PHONE.equals(operateTypeEnum)) {
+			model.setSourceTypeId(Integer.parseInt(LogBusinessSourceTypeEnum.SELL_HOUSE.getCode()));
+			insertReport(model);
+			model.setSourceTypeId(Integer.parseInt(LogBusinessSourceTypeEnum.RENT_HOUSE.getCode()));
+			insertReport(model);
+		}else {
+			insertReport(model);
+		}
+	}
+	/**
+	 * 
+		 * 数据插入运营分析报表(修改价格、面积除外)
+		 * @Description: 数据插入运营分析报表(修改价格、面积除外) 
+		 * @param model 
+		 * void
+	 */
+	private void insertReport(BusinessLogModel model) {
+		LogBusinessSourceTypeEnum sourceTypeEnum=LogBusinessSourceTypeEnum.parseOf(model.getSourceTypeId()+"");
+		LogBusinessOperateTypeEnum operateTypeEnum=LogBusinessOperateTypeEnum.parseOf(model.getOperatTypeId()+"");
+		LogBusinessTypeEnum businessTypeEnum=LogBusinessTypeEnum.parseOf(model.getBusinessTypeId()+"");
+		
+		Map<Object, Object> map=new HashMap<>();	
+		map.put("sourceId", model.getSourceId());
+		map.put("sourceCode", model.getSourceCode());
+		map.put("cityCode", model.getCityCode());
+		map.put("companyId", model.getCompanyId());
+		map.put("companyName", model.getCompanyName());
+		map.put("departmentId", model.getDepartmentId());
+		map.put("departmentName", model.getDepartmentName());
+		map.put("operatorId", model.getOperatorId());
+		map.put("operator", model.getOperator());
+		map.put("permissionArea", model.getDepartmentId());
+		if (StringUtils.isNotEmpty(model.getAddTime())) {
+			map.put("addTime", model.getAddTime());
+			map.put("updateTime", model.getAddTime());
+		}
+		map.put("isValid",1);	
+					
+		//出售房源
+		if (LogBusinessSourceTypeEnum.SELL_HOUSE.equals(sourceTypeEnum)) {
+			if (LogBusinessOperateTypeEnum.ADD_HOUSE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_ADD.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_ADD.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.OPENPLATE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_OPEN.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_OPEN.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ADD_KEY.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_KEY.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_KEY.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.SET_UNIQUE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_EXCLUSIVE.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_EXCLUSIVE.getDesc());
+			}
+
+			if (LogBusinessOperateTypeEnum.UPDATE_STATUS.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				HouseStatusEnum statusEnum=HouseStatusEnum.parseOf(model.getNewStatus());
+				if (HouseStatusEnum.CANCEL.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_STATUS_CANCELORDER.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_STATUS_CANCELORDER.getDesc());
+				}
+				if (HouseStatusEnum.OTHER_SELL.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_STATUS_OTHERSELL.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_STATUS_OTHERSELL.getDesc());
+				}
+				if (HouseStatusEnum.OTHER_LEASE.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_STATUS_OTHERRENT.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_STATUS_OTHERRENT.getDesc());
+				}
+			}
+			if (LogBusinessOperateTypeEnum.TAOBAO.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_TAOBAO.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_TAOBAO.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ADD_PICTURE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_UPLOADPICTURE.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_UPLOADPICTURE.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.UPLOAD_VIDEO.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_UPLOADVIDEO.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_UPLOADVIDEO.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ENTRUST_CHANGE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.SELLHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.SELLHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_ENTRUST.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_ENTRUST.getDesc());
+			}
+		}
+		//出租房源
+		if (LogBusinessSourceTypeEnum.RENT_HOUSE.equals(sourceTypeEnum)) {
+			if (LogBusinessOperateTypeEnum.ADD_HOUSE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_ADD.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_ADD.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.OPENPLATE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_OPEN.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_OPEN.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ADD_KEY.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_KEY.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_KEY.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.SET_UNIQUE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_EXCLUSIVE.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_EXCLUSIVE.getDesc());
+			}
+
+			if (LogBusinessOperateTypeEnum.UPDATE_STATUS.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				HouseStatusEnum statusEnum=HouseStatusEnum.parseOf(model.getNewStatus());
+				if (HouseStatusEnum.CANCEL.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_STATUS_CANCELORDER.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_STATUS_CANCELORDER.getDesc());
+				}
+				if (HouseStatusEnum.OTHER_SELL.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_STATUS_OTHERSELL.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_STATUS_OTHERSELL.getDesc());
+				}
+				if (HouseStatusEnum.OTHER_LEASE.equals(statusEnum)) {
+					map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_STATUS_OTHERRENT.getCode()));
+					map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_STATUS_OTHERRENT.getDesc());
+				}
+			}
+			if (LogBusinessOperateTypeEnum.TAOBAO.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_TAOBAO.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_TAOBAO.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ADD_PICTURE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_UPLOADPICTURE.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_UPLOADPICTURE.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.UPLOAD_VIDEO.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_UPLOADVIDEO.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_UPLOADVIDEO.getDesc());
+			}
+			if (LogBusinessOperateTypeEnum.ENTRUST_CHANGE.equals(operateTypeEnum)) {
+				map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.RENTHOUSE.getCode()));
+				map.put("sourceTypeName",ReportBusinessTypeEnum.RENTHOUSE.getDesc());
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_ENTRUST.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_ENTRUST.getDesc());
+			}
+		}
+		
+		
+		if (LogBusinessOperateTypeEnum.ADD_HOUSE_FOLLOW_RECORD.equals(operateTypeEnum)) {
+			map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.FOLLOWUP.getCode()));
+			map.put("sourceTypeName",ReportBusinessTypeEnum.FOLLOWUP.getDesc());
+			if (LogBusinessSourceTypeEnum.RENT_HOUSE.getCode().equals(model.getSourceTypeId()+"")) {
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_FOLLOWUP.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_FOLLOWUP.getDesc());
+			}else {
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_FOLLOWUP.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_FOLLOWUP.getDesc());
+			}
+			
+		}
+		
+		if (LogBusinessOperateTypeEnum.ADD_HOUSE_REALEXPLORATION.equals(operateTypeEnum)) {
+			map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.FOLLOWUP.getCode()));
+			map.put("sourceTypeName",ReportBusinessTypeEnum.FOLLOWUP.getDesc());
+			if (LogBusinessSourceTypeEnum.RENT_HOUSE.getCode().equals(model.getSourceTypeId()+"")) {
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.RENTHOUSE_REALEXPLORATION.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.RENTHOUSE_REALEXPLORATION.getDesc());
+			}else {
+				map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.SELLHOUSE_REALEXPLORATION.getCode()));
+				map.put("operatTypeName",ReportAnalysisTypeEnum.SELLHOUSE_REALEXPLORATION.getDesc());
+			}
+		}
+		
+		
+		if (LogBusinessOperateTypeEnum.LOOK_HOUSE_PHONE.equals(operateTypeEnum)) {
+			map.put("sourceTypeId",Integer.parseInt(ReportBusinessTypeEnum.LOOKPHONE.getCode()));
+			map.put("sourceTypeName",ReportBusinessTypeEnum.LOOKPHONE.getDesc());
+			map.put("operatTypeId",Integer.parseInt(ReportAnalysisTypeEnum.HOUSE_LOOKPHONE.getCode()));
+			map.put("operatTypeName",ReportAnalysisTypeEnum.HOUSE_LOOKPHONE.getDesc());
+		}
+		
+		if (map.get("operatTypeId")!=null) {
+			rabbitTemplate.convertAndSend("REPORT.OPERATION.ADD", map);
+			/*Map<Object, Object> paramMap=new HashMap<>();
+			paramMap.put("tableName", "report_operation_analysis");
+			paramMap.put("fields", map);
+			paramMap.put("id", "");
+			try {
+				logOperateMapper.commonAdd(paramMap);
+			} catch (Exception e) {
+				logger.error("【房源】消息队列日志【添加到数据表report_operation_analysis】出错,值是{}，原因是：{}",map,e.getMessage());
+			}*/
+		}
+	}
+
+}

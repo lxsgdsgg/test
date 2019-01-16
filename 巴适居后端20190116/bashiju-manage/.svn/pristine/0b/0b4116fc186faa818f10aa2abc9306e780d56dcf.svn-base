@@ -1,0 +1,210 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  UserRegisterManageServiceImpl.java   
+ * @Package com.bashiju.manage.service.impl   
+ * @Description:用户注册信息管理实现类   
+ * @author: zuoyuntao     
+ * @date:   2018年6月4日 下午5:08:58   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service.impl;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.MenuEnum;
+import com.bashiju.manage.global.ManageGlobal;
+import com.bashiju.manage.mapper.UserRegisterManageMapper;
+import com.bashiju.manage.service.IUserRegisterManageService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+/**
+ * 用户注册信息管理实现类
+ * @ClassName:UserRegisterManageServiceImpl
+ * @Description:用户注册信息管理实现类
+ * @author:zuoyuntao
+ * @date:2018年6月4日 下午5:08:58
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="用户注册审核")
+public class UserRegisterManageServiceImpl extends CommonSqlServie implements IUserRegisterManageService{
+	/**
+	 * 用户注册管理映射接口对象
+	 */
+	@Autowired
+	private UserRegisterManageMapper mUserRegisterManageMapper;
+	/**
+	 * 权限管理接口
+	 */
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 获取用户注册审核页面分页数据信息
+	 * @Title: queryAllUserCheckInfo
+	 * @author: zuoyuntao  
+	 * @Description:获取用户注册审核页面分页数据信息   
+	 * @param paraMap 参数对象
+	 * @param page 页面显示最小条数
+	 * @param limit 页面显示最大条数
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：
+	 * [{deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}]     
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询所有用户")
+	public Page<Map<String,Object>> queryAllUserCheckInfo(
+			Map<String,Object> paraMap,int page,int limit){
+		//分页对象组装
+		PageHelper.startPage(page,limit);
+		//权限控制封装
+		dataAuthHelper.auth(MenuEnum.MENU_67.getCode(),UserThreadLocal.get().get("id").toString());
+		//查询业务数据
+		return mUserRegisterManageMapper.queryAllUserCheckInfo(paraMap);
+	}
+	/**
+	 * 保存或修改用户注册信息
+	 * @Title: saveOrUpdateUserRegisterInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存或修改用户注册信息   
+	 * @param paraMap 数据库操作对象
+	 * void
+	 */
+	@Override
+	@SystemServiceLog(operationType="用户注册审核")
+	public void saveOrUpdateUserRegisterInfo(Map<String,Object> paraMap) {
+		Map<String,Object> tempMap = new HashMap<String,Object>();
+		tempMap.put("id", paraMap.get("id"));
+		List<Map<String,Object>> tempList = mUserRegisterManageMapper
+				.queryUserRegisterInfoByConn(" and user_register_check_info.id = " + paraMap.get("id"));
+		if( tempList.size() == 0) {
+			throw new BusinessException("用户注册审核信息异常");
+		}
+		if(tempList.size() > 1) {
+			throw new BusinessException("用户注册审核信息异常");
+		}
+		Map<String,Object> bindMap = new HashMap<String,Object>();
+		bindMap.put("userType", paraMap.get("userTypeId"));
+		buildBindMap(tempList.get(0),bindMap);
+		if(paraMap.containsKey(ManageGlobal.PRI_FIELD)) {
+			paraMap.remove("userId");
+			paraMap.remove("userTypeId");
+			//更新用户注册信息
+			commonOperationDatabase(paraMap,ManageGlobal.T_USER_REGISTER_CHECK_INFO
+					, ManageGlobal.PRI_FIELD, false);
+			ExecutionResult.descFormat(String.valueOf(paraMap.get("id")) , "更新用户注册审核状态");
+			
+			Page<Map<String, Object>> page = querySingleTable(" id "
+					, ManageGlobal.UESR_REGISTER_CHECK_HARDWARE_BIND
+					, " confId =" + paraMap.get("id"), 0, 0);
+			if(page.size() > 0 ) {
+				bindMap.put("id", page.get(0).get("id"));
+				commonOperationDatabase(bindMap
+						,ManageGlobal.UESR_REGISTER_CHECK_HARDWARE_BIND, ManageGlobal.PRI_FIELD, false);
+				ExecutionResult.descFormat(String.valueOf( page.get(0).get("id")), "更新硬件公司绑定信息");
+			}else {
+				long id = commonOperationDatabase(bindMap
+						,ManageGlobal.UESR_REGISTER_CHECK_HARDWARE_BIND, false);
+				ExecutionResult.descFormat(String.valueOf(id), "保存硬件公司绑定信息");
+			}
+		}else {
+			long checkId = commonOperationDatabase(paraMap,ManageGlobal.T_USER_REGISTER_CHECK_INFO, false);
+			ExecutionResult.descFormat(String.valueOf(checkId), "审核用户注册");
+			long id = commonOperationDatabase(bindMap
+					,ManageGlobal.UESR_REGISTER_CHECK_HARDWARE_BIND, false);
+			ExecutionResult.descFormat(String.valueOf(id), "保存硬件公司绑定信息");
+		}
+	}
+	/**
+	 * 组装硬件绑定信息
+	 * @Title: buildBindMap
+	 * @author: zuoyuntao  
+	 * @Description:组装硬件绑定信息
+	 * @param paraMap
+	 * @param bingMap      
+	 * void JSON 格式为：
+	 */
+	private void buildBindMap(Map<String,Object> paraMap,Map<String,Object> bingMap) {
+		bingMap.put("companyId", paraMap.get("companyId"));
+		bingMap.put("userId", paraMap.get("manageId"));
+		bingMap.put("confId",paraMap.get("id"));
+		bingMap.put("hardDiskSeries",paraMap.get("hardSeries"));
+		bingMap.put("operatorId", paraMap.get("manageId"));
+		bingMap.put("permissionArea",UserThreadLocal.get().get("deptId"));
+		bingMap.put("rgCode", paraMap.get("areaCode"));
+		bingMap.put("rgName", paraMap.get("areaName"));
+	}
+	
+	/**
+	 * 根据用户ID查询用户注册信息 
+	 * @Title: queryUserRegisterInfoByUserId
+	 * @author: zuoyuntao  
+	 * @Description:根据用户ID查询用户注册信息   
+	 * @param userId
+	 * @return Map<String,Object>   
+	 * {deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}     
+	 */
+	@Override
+	public Map<String,Object> queryUserRegisterInfoByUserId(String userId){
+		//权限控制封装
+		dataAuthHelper.auth(MenuEnum.MENU_67.getCode(),UserThreadLocal.get().get("id").toString());
+		return mUserRegisterManageMapper.queryUserRegisterInfoByUserId(userId);
+	}
+	/**
+	 * 根据用户ID删除用户注册信息 
+	 * @Title: deleteUserRegisterInfoByUserId
+	 * @author: zuoyuntao  
+	 * @Description:根据用户ID删除用户注册信息   
+	 * @param id 注册信息表的ID      
+	 * void  
+	 */
+	@Override
+	@SystemServiceLog(operationType="删除用户注册信息")
+	public void deleteUserRegisterInfoById(String id) {
+		delData(ManageGlobal.T_USER_REGISTER_CHECK_INFO
+				, ManageGlobal.PRI_FIELD, id, false);
+		ExecutionResult.descFormat(id, "删除用户注册信息");
+		delData(ManageGlobal.UESR_REGISTER_CHECK_HARDWARE_BIND
+				,"confId", id, false);
+		ExecutionResult.descFormat(id, "删除硬件绑定信息");
+	}
+	
+	/**
+	 * 根据Map参数对象中的key、value组装查询条件
+	 * @Title: queryUserRegisterInfoByConn
+	 * @author: zuoyuntao  
+	 * @Description:根据Map参数对象中的key、value组装查询条件
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：
+	 * [{deptName=呈贡一区一店, permissionArea=BSJ0101010101, checkInfoDel=checkInfoDel, addTime=2018-06-04 19:15:37.0, isValid=1, deptId=BSJ0101010101, computerPosistion=发射点发是, updateTime=2018-06-05 15:34:13.0, userCheckBtn=userCheckBtn, userName=呈贡一区一店店长, checkName=已审核, operator=[系统添加], checkStatus=1, checkTime=2018-06-05 15:34:13.0, userTypeName=分机, computerInfo=发射点发是, manageId=13321, manageName=呈贡一区一店店长, lastLoginSuccessTime=2018-06-05 15:34:12.0, id=1, userType=3, operatorId=13321}]     
+	 */
+	@Override
+	public List<Map<String,Object>> queryUserRegisterInfoByConn(Map<String,Object> paraMap){
+		//权限控制封装
+		dataAuthHelper.auth(MenuEnum.MENU_67.getCode(),UserThreadLocal.get().get("id").toString());
+		StringBuilder condition = new StringBuilder();
+		Iterator<String> it = paraMap.keySet().iterator();
+		while(it.hasNext()) {
+			String key = it.next();
+			// 拼出 " and a = '234' and b = '2344' ......"
+			condition.append(" and ").append(key).append("='").append(paraMap.get(key)).append("'");
+		}
+		return mUserRegisterManageMapper.queryUserRegisterInfoByConn(condition.toString());
+	}
+}

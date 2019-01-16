@@ -1,0 +1,128 @@
+package com.bashiju.quartz.service.impl;
+
+import java.util.List;
+
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.quartz.mapper.TaskMapper;
+import com.bashiju.quartz.pojo.ScheduleJob;
+import com.bashiju.quartz.task.BashijuTask;
+import com.bashiju.quartz.util.QuartzUtil;
+/**
+ * 定时任务运行工厂类
+ * 
+ * @author zb
+ */
+@DisallowConcurrentExecution
+@Service
+public class QuartzJobFactory {// 实现的是无状态的Job
+
+	@Autowired
+	TaskMapper taskMapper;
+	private static final String jobgroup="BSJGROUP";
+	
+	private  Logger logger =LoggerFactory.getLogger(this.getClass()); 
+	/**
+	 * @Note : 扫面数据库,查看是否有计划任务的变动
+	 */
+	public void queryScheduleJob() {		
+		try {
+			logger.warn("开始扫描数据库 ");
+			List<ScheduleJob> jobList = taskMapper.getAllScheduleJobs();
+			if (jobList.size() != 0) {
+				for (ScheduleJob job : jobList) {
+					// Keys are composed of both a name and group, and the name  must be unique within the group
+					TriggerKey triggerKey = TriggerKey.triggerKey(job.getId(), jobgroup);
+					// 获取trigger
+					CronTrigger trigger = (CronTrigger) QuartzUtil.scheduler.getTrigger(triggerKey);
+					// 不存在，创建一个
+					if (null == trigger) {
+						createSheduler(QuartzUtil.scheduler, job);
+					} else {// Trigger已存在，那么更新相应的定时设置
+						updateScheduler(QuartzUtil.scheduler, job, triggerKey, trigger);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 更新相应的定时设置 根据job_status做相应的处理
+	 * 
+	 * @param scheduler
+	 * @param job
+	 * @param triggerKey
+	 * @param trigger
+	 * @throws SchedulerException
+	 */
+	private void updateScheduler(Scheduler scheduler, ScheduleJob job, TriggerKey triggerKey, CronTrigger trigger)
+			throws SchedulerException {
+		if (job.getIsValid().equals("1")) {// 0禁用 1启用
+			if (!trigger.getCronExpression().equalsIgnoreCase(job.getCronExpression())) {
+				// 表达式调度构建器
+				CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(job.getCronExpression());
+				// 按新的cronExpression表达式重新构建trigger
+				trigger = trigger.getTriggerBuilder().withIdentity(triggerKey).withSchedule(scheduleBuilder).build();
+				// 按新的trigger重新设置job执行
+				scheduler.rescheduleJob(triggerKey, trigger);
+				logger.info("id=" +job.getId() + "的定时任务更新完毕,目前cron表达式为:" + job.getCronExpression());
+			}
+		} else if (job.getIsValid().equals("0")) {
+			scheduler.pauseTrigger(triggerKey);// 停止触发器
+			scheduler.unscheduleJob(triggerKey);// 移除触发器
+			scheduler.deleteJob(trigger.getJobKey());// 删除任务
+			logger.info("id=" + job.getId() + "的定时任务删除完毕");
+		}
+
+	}
+
+	/**
+	 * 创建一个定时任务，并做安排
+	 * 
+	 * @param scheduler
+	 * @param job
+	 * @throws SchedulerException
+	 * @throws Exception
+	 */
+	public void createSheduler(Scheduler scheduler, ScheduleJob job) throws Exception {
+		// 在工作状态可用时,即job_status = 1 ,开始创建
+		if (job.getIsValid().equals("1")) {
+			JobDetail jobDetail=JobBuilder
+					.newJob(BashijuTask.class)
+					.withIdentity(job.getId(),jobgroup)
+					.usingJobData("routingKey", job.getRoutingKey())
+					.usingJobData("targetParam", job.getTargetParam())
+					.usingJobData("jobDescription", job.getJobDescription())
+					.build();
+			
+			//jobName存入到队列 每隔一段时间就会扫描所以需要时检测
+			if(!QuartzUtil.jobNames.contains(job.getId())){
+				QuartzUtil.jobNames.add(job.getId());
+			}
+			
+			// 表达式调度构建器
+			CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(job.getCronExpression());
+			// 按新的cronExpression表达式构建一个新的trigger
+			CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(job.getId(), jobgroup)
+					.withSchedule(scheduleBuilder).build();
+
+			scheduler.scheduleJob(jobDetail, trigger);// 注入到管理类
+			logger.info("id=" + job.getId() + "的定时任务创建完毕");
+		}
+	}
+
+}

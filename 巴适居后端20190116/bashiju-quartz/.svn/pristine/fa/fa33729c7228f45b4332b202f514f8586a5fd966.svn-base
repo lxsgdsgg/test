@@ -1,0 +1,58 @@
+package com.bashiju.quartz.service.mq;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.quartz.mapper.HouseAndCustomerCloseDiscStatusMapper;
+import com.bashiju.utils.service.CommonSqlServie;
+
+@Service
+public class CustomerCloseDiscStatusChangeMq extends CommonSqlServie{
+
+	@Autowired
+	HouseAndCustomerCloseDiscStatusMapper closeDiscStatusMapper;
+	
+	public void customerCloseDiscStatusAutoChange(String companyId) {
+		long startTime=System.currentTimeMillis();
+		List<String> customerId=closeDiscStatusMapper.queryCloseDiscCustomerId(companyId);
+		updateCustomerCloseDiscStatus(customerId,companyId);
+		long endTime=System.currentTimeMillis();
+		System.out.println("客源封盘状态改变耗时-------------"+(endTime-startTime)+"毫秒");
+		
+	}
+	/**
+	 *  批量更新客源解封盘 
+	 * @param list 客源id列表
+	 * @param companyId 公司id
+	 * @author 赵斌
+	 */
+	private void updateCustomerCloseDiscStatus(List<String> list,String companyId) {
+		
+		if(list.size()>0)
+		{
+			/*List 转String*/
+			String IdString ="'"+ StringUtils.join(list, "\',\'")+"'";
+			Map<String,Object> map=new HashMap<>();
+				map.put("isCloseDisc",0);
+				map.put("closePlanteEndDate",null);
+				System.out.println("------------------------------->需要解封的客源ID="+IdString);
+			this.batchcommonUpdate(map, "demand_customerbusinessinfo", "id", IdString,"companyId='"+companyId+"'");
+			String fieldString="companyId,sourceType,sourceId,excuteContext";
+			List<String> listString=new ArrayList<>();
+			for(int i=0;i<list.size();i++) {
+				
+				StringBuilder sb=new StringBuilder();
+				sb.append("'"+companyId).append("','定时任务','").append(list.get(i)).append("','自动解封盘'");	
+						listString.add(sb.toString());
+			}
+			 batchAdd( fieldString, "user_log",listString, true);
+		}
+	
+	}
+}

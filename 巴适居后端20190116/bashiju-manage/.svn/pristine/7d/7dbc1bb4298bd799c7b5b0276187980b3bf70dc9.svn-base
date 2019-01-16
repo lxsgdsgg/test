@@ -1,0 +1,122 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  IMetroStationManageService.java   
+ * @Package com.bashiju.manage.service   
+ * @Description:地铁线路管理接口  
+ * @author: zuoyuntao     
+ * @date:   2018年6月13日 下午5:08:33   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.manage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 地铁线路管理接口
+ * @ClassName:IMetroStationManageService
+ * @Description:地铁线路管理接口
+ * @author:zuoyuntao
+ * @date:2018年6月13日 下午5:08:33
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+
+public interface IMetroStationManageService {
+	/**
+	 * 查询所有地铁线路站点信息
+	 * @Title: queryAllMetroStationInfo
+	 * @author: zuoyuntao  
+	 * @Description:查询所有地铁线路站点信息 
+	 * @param paraMap
+	 * @param page
+	 * @param limit
+	 * @return      
+	 * Page<Map<Object,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String,Object>>queryAllMetroStationInfo(Map<String,Object> paraMap
+			,int page,int limit);
+	/**
+	 * 保存地铁线路数据信息
+	 * @Title: saveMetroStationInfo
+	 * @author: zuoyuntao  
+	 * @Description:保存地铁线路数据信息
+	 * @param saveList      
+	 * void JSON 格式为：{}     
+	 * @throws
+	 */
+	public void saveMetroStationInfo(List<Map<String,Object>> saveList);
+	/**
+	 * 删除地铁线路数据信息 
+	 * @Title: deleteAllMetroStationInfo
+	 * @author: zuoyuntao  
+	 * @Description:（详细描述）   
+	 * @param paraMap      
+	 * void JSON 格式为：{}     
+	 * @throws
+	 */
+	public void deleteAllMetroStationInfo(Map<String,Object> paraMap) ;
+	/**
+	 * 根据给定条件查询地铁线路信息 
+	 * @Title: queryMetroDataByCondition
+	 * @author: zuoyuntao  
+	 * @Description:根据给定条件查询地铁线路信息   
+	 * @param paraMap
+	 * @return      
+	 * List<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public List<Map<String,Object>> queryMetroDataByCondition(Map<String,Object> paraMap);
+	/**
+	 * 判断数据是否存在
+	 * @Title: isDataExists
+	 * @author: zuoyuntao  
+	 * @Description:判断数据是否存在
+	 * @param paraMap 参数对象
+	 * @param tableName 表名称
+	 * @return      
+	 * boolean true/false    
+	 * @throws
+	 */
+	public boolean isDataExists(Map<String,Object> paraMap,String tableName);
+	/**
+	 * 添加或保存数据信息 
+	 * @Title: saveOrUpdateSchoolInfo   
+	 * @Description: 添加或保存数据信息  
+	 * @param: paraMap 保存数据对象   
+	 * @param: tableName 保存数据的物理表名称
+	 * @return: void      
+	 * @throws
+	 */
+	public void saveStationCommunityInfo(Map<Object,Object> paraMap,String tableName);
+	/**
+	 * 查询地铁站点周边小区信息
+	 * @Title: queryStationCommunityPageObj
+	 * @author: zuoyuntao  
+	 * @Description:查询地铁站点周边小区信息
+	 * @param paraMap
+	 * @param curPage
+	 * @param limit
+	 * @return      
+	 * Page<Map<String,Object>> JSON 格式为：{}     
+	 * @throws
+	 */
+	public Page<Map<String, Object>> queryStationCommunityPageObj(Map<String
+			, Object> paraMap, int curPage, int limit);
+	/**
+	 * 删除地铁周边小区 
+	 * @Title: delMetroCommunityData
+	 * @author: zuoyuntao  
+	 * @Description:删除地铁周边小区   
+	 * @param paraMap 参数对象
+	 * @param tableName 删除表名称 
+	 * void   
+	 * @throws
+	 */
+	public void delMetroCommunityData(Map<String,Object> paraMap, String tableName);
+}

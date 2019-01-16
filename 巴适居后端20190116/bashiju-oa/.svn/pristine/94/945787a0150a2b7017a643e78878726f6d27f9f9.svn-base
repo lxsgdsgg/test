@@ -1,0 +1,34 @@
+package com.bashiju.oa.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.github.pagehelper.Page;
+
+/**
+ * 
+ * @ClassName:  ArticleService   
+ * @Description:(OA文章接口)   
+ * @author: liwen
+ * @date:   2018年10月05日 下午14:22:07   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public interface ArticleService {
+	public Long saveArticle(Map<Object,Object> data);
+	public Page<Map<String, Object>> queryArticleList(Map<String,Object> conditions,int page,int limit);
+	public Map<String,Object> saveImg(HttpServletRequest request) throws Exception;
+	public boolean delArticle(int id);
+	public Page<Map<String, Object>> queryExamineList(Map<String,Object> conditions,int page,int limit);
+	public String sureArticle(Long id);
+	public Map<String,Object> rejectArticle(Long id,String reason);
+	public Long newsBrowse(int id,int browseCnt);
+	public Long noticeBrowse(int id,int browseCnt);
+	public List<Map<String, Object>> queryNewsInfo(String cityCode,int daynum);
+	public List<Map<String, Object>> queryNoticeInfo(String cityCode,int daynum);
+	public List<Map<String,Object>> queryCity(Long userId);
+	
+}

@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.bashiju.api</groupId>
+  <artifactId>bashiju-api</artifactId>
+    <parent>
+    <groupId>com.bashiju</groupId>
+    <artifactId>bashiju-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+	<dependencies>
+	  <!-- 下面五个是阿里云短信发送/隐私号码/消息接收依赖包	 -->
+		<dependency>
+			<groupId>com.aliyun</groupId>
+			<artifactId>aliyun-java-sdk-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.aliyun</groupId>
+			<artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+			</dependency>
+		<dependency>
+			<groupId>com.aliyun</groupId>
+			<artifactId>aliyun-java-sdk-dyplsapi</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>com.aliyun</groupId>
+		    <artifactId>alicom-mns-receive-sdk</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>com.aliyun.mns</groupId>
+		    <artifactId>aliyun-sdk-mns</artifactId>
+		</dependency>
+				
+		<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-webmvc</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>javax.servlet</groupId>
+			    <artifactId>javax.servlet-api</artifactId>
+			    <scope>provided</scope>
+			</dependency>
+			<!-- dubbo采用spring配置方式，所以需要导入spring容器依赖 -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<exclusions>
+				<exclusion>
+					<!-- 排除传递spring依赖 -->
+					<artifactId>spring</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.netty</groupId>
+					<artifactId>netty</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.sgroschupf</groupId>
+			<artifactId>zkclient</artifactId>
+			</dependency>
+		
+	</dependencies>
+</project>

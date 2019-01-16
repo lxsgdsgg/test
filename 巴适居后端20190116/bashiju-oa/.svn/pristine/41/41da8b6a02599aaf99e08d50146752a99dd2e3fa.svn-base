@@ -1,0 +1,146 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  RecruitInfoController.java   
+ * @Package com.bashiju.oa.controller   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年8月9日 下午5:25:47   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.oa.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.enums.EducationEnum;
+import com.bashiju.oa.service.RecruitInfoService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+
+/**   
+ * @ClassName:  RecruitInfoController   
+ * @Description:招聘信息管理控制层
+ * @author: wangpeng
+ * @date:   2018年8月9日 下午5:25:47   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping(value="recruitInfo")
+public class RecruitInfoController extends BaseController{
+	@Autowired
+	private RecruitInfoService recruitInfoService;
+	
+	/**
+	 * @Title: enterRecruitInfoPage   
+	 * @Description: 进入招聘信息管理页面
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterRecruitInfoPage")
+	public ModelAndView enterRecruitInfoPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "recruitInfo/recruitInfo");
+		mv.addObject("educationEnum", JSON.toJSONString(EducationEnum.enumMap));
+		return mv;
+	}
+	/**
+	 * @Title: enterRecruitInfoDetailPage   
+	 * @Description:进入招聘信息添加或修改页面
+	 * @param request
+	 * @param response
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterRecruitInfoDetailPage")
+	public ModelAndView enterRecruitInfoDetailPage(HttpServletRequest request,HttpServletResponse response,String id) {
+		ModelAndView mv = getModelAndView(request, response, "recruitInfo/recruitInfoDetail");
+		//学历枚举（用于下拉）
+		mv.addObject("educationsEnum",EducationEnum.enumList);
+		//通过id查询单条招聘信息
+		if(!StringUtils.isEmpty(id)) {
+			Map<String,Object>  recruitInfo = recruitInfoService.queryRecruitInfoById(id);
+			if(recruitInfo!=null && recruitInfo.size()>0)
+				mv.addObject("recruitInfo",recruitInfo);
+		}
+		return mv;
+	}
+	
+	/**
+	 * 下拉数据 
+	 * @Title: dropdown   
+	 * @Description: 下拉数据 
+	 * @return: Object
+	 */
+	@RequestMapping(value="dropdown")
+	@ResponseBody
+	public Object dropdown() {
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("educations", EducationEnum.enumList);
+		return map;
+	}
+	
+	/**
+	 * @Title: queryRecruitInfo   
+	 * @Description: 分页查询招聘信息  
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryRecruitInfo")
+	@ResponseBody
+	public Map<String,Object> queryRecruitInfo(int page,int limit,String name){
+		Page<Map<String,Object>> pages = recruitInfoService.queryRecruitInfo(page, limit,name);
+		Map<String,Object> map = getPageResult(pages);
+		return map;
+	}
+	/**
+	 * @Title: delRecruitInfoById   
+	 * @Description: 逻辑删除招聘信息
+	 * @param id 招聘信息id
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delRecruitInfoById")
+	@ResponseBody
+	public BashijuResult delRecruitInfoById(String id) {
+		boolean result = recruitInfoService.delRecruitInfoById(id);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * @Title: saveOrUpdateRecruitInfo   
+	 * @Description: 新增或修改招聘信息
+	 * @param jsonData 参数
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateRecruitInfo")
+	@ResponseBody
+	public BashijuResult saveOrUpdateRecruitInfo(String jsonData) {
+		if(StringUtils.isEmpty(jsonData))
+			throw new BusinessException("保存信息不能为空");
+		Map<Object,Object> paramMap = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result = recruitInfoService.saveOrUpdateRecruitInfo(paramMap);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+}

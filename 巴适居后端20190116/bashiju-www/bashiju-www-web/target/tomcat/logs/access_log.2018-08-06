@@ -1,0 +1,5 @@
+127.0.0.1 - - [06/Aug/2018:19:05:31 +0800] "GET /www/userRegister/loginTest?mobile=15696703407&validateCode=863093 HTTP/1.0" 200 49 http-bio-8087-exec-1 2001
+127.0.0.1 - - [06/Aug/2018:19:05:45 +0800] "GET /www/userRegister/loginTest?mobile=15696703407&validateCode=863093 HTTP/1.0" 200 49 http-bio-8087-exec-2 438
+127.0.0.1 - - [06/Aug/2018:19:06:04 +0800] "GET /www/userRegister/loginTest?mobile=15696703407&validateCode=863093 HTTP/1.0" 200 49 http-bio-8087-exec-3 443
+127.0.0.1 - - [06/Aug/2018:19:06:37 +0800] "GET /www/userRegister/loginTest?mobile=15696703407&validateCode=863093 HTTP/1.0" 200 49 http-bio-8087-exec-4 13795
+127.0.0.1 - - [06/Aug/2018:19:07:04 +0800] "GET /www/userRegister/loginTest?mobile=15696703407&validateCode=863093 HTTP/1.0" 200 49 http-bio-8087-exec-5 13976

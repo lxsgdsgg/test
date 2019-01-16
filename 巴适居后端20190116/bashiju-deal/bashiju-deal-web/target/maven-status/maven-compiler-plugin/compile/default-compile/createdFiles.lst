@@ -1,0 +1,8 @@
+com\bashiju\deal\controller\DealTransitScheduleController.class
+com\bashiju\deal\controller\DealActionLogQueryController.class
+com\bashiju\deal\controller\DealController.class
+com\bashiju\deal\controller\ContractInfoController.class
+com\bashiju\deal\controller\DealFinanceDividenInfController.class
+com\bashiju\deal\controller\ContractController.class
+com\bashiju\deal\controller\DealDividenInfoController.class
+com\bashiju\deal\controller\DealCommissionRecordController.class

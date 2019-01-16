@@ -1,0 +1,120 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  Agent.java   
+ * @Package com.bashiju.www.pojo.service.out.agent   
+ * @Description:    TODO(用一句话描述该文件做什么)   
+ * @author: wangpeng     
+ * @date:   2018年7月28日 下午3:58:53   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.pojo.service.agent;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/** 
+ * 经纪人详情实体类  
+ * @ClassName:  AgentDeail   
+ * @Description:经纪人详情实体类   
+ * @author: wangpeng
+ * @date:   2018年7月28日 下午3:58:53   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Data
+public class AgentDeail  implements Serializable{
+	
+	private static final long serialVersionUID = -1857839909324802736L;
+
+	/**
+	 * 经纪人名称	
+	 */
+	private String realName;
+	
+	/**
+	 * 经纪人头像地址
+	 */
+	private String profileUrl;
+	
+	/**
+	 * 用户id
+	 */
+	private String userId;
+	/**
+	 * 经纪人职位
+	 */
+	private String postName;
+	/**
+	 * 所属门店
+	 */
+	private String deptId;
+	/**
+	 * 经纪人所属部门id
+	 */
+	private String  deptName;
+	/**
+	 * 经纪人电话
+	 */
+	private String telPhone;
+	/**
+	 * 经纪人标签
+	 */
+	private String labeld;
+	/**
+	 * 综合评分
+	 */
+	private String StarRating;
+	/**
+	 * 工龄
+	 */
+	private String seniority;
+	/**
+	 * 历史成交数
+	 */
+	private String histDealCnt;
+	/**
+	 * 近30天的带看记录数
+	 */
+	private String showedRdCnt;
+	
+	/**
+	 * 主营区域代码(多个用英文逗号隔开)
+	 */
+	private String mainAreaCodes;
+	
+	/**
+	 * 与主营区域代码对应的名称(多个用英文逗号隔开)
+	 */
+	private String mainAreaNames;
+	
+
+	/**
+	 * 主营板块（主营片区，多个用英文逗号隔开）
+	 */
+	private String mainRegionsCode;
+	
+	/**
+	 * 主营板块（主营片区，多个用英文逗号隔开）
+	 */
+	private String mainRegions;
+	/**
+	 * 重点小区编号(主营小区，多个用英文逗号隔开)
+	 */
+	private  String mainCommunityCode;
+	/**
+	 * 重点小区(主营小区，多个用英文逗号隔开)
+	 */
+	private  String mainCommunity;
+	/**
+	 * 经纪人自评
+	 */
+	private String  evaluateMyself;
+	
+	/**
+	 * 最后一次评价内容
+	 */
+	private String lastComment;
+}

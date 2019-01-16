@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.customer.mapper.DemandShowedRecordMapper">
+	<select id="queryDemandShowedRecordData" resultType="map">
+		select dsd.houseId, dsd.leadTime,dsd.id,dsd.demandId,dsd.shhId,sd.name as deptName,dsd.companyId,sd.id as deptId,dsd.content,dsd.leaderId,dsd.leader,
+		dsd.transactionTypeId,dsd.transactionType,dsd.custName,dsd.custCallType,dsd.permissionArea,
+		dsd.operator,dsd.operatorId,dsd.isValid   from demand_showedrecord dsd 
+		inner join sys_dept sd on sd.id=dsd.deptId
+		<if test="transactionTypeId!=null and transactionTypeId!='' "> and  cs.transactionTypeId=#{transactionTypeId}</if>
+		<if test="leaderId!=null and leaderId!='' ">and cs.leaderId=#{leaderId}</if>
+		<if test="beginTime!=null and beginTime!='' ">and leadTime&gt;=#{beginTime}</if>
+		<if test="endTime!=null and endTime!='' ">and cs.leadTime&lt;=#{endTime}</if>
+	</select>
+	
+	
+		<select id="queryDemandShowedRecordById" resultType="map">
+				select dsd.houseId, dsd.leadTime,dsd.id,dsd.demandId,dsd.shhId,sd.name as deptName,dsd.companyId,sd.id as deptId,dsd.content,dsd.leaderId,dsd.leader,
+				dsd.transactionTypeId,dsd.transactionType,dsd.custName,dsd.custCallType,dsd.permissionArea,
+				dsd.operator,dsd.operatorId,dsd.isValid   from demand_showedrecord dsd 
+				inner join sys_dept sd on sd.id=dsd.deptId
+				where dsd.id=#{id}
+		</select>
+</mapper>

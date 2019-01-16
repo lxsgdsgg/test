@@ -1,0 +1,69 @@
+package com.bashiju.deal.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.druid.util.StringUtils;
+import com.bashiju.cert.interceptors.DataAuthHelper;
+import com.bashiju.deal.mapper.DealCommissionRecordMapper;
+import com.bashiju.deal.service.DealCommissionRecordService;
+import com.bashiju.enums.MenusEnum;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  DealCommissionRecordServiceImpl   
+ * @Description:佣金记录查询接口
+ * @author: wangpeng
+ * @date:   2018年6月22日 下午2:46:58   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+@SystemServiceLog(sourceType="佣金记录查询")
+public class DealCommissionRecordServiceImpl  implements DealCommissionRecordService {
+	@Autowired
+	private DealCommissionRecordMapper dealCommissionRecordMapper;
+	
+	@Autowired
+	private DataAuthHelper dataAuthHelper;
+	/**
+	 * 
+	 * <p>Title: queryDealCommissionRecord</p>   
+	 * <p>Description: 条件查询佣金记录 </p>   
+	 * @param paramMap 查询参数
+	 * @param page 当前页
+	 * @param limit 每页总条数
+	 * @return   
+	 * @see com.bashiju.deal.service.DealCommissionRecordService#queryDealCommissionRecord(java.util.Map, int, int)
+	 */
+	@Override
+	@SystemServiceLog(operationType="查询佣金记录")
+	public Page<Map<String, Object>> queryDealCommissionRecord (Map<String,Object> paramMap,int page, int limit) {
+		PageHelper.startPage(page, limit);
+		dataAuthHelper.auth(MenusEnum.MENU_237.getCode(), UserThreadLocal.get().get("id").toString());
+		Page<Map<String,Object>> pages = dealCommissionRecordMapper.queryDealCommissionRecordData(paramMap);
+		return pages;
+	}
+	
+	/**
+	 * @Description: 根据成交编号查询佣金记录信息   
+	 * @param dealId 成交编号
+	 * @return: List<Map<String,Object>>
+	 * @see com.bashiju.deal.service.DealCommissionRecordService#queryCommissionByDealId(java.lang.String)
+	 */
+	@Override
+	public List<Map<String,Object>> queryCommissionByDealId(String dealId){
+		if(StringUtils.isEmpty(dealId))
+			throw new BusinessException("成交编号不允许为空");
+		return this.dealCommissionRecordMapper.queryCommissionByDealId(dealId);
+	}
+
+}

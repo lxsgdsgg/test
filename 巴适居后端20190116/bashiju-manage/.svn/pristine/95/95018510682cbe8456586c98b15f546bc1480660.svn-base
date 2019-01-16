@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.BuildingMapper">
+
+	<select id="queryBuildingsByCommunity" resultType="map">
+		SELECT id,name,buildYear,buildingUnitCount,floorTotal,buildUnitAlias FROM sys_buildings WHERE isValid=1 and communityId=#{cid}
+	</select>
+	
+	<select id="queryBuildingUnitsByBuild" resultType="map" >
+		SELECT id,`name`,unitAlias,unitElevatorCount,unitHouseCount,floorTotal,houseStartNumber FROM sys_bulidingunit WHERE isValid=1 and buildingId=#{bid}
+	</select>
+	
+	<select id="queryHouseByUnit" resultType="map" >
+		SELECT id,houseNumber,floor,code FROM sys_buildinghouse WHERE isValid=1 and buildingUnitId=#{buid}
+	</select>
+	
+	<select id="queryBuildingsById" resultType="map" >
+		SELECT * from sys_buildings WHERE id=#{id}
+	</select>
+	
+	<select id="queryBuildingUnitsById" resultType="map" >
+		SELECT * from sys_bulidingunit WHERE id=#{id}
+	</select>
+	
+	<select id="countBuildingsByName" resultType="long" >
+		SELECT count(*) from sys_buildings WHERE name =#{name} and communityId=#{communityId}
+	</select>
+	
+	<select id="countBuildingUnitsByName" resultType="long" >
+		SELECT count(*) from sys_bulidingunit WHERE name =#{name} and buildingId=#{buildingId}
+	</select>
+	
+</mapper>

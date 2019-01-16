@@ -1,0 +1,12 @@
+package com.bashiju.quartz.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+public interface HouseAndCustomerCloseDiscStatusMapper {
+
+	public List<String> queryCloseDiscHouseId(@Param("companyId")String companyId);
+	
+	public List<String> queryCloseDiscCustomerId(@Param("companyId")String companyId);
+}

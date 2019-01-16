@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CityOpenInfoMapper">
+	<select id="queryCityOpenInfos" resultType="map">
+		select id,provinceCode,provinceName,cityCode,cityName,url,permissionArea,
+		operatorId,operator,addTime from sys_cityOpenInfo where isValid=1
+		<if test="provinceCode != null and provinceCode != '' "> and provinceCode = #{provinceCode} </if>
+		<if test="cityCode != null and cityCode != '' "> and cityCode = #{cityCode} </if>
+	</select>
+	
+	<delete id="deleteNavigationBarPermission">
+		delete from sys_cityOpen_function where cityOpenInfoId=#{cityOpenInfoId}
+	</delete>
+</mapper>

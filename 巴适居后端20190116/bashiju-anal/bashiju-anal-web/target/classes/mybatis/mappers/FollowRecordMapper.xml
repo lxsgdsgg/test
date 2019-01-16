@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.anal.mapper.FollowRecordMapper">
+	
+	<select id="queryFollowRecord" resultType="map">
+		set @beginDate := #{beginDate};
+		set @endDate := #{endDate};
+		set @deptTypeId :=#{deptTypeId};
+		select a.name areaName,a.id
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			,b.name deptName
+		</if>
+		<if test="deptTypeId !=null and deptTypeId &gt;= 5 ">
+			,b.realName deptName
+		</if>
+		,count(distinct cc.id)houseFollowCnt
+		,count(distinct case when c.transactionTypeId =4 then d.id end )buyCustFollowCnt
+		,count(distinct case when c.transactionTypeId =5 then d.id end )leaseCustFollowCnt
+		,count(distinct case when c.transactionTypeId =4 and e.houseType=0 then e.id end) buyCustShowedCnt
+		,count(distinct case when c.transactionTypeId =5 and e.houseType=0 then e.id end) leaseCustShowedCnt
+		,count(distinct case when c.transactionTypeId =4 and e.houseType=1 then e.id end) buyCustNewShowedCnt
+		,count(distinct case when c.transactionTypeId =5 and e.houseType=1 then e.id end) leaseCustNewShowedCnt
+		,count(distinct case when c.transactionTypeId =4 then e.id end) buyCustDiscCnt
+		,count(distinct case when c.transactionTypeId =5 then e.id end) leaseCustDiscCnt
+		,count(distinct case when c.transactionTypeId =4 and c.isErLook=0 and c.isRepeat=0 then c.id end) buyCustFirstShowdCnt
+		,count(distinct case when c.transactionTypeId =4 and c.isErLook=1 then c.id end) buyCustSecondShowdCnt
+		,count(distinct case when c.transactionTypeId =4 and c.isRepeat=1 then c.id end) buyCustRepeatShowdCnt
+		,count(distinct case when c.transactionTypeId =5 and c.isErLook=0 and c.isRepeat=0 then c.id end) leaseCustFirstShowdCnt
+		,count(distinct case when c.transactionTypeId =5 and c.isErLook=1 then c.id end) leaseCustSecondShowdCnt
+		,count(distinct case when c.transactionTypeId =5 and c.isRepeat=1 then c.id end) leaseCustRepeatShowdCnt
+		from sys_dept a 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			right join sys_dept b on a.id = b.parentId and b.isvalid=1
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			right join sys_user b on a.id = b.deptId and b.isvalid=1
+		</if>
+		left join hs_followRecord cc on 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			cc.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			cc.operatorId=b.id
+		</if>
+		and cc.isvalid=1 and cc.followTime>=@beginDate and cc.followTime &lt;=@endDate
+		left join demand_customerBusinessInfo c on 
+		<if test="deptTypeId !=null and deptTypeId &lt; 5 ">
+			c.permissionArea like concat(b.id,'%')
+		</if>
+		<if test="deptTypeId!=null and deptTypeId &gt;= 5 ">
+			c.operatorId=b.id
+		</if>
+		and c.isvalid=1 and c.recordTime >=@beginDate and c.recordTime &lt;=@endDate
+		left join demand_followRecord d on c.id = d.demandId and d.followTime >=@beginDate and d.followTime &lt;=@endDate 
+		left join demand_showedRecord e on c.id = e.demandId and e.leadTime >=@beginDate and e.leadTime &lt;=@endDate 
+		where a.isvalid=1
+		and a.companyId = #{companyId} 
+		and a.deptTypeId=@deptTypeId
+		<if test="deptId !=null and deptId !='' ">
+			and a.id=#{deptId}
+		</if>
+		group by b.id order by b.id
+	</select>
+	
+	<select id="queryDeptTrees" resultType="map">
+		<choose>
+			<when test="roleGroup=='01' or roleGroup=='02'">
+				select permissionArea,operatorId,id as code,name,if(parentId is null or length(parentId)=0,companyId,parentId) as parentCode,
+				FORMAT((length(id)-length(companyId))/2+1,0) as level from sys_dept 
+				union 
+				select permissionArea,operatorId,id as code,name,'' as parentCode,'1' level from sys_company 
+				order by code
+			</when>
+			<otherwise>
+				select permissionArea,operatorId,id as code,name,parentId as parentCode,
+				FORMAT((length(id)-length(companyId))/2,0) as level from sys_dept 
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

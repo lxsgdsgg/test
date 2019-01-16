@@ -1,0 +1,198 @@
+package com.bashiju.manage.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bashiju.manage.service.ICommunityService;
+import com.bashiju.manage.service.StoreConfigurationService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.exception.ErrorCodeEnum;
+import com.bashiju.utils.service.BaseController;
+import com.bashiju.utils.util.BashijuResult;
+import com.github.pagehelper.Page;
+/**
+ * 
+ * @ClassName:  StoreConfigurationController   
+ * @Description: 门店支出项配置控制层
+ * @author: wangpeng
+ * @date:   2018年6月27日 上午11:46:03   
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Controller
+@RequestMapping("storeConfiguration")
+public class StoreConfigurationController extends BaseController {
+	@Autowired
+	private StoreConfigurationService storeConfigurationService;
+	
+	@Autowired	
+	private ICommunityService communityService; 
+	/**
+	 * 
+	 * @Title: enterStoreConfigurationPage   
+	 * @Description: 进入门店支出配置页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterStoreConfigurationPage")
+	public ModelAndView enterStoreConfigurationPage(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "storeConfiguration/storeConfiguration");
+		return mv;
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: enterStoreConfigurationAdd   
+	 * @Description: 进入费用新增页面
+	 * @param request
+	 * @param response
+	 * @return      
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterFinanceCostTypeAdd")
+	public ModelAndView enterStoreConfigurationAdd(HttpServletRequest request,HttpServletResponse response) {
+		ModelAndView mv = getModelAndView(request, response, "storeConfiguration/financeCostTypeAdd");
+		//城市数据
+		List<Map<String, Object>> city = communityService.queryAreaSelect();
+		if(city!=null&&city.size()>0) {
+			mv.addObject("cityListJson", JSON.toJSONString(city));
+		}
+		return mv;
+	}
+	
+	/**
+	 * 
+	 * @Title: enterFinanceCostProjAddPage   
+	 * @Description: 进入费用项目新增页面
+	 * @param request
+	 * @param response
+	 * @param financeCostTypeId 费用类型id
+	 * @return: ModelAndView
+	 */
+	@RequestMapping(value="enterFinanceCostProjAddPage")
+	public ModelAndView enterFinanceCostProjAddPage(HttpServletRequest request,HttpServletResponse response,String financeCostTypeId) {
+		ModelAndView mv = getModelAndView(request, response, "storeConfiguration/financeCostProjAdd");
+		mv.addObject("financeCostTypeId", financeCostTypeId);
+		Map<String,Object> map= storeConfigurationService.queryFinanceCostTypeNameById(financeCostTypeId);
+		mv.addObject("financeCostTypeName", JSON.toJSON(map));
+		return mv;
+	}
+	/**
+	 * 新增费用项目类型
+	 * @Title: saveFinanceCostProj   
+	 * @Description: 新增费用项目类型
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateFinanceCostProj")
+	@ResponseBody
+	public BashijuResult saveOrUpdateFinanceCostProj(String jsonData) {
+		Map<Object,Object> map = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result=storeConfigurationService.saveOrUpdateFinanceCostProj(map);
+		if(result) {
+			return BashijuResult.ok();
+		}
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+	}
+	/**
+	 * 
+	 * @Title: saveFinanceCostType   
+	 * @Description: 新增费用类型
+	 * @param jsonData
+	 * @return: BashijuResult
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="saveOrUpdateFinanceCostType")
+	@ResponseBody
+	public BashijuResult saveOrUpdateFinanceCostType(String jsonData) {
+		Map<Object,Object> map = (Map<Object, Object>) JSONObject.parse(jsonData);
+		boolean result=storeConfigurationService.saveOrUpdateFinanceCostType(map);
+		if(result) {
+			return BashijuResult.ok();
+		}else {
+			throw new BusinessException(ErrorCodeEnum.SYSTEM_UPFDATE_ERROR);
+		}
+	}
+	/**
+	 * 
+	 * @Title: delFinanceCostProj   
+	 * @Description: 逻辑删除费用项目   
+	 * @param financeCostProjId 费用项目id
+	 * @return      
+	 * @return: BashijuResult
+	 */
+	@RequestMapping(value="delFinanceCostProj")
+	@ResponseBody
+	public BashijuResult delFinanceCostProj(String financeCostProjId) {
+		boolean result = storeConfigurationService.delFinanceCostProjById(financeCostProjId);
+		if(result)
+			return BashijuResult.ok();
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);
+	}
+	/**
+	 * 逻辑删除费用类型
+	 * @Title: deleteFinanceCostType   
+	 * @Description: 逻辑删除费用类型
+	 * @param id 费用类型编号
+	 * @return: boolean
+	 */
+	@RequestMapping(value="deleteFinanceCostType")
+	@ResponseBody
+	public boolean deleteFinanceCostType(String id) {
+		boolean result = storeConfigurationService.deleteFinanceCostType(id);
+		if(result)
+			return true;
+		throw new BusinessException(ErrorCodeEnum.SYSTEM_DEL_ERROR);	
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: queryFinanceCostTypeData   
+	 * @Description: 条件查询费用类型
+	 * @param page 当前页数
+	 * @param limit 每页总条数
+	 * @param cityCode 城市编码
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryFinanceCostTypeData")
+	@ResponseBody
+	public Map<String,Object> queryFinanceCostTypeData(int page,int limit,String cityCode){
+		Page<Map<String,Object>> pages = storeConfigurationService.queryFinanceCostType(page, limit,cityCode);
+		Map<String,Object> type = getPageResult(pages);
+		return type;
+	}
+	/**
+	 * 
+	 * @Title: queryFinanceCostProjByFinanceCostTypeId   
+	 * @Description: 条件查询费用项目
+	 * @param request 
+	 * @param financeCostTypeId 费用类型id
+	 * @param page 当前页数
+	 * @param limit 每页总数
+	 * @return      
+	 * @return: Map<String,Object>
+	 */
+	@RequestMapping(value="queryFinanceCostProjData")
+	@ResponseBody
+	public Map<String,Object> queryFinanceCostProjByFinanceCostTypeId(HttpServletRequest request ,String financeCostTypeId,int page,int limit){
+		Page<Map<String,Object>> pages = storeConfigurationService.queryFinanceCostProjByFinanceCostTypeId(financeCostTypeId, page, limit);
+		Map<String,Object> project = getPageResult(pages);
+		return project;
+	}
+}

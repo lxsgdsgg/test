@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.ext.mapper.PhoneFollowRecordMapper">
+<!-- 房源电话跟进 -->
+<select id="queryUserInfo" resultType="Map">
+	SELECT
+		sys_user.deptId,
+		sys_dept.name as deptName,
+		sys_user.id,
+		sys_user.realName,
+		sys_user.companyId,
+		sys_company.name as companyName 
+	FROM
+		sys_dept
+	INNER JOIN sys_user ON sys_dept.id = sys_user.deptId
+	INNER JOIN sys_company ON sys_company.id = sys_user.companyId
+	WHERE sys_user.mobile=#{mobile} and sys_user.isValid=1
+</select>
+</mapper>

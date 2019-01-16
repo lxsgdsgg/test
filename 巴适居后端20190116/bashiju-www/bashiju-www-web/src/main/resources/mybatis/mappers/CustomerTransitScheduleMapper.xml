@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.www.mapper.CustomerTransitScheduleMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerHouseTransitScheduleEntity" 
+			id="transScheduleEntity">
+		<id property="id" column="id"/>
+        <result property="scheduleName" column="scheduleName"/>
+        <result property="status" column="status"/>
+        <result property="estimateFinishTime" column="estimateFinishTime"/>
+        <result property="actualFinishTime" column="actualFinishTime"/>
+        <result property="transferId" column="transferId"/>
+        <result property="transfer" column="transfer"/>
+        <result property="remark" column="remark"/>
+        <result property="dealSequence" column="dealId"/>
+        <result property="houseSequence" column="houseId"/>
+     </resultMap>
+     
+	<select id="queryHouseTransitScheculeDataList" resultMap="transScheduleEntity">
+		select a.dealId,a.scheduleName,a.`status`,a.transferId,a.transfer,
+		a.estimateFinishTime,a.actualFinishTime,
+		a.remark,b.houseId,c.custId from deal_transferschedule a
+		inner join deal_transactioninfo b on a.dealId = b.id
+		inner join sys_custbindinfo c on b.shhid = c.sourcesId
+		where a.isValid = 1 and c.custId = #{custId}
+	</select>
+</mapper>

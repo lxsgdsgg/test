@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.manage.mapper.CompanyMapper">
+	<select id="queryCompanys" resultType="map">
+		select id,name,Doctype,doccode,legrepname,legDoctype,legdoccode,legdocmobile,contname,contphone,
+		cusemail,regaddrcity,regaddrdetail,status,url,permissionArea,operatorId,operator,addTime,
+		updateTime,isvalid from sys_company where isvalid=1 
+		<if test="name != null and name != '' "> and name like '%${name}%' </if> 
+		<if test="doccode != null and doccode != '' "> and doccode = #{doccode} </if>
+		<if test="legrepname != null and legrepname != '' "> and legrepname like '%${legrepname}%' </if> 
+		<if test="legdocmobile != null and legdocmobile != '' "> and legdocmobile = #{legdocmobile} </if>
+		<if test="status != null and status != '' "> and status = #{status} </if>
+		order by addTime
+	</select>
+	
+	<select id="getCompany" resultType="map">
+		select * from sys_company where id = #{companyId}
+	</select>
+	
+	<select id="isRelation" resultType="long">
+		select sum(total) from(select count(0) total from sys_user where companyId=#{companyId} and isvalid=1
+		union all select count(0)total from sys_dept where companyId=#{companyId} and isvalid=1
+		union all select count(0)total from sys_role where companyId=#{companyId} and isvalid=1)aa
+	</select>
+	
+	
+	<select id="queryCityByAreacode" resultType="map">
+			select * from sys_area where code=#{regaddrcity}
+	</select>
+		
+	<select id="queryCompanyNameAndId" resultType="map">
+		select id,name from sys_company where isValid =1
+	</select>
+</mapper>

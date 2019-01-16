@@ -1,0 +1,80 @@
+package com.bashiju.www.service.api.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.bashiju.www.pojo.comm.WebPage;
+import com.bashiju.www.pojo.service.input.house.HouseMapListParam;
+import com.bashiju.www.pojo.service.input.house.HouseMapParam;
+import com.bashiju.www.pojo.service.out.house.HouseMapListResult;
+import com.bashiju.www.pojo.service.out.house.HouseMapPointResult;
+import com.bashiju.www.service.api.IMapHouseSellPageService;
+import com.bashiju.www.service.comm.IMetroService;
+import com.bashiju.www.service.house.IHouseService;
+
+/**
+ * 
+ *   二手房地图找房页面接口实现
+ * @ClassName:  MapHouseSellPageService   
+ * @Description:  二手房地图找房页面接口实现
+ * @author: wangkaifa
+ * @date:   2018年8月10日 上午11:38:22       
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+public class MapHouseSellPageService implements IMapHouseSellPageService {
+	@Autowired
+	IHouseService houseService;
+	@Autowired
+	IMetroService metroService;
+	
+	@Override
+	public List<HouseMapPointResult> querySellMapHouseArea(HouseMapParam param) {
+		List<HouseMapPointResult> results=houseService.querySellMapHouseArea(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> querySellMapHouseRegion(HouseMapParam param) {
+		List<HouseMapPointResult> results=houseService.querySellMapHouseRegion(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> querySellMapHouseCommunity(HouseMapParam param) {
+		List<HouseMapPointResult> results=houseService.querySellMapHouseCommunity(param);
+		return results;
+	}
+
+	@Override
+	public WebPage<HouseMapListResult> querySellHouseMapList(HouseMapListParam param, int page, int limit) {
+		WebPage<HouseMapListResult> result=houseService.querySellHouseMapList(param, page, limit);
+		return result;
+	}
+	
+	@Override
+	public List<String> queryMetroLines(String cityCode){
+		List<String> results=metroService.queryMetroLines(cityCode);
+		return results;
+	}
+	
+	@Override
+	public List<HouseMapPointResult> querySellMapHouseMetro(HouseMapParam param) {
+		List<HouseMapPointResult> results=houseService.querySellMapHouseMetro(param);
+		return results;
+	}
+
+	@Override
+	public List<HouseMapPointResult> querySellMapHouseCommunityMetro(HouseMapParam param) {
+		List<HouseMapPointResult> results=houseService.querySellMapHouseCommunityMetro(param);
+		return results;
+	}
+
+	@Override
+	public WebPage<HouseMapListResult> querySellHouseMapMetroList(HouseMapListParam param, int page, int limit) {
+		WebPage<HouseMapListResult> result=houseService.querySellHouseMapMetroList(param, page, limit);
+		return result;
+	}
+
+}

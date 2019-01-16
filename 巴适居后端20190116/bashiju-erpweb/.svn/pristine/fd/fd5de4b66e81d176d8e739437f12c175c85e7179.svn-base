@@ -1,0 +1,155 @@
+<template>
+  <div class="page-content">
+    <div class="page-content-hd"></div>
+    <div class="page-content-bd">
+      <div class="wrapper">
+        <el-row :gutter="20">
+          <el-col :span="10">
+            <div class="grid-content bg-purple tree-wrap">
+              <base-tree
+                :props="treeProps"
+                :data="treeData"
+                ref="baseTree"
+                @nodeClick="nodeClick"
+              >
+              </base-tree>
+            </div>
+          </el-col>
+
+          <el-col :span="14">
+            <div class="grid-content bg-purple">
+              <div class="edit-form-wrap">
+                <el-form :model="form" :rules="formRules" ref="form" label-width="100px">
+                  <el-form-item label="名称" prop="menuName">
+                    <el-input v-model="form.menuName"></el-input>
+                  </el-form-item>
+                  <el-form-item label="编码" prop="code">
+                    <el-input v-model="form.code"></el-input>
+                  </el-form-item>
+                  <el-form-item label="URL" prop="url">
+                    <el-input v-model="form.url"></el-input>
+                  </el-form-item>
+                  <el-form-item label="顺序" prop="seqNum">
+                    <el-input-number :min="1" size="medium" v-model="form.seqNum"></el-input-number>
+                  </el-form-item>
+                  <el-form-item label="css图标" prop="css">
+                    <el-input v-model="form.css"></el-input>
+                  </el-form-item>
+                  <el-form-item label="类别" prop="menuType">
+                    <el-radio-group v-model="form.menuType">
+                      <el-radio :label="1">菜单</el-radio>
+                      <el-radio :label="2">按钮</el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+                  <el-form-item label="状态" prop="isActive">
+                    <el-switch v-model="form.isActive"></el-switch>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" :loading="submitLoading" @click.native.prevent="submitform('form')">保存</el-button>
+                    <el-button @click.native.prevent="handleAdd(1)">添加同级</el-button>
+                    <el-button @click.native.prevent="handleAdd(2)">添加子级</el-button>
+                  </el-form-item>
+                </el-form>
+              </div>
+            </div>
+          </el-col>
+
+        </el-row>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import BaseTree from '@/components/BaseTree'
+export default {
+  name: 'menuManage',
+  components: {BaseTree},
+  data () {
+    return {
+      submitLoading: false,
+      form: {
+        menuName: '',
+        code: '',
+        url: '',
+        seqNum: 0,
+        css: '',
+        menuType: null,
+        isActive: true
+      },
+      formRules: {
+        menuName: [
+          { required: true, message: '请输入名称', trigger: 'blur' }
+        ],
+        code: [
+          { required: true, message: '请输入编码', trigger: 'blur' }
+        ],
+        url: [
+          { required: true, message: '请url地址', trigger: 'blur' }
+        ],
+        seqNum: [
+          { required: true, message: '请输入顺序', trigger: 'change' }
+        ],
+        menuType: [
+          { required: true, message: '请选择类型', trigger: 'change' }
+        ]
+      },
+      treeData: [],
+      treeProps: {
+        children: 'children',
+        label: 'label'
+      }
+    }
+  },
+  methods: {
+    handleAdd () {},
+    nodeClick () {
+    }
+  },
+  mounted () {
+    this.treeData = [
+      {
+        path: '/manage',
+        name: '平台管理',
+        children: [
+          {
+            path: '/house',
+            name: '系统管理'
+          },
+          {
+            path: '/house',
+            name: '业务管理'
+          },
+          {
+            path: '/house',
+            name: 'C端管理'
+          }
+        ]
+      },
+      {
+        path: '/house',
+        name: '房源平台'
+      },
+      {
+        path: '/house',
+        name: '财务平台'
+      },
+      {
+        path: '/customer',
+        name: '客源平台'
+      },
+      {
+        path: '/deal',
+        name: '成交平台'
+      }
+    ]
+    this.$refs['baseTree'].getDataState(true)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+  .wrapper {
+    width: 800px;
+  }
+</style>

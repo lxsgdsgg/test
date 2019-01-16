@@ -1,0 +1,12 @@
+jdbc.master.driver=com.mysql.jdbc.Driver
+jdbc.master.url=jdbc:mysql://116.55.242.15:3316/bashiju_pro?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+jdbc.master.username=bashiju
+jdbc.master.password=ZtlABgU+9XGJS1Jw1CgZyY/3rd/1hTToglQddcNHqFDywg5AsxFuQKnf/EFs2oodQc/vs0Ujh1Y9UVaFI9WqEQ==
+jdbc.master.key=config.decrypt=true;config.decrypt.key=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJISSkTfOMoou1BXRzY7A8Sl08ePE4S/5sGCO0UViXo9CAnmF0ZkfgHMcQEF6dtp2tArRb+N/PFVNKWVVqGcpJ0CAwEAAQ==
+
+jdbc.slave01.driver=com.mysql.jdbc.Driver
+jdbc.slave01.url=jdbc:mysql://116.55.242.15:3316/bashiju_pro?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+jdbc.slave01.username=bashiju
+jdbc.slave01.password=ZtlABgU+9XGJS1Jw1CgZyY/3rd/1hTToglQddcNHqFDywg5AsxFuQKnf/EFs2oodQc/vs0Ujh1Y9UVaFI9WqEQ==
+jdbc.slave01.key=config.decrypt=true;config.decrypt.key=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJISSkTfOMoou1BXRzY7A8Sl08ePE4S/5sGCO0UViXo9CAnmF0ZkfgHMcQEF6dtp2tArRb+N/PFVNKWVVqGcpJ0CAwEAAQ==
+root

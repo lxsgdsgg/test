@@ -1,0 +1,72 @@
+package com.bashiju.manage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.bashiju.enums.BottomContentEnum;
+import com.bashiju.enums.ExamineStatusEnum;
+import com.bashiju.enums.FtpFileTypeEnum;
+import com.bashiju.enums.FtpSourceTypeEnum;
+import com.bashiju.enums.HouseArticleTypeEnum;
+import com.bashiju.enums.RoleGroupEnum;
+import com.bashiju.manage.mapper.ContentmanageMapper;
+import com.bashiju.manage.mapper.ImgmanageMapper;
+import com.bashiju.manage.service.ContentmanageService;
+import com.bashiju.manage.service.ImgmanageService;
+import com.bashiju.utils.exception.BusinessException;
+import com.bashiju.utils.log.ExecutionResult;
+import com.bashiju.utils.log.SystemServiceLog;
+import com.bashiju.utils.service.CommonSqlServie;
+import com.bashiju.utils.threadlocal.UserThreadLocal;
+import com.bashiju.utils.util.FtpUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName:  ContentmanageServiceImpl   
+ * @Description:TODO(内容管理具体实现)   
+ * @author: liwen
+ * @date:   2018年7月20日 上午11:21:32   
+ *     
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@SystemServiceLog(sourceType="内容管理") 
+@Service
+public class ImgmanageServiceImpl implements ImgmanageService{
+	
+	@Autowired
+	 private CommonSqlServie commonSqlServie;
+	@Autowired
+	 private ImgmanageMapper imgmanageMapper;
+	
+
+	public Page<Map<String, Object>> queryComImg(Map<String,Object> conditions,int page,int limit){
+		PageHelper.startPage(page, limit);
+		Page<Map<String, Object>> res = imgmanageMapper.queryComImg(conditions);
+		return res;
+	}
+	
+	
+	public Long saveComImg(Map<String,Object> data) {
+		Map<Object,Object> mm = (Map)data;
+		Long res = commonSqlServie.commonOperationDatabase(mm, "sys_image", "id", false);
+		return res;
+	}
+	
+	
+}

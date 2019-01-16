@@ -1,0 +1,57 @@
+package com.bashiju.quartz.task;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.bashiju.api.UserManageApi;
+import com.bashiju.quartz.util.QuartzUtil;
+
+@Component
+public class Car implements Job {
+	
+	@Autowired
+	UserManageApi userManageApi;
+	private static final Logger logger = LogManager.getLogger(LogManager.ROOT_LOGGER_NAME); 
+	private DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+	public void starting() {
+		
+		logger.info(df.format(new Date()) + "---------->车辆启动");
+		
+
+	}
+
+	public void running(JobExecutionContext context) {
+		System.out.println(context.getJobDetail().getJobDataMap().get("scheduleJob"));
+		 /*System.out.println("sssssssssssssssssss"+jdMap.getChar(key));*/
+		userManageApi.updateUserStatus("2");
+		logger.info(df.format(new Date()) + "---------->车辆开动");
+		
+		String mainJob = QuartzUtil.getScheduleJobName("car_running");
+		QuartzUtil.executeChildJobs(mainJob);
+	}
+
+	public void stop() {
+		logger.info(df.format(new Date()) + "---------->车辆停止");
+		
+		String mainJob = QuartzUtil.getScheduleJobName("car_stop");
+		QuartzUtil.executeChildJobs(mainJob);
+	}
+
+	@Override
+	public void execute(JobExecutionContext context) throws JobExecutionException {
+		JobDataMap jdMap=context.getJobDetail().getJobDataMap();
+		String name = jdMap.get("methodName").toString();
+		int a=0;
+	}
+}

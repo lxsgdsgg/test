@@ -1,0 +1,173 @@
+/**  
+ * All rights Reserved, Designed By www.bashiju.com
+ * @Title:  CustomerOwnerHouseServiceImpl.java   
+ * @Package com.bashiju.www.service.user.impl      
+ * @author: zuoyuntao     
+ * @date:   2018年7月26日 下午4:13:32   
+ * @version V1.0 
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved. 
+ * 注意：本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目*/
+
+package com.bashiju.www.service.user.impl;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bashiju.wutils.exception.BusinessException;
+import com.bashiju.wutils.util.Md5EncryptUtils;
+import com.bashiju.www.mapper.CustomerOwnerHouseMapper;
+import com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity;
+import com.bashiju.www.service.comm.ICacheService;
+import com.bashiju.www.service.user.ICustomerOwnerHouseService;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+
+/**
+ * 个人中心--我的房子服务
+ * @ClassName:CustomerOwnerHouseServiceImpl
+ * @Description:个人中心--我的房子服务
+ * @author:zuoyuntao
+ * @date:2018年7月26日 下午4:13:32
+ * @Copyright: 2018 www.bashiju.com Inc. All rights reserved.
+ * 本内容仅限于云南巴士居网络服务公司内部传阅，禁止外泄以及用于其他的商业项目
+ */
+@Service
+public class CustomerOwnerHouseServiceImpl implements ICustomerOwnerHouseService{
+	/**
+	 * 阿里巴巴数据映射对象
+	 */
+	private static ObjectMapper MAPPER = new ObjectMapper();
+	/**
+	 * Redis数据读取服务
+	 */
+	@Autowired
+	private ICacheService mCacheService;
+	/**
+	 * 我的房子持久层接口
+	 */
+	@Autowired
+	private CustomerOwnerHouseMapper mCustomerOwnerHouseMapper;
+	/**
+	 * <p>Title: queryCustOwnerHouseList</p>   
+	 * <p>Description: 查询客户个人发布的所有房源 </p>   
+	 * @param custId 客户ID
+	 * @param houseType 房屋类型 （0：房源 1 客源）
+	 * @param page 每页显示最小条数
+	 * @param limit 每页显示最大条数
+	 * @see com.bashiju.www.service.user.ICustomerOwnerHouseService#queryCustOwnerHouseList(java.lang.String)
+	 */
+	@Override
+	public Page<CustomerOwnerHouseEntity> queryCustOwnerHouseList(
+			String custId,String houseType,int page,int limit) {
+		Page<CustomerOwnerHouseEntity> pageObj = null;
+		String redisKey = Md5EncryptUtils.md5Encrypt("queryCustOwnerHouseList" 
+				+ custId + houseType + page + limit);
+		List<CustomerOwnerHouseEntity> list = readCustOwnerHouseFromRedisByKey(redisKey);
+		if(list.size() == 0) {
+			PageHelper.startPage(page,limit);
+			pageObj = mCustomerOwnerHouseMapper.queryMyOwnerHouseDataList(custId,houseType);
+			setCustOwnerDataToRedis(redisKey,pageObj);
+		}else {
+			pageObj = (Page<CustomerOwnerHouseEntity>) list;
+		}
+		return pageObj;
+	}
+	/**
+	 * <p>Title: bindingSourcesByBindCode</p>   
+	 * <p>Description:根据绑定码绑定房源和客户 </p>   
+	 * @param custId 客户ID
+	 * @param bindingCode 绑定码  
+	 * @see com.bashiju.www.service.user.ICustomerOwnerHouseService#bindingHouseByBindCode(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void bindingSourcesByBindCode(String custId, String bindingCode) throws Exception {
+		String sourcesId = readDataValueByBindingCodeFromRedis(bindingCode, String.class);
+		if(null == sourcesId) {
+			throw new BusinessException("绑定码失效！请联系经纪人");
+		}
+		Map<String,Object> paraMap = new HashMap<String,Object>();
+		paraMap.put("custId", custId);
+		paraMap.put("type", "0");
+		paraMap.put("sourcesId", sourcesId);
+		paraMap.put("addTime", new Date());
+		paraMap.put("isValid", "1");
+		mCustomerOwnerHouseMapper.saveBindingHouseResult(paraMap);
+	}
+	
+	/**
+	 * 保存数据到Redis服务器
+	 * @Title: setCustOwnerDataToRedis
+	 * @author: zuoyuntao  
+	 * @Description:保存数据到Redis服务器
+	 * @param key
+	 * @param dataList      
+	 * void JSON 格式为：
+	 */
+	private void setCustOwnerDataToRedis(String key,List<CustomerOwnerHouseEntity> dataList) {
+		try {
+			mCacheService.saveCache(key, MAPPER.writeValueAsString(dataList), 60*60);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 根据Key从Redis服务器读取数据结果集 
+	 * @Title: readCustOwnerHouseFromRedisByKey
+	 * @author: zuoyuntao  
+	 * @Description:根据Key从Redis服务器读取数据结果集
+	 * @param key 
+	 * @return      
+	 * List<CustomerOwnerHouseEntity> JSON 格式为：
+	 */
+	@SuppressWarnings("unchecked")
+	private List<CustomerOwnerHouseEntity> readCustOwnerHouseFromRedisByKey(String key){
+		List<CustomerOwnerHouseEntity> retList = new ArrayList<CustomerOwnerHouseEntity>();
+		String retStr = mCacheService.getCache(key);
+		if(StringUtil.isNotEmpty(retStr)) {
+			try {
+				retList = MAPPER.readValue(retStr, Page.class);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return retList;
+	}
+	
+	/**
+	 * 根据key从Redis服务器读取数据
+	 * @Title: readDataFromRedis
+	 * @author: zuoyuntao  
+	 * @Description:根据key从Redis服务器读取数据
+	 * @param key Redis数据存储的Key
+	 * @return      
+	 * String 房源ID
+	 */
+	private String readDataValueByBindingCodeFromRedis(String key,Class<?> className) {
+		String retStr = mCacheService.getCache(key);
+		try {
+			if(StringUtil.isNotEmpty(retStr)) {
+				return String.valueOf(MAPPER.readValue(retStr,className));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

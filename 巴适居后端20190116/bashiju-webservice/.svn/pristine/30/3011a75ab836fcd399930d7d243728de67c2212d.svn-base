@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bashiju.webservice.mapper.CustomerOwnerHouseMapper">
+	<resultMap 
+		type="com.bashiju.www.pojo.service.out.usercentral.CustomerOwnerHouseEntity" 
+			id="ownerHouseEntity">
+		<id property="id" column="id"/>
+        <result property="houseId" column="houseId"/>
+        <result property="transactionTypeId" column="transactionTypeId"/>
+        <result property="transactionType" column="transactionType"/>
+        <result property="custId" column="custId"/>
+        <result property="titles" column="titles"/>
+        <result property="custName" column="custName"/>
+        <result property="isValid" column="isValid"/>
+        <result property="companyId" column="companyId"/>
+        <result property="companyName" column="companyName"/>
+        <result property="houseSequence" column="houseSequence"/>
+        <result property="matching" column="matching"/>
+        <result property="areaCode" column="areaCode"/>
+        <result property="areaName" column="areaName"/>
+        <result property="cityCode" column="cityCode"/>
+        <result property="regionId" column="regionId"/>
+        <result property="regionName" column="regionName"/>
+        <result property="communityId" column="communityId"/>
+        <result property="communityName" column="communityName"/>
+        <result property="buildingsId" column="buildingsId"/>
+        <result property="buildingsName" column="buildingsName"/>
+        <result property="bulidingUnitId" column="bulidingUnitId"/>
+        <result property="buildingsUnitName" column="buildingsUnitName"/>
+        <result property="buildingHouseName" column="buildingHouseName"/>
+        <result property="buildingHouseId" column="buildingHouseId"/>
+     </resultMap>
+     
+	<select id="queryMyOwnerHouseDataList" resultMap="ownerHouseEntity">
+		select a.id,b.id as houseId,b.transactionTypeId,b.transactionType,b.houseId as houseSequence
+		,d.name as custName,b.isValid,b.companyId,b.companyName,b.id as houseId,b.titles
+		,a.custId,b.matching,c.areaCode,c.areaName,c.cityCode,c.regionId
+		,c.regionName,c.communityId,c.communityName,c.buildingsId,c.buildingsName
+		,c.bulidingUnitId,c.buildingsUnitName,c.buildingHouseName
+		,c.buildingHouseId,e.id as agentId,e.realName as agentName from sys_custbindinfo a 
+		inner join hs_secondhandhouse b on a.sourcesId = b.id
+		inner join hs_housebaseinfo c on b.houseId = c.id 
+		inner join cust_customer d on a.custId = d.id 
+		inner join sys_user e on b.operatorId = e.id where b.isValid = 1 
+		and a.type = 0 and a.custId = #{custId}
+	</select>
+	
+	<select id="countAlreadyBindHouse">
+		select count(1) from sys_custBindInfo where isValid = 1 and custId = #{custId} 
+		and type = #{transactionType} and sourcesId = #{sourcesId}
+	</select>
+	
+	<insert id="saveBindingHouseResult" parameterType="map">
+	 	insert into sys_custBindInfo
+ 		<foreach collection="paraMap.entrySet()" index="key" open="(" separator=","  close=")">
+			<if test="key != 'id'.toString()">
+				${key}
+			</if>
+		</foreach> 
+		values			
+		<foreach collection="paraMap.entrySet()" index="key" item="item" open="("  separator="," close=")"> 
+			<if test="key != 'id'.toString()">
+				#{item} 					
+			</if>
+		</foreach>
+	</insert>
+</mapper>
